@@ -12,7 +12,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   App: () => (/* binding */ App)
 /* harmony export */ });
-/* harmony import */ var preact_hooks__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact/hooks */ "../../../node_modules/preact/hooks/dist/hooks.module.js");
+/* harmony import */ var preact_hooks__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact/hooks */ "./node_modules/preact/hooks/dist/hooks.module.js");
 /* harmony import */ var _lib_api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./lib/api.js */ "./assets/src/form/lib/api.js");
 /* harmony import */ var _lib_idempotency_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./lib/idempotency.js */ "./assets/src/form/lib/idempotency.js");
 /* harmony import */ var _lib_tz_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./lib/tz.js */ "./assets/src/form/lib/tz.js");
@@ -29,7 +29,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _lib_payments_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./lib/payments.js */ "./assets/src/form/lib/payments.js");
 /* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./lib/format.js */ "./assets/src/form/lib/format.js");
 /* harmony import */ var _lib_hold_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./lib/hold.js */ "./assets/src/form/lib/hold.js");
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 /** @jsxImportSource preact */
 /**
  * Booking widget root — the client-side state machine for the V1 four-step flow
@@ -2502,7 +2502,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _icons_jsx__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./icons.jsx */ "./assets/src/form/components/icons.jsx");
 /* harmony import */ var _lib_copy_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lib/copy.js */ "./assets/src/form/lib/copy.js");
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 /** @jsxImportSource preact */
 /**
  * Month calendar — bare numbers with 1-letter weekdays, per-day availability bars
@@ -2676,13 +2676,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var preact_hooks__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! preact/hooks */ "../../../node_modules/preact/hooks/dist/hooks.module.js");
+/* harmony import */ var preact_hooks__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! preact/hooks */ "./node_modules/preact/hooks/dist/hooks.module.js");
 /* harmony import */ var _lib_tz_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lib/tz.js */ "./assets/src/form/lib/tz.js");
 /* harmony import */ var _icons_jsx__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./icons.jsx */ "./assets/src/form/components/icons.jsx");
 /* harmony import */ var _feedback_jsx__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./feedback.jsx */ "./assets/src/form/components/feedback.jsx");
 /* harmony import */ var _lib_copy_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/copy.js */ "./assets/src/form/lib/copy.js");
 /* harmony import */ var _lib_payments_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/payments.js */ "./assets/src/form/lib/payments.js");
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 /** @jsxImportSource preact */
 /**
  * Step 4 — Confirmation (SPEC-P1 §2.2 #4).
@@ -3139,7 +3139,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _lib_tz_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/tz.js */ "./assets/src/form/lib/tz.js");
 /* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/form/lib/format.js");
 /* harmony import */ var _lib_copy_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/copy.js */ "./assets/src/form/lib/copy.js");
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 /** @jsxImportSource preact */
 /**
  * Step 2 — Date & time (SPEC-P1 §2.2 #2).
@@ -3344,11 +3344,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   DetailsStep: () => (/* binding */ DetailsStep),
 /* harmony export */   customKey: () => (/* binding */ customKey)
 /* harmony export */ });
-/* harmony import */ var preact_hooks__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact/hooks */ "../../../node_modules/preact/hooks/dist/hooks.module.js");
+/* harmony import */ var preact_hooks__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact/hooks */ "./node_modules/preact/hooks/dist/hooks.module.js");
 /* harmony import */ var _StepHeader_jsx__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./StepHeader.jsx */ "./assets/src/form/components/StepHeader.jsx");
 /* harmony import */ var _Footer_jsx__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Footer.jsx */ "./assets/src/form/components/Footer.jsx");
 /* harmony import */ var _lib_copy_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/copy.js */ "./assets/src/form/lib/copy.js");
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 /** @jsxImportSource preact */
 /**
  * Step 3 — Your details (SPEC-P1 §2.2 #3).
@@ -3659,7 +3659,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _icons_jsx__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./icons.jsx */ "./assets/src/form/components/icons.jsx");
 /* harmony import */ var _lib_copy_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../lib/copy.js */ "./assets/src/form/lib/copy.js");
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 /** @jsxImportSource preact */
 /**
  * In-flow footer: a text Back link and one primary CTA per step (design decision
@@ -3731,7 +3731,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _feedback_jsx__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./feedback.jsx */ "./assets/src/form/components/feedback.jsx");
 /* harmony import */ var _lib_copy_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/copy.js */ "./assets/src/form/lib/copy.js");
 /* harmony import */ var _lib_payments_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/payments.js */ "./assets/src/form/lib/payments.js");
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 /** @jsxImportSource preact */
 /**
  * Step 4 — Payment method (SPEC-P1 §2.2, D-R38).
@@ -3934,12 +3934,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   ServiceStep: () => (/* binding */ ServiceStep)
 /* harmony export */ });
-/* harmony import */ var preact_hooks__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact/hooks */ "../../../node_modules/preact/hooks/dist/hooks.module.js");
+/* harmony import */ var preact_hooks__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact/hooks */ "./node_modules/preact/hooks/dist/hooks.module.js");
 /* harmony import */ var _icons_jsx__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./icons.jsx */ "./assets/src/form/components/icons.jsx");
 /* harmony import */ var _StepHeader_jsx__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./StepHeader.jsx */ "./assets/src/form/components/StepHeader.jsx");
 /* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/form/lib/format.js");
 /* harmony import */ var _lib_copy_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/copy.js */ "./assets/src/form/lib/copy.js");
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 /** @jsxImportSource preact */
 /**
  * Step 1 — Service (SPEC-P1 §2.2 #1).
@@ -4218,7 +4218,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   ServiceSkeleton: () => (/* binding */ ServiceSkeleton),
 /* harmony export */   SlotsSkeleton: () => (/* binding */ SlotsSkeleton)
 /* harmony export */ });
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 
 /** @jsxImportSource preact */
 /**
@@ -4331,9 +4331,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   StepHeader: () => (/* binding */ StepHeader)
 /* harmony export */ });
-/* harmony import */ var preact_hooks__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact/hooks */ "../../../node_modules/preact/hooks/dist/hooks.module.js");
+/* harmony import */ var preact_hooks__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact/hooks */ "./node_modules/preact/hooks/dist/hooks.module.js");
 /* harmony import */ var _lib_copy_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../lib/copy.js */ "./assets/src/form/lib/copy.js");
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 /** @jsxImportSource preact */
 /**
  * Step heading with the compact fraction progress (SPEC-P1 §2.1). Progress is a
@@ -4401,7 +4401,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _lib_tz_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../lib/tz.js */ "./assets/src/form/lib/tz.js");
 /* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/form/lib/format.js");
 /* harmony import */ var _lib_copy_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lib/copy.js */ "./assets/src/form/lib/copy.js");
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 /** @jsxImportSource preact */
 /**
  * Booking summary — ONE renderer, TWO placements. The ≥700px container gets it as
@@ -4538,7 +4538,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Toast: () => (/* binding */ Toast)
 /* harmony export */ });
 /* harmony import */ var _icons_jsx__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./icons.jsx */ "./assets/src/form/components/icons.jsx");
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 /** @jsxImportSource preact */
 /**
  * Feedback surfaces: the inverse toast (409 slot-taken) and the warn/err/info
@@ -4618,7 +4618,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   IconPrinter: () => (/* binding */ IconPrinter),
 /* harmony export */   IconSearch: () => (/* binding */ IconSearch)
 /* harmony export */ });
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 
 /** @jsxImportSource preact */
 /**
@@ -7694,12 +7694,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   mountWidget: () => (/* binding */ mountWidget)
 /* harmony export */ });
-/* harmony import */ var preact__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact */ "../../../node_modules/preact/dist/preact.module.js");
+/* harmony import */ var preact__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact */ "./node_modules/preact/dist/preact.module.js");
 /* harmony import */ var _app_jsx__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./app.jsx */ "./assets/src/form/app.jsx");
 /* harmony import */ var _styles_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./styles.js */ "./assets/src/form/styles.js");
 /* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./lib/config.js */ "./assets/src/form/lib/config.js");
 /* harmony import */ var _lib_appearance_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./lib/appearance.js */ "./assets/src/form/lib/appearance.js");
-/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! preact/jsx-runtime */ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
+/* harmony import */ var preact_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! preact/jsx-runtime */ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js");
 /** @jsxImportSource preact */
 /**
  * Mount the Preact booking widget into an OPEN ShadowRoot on a host element,
@@ -8400,10 +8400,10 @@ const SHADOW_CSS = TOKENS + COMPONENTS;
 
 /***/ },
 
-/***/ "../../../node_modules/preact/dist/preact.module.js"
-/*!**********************************************************!*\
-  !*** ../../../node_modules/preact/dist/preact.module.js ***!
-  \**********************************************************/
+/***/ "./node_modules/preact/dist/preact.module.js"
+/*!***************************************************!*\
+  !*** ./node_modules/preact/dist/preact.module.js ***!
+  \***************************************************/
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
@@ -8427,10 +8427,10 @@ var n,l,u,t,i,r,o,e,f,c,a,s,h,p,v,y,d={},w=[],_=/acit|ex(?:s|g|n|p|$)|rph|grid|o
 
 /***/ },
 
-/***/ "../../../node_modules/preact/hooks/dist/hooks.module.js"
-/*!***************************************************************!*\
-  !*** ../../../node_modules/preact/hooks/dist/hooks.module.js ***!
-  \***************************************************************/
+/***/ "./node_modules/preact/hooks/dist/hooks.module.js"
+/*!********************************************************!*\
+  !*** ./node_modules/preact/hooks/dist/hooks.module.js ***!
+  \********************************************************/
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
@@ -8448,17 +8448,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   useRef: () => (/* binding */ A),
 /* harmony export */   useState: () => (/* binding */ d)
 /* harmony export */ });
-/* harmony import */ var preact__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact */ "../../../node_modules/preact/dist/preact.module.js");
+/* harmony import */ var preact__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact */ "./node_modules/preact/dist/preact.module.js");
 var t,r,u,i,o=0,f=[],c=preact__WEBPACK_IMPORTED_MODULE_0__.options,e=c.__b,a=c.__r,v=c.diffed,l=c.__c,m=c.unmount,p=c.__;function s(n,t){c.__h&&c.__h(r,n,o||t),o=0;var u=r.__H||(r.__H={__:[],__h:[]});return n>=u.__.length&&u.__.push({}),u.__[n]}function d(n){return o=1,y(D,n)}function y(n,u,i){var o=s(t++,2);if(o.t=n,!o.__c&&(o.__=[i?i(u):D(void 0,u),function(n){var t=o.__N?o.__N[0]:o.__[0],r=o.t(t,n);t!==r&&(o.__N=[r,o.__[1]],o.__c.setState({}))}],o.__c=r,!r.__f)){var f=function(n,t,r){if(!o.__c.__H)return!0;var u=!1,i=o.__c.props!==n;if(o.__c.__H.__.some(function(n){if(n.__N){u=!0;var t=n.__[0];n.__=n.__N,n.__N=void 0,t!==n.__[0]&&(i=!0)}}),c){var f=c.call(this,n,t,r);return u?f||i:f}return!u||i};r.__f=!0;var c=r.shouldComponentUpdate,e=r.componentWillUpdate;r.componentWillUpdate=function(n,t,r){if(this.__e){var u=c;c=void 0,f(n,t,r),c=u}e&&e.call(this,n,t,r)},r.shouldComponentUpdate=f}return o.__N||o.__}function h(n,u){var i=s(t++,3);!c.__s&&C(i.__H,u)&&(i.__=n,i.u=u,r.__H.__h.push(i))}function _(n,u){var i=s(t++,4);!c.__s&&C(i.__H,u)&&(i.__=n,i.u=u,r.__h.push(i))}function A(n){return o=5,T(function(){return{current:n}},[])}function F(n,t,r){o=6,_(function(){if("function"==typeof n){var r=n(t());return function(){n(null),r&&"function"==typeof r&&r()}}if(n)return n.current=t(),function(){return n.current=null}},null==r?r:r.concat(n))}function T(n,r){var u=s(t++,7);return C(u.__H,r)&&(u.__=n(),u.__H=r,u.__h=n),u.__}function q(n,t){return o=8,T(function(){return n},t)}function x(n){var u=r.context[n.__c],i=s(t++,9);return i.c=n,u?(null==i.__&&(i.__=!0,u.sub(r)),u.props.value):n.__}function P(n,t){c.useDebugValue&&c.useDebugValue(t?t(n):n)}function b(n){var u=s(t++,10),i=d();return u.__=n,r.componentDidCatch||(r.componentDidCatch=function(n,t){u.__&&u.__(n,t),i[1](n)}),[i[0],function(){i[1](void 0)}]}function g(){var n=s(t++,11);if(!n.__){for(var u=r.__v;null!==u&&!u.__m&&null!==u.__;)u=u.__;var i=u.__m||(u.__m=[0,0]);n.__="P"+i[0]+"-"+i[1]++}return n.__}function j(){for(var n;n=f.shift();){var t=n.__H;if(n.__P&&t)try{t.__h.some(z),t.__h.some(B),t.__h=[]}catch(r){t.__h=[],c.__e(r,n.__v)}}}c.__b=function(n){r=null,e&&e(n)},c.__=function(n,t){n&&t.__k&&t.__k.__m&&(n.__m=t.__k.__m),p&&p(n,t)},c.__r=function(n){a&&a(n),t=0;var i=(r=n.__c).__H;i&&(u===r?(i.__h=[],r.__h=[],i.__.some(function(n){n.__N&&(n.__=n.__N),n.u=n.__N=void 0})):(i.__h.some(z),i.__h.some(B),i.__h=[],t=0)),u=r},c.diffed=function(n){v&&v(n);var t=n.__c;t&&t.__H&&(t.__H.__h.length&&(1!==f.push(t)&&i===c.requestAnimationFrame||((i=c.requestAnimationFrame)||w)(j)),t.__H.__.some(function(n){n.u&&(n.__H=n.u,n.u=void 0)})),u=r=null},c.__c=function(n,t){t.some(function(n){try{n.__h.some(z),n.__h=n.__h.filter(function(n){return!n.__||B(n)})}catch(r){t.some(function(n){n.__h&&(n.__h=[])}),t=[],c.__e(r,n.__v)}}),l&&l(n,t)},c.unmount=function(n){m&&m(n);var t,r=n.__c;r&&r.__H&&(r.__H.__.some(function(n){try{z(n)}catch(n){t=n}}),r.__H=void 0,t&&c.__e(t,r.__v))};var k="function"==typeof requestAnimationFrame;function w(n){var t,r=function(){clearTimeout(u),k&&cancelAnimationFrame(t),setTimeout(n)},u=setTimeout(r,35);k&&(t=requestAnimationFrame(r))}function z(n){var t=r,u=n.__c;"function"==typeof u&&(n.__c=void 0,u()),r=t}function B(n){var t=r;n.__c=n.__(),r=t}function C(n,t){return!n||n.length!==t.length||t.some(function(t,r){return t!==n[r]})}function D(n,t){return"function"==typeof t?t(n):t}
 //# sourceMappingURL=hooks.module.js.map
 
 
 /***/ },
 
-/***/ "../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js"
-/*!**************************************************************************!*\
-  !*** ../../../node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js ***!
-  \**************************************************************************/
+/***/ "./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js"
+/*!*******************************************************************!*\
+  !*** ./node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js ***!
+  \*******************************************************************/
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
@@ -8471,7 +8471,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   jsxTemplate: () => (/* binding */ a),
 /* harmony export */   jsxs: () => (/* binding */ u)
 /* harmony export */ });
-/* harmony import */ var preact__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact */ "../../../node_modules/preact/dist/preact.module.js");
+/* harmony import */ var preact__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! preact */ "./node_modules/preact/dist/preact.module.js");
 var t=/["&<]/;function n(r){if(0===r.length||!1===t.test(r))return r;for(var e=0,n=0,o="",f="";n<r.length;n++){switch(r.charCodeAt(n)){case 34:f="&quot;";break;case 38:f="&amp;";break;case 60:f="&lt;";break;default:continue}n!==e&&(o+=r.slice(e,n)),o+=f,e=n+1}return n!==e&&(o+=r.slice(e,n)),o}var o=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i,f=0,i=Array.isArray;function u(e,t,n,o,i,u){t||(t={});var a,c,p=t;if("ref"in p)for(c in p={},t)"ref"==c?a=t[c]:p[c]=t[c];var l={type:e,props:p,key:n,ref:a,__k:null,__:null,__b:0,__e:null,__c:null,constructor:void 0,__v:--f,__i:-1,__u:0,__source:i,__self:u};if("function"==typeof e&&(a=e.defaultProps))for(c in a)void 0===p[c]&&(p[c]=a[c]);return preact__WEBPACK_IMPORTED_MODULE_0__.options.vnode&&preact__WEBPACK_IMPORTED_MODULE_0__.options.vnode(l),l}function a(r){var t=u(preact__WEBPACK_IMPORTED_MODULE_0__.Fragment,{tpl:r,exprs:[].slice.call(arguments,1)});return t.key=t.__v,t}var c={},p=/[A-Z]/g;function l(e,t){if(preact__WEBPACK_IMPORTED_MODULE_0__.options.attr){var f=preact__WEBPACK_IMPORTED_MODULE_0__.options.attr(e,t);if("string"==typeof f)return f}if(t=function(r){return null!==r&&"object"==typeof r&&"function"==typeof r.valueOf?r.valueOf():r}(t),"ref"===e||"key"===e)return"";if("style"===e&&"object"==typeof t){var i="";for(var u in t){var a=t[u];if(null!=a&&""!==a){var l="-"==u[0]?u:c[u]||(c[u]=u.replace(p,"-$&").toLowerCase()),s=";";"number"!=typeof a||l.startsWith("--")||o.test(l)||(s="px;"),i=i+l+":"+a+s}}return e+'="'+n(i)+'"'}return null==t||!1===t||"function"==typeof t||"object"==typeof t?"":!0===t?e:e+'="'+n(""+t)+'"'}function s(r){if(null==r||"boolean"==typeof r||"function"==typeof r)return null;if("object"==typeof r){if(void 0===r.constructor)return r;if(i(r)){for(var e=0;e<r.length;e++)r[e]=s(r[e]);return r}}return n(""+r)}
 //# sourceMappingURL=jsxRuntime.module.js.map
 

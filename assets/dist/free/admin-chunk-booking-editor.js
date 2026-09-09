@@ -1647,7 +1647,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _pressmaximum_dashboard_kit_primitives__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @pressmaximum/dashboard-kit/primitives */ "../../../node_modules/@pressmaximum/dashboard-kit/build/primitives/index.mjs");
+/* harmony import */ var _pressmaximum_dashboard_kit_primitives__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @pressmaximum/dashboard-kit/primitives */ "./node_modules/@pressmaximum/dashboard-kit/build/primitives/index.mjs");
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _lib_api_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/api.js */ "./assets/src/admin/lib/api.js");
