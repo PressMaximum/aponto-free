@@ -4,7 +4,7 @@ Tags: appointments, booking, calendar, scheduling, booking-form
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -156,6 +156,13 @@ hCaptcha's terms of service: https://www.hcaptcha.com/terms
 
 == Changelog ==
 
+= 1.0.2 =
+
+* Clarified the public source and reproducible build path for every distributed browser bundle.
+* Made REST API permission callbacks statically explicit while preserving their authorization behavior.
+* Updated the Free staff and business-location admin experience.
+* Hardened local asset-manifest loading and release validation.
+
 = 1.0.1 =
 
 * Improved WordPress.org compatibility, package separation, and REST permission handling.
@@ -175,6 +182,10 @@ hCaptcha's terms of service: https://www.hcaptcha.com/terms
 * Privacy: personal-data export and erase integration, optional retention-based anonymization, and an optional consent checkbox.
 
 == Upgrade Notice ==
+
+= 1.0.2 =
+
+WordPress.org compatibility and package-verification update. No data migration is required.
 
 = 1.0.1 =
 

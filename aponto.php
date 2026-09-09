@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Aponto
  * Description:       Appointment booking plugin by PressMaximum.
- * Version:           1.0.1
+ * Version:           1.0.2
  * Requires at least: 6.6
  * Requires PHP:      8.1
  * Author:            PressMaximum
@@ -25,7 +25,7 @@ if ( ! defined( 'APONTO_DEV' ) ) {
 	define( 'APONTO_DEV', false );
 }
 
-define( 'APONTO_VERSION', '1.0.1' );
+define( 'APONTO_VERSION', '1.0.2' );
 define( 'APONTO_FILE', __FILE__ );
 
 // Hand-written autoloader (NB-2) — runtime never depends on Composer (§1.2, §2.5).
