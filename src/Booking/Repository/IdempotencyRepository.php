@@ -229,7 +229,7 @@ final class IdempotencyRepository {
 			$key_hash,
 			$scope
 		);
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Identifier and values are bound above; collision read-back on the exact unique key.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Identifier and values are bound above; collision read-back on the exact unique key.
 		$value = $this->wpdb->get_var( $sql );
 
 		return '1' === (string) $value;

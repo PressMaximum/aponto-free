@@ -52,7 +52,10 @@ export function Staff( { segments = [] } ) {
 
 	const load = useCallback( () => {
 		setState( ( s ) => ( { ...s, status: s.rows.length ? s.status : 'loading', error: null } ) );
-		api.get( '/staff', { status: 'all', per_page: 100 } )
+		const query = multiStaff
+			? { status: 'all', per_page: 100 }
+			: { status: 'all', order_by: 'id', page: 1, per_page: FREE_STAFF_PROFILE_COUNT };
+		api.get( '/staff', query )
 			.then( ( res ) => {
 				const rows = ( res.items || [] ).map( ( dto ) => ( {
 					...dto,
@@ -62,7 +65,7 @@ export function Staff( { segments = [] } ) {
 				setState( { status: rows.length ? 'ready' : 'empty', rows, error: null } );
 			} )
 			.catch( ( err ) => setState( { status: 'error', rows: [], error: err.message } ) );
-	}, [] );
+	}, [ multiStaff ] );
 
 	useEffect( load, [ load ] );
 
@@ -93,11 +96,7 @@ export function Staff( { segments = [] } ) {
 			return null;
 		}
 
-		const visibleProfile = [ ...state.rows ].sort(
-			( left, right ) => Number( left.id ) - Number( right.id )
-		).slice( 0, FREE_STAFF_PROFILE_COUNT )[ 0 ];
-
-		return { mode: 'edit', staff: visibleProfile };
+		return { mode: 'edit', staff: state.rows[ 0 ] };
 	}, [ multiStaff, state.status, state.rows ] );
 
 	const onAdd = () => {

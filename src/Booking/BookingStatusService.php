@@ -547,7 +547,7 @@ final class BookingStatusService {
 	 */
 	private function staffIsBookable( int $staff_id ): bool {
 		$table = $this->wpdb->prefix . 'aponto_staff';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare(); in-transaction existence guard.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare(); in-transaction existence guard.
 		$status = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT status FROM {$table} WHERE id = %d", $staff_id ) );
 
 		return 'active' === $status;

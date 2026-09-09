@@ -447,7 +447,7 @@ final class NotificationDispatcher {
 	public function hasCreatedDeliveries( int $booking_id ): bool {
 		$table = $this->wpdb->prefix . 'aponto_notification_deliveries';
 		$sql   = "SELECT COUNT(*) FROM {$table} WHERE booking_id = %d AND dispatch_key LIKE %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $booking_id, $this->wpdb->esc_like( 'created:' . $booking_id . ':' ) . '%' ) ) > 0;
 	}
 
@@ -484,7 +484,7 @@ final class NotificationDispatcher {
 		$sql = "SELECT o.* FROM {$p}aponto_orders o
 			INNER JOIN {$p}aponto_order_items oi ON oi.order_id = o.id
 			WHERE oi.booking_id = %d LIMIT 1";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; id bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; id bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $booking_id ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -1531,9 +1531,11 @@ final class NotificationDispatcher {
 		}
 
 		$table = $this->wpdb->prefix . 'aponto_bookings';
-		$sql   = "SELECT status, start_datetime_utc, end_datetime_utc, token_hash, mutation_version FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Constant table; id bound via prepare(); authoritative re-check right before the send.
+		// phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter -- Constant plugin table; the only runtime value is bound by prepare() before execution.
+		$sql = "SELECT status, start_datetime_utc, end_datetime_utc, token_hash, mutation_version FROM {$table} WHERE id = %d";
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Constant table; id bound via prepare(); authoritative re-check right before the send.
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $booking_id ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:enable PluginCheck.Security.DirectDB.UnescapedDBParameter
 		if ( ! is_array( $row ) ) {
 			return 'guard_booking_missing';
 		}
@@ -1663,7 +1665,7 @@ final class NotificationDispatcher {
 	 */
 	private function staffEmail( Booking $booking ): string {
 		$table = $this->wpdb->prefix . 'aponto_staff';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$email = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT email FROM {$table} WHERE id = %d", $booking->staff_id ) );
 
 		return trim( (string) $email );

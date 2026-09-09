@@ -55,7 +55,7 @@ final class PublicGateway {
 	public function activeServices(): array {
 		$table = $this->wpdb->prefix . 'aponto_services';
 		$sql   = "SELECT id, category_id, name, description, duration_minutes, price_minor FROM {$table} WHERE status = 'active' ORDER BY position ASC, id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
 		$rows = $this->wpdb->get_results( $sql, ARRAY_A );
 
 		return is_array( $rows ) ? $rows : array();
@@ -70,7 +70,7 @@ final class PublicGateway {
 		$categories = $this->wpdb->prefix . 'aponto_service_categories';
 		$services   = $this->wpdb->prefix . 'aponto_services';
 		$sql        = "SELECT c.id, c.name, c.position, ( SELECT COUNT(*) FROM {$services} s WHERE s.category_id = c.id AND s.status = 'active' ) AS count FROM {$categories} c ORDER BY c.position ASC, c.id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; no user input.
 		$rows = $this->wpdb->get_results( $sql, ARRAY_A );
 
 		return is_array( $rows ) ? $rows : array();
@@ -84,7 +84,7 @@ final class PublicGateway {
 	public function serviceIsActive( int $service_id ): bool {
 		$table = $this->wpdb->prefix . 'aponto_services';
 		$sql   = "SELECT COUNT(*) FROM {$table} WHERE id = %d AND status = 'active'";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $service_id ) ) > 0;
 	}
 
@@ -97,7 +97,7 @@ final class PublicGateway {
 	public function serviceSummary( int $service_id ): ?array {
 		$table = $this->wpdb->prefix . 'aponto_services';
 		$sql   = "SELECT id, name, duration_minutes FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $service_id ), ARRAY_A );
 		if ( ! is_array( $row ) ) {
 			return null;
@@ -119,7 +119,7 @@ final class PublicGateway {
 	public function location( int $location_id ): array {
 		$table = $this->wpdb->prefix . 'aponto_locations';
 		$sql   = "SELECT name, address_line1, address_line2, city, region, postal_code, country FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $location_id ), ARRAY_A );
 		if ( ! is_array( $row ) ) {
 			return array(
@@ -152,7 +152,7 @@ final class PublicGateway {
 
 		$table = $this->wpdb->prefix . $slug;
 		$sql   = "SELECT {$column} FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted constant slug/column; id bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted constant slug/column; id bound via prepare().
 		return (string) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $id ) );
 	}
 }

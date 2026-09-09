@@ -47,7 +47,7 @@ final class ServiceRepository {
 	 */
 	public function nameOf( int $service_id ): string {
 		$table = $this->wpdb->prefix . 'aponto_services';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the id is bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the id is bound via prepare().
 		$name = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT name FROM {$table} WHERE id = %d", $service_id ) );
 
 		return null === $name ? '' : (string) $name;

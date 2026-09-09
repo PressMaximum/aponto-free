@@ -124,12 +124,12 @@ final class RateLimiter {
 				window_start = IF(window_start < %s, %s, window_start)";
 
 		$suppressed = $this->wpdb->suppress_errors( true );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted constant table name; parameters bound via prepare(); atomic upsert, not cacheable.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted constant table name; parameters bound via prepare(); atomic upsert, not cacheable.
 		$upserted = $this->wpdb->query( $this->wpdb->prepare( $upsert, $key, $now_sql, $floor_sql, $floor_sql, $now_sql ) );
 
 		$select = "SELECT hits, window_start FROM {$table} WHERE counter_key = %s";
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted constant table name; parameters bound via prepare(); read-back of the atomically-updated counter row.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted constant table name; parameters bound via prepare(); read-back of the atomically-updated counter row.
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $select, $key ), ARRAY_A );
 		$this->wpdb->suppress_errors( $suppressed );
 
@@ -186,7 +186,7 @@ final class RateLimiter {
 			WHERE c.email_norm = %s AND b.created_at > %s AND b.status IN ( {$placeholders} )";
 
 		$suppressed = $this->wpdb->suppress_errors( true );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted constant tables; parameters bound via prepare(); authoritative in-TX count.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted constant tables; parameters bound via prepare(); authoritative in-TX count.
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $params ), ARRAY_N );
 		$this->wpdb->suppress_errors( $suppressed );
 

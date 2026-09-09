@@ -77,7 +77,7 @@ final class ConnectionRepository {
 	public function servicesForStaff( int $staff_id ): array {
 		$table = $this->wpdb->prefix . 'aponto_staff_services';
 		$sql   = "SELECT DISTINCT service_id FROM {$table} WHERE staff_id = %d ORDER BY service_id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$ids = $this->wpdb->get_col( $this->wpdb->prepare( $sql, $staff_id ) );
 
 		return array_map( 'intval', (array) $ids );
@@ -99,7 +99,7 @@ final class ConnectionRepository {
 	public function isConnected( int $staff_id, int $service_id, int $location_id ): bool {
 		$table = $this->wpdb->prefix . 'aponto_staff_services';
 		$sql   = "SELECT 1 FROM {$table} WHERE staff_id = %d AND service_id = %d AND ( location_id = %d OR location_id = 0 ) LIMIT 1";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); in-transaction eligibility guard.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); in-transaction eligibility guard.
 		return null !== $this->wpdb->get_var( $this->wpdb->prepare( $sql, $staff_id, $service_id, $location_id ) );
 	}
 
@@ -114,7 +114,7 @@ final class ConnectionRepository {
 	public function eligibilityForService( int $service_id ): array {
 		$table = $this->wpdb->prefix . 'aponto_staff_services';
 		$sql   = "SELECT staff_id, location_id FROM {$table} WHERE service_id = %d ORDER BY staff_id ASC, location_id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $service_id ), ARRAY_A );
 
 		$assignments = array();
@@ -156,14 +156,14 @@ final class ConnectionRepository {
 
 		$guard->begin();
 		try {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Scoped full-replacement delete inside the transaction.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Scoped full-replacement delete inside the transaction.
 			$deleted = $this->wpdb->delete( $table, array( 'service_id' => $service_id ), array( '%d' ) );
 			if ( false === $deleted ) {
 				throw StorageException::fromWpdb( $this->wpdb, 'eligibility delete' );
 			}
 
 			foreach ( $assignments as $pair ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Full-replacement insert inside the transaction.
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Full-replacement insert inside the transaction.
 				$inserted = $this->wpdb->insert(
 					$table,
 					array(

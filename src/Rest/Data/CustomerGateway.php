@@ -76,13 +76,13 @@ final class CustomerGateway {
 		}
 
 		$count_sql = "SELECT COUNT(*) FROM {$table}{$where_sql}";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		$total = (int) $this->wpdb->get_var( array() === $params ? $count_sql : $this->wpdb->prepare( $count_sql, $params ) );
 
 		$offset      = ( $page - 1 ) * $per_page;
 		$list_params = array_merge( $params, array( $per_page, $offset ) );
 		$list_sql    = 'SELECT ' . self::COLUMNS . " FROM {$table}{$where_sql} ORDER BY created_at DESC, id DESC LIMIT %d OFFSET %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $list_sql, $list_params ), ARRAY_A );
 
 		return array(
@@ -100,7 +100,7 @@ final class CustomerGateway {
 	public function find( int $id ): ?array {
 		$table = $this->table();
 		$sql   = 'SELECT ' . self::COLUMNS . " FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $id ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -175,7 +175,7 @@ final class CustomerGateway {
 		}
 
 		$params = array_merge( $blocking, array( $now ), $ids );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; placeholders bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; placeholders bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $params ), ARRAY_A );
 
 		$out = array();
@@ -201,7 +201,7 @@ final class CustomerGateway {
 	public function findByEmailNorm( string $email_norm ): ?array {
 		$table = $this->table();
 		$sql   = 'SELECT ' . self::COLUMNS . " FROM {$table} WHERE email_norm = %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $email_norm ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -220,7 +220,7 @@ final class CustomerGateway {
 		$data['created_at'] = $this->clock->nowSql();
 
 		$suppressed = $this->wpdb->suppress_errors( true );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin insert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin insert.
 		$result = $this->wpdb->insert( $this->table(), $data, $this->formats( $data ) );
 		$this->wpdb->suppress_errors( $suppressed );
 
@@ -238,7 +238,7 @@ final class CustomerGateway {
 	 * @param array<string, mixed> $data Column => value (must include `email_norm`).
 	 */
 	public function update( int $id, array $data ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin update.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin update.
 		$this->wpdb->update( $this->table(), $data, array( 'id' => $id ), $this->formats( $data ), array( '%d' ) );
 	}
 

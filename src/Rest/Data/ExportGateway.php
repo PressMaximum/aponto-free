@@ -84,7 +84,7 @@ final class ExportGateway {
 
 		$select_cols = 'b.id, b.status, b.start_datetime_utc, b.end_datetime_utc, b.customer_note, s.name AS service_name, st.name AS staff_name, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone, o.code AS order_code, o.total_minor, o.currency, o.payment_status, o.gateway, o.transaction_ref';
 		$sql         = "SELECT {$select_cols} {$from_sql}{$where_sql} ORDER BY b.start_datetime_utc ASC, b.id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; bound via prepare().
 		$rows = $this->wpdb->get_results( array() === $args ? $sql : $this->wpdb->prepare( $sql, $args ), ARRAY_A );
 
 		return is_array( $rows ) ? $rows : array();
@@ -109,7 +109,7 @@ final class ExportGateway {
 		}
 
 		$sql = "SELECT id, name, email, phone, note, created_at FROM {$table}{$where} ORDER BY created_at ASC, id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$rows = $this->wpdb->get_results( array() === $args ? $sql : $this->wpdb->prepare( $sql, $args ), ARRAY_A );
 
 		return is_array( $rows ) ? $rows : array();

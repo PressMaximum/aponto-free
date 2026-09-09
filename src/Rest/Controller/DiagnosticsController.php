@@ -207,7 +207,7 @@ final class DiagnosticsController implements Controller {
 	 */
 	private function countRows( string $slug ): int {
 		$table = $this->wpdb->prefix . $slug;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table slug; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table slug; no user input.
 		return (int) $this->wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
 	}
 

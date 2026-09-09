@@ -1014,7 +1014,7 @@ final class ConnectionStore {
 		$wpdb = $this->wpdb();
 
 		for ( $attempt = 0; $attempt < self::PURGE_CAS_ATTEMPTS; $attempt++ ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- The CAS pre-image must come from the ROW, not from a cache that may describe a different value.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- The CAS pre-image must come from the ROW, not from a cache that may describe a different value.
 			$stored = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", self::PURGE_OPTION ) );
 
 			if ( null === $stored ) {
@@ -1029,7 +1029,7 @@ final class ConnectionStore {
 				// loss this CAS exists to prevent. A duplicate key here is the honest answer "someone
 				// else got there first", and the loop retries into the UPDATE path.
 				$suppressed = $wpdb->suppress_errors( true );
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Conditional create; a duplicate key is the concurrency signal.
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Conditional create; a duplicate key is the concurrency signal.
 				$inserted = $wpdb->insert(
 					$wpdb->options,
 					array(
@@ -1052,7 +1052,7 @@ final class ConnectionStore {
 				// the row first (retry into that path), while a row that STILL does not exist after a
 				// reported error is a storage failure, not a race.
 				$error = (string) $wpdb->last_error;
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Post-write discriminator; a cache cannot say whether the row exists.
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Post-write discriminator; a cache cannot say whether the row exists.
 				$exists = $wpdb->get_var( $wpdb->prepare( "SELECT option_id FROM {$wpdb->options} WHERE option_name = %s", self::PURGE_OPTION ) );
 				if ( null === $exists && '' !== $error ) {
 					throw StorageException::fromSqlError( esc_html( 'integration purge marker' ), esc_html( $error ) );
@@ -1067,7 +1067,7 @@ final class ConnectionStore {
 				return false; // Nothing to do; the caller's change is already in the row.
 			}
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- The conditional write IS the concurrency control; caching it would defeat the comparison.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- The conditional write IS the concurrency control; caching it would defeat the comparison.
 			$swapped = $wpdb->update(
 				$wpdb->options,
 				array( 'option_value' => maybe_serialize( $next ) ),
@@ -1088,7 +1088,7 @@ final class ConnectionStore {
 			// read-only database looked exactly like a busy one — and the caller was told nothing. The
 			// row itself is the discriminator: re-read it and ask what actually happened.
 			$error = (string) $wpdb->last_error;
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Post-write discriminator; a cache cannot say what the row holds.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Post-write discriminator; a cache cannot say what the row holds.
 			$after = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", self::PURGE_OPTION ) );
 
 			if ( null !== $after && self::normalizePurges( maybe_unserialize( (string) $after ) ) === $next ) {

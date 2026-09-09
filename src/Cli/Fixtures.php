@@ -286,13 +286,13 @@ final class Fixtures {
 	 */
 	private function insertCategory( string $name, int $position ): int {
 		$table = $this->wpdb->prefix . 'aponto_service_categories';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
 		$id = (int) $this->wpdb->get_var( $this->wpdb->prepare( "SELECT id FROM {$table} WHERE name = %s LIMIT 1", $name ) );
 		if ( $id > 0 ) {
 			return $id;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
 		$this->wpdb->insert(
 			$table,
 			array(
@@ -316,13 +316,13 @@ final class Fixtures {
 	 */
 	private function insertService( string $name, int $category, int $duration, int $price, string $now ): int {
 		$table = $this->wpdb->prefix . 'aponto_services';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
 		$id = (int) $this->wpdb->get_var( $this->wpdb->prepare( "SELECT id FROM {$table} WHERE name = %s LIMIT 1", $name ) );
 		if ( $id > 0 ) {
 			return $id;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
 		$this->wpdb->insert(
 			$table,
 			array(
@@ -354,13 +354,13 @@ final class Fixtures {
 	 */
 	private function insertStaff( string $name, string $email, string $now ): int {
 		$table = $this->wpdb->prefix . 'aponto_staff';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
 		$id = (int) $this->wpdb->get_var( $this->wpdb->prepare( "SELECT id FROM {$table} WHERE email = %s LIMIT 1", $email ) );
 		if ( $id > 0 ) {
 			return $id;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
 		$this->wpdb->insert(
 			$table,
 			array(
@@ -385,13 +385,13 @@ final class Fixtures {
 	 */
 	private function connect( int $staff, int $service ): void {
 		$table = $this->wpdb->prefix . 'aponto_staff_services';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
 		$exists = (int) $this->wpdb->get_var( $this->wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE staff_id = %d AND service_id = %d AND location_id = 0", $staff, $service ) );
 		if ( $exists > 0 ) {
 			return;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
 		$this->wpdb->insert(
 			$table,
 			array(
@@ -419,13 +419,13 @@ final class Fixtures {
 
 		$table = $this->wpdb->prefix . 'aponto_schedules';
 		foreach ( $weekdays as $weekday ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
 			$exists = (int) $this->wpdb->get_var( $this->wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE staff_id = %d AND service_id = 0 AND location_id = 0 AND weekday = %d AND date_override IS NULL AND start_minute = %d AND end_minute = %d", $staff, $weekday, $start, $end ) );
 			if ( $exists > 0 ) {
 				continue;
 			}
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
 			$this->wpdb->insert(
 				$table,
 				array(
@@ -451,13 +451,13 @@ final class Fixtures {
 	private function insertCustomer( string $name, string $email, string $now ): int {
 		$table      = $this->wpdb->prefix . 'aponto_customers';
 		$email_norm = strtolower( trim( $email ) );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
 		$id = (int) $this->wpdb->get_var( $this->wpdb->prepare( "SELECT id FROM {$table} WHERE email_norm = %s LIMIT 1", $email_norm ) );
 		if ( $id > 0 ) {
 			return $id;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
 		$this->wpdb->insert(
 			$table,
 			array(
@@ -564,7 +564,7 @@ final class Fixtures {
 	 */
 	private function insertBooking( int $service, int $staff, int $customer, int $day_offset, int $start_minute, string $now ): bool {
 		$table = $this->wpdb->prefix . 'aponto_bookings';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
 		$existing = (int) $this->wpdb->get_var( $this->wpdb->prepare( "SELECT id FROM {$table} WHERE service_id = %d AND staff_id = %d AND customer_id = %d LIMIT 1", $service, $staff, $customer ) );
 		if ( $existing > 0 ) {
 			$this->repairOrder( $existing, $service );
@@ -590,7 +590,7 @@ final class Fixtures {
 
 		$this->tx->begin();
 		try {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- CLI fixture insert.
 			$ok         = $this->wpdb->insert(
 				$table,
 				array(
@@ -651,7 +651,7 @@ final class Fixtures {
 	 */
 	private function repairOrder( int $booking_id, int $service ): void {
 		$items = $this->wpdb->prefix . 'aponto_order_items';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
 		$linked = (int) $this->wpdb->get_var( $this->wpdb->prepare( "SELECT COUNT(*) FROM {$items} WHERE booking_id = %d", $booking_id ) );
 		if ( $linked > 0 ) {
 			return;

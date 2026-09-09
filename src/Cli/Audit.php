@@ -149,7 +149,7 @@ final class Audit {
 		}
 
 		$now = gmdate( 'Y-m-d H:i:s' );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables from $wpdb->prefix; timestamp bound via prepare(); no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables from $wpdb->prefix; timestamp bound via prepare(); no user input.
 		$cancelled = $this->wpdb->query( $this->wpdb->prepare( "UPDATE {$table} SET status = 'cancelled', updated_at = %s WHERE {$where}", $now ) );
 		if ( false === $cancelled ) {
 			// R2 #7: a failed repair statement is a FAIL — never reported as fixed. The single UPDATE
@@ -184,7 +184,7 @@ final class Audit {
 			return $this->item( 'FOUND', $key, sprintf( '%d %s row(s) — run with --repair to remove.', $found, $noun ), $found );
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables from $wpdb->prefix; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables from $wpdb->prefix; no user input.
 		$removed = $this->wpdb->query( "DELETE FROM {$table} WHERE {$where}" );
 		if ( false === $removed ) {
 			return $this->item( 'FAIL', $key, sprintf( 'Removal of %d %s row(s) failed; nothing was changed. Re-run to retry.', $found, $noun ), 0 );
@@ -201,7 +201,7 @@ final class Audit {
 	 * @param string $where Predicate.
 	 */
 	private function count( string $table, string $where ): ?int {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables from $wpdb->prefix; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables from $wpdb->prefix; no user input.
 		$value = $this->wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE {$where}" );
 		if ( '' !== (string) $this->wpdb->last_error ) {
 			return null;

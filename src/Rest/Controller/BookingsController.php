@@ -608,7 +608,7 @@ final class BookingsController implements Controller {
 	 * @throws StorageException When the delete fails.
 	 */
 	private function deleteNotificationDeliveries( int $booking_id ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Hard-delete cleanup inside the controller transaction.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Hard-delete cleanup inside the controller transaction.
 		$result = $this->services->wpdb()->delete(
 			$this->services->wpdb()->prefix . 'aponto_notification_deliveries',
 			array( 'booking_id' => $booking_id ),

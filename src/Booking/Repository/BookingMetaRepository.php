@@ -53,7 +53,7 @@ final class BookingMetaRepository {
 	public function internalNote( int $booking_id ): string {
 		$table = $this->wpdb->prefix . 'aponto_booking_meta';
 		$sql   = "SELECT meta_value FROM {$table} WHERE booking_id = %d AND meta_key = %s LIMIT 1";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$value = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $booking_id, self::INTERNAL_NOTE ) );
 
 		return null === $value ? '' : (string) $value;
@@ -69,6 +69,7 @@ final class BookingMetaRepository {
 	public function setInternalNote( int $booking_id, string $note ): void {
 		$table = $this->wpdb->prefix . 'aponto_booking_meta';
 		if ( '' === $note ) {
+			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Custom table is indexed by UNIQUE KEY owner_key (booking_id, meta_key); meta_value is written, not queried.
 			$result = $this->wpdb->delete(
 				$table,
 				array(
@@ -77,6 +78,7 @@ final class BookingMetaRepository {
 				),
 				array( '%d', '%s' )
 			);
+			// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 			if ( false === $result ) {
 				throw StorageException::fromSqlError( esc_html( 'booking internal note delete' ), esc_html( (string) $this->wpdb->last_error ) );
 			}
@@ -86,7 +88,7 @@ final class BookingMetaRepository {
 
 		$sql = "INSERT INTO {$table} (booking_id, meta_key, meta_value) VALUES (%d, %s, %s)
 			ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value)";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$result = $this->wpdb->query( $this->wpdb->prepare( $sql, $booking_id, self::INTERNAL_NOTE, $note ) );
 		if ( false === $result ) {
 			throw StorageException::fromSqlError( esc_html( 'booking internal note upsert' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -128,7 +130,8 @@ final class BookingMetaRepository {
 		$table = $this->wpdb->prefix . 'aponto_booking_meta';
 
 		$suppressed = $this->wpdb->suppress_errors( true );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic unique claim; a duplicate-key failure is the expected "already claimed" answer, handled below.
+		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Custom table is indexed by UNIQUE KEY owner_key (booking_id, meta_key); meta_value is payload for the atomic insert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic unique claim; a duplicate-key failure is the expected "already claimed" answer, handled below.
 		$inserted = $this->wpdb->insert(
 			$table,
 			array(
@@ -138,7 +141,8 @@ final class BookingMetaRepository {
 			),
 			array( '%d', '%s', '%s' )
 		);
-		$error    = (string) $this->wpdb->last_error;
+		// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+		$error = (string) $this->wpdb->last_error;
 		$this->wpdb->suppress_errors( $suppressed );
 
 		if ( false !== $inserted ) {
@@ -154,7 +158,7 @@ final class BookingMetaRepository {
 		unset( $error );
 
 		$sql = "UPDATE {$table} SET meta_value = %s WHERE booking_id = %d AND meta_key = %s AND meta_value <> %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); atomic conditional re-claim.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); atomic conditional re-claim.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $value, $booking_id, $meta_key, $value ) );
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'booking meta claim' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -192,7 +196,8 @@ final class BookingMetaRepository {
 		$table = $this->wpdb->prefix . 'aponto_booking_meta';
 
 		$suppressed = $this->wpdb->suppress_errors( true );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic unique claim; a duplicate-key failure is the expected "already leased" answer, handled below.
+		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Custom table is indexed by UNIQUE KEY owner_key (booking_id, meta_key); meta_value is payload for the atomic insert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic unique claim; a duplicate-key failure is the expected "already leased" answer, handled below.
 		$inserted = $this->wpdb->insert(
 			$table,
 			array(
@@ -202,6 +207,7 @@ final class BookingMetaRepository {
 			),
 			array( '%d', '%s', '%s' )
 		);
+		// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 		$this->wpdb->suppress_errors( $suppressed );
 
 		if ( false !== $inserted ) {
@@ -209,7 +215,7 @@ final class BookingMetaRepository {
 		}
 
 		$sql = "UPDATE {$table} SET meta_value = %s WHERE booking_id = %d AND meta_key = %s AND meta_value < %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); atomic conditional lease takeover.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); atomic conditional lease takeover.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $stamp, $booking_id, $meta_key, $expired_before ) );
 		if ( false === $affected ) {
 			// Same reasoning as claimKey(): a storage failure must not read as "another worker holds
@@ -242,7 +248,8 @@ final class BookingMetaRepository {
 		$table = $this->wpdb->prefix . 'aponto_booking_meta';
 
 		$suppressed = $this->wpdb->suppress_errors( true );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Conditional create; a duplicate-key failure is the expected "already there" answer, discriminated below.
+		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Custom table is indexed by UNIQUE KEY owner_key (booking_id, meta_key); meta_value is payload for the atomic insert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Conditional create; a duplicate-key failure is the expected "already there" answer, discriminated below.
 		$inserted = $this->wpdb->insert(
 			$table,
 			array(
@@ -252,7 +259,8 @@ final class BookingMetaRepository {
 			),
 			array( '%d', '%s', '%s' )
 		);
-		$error    = (string) $this->wpdb->last_error;
+		// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+		$error = (string) $this->wpdb->last_error;
 		$this->wpdb->suppress_errors( $suppressed );
 
 		if ( false !== $inserted ) {
@@ -263,7 +271,7 @@ final class BookingMetaRepository {
 		// {@see self::claimKey()} makes): a dead connection or a missing table also returns false.
 		// The row itself answers which happened.
 		$sql = "SELECT COUNT(*) FROM {$table} WHERE booking_id = %d AND meta_key = %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$existing = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $booking_id, $meta_key ) );
 
 		if ( null !== $existing && (int) $existing > 0 ) {
@@ -307,7 +315,7 @@ final class BookingMetaRepository {
 
 		if ( $expected === $replacement ) {
 			$sql = "SELECT COUNT(*) FROM {$table} WHERE booking_id = %d AND meta_key = %s AND meta_value = %s";
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare().
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare().
 			$matched = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $booking_id, $meta_key, $expected ) );
 
 			// `COUNT(*)` always returns a row, so a null here is a failed statement, never "no match".
@@ -320,11 +328,11 @@ final class BookingMetaRepository {
 
 		if ( null === $replacement ) {
 			$sql = "DELETE FROM {$table} WHERE booking_id = %d AND meta_key = %s AND meta_value = %s";
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare().
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare().
 			$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $booking_id, $meta_key, $expected ) );
 		} else {
 			$sql = "UPDATE {$table} SET meta_value = %s WHERE booking_id = %d AND meta_key = %s AND meta_value = %s";
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare().
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare().
 			$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $replacement, $booking_id, $meta_key, $expected ) );
 		}
 
@@ -343,7 +351,8 @@ final class BookingMetaRepository {
 	 * @return bool Whether the delete statement succeeded (an absent row is success).
 	 */
 	public function deleteKey( int $booking_id, string $meta_key ): bool {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Constant table; an absent row deletes zero rows and is not an error.
+		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Custom table is indexed by UNIQUE KEY owner_key (booking_id, meta_key); no meta_value query occurs.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Constant table; an absent row deletes zero rows and is not an error.
 		$result = $this->wpdb->delete(
 			$this->wpdb->prefix . 'aponto_booking_meta',
 			array(
@@ -352,6 +361,7 @@ final class BookingMetaRepository {
 			),
 			array( '%d', '%s' )
 		);
+		// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 
 		// REPORTS rather than throws (Codex round 3, P2): callers clearing a retry intent are on a
 		// success path where an exception would undo work that really happened, but they still need
@@ -372,7 +382,7 @@ final class BookingMetaRepository {
 	public function getKey( int $booking_id, string $meta_key ): ?string {
 		$table = $this->wpdb->prefix . 'aponto_booking_meta';
 		$sql   = "SELECT meta_value FROM {$table} WHERE booking_id = %d AND meta_key = %s LIMIT 1";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$value = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $booking_id, $meta_key ) );
 
 		return null === $value ? null : (string) $value;
@@ -393,7 +403,7 @@ final class BookingMetaRepository {
 		$table = $this->wpdb->prefix . 'aponto_booking_meta';
 		$sql   = "INSERT INTO {$table} (booking_id, meta_key, meta_value) VALUES (%d, %s, %s)
 			ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value)";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		return false !== $this->wpdb->query( $this->wpdb->prepare( $sql, $booking_id, $meta_key, $meta_value ) );
 	}
 
@@ -415,7 +425,7 @@ final class BookingMetaRepository {
 		$sql   = "SELECT booking_id FROM {$table}
 			WHERE meta_key = %s AND meta_value <= %s
 			ORDER BY meta_value ASC LIMIT %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$rows = $this->wpdb->get_col( $this->wpdb->prepare( $sql, $meta_key, $due_at, max( 1, $limit ) ) );
 
 		return array_values( array_map( 'intval', is_array( $rows ) ? $rows : array() ) );
@@ -437,7 +447,7 @@ final class BookingMetaRepository {
 		$table = $this->wpdb->prefix . 'aponto_booking_meta';
 		$like  = $this->wpdb->esc_like( $prefix ) . '%';
 		$sql   = "DELETE FROM {$table} WHERE meta_key LIKE %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the escaped LIKE pattern is bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the escaped LIKE pattern is bound via prepare().
 		$removed = $this->wpdb->query( $this->wpdb->prepare( $sql, $like ) );
 
 		// `(int) false` is `0`, which reads as "there was nothing to delete" (Codex round 7, P2). On
@@ -480,7 +490,7 @@ final class BookingMetaRepository {
 
 			$sql = "INSERT INTO {$table} (booking_id, meta_key, meta_value) VALUES (%d, %s, %s)
 				ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value)";
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 			$result = $this->wpdb->query( $this->wpdb->prepare( $sql, $booking_id, CustomFieldSchema::metaKey( $slug ), $stored ) );
 			if ( false === $result ) {
 				throw StorageException::fromSqlError( esc_html( 'booking custom field upsert' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -498,7 +508,7 @@ final class BookingMetaRepository {
 		$table = $this->wpdb->prefix . 'aponto_booking_meta';
 		$like  = $this->wpdb->esc_like( CustomFieldSchema::META_PREFIX ) . '%';
 		$sql   = "SELECT meta_key, meta_value FROM {$table} WHERE booking_id = %d AND meta_key LIKE %s ORDER BY meta_key ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the id and the escaped LIKE pattern are bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the id and the escaped LIKE pattern are bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $booking_id, $like ), ARRAY_A );
 
 		$values = array();
@@ -524,7 +534,7 @@ final class BookingMetaRepository {
 		$like  = $this->wpdb->esc_like( CustomFieldSchema::META_PREFIX ) . '%';
 		$sql   = "DELETE FROM {$table} WHERE booking_id = %d AND meta_key LIKE %s";
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the id and the escaped LIKE pattern are bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the id and the escaped LIKE pattern are bound via prepare().
 		return $this->wpdb->query( $this->wpdb->prepare( $sql, $booking_id, $like ) );
 	}
 
@@ -536,6 +546,7 @@ final class BookingMetaRepository {
 	 * @throws StorageException When the delete fails.
 	 */
 	private function deleteCustomField( int $booking_id, string $slug ): void {
+		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Custom table is indexed by UNIQUE KEY owner_key (booking_id, meta_key); no meta_value query occurs.
 		$result = $this->wpdb->delete(
 			$this->wpdb->prefix . 'aponto_booking_meta',
 			array(
@@ -544,6 +555,7 @@ final class BookingMetaRepository {
 			),
 			array( '%d', '%s' )
 		);
+		// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 		if ( false === $result ) {
 			throw StorageException::fromSqlError( esc_html( 'booking custom field delete' ), esc_html( (string) $this->wpdb->last_error ) );
 		}

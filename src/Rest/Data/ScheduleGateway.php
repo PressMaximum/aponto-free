@@ -46,7 +46,7 @@ final class ScheduleGateway {
 	public function staffExists( int $staff_id ): bool {
 		$table = $this->wpdb->prefix . 'aponto_staff';
 		$sql   = "SELECT COUNT(*) FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $staff_id ) ) > 0;
 	}
 
@@ -63,7 +63,7 @@ final class ScheduleGateway {
 		$sql   = "SELECT weekday, date_override, start_minute, end_minute FROM {$table}
 			WHERE staff_id = %d AND service_id = %d AND location_id = %d
 			ORDER BY date_override IS NULL DESC, weekday ASC, date_override ASC, start_minute ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $staff_id, $service_id, $location_id ), ARRAY_A );
 
 		return is_array( $rows ) ? $rows : array();
@@ -78,7 +78,7 @@ final class ScheduleGateway {
 	 * @param list<array{weekday:int, date_override:string|null, start_minute:int, end_minute:int}> $rows Row set.
 	 */
 	public function replace( int $staff_id, int $service_id, int $location_id, array $rows ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Scoped full-replacement delete.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Scoped full-replacement delete.
 		$this->wpdb->delete(
 			$this->table(),
 			array(
@@ -90,7 +90,7 @@ final class ScheduleGateway {
 		);
 
 		foreach ( $rows as $row ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Full-replacement insert.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Full-replacement insert.
 			$this->wpdb->insert(
 				$this->table(),
 				array(

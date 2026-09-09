@@ -59,13 +59,13 @@ final class BlockedPeriodGateway {
 		$params = array( $staff_id, $to_sql, $from_sql );
 
 		$count_sql = "SELECT COUNT(*) FROM {$table} WHERE staff_id = %d AND start_datetime_utc < %s AND end_datetime_utc > %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		$total = (int) $this->wpdb->get_var( $this->wpdb->prepare( $count_sql, $params ) );
 
 		$offset      = ( $page - 1 ) * $per_page;
 		$list_params = array_merge( $params, array( $per_page, $offset ) );
 		$list_sql    = 'SELECT ' . self::COLUMNS . " FROM {$table} WHERE staff_id = %d AND start_datetime_utc < %s AND end_datetime_utc > %s ORDER BY start_datetime_utc ASC, id ASC LIMIT %d OFFSET %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $list_sql, $list_params ), ARRAY_A );
 
 		return array(
@@ -83,7 +83,7 @@ final class BlockedPeriodGateway {
 	public function find( int $id ): ?array {
 		$table = $this->table();
 		$sql   = 'SELECT ' . self::COLUMNS . " FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $id ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -95,7 +95,7 @@ final class BlockedPeriodGateway {
 	 * @param array<string, mixed> $data Column => value (validated).
 	 */
 	public function create( array $data ): int {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin insert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin insert.
 		$this->wpdb->insert( $this->table(), $data, $this->formats( $data ) );
 
 		return (int) $this->wpdb->insert_id;
@@ -107,7 +107,7 @@ final class BlockedPeriodGateway {
 	 * @param int $id Blocked-period id.
 	 */
 	public function delete( int $id ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin delete.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin delete.
 		$this->wpdb->delete( $this->table(), array( 'id' => $id ), array( '%d' ) );
 	}
 

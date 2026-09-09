@@ -72,7 +72,7 @@ final class Seeder {
 				continue;
 			}
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Seed insert on activation.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Seed insert on activation.
 			$inserted = $this->wpdb->insert(
 				$table,
 				$template,
@@ -143,7 +143,7 @@ final class Seeder {
 		$placeholders = implode( ',', array_fill( 0, count( $keys ), '%s' ) );
 
 		$this->wpdb->flush();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; keys bound via prepare(); the interpolated fragment is a %s-only placeholder list the sniff cannot see through.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; keys bound via prepare(); the interpolated fragment is a %s-only placeholder list the sniff cannot see through.
 		$count = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT COUNT(DISTINCT template_key) FROM {$table} WHERE template_key IN ({$placeholders})", $keys ) );
 
 		return '' === $this->wpdb->last_error && count( $keys ) === (int) $count;

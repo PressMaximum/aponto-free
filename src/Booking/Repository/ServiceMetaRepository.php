@@ -42,7 +42,7 @@ final class ServiceMetaRepository {
 	public function get( int $service_id, string $meta_key ): ?string {
 		$table = $this->wpdb->prefix . 'aponto_service_meta';
 		$sql   = "SELECT meta_value FROM {$table} WHERE service_id = %d AND meta_key = %s LIMIT 1";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$value = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $service_id, $meta_key ) );
 
 		return null === $value ? null : (string) $value;
@@ -57,7 +57,7 @@ final class ServiceMetaRepository {
 	public function enabledServiceIds( string $meta_key ): array {
 		$table = $this->wpdb->prefix . 'aponto_service_meta';
 		$sql   = "SELECT service_id FROM {$table} WHERE meta_key = %s AND meta_value = '1' ORDER BY service_id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the key is bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the key is bound via prepare().
 		$rows = $this->wpdb->get_col( $this->wpdb->prepare( $sql, $meta_key ) );
 
 		return array_values( array_map( 'intval', is_array( $rows ) ? $rows : array() ) );
@@ -75,7 +75,7 @@ final class ServiceMetaRepository {
 		$table = $this->wpdb->prefix . 'aponto_service_meta';
 		$sql   = "INSERT INTO {$table} (service_id, meta_key, meta_value) VALUES (%d, %s, %s)
 			ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value)";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$result = $this->wpdb->query( $this->wpdb->prepare( $sql, $service_id, $meta_key, $meta_value ) );
 		if ( false === $result ) {
 			throw StorageException::fromSqlError( esc_html( 'service meta upsert' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -90,7 +90,8 @@ final class ServiceMetaRepository {
 	 * @throws StorageException When the delete fails.
 	 */
 	public function delete( int $service_id, string $meta_key ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Constant table; deleting an absent row is the expected idempotent case.
+		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Custom table is indexed by UNIQUE KEY owner_key (service_id, meta_key); no meta_value query occurs.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Constant table; deleting an absent row is the expected idempotent case.
 		$result = $this->wpdb->delete(
 			$this->wpdb->prefix . 'aponto_service_meta',
 			array(
@@ -99,6 +100,7 @@ final class ServiceMetaRepository {
 			),
 			array( '%d', '%s' )
 		);
+		// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 		if ( false === $result ) {
 			throw StorageException::fromSqlError( esc_html( 'service meta delete' ), esc_html( (string) $this->wpdb->last_error ) );
 		}
@@ -119,7 +121,7 @@ final class ServiceMetaRepository {
 		$table = $this->wpdb->prefix . 'aponto_service_meta';
 		$like  = $this->wpdb->esc_like( $prefix ) . '%';
 		$sql   = "DELETE FROM {$table} WHERE meta_key LIKE %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the escaped LIKE pattern is bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the escaped LIKE pattern is bound via prepare().
 		$removed = $this->wpdb->query( $this->wpdb->prepare( $sql, $like ) );
 
 		// `(int) false` is `0`, which reads as "there was nothing to delete" (Codex round 7, P2). On

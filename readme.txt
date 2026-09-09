@@ -22,7 +22,7 @@ The complete human-readable JavaScript and CSS source for this release is includ
 
 Public Free release mirror: https://github.com/PressMaximum/aponto-free
 
-See `SOURCE.md` for the source-to-bundle map, direct dependency source links, requirements, and exact rebuild commands. The public repository is generated from the validated Free distribution ZIP after an approved release; development changes are made in the main Aponto repository rather than directly in the mirror.
+See `README.md` for the source-to-bundle map, direct dependency source links, requirements, and exact rebuild commands. The public repository is generated from the validated Free distribution ZIP after an approved release; development changes are made in the main Aponto repository rather than directly in the mirror.
 
 = What you get in the free plugin =
 
@@ -45,7 +45,7 @@ See `SOURCE.md` for the source-to-bundle map, direct dependency source links, re
 
 = Free vs Premium =
 
-This plugin is the free edition, and it is the whole product for a single-staff business: no license key, no locked code, and no cap on how many bookings or services you can take. The only limits are one staff member and one business location.
+Aponto Free supports a single-staff business with unlimited bookings and services. Business identity and location details are configured under General → Business.
 
 Card payments with Stripe are already part of this free plugin. More modules are on the roadmap and will be released across future updates — some in this free plugin (CSV import, a public service catalog), others as premium modules. Premium already includes unlimited staff, advanced reminder schedules, custom booking-form fields, Google Calendar and Outlook sync, and PayPal payments, with SMS and more to follow. Every module is listed inside the plugin on the Modules screen as a preview — nothing there is required, and no purchase is asked of you to run the free plugin.
 
@@ -104,7 +104,7 @@ Yes. Everything a customer sees — the booking form, confirmation, emails, and 
 
 = How do I rebuild the JavaScript from source? =
 
-See `SOURCE.md` and the Build instructions below — the plugin ships its human-readable sources so the bundled JavaScript can be rebuilt.
+See `README.md` and the Build instructions below — the plugin ships its human-readable sources so the bundled JavaScript can be rebuilt.
 
 == Build instructions ==
 

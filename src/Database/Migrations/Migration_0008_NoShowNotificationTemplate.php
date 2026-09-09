@@ -72,7 +72,7 @@ final class Migration_0008_NoShowNotificationTemplate implements Migration {
 				return;
 			}
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time seed insert; the existence guard above proved the key is absent.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time seed insert; the existence guard above proved the key is absent.
 			$inserted = $wpdb->insert( $table, $template, array( '%s', '%s', '%s', '%s', '%s', '%d' ) );
 			if ( false === $inserted ) {
 				throw new \RuntimeException( esc_html( sprintf( 'Aponto migration 0008: insert of %1$s failed: %2$s', self::KEY, $wpdb->last_error ) ) );
@@ -107,7 +107,7 @@ final class Migration_0008_NoShowNotificationTemplate implements Migration {
 	 */
 	private function exists( \wpdb $wpdb, string $table, string $key ): bool {
 		$wpdb->flush();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; key bound via prepare(); existence guard for an idempotent insert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; key bound via prepare(); existence guard for an idempotent insert.
 		$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE template_key = %s", $key ) );
 		if ( '' !== $wpdb->last_error ) {
 			throw new \RuntimeException( esc_html( sprintf( 'Aponto migration 0008: read failed: %s', $wpdb->last_error ) ) );

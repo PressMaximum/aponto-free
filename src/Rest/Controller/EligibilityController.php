@@ -364,7 +364,7 @@ final class EligibilityController implements Controller {
 		$holders = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; placeholders generated internally, values bound via prepare().
 		$sql = $this->wpdb->prepare( "SELECT COUNT(DISTINCT id) FROM {$table} WHERE id IN ( {$holders} )", $ids );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above; existence check.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Prepared above; existence check.
 		return (int) $this->wpdb->get_var( $sql ) === count( $ids );
 	}
 }

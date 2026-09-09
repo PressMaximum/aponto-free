@@ -91,7 +91,7 @@ final class RuntimeDiagnostics {
 
 		$table = $this->wpdb->prefix . 'aponto_bookings';
 		$sql   = 'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Engine check against information_schema; caching is not applicable.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Engine check against information_schema; caching is not applicable.
 		$engine = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $table ) );
 
 		if ( null === $engine ) {

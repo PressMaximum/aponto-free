@@ -175,7 +175,7 @@ final class CatalogState {
 
 		$table = $this->wpdb->prefix . 'aponto_services';
 		$sql   = "SELECT COUNT(*) FROM {$table} WHERE status = %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the status is bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the status is bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, 'active' ) );
 	}
 }

@@ -188,7 +188,7 @@ final class NotificationContext {
 		$sql = "SELECT o.* FROM {$p}aponto_orders o
 			INNER JOIN {$p}aponto_order_items oi ON oi.order_id = o.id
 			WHERE oi.booking_id = %d LIMIT 1";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; id bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; id bound via prepare().
 		$row = $wpdb->get_row( $wpdb->prepare( $sql, $booking_id ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -273,7 +273,7 @@ final class NotificationContext {
 
 		$table = $wpdb->prefix . 'aponto_locations';
 		$sql   = "SELECT address_line1, address_line2, city, region, postal_code, country FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
 		$row = $wpdb->get_row( $wpdb->prepare( $sql, $location_id ), ARRAY_A );
 
 		return is_array( $row ) ? StructuredAddress::display( $row ) : '';
@@ -452,7 +452,7 @@ final class NotificationContext {
 	private static function customer( \wpdb $wpdb, int $customer_id ): array {
 		$table = $wpdb->prefix . 'aponto_customers';
 		$sql   = "SELECT name, email, phone FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$row = $wpdb->get_row( $wpdb->prepare( $sql, $customer_id ), ARRAY_A );
 
 		return array(
@@ -471,7 +471,7 @@ final class NotificationContext {
 	 */
 	private static function scalar( \wpdb $wpdb, string $table, int $id ): string {
 		$sql = "SELECT name FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		return (string) $wpdb->get_var( $wpdb->prepare( $sql, $id ) );
 	}
 

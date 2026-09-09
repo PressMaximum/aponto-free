@@ -44,6 +44,10 @@ const proModuleEntries = moduleEntries( './assets/src/pro/*/index.js', 'pro/' );
 // babel rule are therefore gone; consume the prebuilt entries as shipped.
 module.exports = {
 	...defaultConfig,
+	// WordPress Scripts' generic 244 KiB raw-asset hint counts paired RTL styles and does not
+	// model this plugin's delivery cost. Release builds run the stricter gzip budgets below
+	// (`budget:form` and `budget:admin`), which fail rather than warn when a bundle regresses.
+	performance: false,
 	// The readable build is deliberately a real development compilation rather than a
 	// post-processed production bundle: module boundaries and identifiers stay useful in a
 	// browser debugger. The paired production compilation owns every `.min.*` artifact.

@@ -3290,7 +3290,7 @@ final class PaymentService {
 	private function customerEmail( int $customer_id ): string {
 		$table = $this->wpdb->prefix . 'aponto_customers';
 		$sql   = "SELECT email FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
 		return (string) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $customer_id ) );
 	}
 
@@ -3302,7 +3302,7 @@ final class PaymentService {
 	private function serviceName( int $service_id ): string {
 		$table = $this->wpdb->prefix . 'aponto_services';
 		$sql   = "SELECT name FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
 		return (string) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $service_id ) );
 	}
 

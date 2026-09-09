@@ -1,16 +1,64 @@
-# Aponto Free
+# Aponto Free source and build guide
 
 This repository is the public source and release mirror for the Free edition of
-the Aponto WordPress appointment-booking plugin.
+the Aponto WordPress appointment-booking plugin. WordPress installation and
+product documentation live in [readme.txt](readme.txt).
 
-The complete human-readable JavaScript and CSS source is under `assets/src/`.
-See [SOURCE.md](SOURCE.md) for the source-to-bundle map, dependency source links,
-requirements, and exact rebuild commands. WordPress installation and product
-documentation live in [readme.txt](readme.txt).
+The private Aponto monorepo remains the only development source of truth. This
+public repository is a one-way mirror of a validated Free distribution ZIP;
+changes made directly in the mirror are overwritten by the next publication.
+Immutable `v*` tags are created only for approved releases.
 
-## Development ownership
+## Source map
 
-Development happens in the private Aponto monorepo. This repository is generated
-from a validated Free distribution ZIP. Immutable `v*` tags are published only
-after an approved release. Do not open development pull requests against this
-mirror; direct changes are overwritten by the next release publication.
+| Distributed output | Human-readable source |
+| --- | --- |
+| `assets/dist/free/admin*` | `assets/src/admin/` |
+| `assets/dist/free/form*` | `assets/src/form/` |
+| `assets/dist/free/form-editor*` | `assets/src/form/editor.jsx` and shared `assets/src/form/` files |
+| `assets/dist/free/wizard*` | `assets/src/wizard/` |
+| `assets/dist/free/modules/*` | Matching entries under `assets/src/modules/` |
+
+`webpack.config.js` defines the entry graph. `scripts/build-assets.mjs` runs the
+debug and production builds and verifies that every JavaScript, CSS, RTL and
+WordPress dependency-manifest output has its readable/minified pair.
+
+## Rebuild the Free browser assets
+
+Requirements:
+
+- Node.js 20 or newer.
+- npm 10 or newer.
+
+From the plugin directory:
+
+```sh
+npm ci
+npm run build:free
+```
+
+`npm ci` installs the exact dependency graph recorded in `package-lock.json`.
+The build writes readable files such as `admin.js` and `admin.css`, plus their
+production `.min.js` and `.min.css` counterparts, to `assets/dist/free/`.
+
+## Bundled dependency source
+
+The exact versions are pinned in `package.json` and `package-lock.json`. Source
+for the direct browser dependencies is publicly maintained at:
+
+- `@dnd-kit/*`: https://github.com/clauderic/dnd-kit
+- `@event-calendar/core`: https://github.com/vkurko/calendar
+- `@pressmaximum/dashboard-kit`: https://github.com/PressMaximum/dashboard-kit
+- `@tanstack/react-table`: https://github.com/TanStack/table
+- `preact`: https://github.com/preactjs/preact
+
+WordPress packages declared as webpack externals are supplied by WordPress at
+runtime and are not copied into Aponto's bundles.
+
+## Edition boundary
+
+The Free archive and this public mirror exclude Premium provider source,
+Premium browser source, Premium asset directories, Premium Plan variants,
+license clients and Premium update implementations. The distribution builder
+scans both the staging tree and the completed ZIP and fails if a Premium path
+or token crosses this boundary.

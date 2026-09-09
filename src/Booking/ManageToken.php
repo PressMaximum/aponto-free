@@ -446,7 +446,7 @@ final class ManageToken {
 		$verb = DatabaseEngine::isSqlite( $this->wpdb ) ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
 		$sql  = $verb . " INTO {$this->wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, %s)";
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Core options table; values bound via prepare(); insert-if-absent is not expressible through the options API (add_option upserts).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Core options table; values bound via prepare(); insert-if-absent is not expressible through the options API (add_option upserts).
 		$this->wpdb->query( $this->wpdb->prepare( $sql, $option, $sealed, 'no' ) );
 
 		$this->flushOptionCaches( $option );
@@ -512,7 +512,7 @@ final class ManageToken {
 	private function swap( string $stale, string $sealed ): bool {
 		$sql = "UPDATE {$this->wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s";
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Core options table; values bound via prepare(); compare-and-swap is not expressible through the options API.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Core options table; values bound via prepare(); compare-and-swap is not expressible through the options API.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $sealed, self::SECRET_OPTION, $stale ) );
 
 		$this->flushOptionCaches( self::SECRET_OPTION );

@@ -769,7 +769,7 @@ final class WizardService {
 	 */
 	private function recordedBookingPageId(): int {
 		$table = $this->wpdb->options;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Deliberate cache-bypassing read for the create race guard; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Deliberate cache-bypassing read for the create race guard; bound via prepare().
 		$value = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT option_value FROM {$table} WHERE option_name = %s LIMIT 1", self::BOOKING_PAGE_OPTION ) );
 
 		return null === $value ? 0 : (int) $value;
@@ -883,7 +883,7 @@ final class WizardService {
 		$sql    = $shift > 0
 			? "UPDATE {$table} SET price_minor = price_minor * %d WHERE price_minor IS NOT NULL AND price_minor > 0"
 			: "UPDATE {$table} SET price_minor = ROUND(price_minor / %d) WHERE price_minor IS NOT NULL AND price_minor > 0";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; factor bound via prepare(); one-shot wizard re-scale.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; factor bound via prepare(); one-shot wizard re-scale.
 		$this->wpdb->query( $this->wpdb->prepare( $sql, $factor ) );
 	}
 
@@ -896,7 +896,7 @@ final class WizardService {
 	private function connect( int $staff_id, int $service_id ): void {
 		$table = $this->wpdb->prefix . 'aponto_staff_services';
 		$sql   = "INSERT IGNORE INTO {$table} (staff_id, service_id, location_id) VALUES (%d, %d, 0)";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); INSERT IGNORE is idempotent on the PK.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); INSERT IGNORE is idempotent on the PK.
 		$this->wpdb->query( $this->wpdb->prepare( $sql, $staff_id, $service_id ) );
 	}
 
@@ -907,7 +907,7 @@ final class WizardService {
 	 */
 	private function allStaffIds(): array {
 		$table = $this->wpdb->prefix . 'aponto_staff';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
 		$ids = $this->wpdb->get_col( "SELECT id FROM {$table} ORDER BY id ASC" );
 
 		return array_map( 'intval', is_array( $ids ) ? $ids : array() );
@@ -925,7 +925,7 @@ final class WizardService {
 	 */
 	private function serviceCount(): int {
 		$table = $this->wpdb->prefix . 'aponto_services';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
 		return (int) $this->wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
 	}
 

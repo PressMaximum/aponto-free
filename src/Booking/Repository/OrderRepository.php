@@ -186,7 +186,7 @@ final class OrderRepository {
 		$sql  = "SELECT o.* FROM {$p}aponto_orders o
 			INNER JOIN {$p}aponto_order_items oi ON oi.order_id = o.id
 			WHERE oi.booking_id = %d LIMIT 1{$lock}";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; id bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; id bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $booking_id ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -203,7 +203,7 @@ final class OrderRepository {
 		$table = $this->wpdb->prefix . 'aponto_orders';
 		$lock  = $for_update ? ' FOR UPDATE' : '';
 		$sql   = "SELECT * FROM {$table} WHERE id = %d{$lock}";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $order_id ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -217,7 +217,7 @@ final class OrderRepository {
 	public function bookingIdFor( int $order_id ): int {
 		$table = $this->wpdb->prefix . 'aponto_order_items';
 		$sql   = "SELECT booking_id FROM {$table} WHERE order_id = %d AND item_type = 'booking' ORDER BY id ASC LIMIT 1";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $order_id ) );
 	}
 
@@ -273,7 +273,7 @@ final class OrderRepository {
 		$table = $this->wpdb->prefix . 'aponto_orders';
 		$sql   = "UPDATE {$table} SET payment_status = 'paid', gateway = %s, transaction_ref = %s, hold_expires_at = NULL, updated_at = %s"
 			. " WHERE id = %d AND payment_status IN ( 'none', 'pending' )";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $gateway, $payment_ref, $this->clock->nowSql(), $order_id ) );
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'order paid write' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -297,7 +297,7 @@ final class OrderRepository {
 		$table = $this->wpdb->prefix . 'aponto_orders';
 		$sql   = "UPDATE {$table} SET payment_status = 'none', hold_expires_at = NULL, updated_at = %s"
 			. " WHERE id = %d AND payment_status = 'pending'";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $this->clock->nowSql(), $order_id ) );
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'order hold release' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -322,7 +322,7 @@ final class OrderRepository {
 	public function markManualPaymentStatus( int $order_id, string $status, string $expected ): void {
 		$table = $this->wpdb->prefix . 'aponto_orders';
 		$sql   = "UPDATE {$table} SET payment_status = %s, hold_expires_at = NULL, updated_at = %s WHERE id = %d AND payment_status = %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $status, $this->clock->nowSql(), $order_id, $expected ) );
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'order manual payment status write' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -341,7 +341,7 @@ final class OrderRepository {
 	public function clearHold( int $order_id ): void {
 		$table = $this->wpdb->prefix . 'aponto_orders';
 		$sql   = "UPDATE {$table} SET hold_expires_at = NULL, updated_at = %s WHERE id = %d AND hold_expires_at IS NOT NULL";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $this->clock->nowSql(), $order_id ) );
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'order hold clear' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -377,7 +377,7 @@ final class OrderRepository {
 	public function markRefundStatus( int $order_id, string $status ): void {
 		$table = $this->wpdb->prefix . 'aponto_orders';
 		$sql   = "UPDATE {$table} SET payment_status = %s, updated_at = %s WHERE id = %d AND payment_status IN ( 'paid', 'partial' )";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $status, $this->clock->nowSql(), $order_id ) );
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'order refund status write' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -424,7 +424,7 @@ final class OrderRepository {
 
 		if ( '' === $retry_before ) {
 			$sql = "SELECT id FROM {$p}aponto_orders WHERE payment_status = 'pending' AND hold_expires_at IS NOT NULL AND hold_expires_at < %s ORDER BY id ASC LIMIT %d";
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 			$ids = $this->wpdb->get_col( $this->wpdb->prepare( $sql, $cutoff, max( 1, $limit ) ) );
 
 			return array_map( 'intval', is_array( $ids ) ? $ids : array() );
@@ -436,7 +436,7 @@ final class OrderRepository {
 			WHERE o.payment_status = 'pending' AND o.hold_expires_at IS NOT NULL
 			AND o.hold_expires_at < %s AND bm.id IS NULL
 			ORDER BY o.id ASC LIMIT %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; values bound via prepare().
 		$ids = $this->wpdb->get_col( $this->wpdb->prepare( $sql, self::VOID_UNRESOLVED_META_KEY, $retry_before, $cutoff, max( 1, $limit ) ) );
 
 		return array_map( 'intval', is_array( $ids ) ? $ids : array() );
@@ -468,7 +468,7 @@ final class OrderRepository {
 			WHERE o.payment_status = 'pending' AND o.hold_expires_at IS NOT NULL
 			AND o.hold_expires_at > %s AND o.updated_at <= %s AND bm.id IS NULL
 			ORDER BY o.id ASC LIMIT %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; values bound via prepare().
 		$ids = $this->wpdb->get_col( $this->wpdb->prepare( $sql, self::REMINDED_META_KEY, $alive_after, $created_before, max( 1, $limit ) ) );
 
 		return array_map( 'intval', is_array( $ids ) ? $ids : array() );
@@ -482,7 +482,7 @@ final class OrderRepository {
 	public function hasPendingHold(): bool {
 		$table = $this->wpdb->prefix . 'aponto_orders';
 		$sql   = "SELECT COUNT(*) FROM {$table} WHERE payment_status = 'pending' AND hold_expires_at IS NOT NULL";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
 		return (int) $this->wpdb->get_var( $sql ) > 0;
 	}
 
@@ -518,7 +518,7 @@ final class OrderRepository {
 				SELECT 1 FROM {$p}aponto_transactions t
 				WHERE t.order_id = o.id AND t.kind = 'charge' AND t.status IN ( 'pending', 'voiding' )
 			)";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; values bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $now, $recent_cutoff ) ) > 0;
 	}
 
@@ -531,7 +531,7 @@ final class OrderRepository {
 	public function deleteForBooking( int $booking_id ): void {
 		$items = $this->wpdb->prefix . 'aponto_order_items';
 		$sql   = "SELECT DISTINCT order_id FROM {$items} WHERE booking_id = %d FOR UPDATE";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; booking id bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; booking id bound via prepare().
 		$order_ids = $this->wpdb->get_col( $this->wpdb->prepare( $sql, $booking_id ) );
 		if ( '' !== (string) $this->wpdb->last_error ) {
 			throw StorageException::fromSqlError( esc_html( 'booking orders read' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -576,7 +576,7 @@ final class OrderRepository {
 			$table,
 			$code
 		);
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Identifier and value are bound above; collision read-back on the exact unique key.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Identifier and value are bound above; collision read-back on the exact unique key.
 		$value = $this->wpdb->get_var( $sql );
 
 		return '1' === (string) $value;

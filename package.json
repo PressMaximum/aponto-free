@@ -9,7 +9,7 @@
     "build:free": "node scripts/build-assets.mjs free",
     "build:premium": "node scripts/build-assets.mjs premium",
     "build:mockup:plugin-dashboard": "webpack --config docs/mockups/v4/plugin-dashboard/webpack.config.js",
-    "dist": "npm run test:plan-parity && npm run build:free && npm run build:premium && node build/scripts/build-dist.mjs",
+    "dist": "npm run test:plan-parity && npm run build:free && npm run build:premium && npm run budget:form && npm run budget:admin && node build/scripts/build-dist.mjs",
     "dist:ci": "APONTO_UPDATE_URI=https://updates.pressmaximum.com/aponto npm run dist",
     "mirror:free:export": "node build/scripts/export-free-mirror.mjs",
     "i18n:json": "python3 scripts/i18n/make-script-json.py languages/aponto-vi.po languages",

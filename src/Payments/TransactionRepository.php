@@ -206,7 +206,7 @@ final class TransactionRepository {
 	): int {
 		$now = $this->clock->nowSql();
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Ledger insert; no cache layer applies to a money row.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Ledger insert; no cache layer applies to a money row.
 		$inserted = $this->wpdb->insert(
 			$this->table(),
 			array(
@@ -271,7 +271,7 @@ final class TransactionRepository {
 		$args[] = self::STATUS_PENDING;
 		$args[] = '';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed %s clause.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed %s clause.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $args ) );
 
 		if ( false === $affected ) {
@@ -326,7 +326,7 @@ final class TransactionRepository {
 		$args[] = self::STATUS_VOIDING;
 		$args[] = self::STATUS_CAPTURING;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed %s clause.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed %s clause.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $args ) );
 
 		if ( false === $affected ) {
@@ -377,7 +377,7 @@ final class TransactionRepository {
 		$args[] = self::STATUS_PENDING;
 		$args[] = self::STATUS_FAILED;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed %s clause.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed %s clause.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $args ) );
 
 		if ( false === $affected ) {
@@ -407,7 +407,7 @@ final class TransactionRepository {
 		$sql = 'UPDATE ' . $this->table() . ' SET failure_code = %s, updated_at = %s'
 			. " WHERE id = %d AND status = %s AND gateway_ref = '' AND updated_at = %s";
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); lease-fenced compare-and-swap.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); lease-fenced compare-and-swap.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, self::VERIFICATION_UNAVAILABLE, $this->clock->nowSql(), $id, self::STATUS_PENDING, $lease ) );
 
 		if ( false === $affected ) {
@@ -434,7 +434,7 @@ final class TransactionRepository {
 		$sql = 'UPDATE ' . $this->table() . " SET failure_code = '', updated_at = %s"
 			. " WHERE id = %d AND status = %s AND gateway_ref = '' AND failure_code = %s";
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); compare-and-swap on the parked row.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); compare-and-swap on the parked row.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $this->clock->nowSql(), $id, self::STATUS_PENDING, self::VERIFICATION_UNAVAILABLE ) );
 
 		if ( false === $affected ) {
@@ -489,7 +489,7 @@ final class TransactionRepository {
 		$sql         = 'UPDATE ' . $this->table() . ' SET status = %s, failure_code = %s' . $meta_clause . ', updated_at = %s'
 			. ' WHERE id = %d AND status IN ( %s, %s, %s )';
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed, placeholder-free clause; compare-and-swap on an in-flight row. The sniff cannot follow a multi-line prepare() call, so the block is disabled rather than one line ignored.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed, placeholder-free clause; compare-and-swap on an in-flight row. The sniff cannot follow a multi-line prepare() call, so the block is disabled rather than one line ignored.
 		$affected = $this->wpdb->query(
 			$this->wpdb->prepare(
 				$sql,
@@ -502,7 +502,7 @@ final class TransactionRepository {
 				self::STATUS_CAPTURING
 			)
 		);
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'payment transaction fail' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -540,7 +540,7 @@ final class TransactionRepository {
 	 */
 	public function clearClientParams( int $order_id ): void {
 		$select = 'SELECT id, meta FROM ' . $this->table() . ' WHERE order_id = %d AND meta IS NOT NULL';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the id is bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the id is bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $select, $order_id ), ARRAY_A );
 		if ( ! is_array( $rows ) ) {
 			return;
@@ -557,11 +557,11 @@ final class TransactionRepository {
 			// a nullable column and what keeps the sniff able to read the prepare() call.
 			if ( null === $kept ) {
 				$sql = 'UPDATE ' . $this->table() . ' SET meta = NULL WHERE id = %d';
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the id is bound via prepare().
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the id is bound via prepare().
 				$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $id ) );
 			} else {
 				$sql = 'UPDATE ' . $this->table() . ' SET meta = %s WHERE id = %d';
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare().
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare().
 				$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $kept, $id ) );
 			}
 
@@ -591,7 +591,7 @@ final class TransactionRepository {
 	 */
 	public function markPendingRef( int $id, string $gateway_ref, string $payment_ref ): void {
 		$sql = 'UPDATE ' . $this->table() . ' SET gateway_ref = %s, payment_ref = %s, updated_at = %s WHERE id = %d AND status = %s';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap on the pending row.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap on the pending row.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $gateway_ref, $payment_ref, $this->clock->nowSql(), $id, self::STATUS_PENDING ) );
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'payment refund reference write' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -622,7 +622,7 @@ final class TransactionRepository {
 		$sql = 'UPDATE ' . $this->table() . ' SET status = %s, failure_code = %s, meta = NULL, updated_at = %s'
 			. ' WHERE id = %d AND status IN ( %s, %s, %s ) AND updated_at = %s';
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); lease-fenced compare-and-swap. The sniff cannot follow a multi-line prepare() call.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); lease-fenced compare-and-swap. The sniff cannot follow a multi-line prepare() call.
 		$affected = $this->wpdb->query(
 			$this->wpdb->prepare(
 				$sql,
@@ -636,7 +636,7 @@ final class TransactionRepository {
 				$lease
 			)
 		);
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'payment transaction fenced fail' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -669,7 +669,7 @@ final class TransactionRepository {
 	 */
 	public function find( int $id ): ?array {
 		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE id = %d';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $id ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -683,7 +683,7 @@ final class TransactionRepository {
 	 */
 	public function forOrder( int $order_id ): array {
 		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE order_id = %d ORDER BY id ASC';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $order_id ), ARRAY_A );
 
 		return is_array( $rows ) ? array_values( $rows ) : array();
@@ -700,7 +700,7 @@ final class TransactionRepository {
 		// whose capture is (D-R40c) — is still the order's live attempt, and treating it as absent
 		// would let a second actor create a rival intent for the same hold.
 		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s AND status IN ( %s, %s, %s ) ORDER BY id DESC LIMIT 1';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $order_id, self::KIND_CHARGE, self::STATUS_PENDING, self::STATUS_VOIDING, self::STATUS_CAPTURING ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -731,7 +731,7 @@ final class TransactionRepository {
 		$sql   = 'UPDATE ' . $this->table() . ' SET status = %s, updated_at = %s'
 			. ' WHERE id = %d AND ( status = %s OR ( status IN ( %s, %s ) AND updated_at < %s ) )';
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); void-claim compare-and-swap.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); void-claim compare-and-swap.
 		$affected = $this->wpdb->query(
 			$this->wpdb->prepare(
 				$sql,
@@ -744,7 +744,7 @@ final class TransactionRepository {
 				$stale
 			)
 		);
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'payment transaction void claim' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -796,7 +796,7 @@ final class TransactionRepository {
 		$sql   = 'UPDATE ' . $this->table() . ' SET status = %s, updated_at = %s'
 			. ' WHERE id = %d AND ( status IN ( %s, %s ) OR ( status = %s AND updated_at < %s ) )';
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); capture-claim compare-and-swap.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); capture-claim compare-and-swap.
 		$affected = $this->wpdb->query(
 			$this->wpdb->prepare(
 				$sql,
@@ -809,7 +809,7 @@ final class TransactionRepository {
 				$stale
 			)
 		);
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'payment transaction capture claim' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -849,7 +849,7 @@ final class TransactionRepository {
 			$args[] = $lease;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed %s clause.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed %s clause.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $args ) );
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'payment transaction capture release' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -901,7 +901,7 @@ final class TransactionRepository {
 			$args[] = $lease;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed %s clause.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed %s clause.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $args ) );
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'payment transaction void release' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -915,7 +915,7 @@ final class TransactionRepository {
 	 */
 	public function chargeAttempts( int $order_id ): int {
 		$sql = 'SELECT COUNT(*) FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $order_id, self::KIND_CHARGE ) );
 	}
 
@@ -927,7 +927,7 @@ final class TransactionRepository {
 	 */
 	public function succeededCharge( int $order_id ): ?array {
 		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s AND status = %s ORDER BY id DESC LIMIT 1';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $order_id, self::KIND_CHARGE, self::STATUS_SUCCEEDED ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -949,7 +949,7 @@ final class TransactionRepository {
 	public function noteInFlightFailure( int $id, string $failure_code ): bool {
 		$sql = 'UPDATE ' . $this->table() . ' SET failure_code = %s, updated_at = %s WHERE id = %d AND status = %s';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap on the pending row.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap on the pending row.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, mb_substr( $failure_code, 0, 64 ), $this->clock->nowSql(), $id, self::STATUS_PENDING ) );
 
 		if ( false === $affected ) {
@@ -977,7 +977,7 @@ final class TransactionRepository {
 
 		$code = mb_substr( $failure_code, 0, 64 );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap on the failed row.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap on the failed row.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $code, $this->clock->nowSql(), $id, self::STATUS_FAILED, $code ) );
 
 		if ( false === $affected ) {
@@ -998,7 +998,7 @@ final class TransactionRepository {
 	 */
 	public function latestCharge( int $order_id ): ?array {
 		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s ORDER BY id DESC LIMIT 1';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $order_id, self::KIND_CHARGE ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -1016,7 +1016,7 @@ final class TransactionRepository {
 	 */
 	public function hasAnyCharge( int $order_id ): bool {
 		$sql = 'SELECT COUNT(*) FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $order_id, self::KIND_CHARGE ) ) > 0;
 	}
 
@@ -1030,7 +1030,7 @@ final class TransactionRepository {
 		// money already promised away, so it RESERVES its amount. Counting only settled refunds would
 		// let a second operator refund the same money while the first refund is still in flight.
 		$sql = 'SELECT COALESCE( SUM(amount_minor), 0 ) FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s AND status IN ( %s, %s )';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $order_id, self::KIND_REFUND, self::STATUS_SUCCEEDED, self::STATUS_PENDING ) );
 	}
 
@@ -1042,7 +1042,7 @@ final class TransactionRepository {
 	 */
 	public function settledRefundMinor( int $order_id ): int {
 		$sql = 'SELECT COALESCE( SUM(amount_minor), 0 ) FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s AND status = %s';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $order_id, self::KIND_REFUND, self::STATUS_SUCCEEDED ) );
 	}
 
@@ -1053,7 +1053,7 @@ final class TransactionRepository {
 	 */
 	public function hasPendingRefund( int $order_id ): bool {
 		$sql = 'SELECT COUNT(*) FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s AND status = %s';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $order_id, self::KIND_REFUND, self::STATUS_PENDING ) ) > 0;
 	}
 
@@ -1071,7 +1071,7 @@ final class TransactionRepository {
 	 */
 	public function stalePendingRefunds( string $cutoff, int $limit ): array {
 		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE kind = %s AND status = %s AND updated_at < %s ORDER BY id ASC LIMIT %d';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, self::KIND_REFUND, self::STATUS_PENDING, $cutoff, max( 1, $limit ) ), ARRAY_A );
 
 		return is_array( $rows ) ? array_values( $rows ) : array();
@@ -1093,7 +1093,7 @@ final class TransactionRepository {
 	public function findPendingRefundMatching( int $order_id, int $amount, string $currency ): ?array {
 		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s AND status = %s'
 			. ' AND amount_minor = %d AND UPPER(currency) = %s ORDER BY id ASC LIMIT 1';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $order_id, self::KIND_REFUND, self::STATUS_PENDING, $amount, strtoupper( $currency ) ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -1117,7 +1117,7 @@ final class TransactionRepository {
 
 		$sql = 'UPDATE ' . $this->table() . ' SET meta = %s, updated_at = %s WHERE id = %d AND status = %s';
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); compare-and-swap on the pending row. The sniff cannot follow a multi-line prepare() call.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); compare-and-swap on the pending row. The sniff cannot follow a multi-line prepare() call.
 		$affected = $this->wpdb->query(
 			$this->wpdb->prepare(
 				$sql,
@@ -1127,7 +1127,7 @@ final class TransactionRepository {
 				self::STATUS_PENDING
 			)
 		);
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'payment refund reconcile counter' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -1157,7 +1157,7 @@ final class TransactionRepository {
 		// now stores, and `resolveOrder()` asks this question with exactly that value.
 		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE gateway = %s AND kind = %s'
 			. " AND ( gateway_ref = %s OR ( gateway_ref = '' AND payment_ref = %s ) ) ORDER BY id DESC LIMIT 1";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $gateway, self::KIND_REFUND, $refund_ref, $refund_ref ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -1171,7 +1171,7 @@ final class TransactionRepository {
 	 */
 	public function nextSequence( int $order_id, string $kind ): int {
 		$sql = 'SELECT COUNT(*) FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		return 1 + (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $order_id, $kind ) );
 	}
 
@@ -1190,7 +1190,7 @@ final class TransactionRepository {
 			return null;
 		}
 		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE gateway = %s AND gateway_ref = %s ORDER BY id DESC LIMIT 1';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $gateway, $gateway_ref ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -1208,7 +1208,7 @@ final class TransactionRepository {
 			return null;
 		}
 		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE gateway = %s AND payment_ref = %s AND kind = %s ORDER BY id DESC LIMIT 1';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $gateway, $payment_ref, self::KIND_CHARGE ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -1227,7 +1227,7 @@ final class TransactionRepository {
 		// Both stored shapes, on the same narrow terms as {@see self::findRefundByRef()} (D-R40d).
 		$sql = 'SELECT COUNT(*) FROM ' . $this->table() . ' WHERE gateway = %s AND kind = %s'
 			. " AND ( gateway_ref = %s OR ( gateway_ref = '' AND payment_ref = %s ) )";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $gateway, self::KIND_REFUND, $refund_ref, $refund_ref ) ) > 0;
 	}
 
@@ -1293,7 +1293,7 @@ final class TransactionRepository {
 	 */
 	private function retainedMeta( int $id ): ?string {
 		$sql = 'SELECT meta FROM ' . $this->table() . ' WHERE id = %d';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the id is bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the id is bound via prepare().
 		$raw = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $id ) );
 
 		return self::durableSubset( (string) $raw );
@@ -1357,7 +1357,7 @@ final class TransactionRepository {
 	 * @throws StorageException When the delete fails.
 	 */
 	public function deleteForBooking( int $booking_id ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cascade delete for an admin hard delete.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cascade delete for an admin hard delete.
 		$result = $this->wpdb->delete( $this->table(), array( 'booking_id' => $booking_id ), array( '%d' ) );
 		if ( false === $result ) {
 			throw StorageException::fromSqlError( esc_html( 'payment transactions delete' ), esc_html( (string) $this->wpdb->last_error ) );

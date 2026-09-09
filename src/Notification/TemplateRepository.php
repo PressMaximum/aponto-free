@@ -43,7 +43,7 @@ final class TemplateRepository {
 	public function all(): array {
 		$table = $this->table();
 		$sql   = "SELECT id, template_key, recipient, trigger_event, subject, body, enabled FROM {$table} ORDER BY id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
 		$rows = $this->wpdb->get_results( $sql, ARRAY_A );
 
 		return is_array( $rows ) ? $rows : array();
@@ -58,7 +58,7 @@ final class TemplateRepository {
 	public function find( string $template_key ): ?array {
 		$table = $this->table();
 		$sql   = "SELECT id, template_key, recipient, trigger_event, subject, body, enabled FROM {$table} WHERE template_key = %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $template_key ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -73,7 +73,7 @@ final class TemplateRepository {
 	 * @param bool   $enabled      Whether enabled.
 	 */
 	public function update( string $template_key, string $subject, string $body, bool $enabled ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin template update.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin template update.
 		$this->wpdb->update(
 			$this->table(),
 			array(

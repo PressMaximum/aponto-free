@@ -56,9 +56,10 @@ final class StaffGateway {
 	 * @param string $search   Name search (already sanitized).
 	 * @param int    $page     Page (>=1).
 	 * @param int    $per_page Page size (1..100).
+	 * @param string $order_by `position` for the collection or `id` for the canonical Free profile.
 	 * @return array{items: list<array<string, mixed>>, total: int}
 	 */
-	public function list( string $status, string $search, int $page, int $per_page ): array {
+	public function list( string $status, string $search, int $page, int $per_page, string $order_by = 'position' ): array {
 		$table  = $this->table();
 		$where  = array();
 		$params = array();
@@ -74,13 +75,14 @@ final class StaffGateway {
 		$where_sql = array() === $where ? '' : ' WHERE ' . implode( ' AND ', $where );
 
 		$count_sql = "SELECT COUNT(*) FROM {$table}{$where_sql}";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		$total = (int) $this->wpdb->get_var( array() === $params ? $count_sql : $this->wpdb->prepare( $count_sql, $params ) );
 
 		$offset      = ( $page - 1 ) * $per_page;
+		$order_sql   = 'id' === $order_by ? 'id ASC' : 'position ASC, id ASC';
 		$list_params = array_merge( $params, array( $per_page, $offset ) );
-		$list_sql    = 'SELECT ' . self::COLUMNS . " FROM {$table}{$where_sql} ORDER BY position ASC, id ASC LIMIT %d OFFSET %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		$list_sql    = 'SELECT ' . self::COLUMNS . " FROM {$table}{$where_sql} ORDER BY {$order_sql} LIMIT %d OFFSET %d";
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $list_sql, $list_params ), ARRAY_A );
 
 		return array(
@@ -98,7 +100,7 @@ final class StaffGateway {
 	public function find( int $id ): ?array {
 		$table = $this->table();
 		$sql   = 'SELECT ' . self::COLUMNS . " FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $id ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -134,7 +136,7 @@ final class StaffGateway {
 
 		$connections = $this->wpdb->prefix . 'aponto_staff_services';
 		$sql         = "SELECT staff_id, COUNT(DISTINCT service_id) AS service_count FROM {$connections} WHERE staff_id IN ({$placeholders}) GROUP BY staff_id";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; placeholders bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; placeholders bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $ids ), ARRAY_A );
 		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
 			$out[ (int) $row['staff_id'] ]['service_count'] = (int) $row['service_count'];
@@ -142,7 +144,7 @@ final class StaffGateway {
 
 		$schedules = $this->wpdb->prefix . 'aponto_schedules';
 		$sql       = "SELECT DISTINCT staff_id FROM {$schedules} WHERE staff_id IN ({$placeholders}) AND date_override IS NULL";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; placeholders bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; placeholders bound via prepare().
 		$custom = $this->wpdb->get_col( $this->wpdb->prepare( $sql, $ids ) );
 		foreach ( is_array( $custom ) ? $custom : array() as $staff_id ) {
 			$out[ (int) $staff_id ]['has_custom_hours'] = true;
@@ -157,7 +159,7 @@ final class StaffGateway {
 	public function count(): int {
 		$table = $this->table();
 		$sql   = "SELECT COUNT(*) FROM {$table}";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
 		return (int) $this->wpdb->get_var( $sql );
 	}
 
@@ -167,7 +169,7 @@ final class StaffGateway {
 	public function maxPosition(): int {
 		$table = $this->table();
 		$sql   = "SELECT MAX(position) FROM {$table}";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
 		$max = $this->wpdb->get_var( $sql );
 
 		return null === $max ? 0 : (int) $max;
@@ -181,7 +183,7 @@ final class StaffGateway {
 	public function hasBookings( int $staff_id ): bool {
 		$table = $this->wpdb->prefix . 'aponto_bookings';
 		$sql   = "SELECT COUNT(*) FROM {$table} WHERE staff_id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $staff_id ) ) > 0;
 	}
 
@@ -208,7 +210,7 @@ final class StaffGateway {
 	public function lowestId(): int {
 		$table = $this->table();
 		$sql   = "SELECT id FROM {$table} ORDER BY id ASC LIMIT 1";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
 		return (int) $this->wpdb->get_var( $sql );
 	}
 
@@ -223,7 +225,7 @@ final class StaffGateway {
 		$data['created_at'] = $now;
 		$data['updated_at'] = $now;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin insert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin insert.
 		$result = $this->wpdb->insert( $this->table(), $data, $this->formats( $data ) );
 
 		if ( false === $result ) {
@@ -257,7 +259,7 @@ final class StaffGateway {
 	 * @return bool Whether the row is back.
 	 */
 	public function restore( array $row ): bool {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Compensation re-insert of a captured pre-image.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Compensation re-insert of a captured pre-image.
 		$inserted = $this->wpdb->insert( $this->table(), $row, $this->formats( $row ) );
 
 		// REPORTS (Codex round 4, P1 #7). A compensation that silently fails leaves the site in the
@@ -274,7 +276,7 @@ final class StaffGateway {
 	 */
 	public function update( int $id, array $data ): void {
 		$data['updated_at'] = $this->clock->nowSql();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin update.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin update.
 		$this->wpdb->update( $this->table(), $data, array( 'id' => $id ), $this->formats( $data ), array( '%d' ) );
 	}
 
@@ -292,7 +294,7 @@ final class StaffGateway {
 	 * @throws StorageException When the delete fails or does not remove exactly one row.
 	 */
 	public function delete( int $id ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin delete.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin delete.
 		$affected = $this->wpdb->delete( $this->table(), array( 'id' => $id ), array( '%d' ) );
 
 		if ( 1 !== $affected ) {

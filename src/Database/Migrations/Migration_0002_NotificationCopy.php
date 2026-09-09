@@ -58,7 +58,7 @@ final class Migration_0002_NotificationCopy implements Migration {
 				continue; // Missing (fresh install, pre-seed) or admin-edited — never touch.
 			}
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time copy migration; the strict === guard above already proved this row still holds the previous default.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time copy migration; the strict === guard above already proved this row still holds the previous default.
 			$updated = $wpdb->update(
 				$table,
 				array( 'body' => $revision['new'] ),
@@ -111,7 +111,7 @@ final class Migration_0002_NotificationCopy implements Migration {
 	 */
 	private function fetchBody( \wpdb $wpdb, string $table, string $key ): ?string {
 		$wpdb->flush(); // Clears any stale last_error so the check below sees only THIS read.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; key bound via prepare(); fetched for a PHP binary comparison.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; key bound via prepare(); fetched for a PHP binary comparison.
 		$body = $wpdb->get_var( $wpdb->prepare( "SELECT body FROM {$table} WHERE template_key = %s", $key ) );
 		if ( '' !== $wpdb->last_error ) {
 			throw new \RuntimeException( esc_html( sprintf( 'Aponto migration 0002: read failed for %s: %s', $key, $wpdb->last_error ) ) );

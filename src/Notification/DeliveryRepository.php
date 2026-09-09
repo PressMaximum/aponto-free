@@ -56,7 +56,7 @@ final class DeliveryRepository {
 	public function claim( string $dispatch_key, string $template_key, ?int $booking_id, string $recipient_hash, string $payload_cipher, string $last_error_code = '' ): ?int {
 		$now        = $this->clock->nowSql();
 		$suppressed = $this->wpdb->suppress_errors( true );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic unique claim.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic unique claim.
 		$result = $this->wpdb->insert(
 			$this->table(),
 			array(
@@ -91,7 +91,7 @@ final class DeliveryRepository {
 	public function queuedForBooking( int $booking_id ): array {
 		$table = $this->table();
 		$sql   = "SELECT id, booking_id, payload_cipher, attempts, last_error_code FROM {$table} WHERE booking_id = %d AND status = 'queued' ORDER BY id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $booking_id ), ARRAY_A );
 
 		return $this->hydratePending( is_array( $rows ) ? $rows : array() );
@@ -103,7 +103,7 @@ final class DeliveryRepository {
 	 * @param int $id Delivery id.
 	 */
 	public function markSent( int $id ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Status update.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Status update.
 		$this->wpdb->update(
 			$this->table(),
 			array(
@@ -124,7 +124,7 @@ final class DeliveryRepository {
 	 * @param string $error_code Normalized error code.
 	 */
 	public function markFailed( int $id, int $attempts, string $error_code ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Status update.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Status update.
 		$this->wpdb->update(
 			$this->table(),
 			array(
@@ -160,7 +160,7 @@ final class DeliveryRepository {
 		$table  = $this->table();
 		$marker = mb_substr( $error_code, 0, 64 );
 		$sql    = "UPDATE {$table} SET last_error_code = %s, updated_at = %s WHERE dispatch_key = %s AND last_error_code <> %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare().
 		return (int) $this->wpdb->query( $this->wpdb->prepare( $sql, $marker, $this->clock->nowSql(), $dispatch_key, $marker ) );
 	}
 
@@ -172,7 +172,7 @@ final class DeliveryRepository {
 	public function countForBooking( int $booking_id ): int {
 		$table = $this->table();
 		$sql   = "SELECT COUNT(*) FROM {$table} WHERE booking_id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $booking_id ) );
 	}
 
@@ -191,7 +191,7 @@ final class DeliveryRepository {
 
 		$table = $this->table();
 		$sql   = "SELECT COUNT(*) FROM {$table} WHERE recipient_hash = %s AND created_at >= %s AND created_at < %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $recipient_hash, $start, $end ) );
 	}
 
@@ -205,7 +205,7 @@ final class DeliveryRepository {
 	public function lease( int $id ): bool {
 		$table = $this->table();
 		$sql   = "UPDATE {$table} SET status = 'processing', updated_at = %s WHERE id = %d AND status IN ( 'queued', 'failed' )";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); atomic conditional lease.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); atomic conditional lease.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $this->clock->nowSql(), $id ) );
 
 		return 1 === (int) $affected;
@@ -221,7 +221,7 @@ final class DeliveryRepository {
 	public function reclaimExpiredLeases( string $cutoff_sql ): int {
 		$table = $this->table();
 		$sql   = "UPDATE {$table} SET status = 'failed', last_error_code = 'lease_expired', updated_at = %s WHERE status = 'processing' AND updated_at < %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		return (int) $this->wpdb->query( $this->wpdb->prepare( $sql, $this->clock->nowSql(), $cutoff_sql ) );
 	}
 
@@ -240,7 +240,7 @@ final class DeliveryRepository {
 			WHERE payload_cipher <> ''
 			AND ( ( status = 'failed' AND attempts < 2 ) OR ( status = 'queued' AND updated_at < %s ) )
 			ORDER BY id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $queued_stale_before ), ARRAY_A );
 
 		return $this->hydratePending( is_array( $rows ) ? $rows : array() );
@@ -280,7 +280,7 @@ final class DeliveryRepository {
 		$table = $this->table();
 		$sql   = "SELECT id, template_key, payload_cipher, status, last_error_code, created_at, updated_at
 			FROM {$table} ORDER BY created_at DESC, id DESC LIMIT %d OFFSET %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; limit/offset bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; limit/offset bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, max( 1, $limit ), max( 0, $offset ) ), ARRAY_A );
 
 		$out = array();
@@ -304,7 +304,7 @@ final class DeliveryRepository {
 	 */
 	public function countAll(): int {
 		$table = $this->table();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
 		return (int) $this->wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
 	}
 
@@ -316,7 +316,7 @@ final class DeliveryRepository {
 	public function pruneSentOlderThan( string $cutoff_sql ): int {
 		$table = $this->table();
 		$sql   = "DELETE FROM {$table} WHERE status = 'sent' AND updated_at < %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		return (int) $this->wpdb->query( $this->wpdb->prepare( $sql, $cutoff_sql ) );
 	}
 }

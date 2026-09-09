@@ -143,7 +143,7 @@ final class ReminderScheduler {
 			)
 			ORDER BY b.start_datetime_utc ASC
 			LIMIT " . self::BATCH;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; window bounds + template key + drop marker bound via prepare(); the interpolated WINDOW_HOURS/BATCH are integer class constants, never user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; window bounds + template key + drop marker bound via prepare(); the interpolated WINDOW_HOURS/BATCH are integer class constants, never user input.
 		$ids = $wpdb->get_col( $wpdb->prepare( $sql, $now_sql, $window_sql, self::TEMPLATE_KEY, self::STALE_DROP ) );
 
 		return array_map( 'intval', is_array( $ids ) ? $ids : array() );

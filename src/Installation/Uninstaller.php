@@ -235,7 +235,7 @@ final class Uninstaller {
 		global $wpdb;
 
 		$like = $wpdb->esc_like( 'aponto_' ) . '%';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Enumerate every Aponto option name to delete on opt-in uninstall.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Enumerate every Aponto option name to delete on opt-in uninstall.
 		$names = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
 
 		foreach ( $names as $name ) {

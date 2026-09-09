@@ -51,7 +51,7 @@ final class StaffMetaRepository {
 	public function get( int $staff_id, string $meta_key ): ?string {
 		$table = $this->wpdb->prefix . 'aponto_staff_meta';
 		$sql   = "SELECT meta_value FROM {$table} WHERE staff_id = %d AND meta_key = %s LIMIT 1";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$value = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $staff_id, $meta_key ) );
 
 		return null === $value ? null : (string) $value;
@@ -70,7 +70,7 @@ final class StaffMetaRepository {
 	public function allByKey( string $meta_key ): array {
 		$table = $this->wpdb->prefix . 'aponto_staff_meta';
 		$sql   = "SELECT staff_id, meta_value FROM {$table} WHERE meta_key = %s ORDER BY staff_id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the key is bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the key is bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $meta_key ), ARRAY_A );
 
 		// A FAILED QUERY IS NOT AN EMPTY RESULT (Codex round 10, P2). Both arrive here as "no rows",
@@ -102,7 +102,7 @@ final class StaffMetaRepository {
 		$table = $this->wpdb->prefix . 'aponto_staff_meta';
 		$sql   = "INSERT INTO {$table} (staff_id, meta_key, meta_value) VALUES (%d, %s, %s)
 			ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value)";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$result = $this->wpdb->query( $this->wpdb->prepare( $sql, $staff_id, $meta_key, $meta_value ) );
 		if ( false === $result ) {
 			// THROWS rather than returning false (Codex P1 #4): the caller of this method is storing
@@ -120,7 +120,8 @@ final class StaffMetaRepository {
 	 * @throws StorageException When the delete fails.
 	 */
 	public function delete( int $staff_id, string $meta_key ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Constant table; deleting an absent row is the expected idempotent case.
+		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Custom table is indexed by UNIQUE KEY owner_key (staff_id, meta_key); no meta_value query occurs.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Constant table; deleting an absent row is the expected idempotent case.
 		$result = $this->wpdb->delete(
 			$this->wpdb->prefix . 'aponto_staff_meta',
 			array(
@@ -129,6 +130,7 @@ final class StaffMetaRepository {
 			),
 			array( '%d', '%s' )
 		);
+		// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 		if ( false === $result ) {
 			// A disconnect that reports success while the token row survives is worse than an error
 			// the operator can retry (Codex P1 #4).
@@ -152,7 +154,7 @@ final class StaffMetaRepository {
 		$table = $this->wpdb->prefix . 'aponto_staff_meta';
 		$like  = $this->wpdb->esc_like( $prefix ) . '%';
 		$sql   = "DELETE FROM {$table} WHERE meta_key LIKE %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the escaped LIKE pattern is bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; the escaped LIKE pattern is bound via prepare().
 		$removed = $this->wpdb->query( $this->wpdb->prepare( $sql, $like ) );
 
 		// `(int) false` is `0`, which reads as "there was nothing to delete" (Codex round 6, P2). On

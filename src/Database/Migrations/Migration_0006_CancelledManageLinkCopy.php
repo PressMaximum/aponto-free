@@ -82,7 +82,7 @@ final class Migration_0006_CancelledManageLinkCopy implements Migration {
 		$sql   = "UPDATE {$table} SET body = %s WHERE template_key = %s AND {$match}";
 
 		$wpdb->flush();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); the WHERE is the atomic still-default guard.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); the WHERE is the atomic still-default guard.
 		$updated = $wpdb->query( $wpdb->prepare( $sql, self::NEW, self::KEY, self::OLD ) );
 
 		if ( false === $updated ) {
@@ -117,7 +117,7 @@ final class Migration_0006_CancelledManageLinkCopy implements Migration {
 	 */
 	private function fetchBody( \wpdb $wpdb, string $table ): ?string {
 		$wpdb->flush();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; key bound via prepare(); fetched for a PHP binary comparison.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; key bound via prepare(); fetched for a PHP binary comparison.
 		$body = $wpdb->get_var( $wpdb->prepare( "SELECT body FROM {$table} WHERE template_key = %s", self::KEY ) );
 		if ( '' !== $wpdb->last_error ) {
 			throw new \RuntimeException( esc_html( sprintf( 'Aponto migration 0006: read failed: %s', $wpdb->last_error ) ) );

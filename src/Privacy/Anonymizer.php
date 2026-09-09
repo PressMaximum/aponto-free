@@ -107,7 +107,7 @@ final class Anonymizer {
 	public function applyInTransaction( int $customer_id ): void {
 		$customers = $this->wpdb->prefix . 'aponto_customers';
 		$lock_sql  = "SELECT id FROM {$customers} WHERE id = %d FOR UPDATE";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); row lock serialises with reserve()'s customer upsert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); row lock serialises with reserve()'s customer upsert.
 		$locked = $this->wpdb->get_var( $this->wpdb->prepare( $lock_sql, $customer_id ) );
 		if ( null === $locked ) {
 			return; // Customer vanished — nothing to anonymize (idempotent no-op).
@@ -118,7 +118,7 @@ final class Anonymizer {
 		}
 
 		foreach ( $this->bookingIds( $customer_id ) as $booking_id ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Anonymization write.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Anonymization write.
 			$result = $this->wpdb->update(
 				$this->wpdb->prefix . 'aponto_bookings',
 				array(
@@ -131,7 +131,7 @@ final class Anonymizer {
 			);
 			$this->assertWrite( $result, 'anonymize booking' );
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Scrub activity PII.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Scrub activity PII.
 			$result = $this->wpdb->update(
 				$this->wpdb->prefix . 'aponto_activities',
 				array( 'meta' => '{}' ),
@@ -144,7 +144,7 @@ final class Anonymizer {
 			);
 			$this->assertWrite( $result, 'anonymize activities' );
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Clear delivery payload.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Clear delivery payload.
 			$result = $this->wpdb->update(
 				$this->wpdb->prefix . 'aponto_notification_deliveries',
 				array( 'payload_cipher' => '' ),
@@ -169,7 +169,7 @@ final class Anonymizer {
 		// IDENTITY LAST (REST-3): the customer's contact row is the lookup key for the eraser —
 		// it only changes once every linked record has been scrubbed successfully.
 		$anon = 'anon-' . $customer_id . '@invalid';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Anonymization write.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Anonymization write.
 		$result = $this->wpdb->update(
 			$this->wpdb->prefix . 'aponto_customers',
 			array(
@@ -209,7 +209,7 @@ final class Anonymizer {
 	private function bookingIds( int $customer_id ): array {
 		$table = $this->wpdb->prefix . 'aponto_bookings';
 		$sql   = "SELECT id FROM {$table} WHERE customer_id = %d ORDER BY id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$ids = $this->wpdb->get_col( $this->wpdb->prepare( $sql, $customer_id ) );
 
 		return array_map( 'intval', is_array( $ids ) ? $ids : array() );

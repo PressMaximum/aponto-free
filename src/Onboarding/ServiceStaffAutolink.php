@@ -119,7 +119,7 @@ final class ServiceStaffAutolink {
 		$services = $this->wpdb->prefix . 'aponto_services';
 		$links    = $this->wpdb->prefix . 'aponto_staff_services';
 		$sql      = "SELECT s.id FROM {$services} s LEFT JOIN {$links} ss ON ss.service_id = s.id WHERE ss.service_id IS NULL ORDER BY s.id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; no user input.
 		$ids = $this->wpdb->get_col( $sql );
 
 		return array_map( 'intval', is_array( $ids ) ? $ids : array() );
@@ -132,7 +132,7 @@ final class ServiceStaffAutolink {
 	 */
 	public function staffIds(): array {
 		$table = $this->wpdb->prefix . 'aponto_staff';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
 		$ids = $this->wpdb->get_col( "SELECT id FROM {$table} ORDER BY id ASC" );
 
 		return array_map( 'intval', is_array( $ids ) ? $ids : array() );
@@ -147,7 +147,7 @@ final class ServiceStaffAutolink {
 	private function connect( int $staff_id, int $service_id ): void {
 		$table = $this->wpdb->prefix . 'aponto_staff_services';
 		$sql   = "INSERT IGNORE INTO {$table} (staff_id, service_id, location_id) VALUES (%d, %d, 0)";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); INSERT IGNORE is idempotent on the PK.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); INSERT IGNORE is idempotent on the PK.
 		$this->wpdb->query( $this->wpdb->prepare( $sql, $staff_id, $service_id ) );
 	}
 }

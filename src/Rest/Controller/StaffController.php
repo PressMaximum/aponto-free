@@ -93,6 +93,7 @@ final class StaffController implements Controller {
 						'search'   => Args::argSearch(),
 						'page'     => Args::argPage(),
 						'per_page' => Args::argPerPage(),
+						'order_by' => Args::argEnum( array( 'position', 'id' ), 'position' ),
 					),
 				),
 				array(
@@ -141,7 +142,8 @@ final class StaffController implements Controller {
 			(string) $request->get_param( 'status' ),
 			(string) $request->get_param( 'search' ),
 			$page,
-			$per_page
+			$per_page,
+			(string) $request->get_param( 'order_by' )
 		);
 
 		$items = array_map( array( $this, 'toDto' ), $result['items'] );

@@ -46882,7 +46882,7 @@ const PUBLIC_VERSION = '5';
 /******/ 		// This function allow to reference async chunks
 /******/ 		__webpack_require__.u = (chunkId) => {
 /******/ 			// return url for filenames based on template
-/******/ 			return "" + chunkId + ".js?ver=" + {"admin-chunk-vendor":"e8a10aa66afa6469b5af","admin-chunk-settings":"1075b0f93eaf9749b025","admin-chunk-services":"413f81d2d25baf097e6c","admin-chunk-staff":"30874337d107314b0821","admin-chunk-modules":"db4c418c34b826ce48dc","admin-chunk-booking-editor":"1bec0e80a8550732578d","admin-chunk-refund-dialog":"281a467c6dc9c40e571c"}[chunkId] + "";
+/******/ 			return "" + chunkId + ".js?ver=" + {"admin-chunk-vendor":"e8a10aa66afa6469b5af","admin-chunk-settings":"1075b0f93eaf9749b025","admin-chunk-services":"413f81d2d25baf097e6c","admin-chunk-staff":"0d82277b62d8ba09443f","admin-chunk-modules":"db4c418c34b826ce48dc","admin-chunk-booking-editor":"1bec0e80a8550732578d","admin-chunk-refund-dialog":"281a467c6dc9c40e571c"}[chunkId] + "";
 /******/ 		};
 /******/ 	})();
 /******/ 	

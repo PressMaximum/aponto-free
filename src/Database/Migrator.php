@@ -113,7 +113,7 @@ final class Migrator {
 
 		foreach ( self::coreTableSlugs() as $slug ) {
 			$table = $this->wpdb->prefix . $slug;
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Engine check against information_schema during activation; caching is not applicable.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Engine check against information_schema during activation; caching is not applicable.
 			$engine = $this->wpdb->get_var(
 				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is a value passed to wpdb::prepare; sniff cannot recognize the injected wpdb property.
 				$this->wpdb->prepare(

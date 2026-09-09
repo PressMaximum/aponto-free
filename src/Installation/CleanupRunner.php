@@ -89,7 +89,7 @@ final class CleanupRunner {
 		$wpdb  = $this->services->wpdb();
 		$table = $wpdb->prefix . 'aponto_idempotency';
 		$sql   = "DELETE FROM {$table} WHERE expires_at < %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$wpdb->query( $wpdb->prepare( $sql, $this->services->clock()->nowSql() ) );
 	}
 
@@ -109,7 +109,7 @@ final class CleanupRunner {
 		$table  = $wpdb->prefix . 'aponto_rate_counters';
 		$cutoff = $this->services->clock()->now()->sub( new \DateInterval( 'PT' . DAY_IN_SECONDS . 'S' ) )->format( 'Y-m-d H:i:s' );
 		$sql    = "DELETE FROM {$table} WHERE window_start < %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$wpdb->query( $wpdb->prepare( $sql, $cutoff ) );
 	}
 
@@ -136,18 +136,18 @@ final class CleanupRunner {
 		foreach ( array( 'aponto_schedules', 'aponto_blocked_periods' ) as $slug ) {
 			$table = $wpdb->prefix . $slug;
 			$sql   = "DELETE FROM {$table} WHERE staff_id <> 0 AND NOT EXISTS ( SELECT 1 FROM {$staff} st WHERE st.id = {$table}.staff_id )";
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; no user input.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; no user input.
 			$wpdb->query( $sql );
 		}
 
 		$schedules = $wpdb->prefix . 'aponto_schedules';
 		$sql       = "DELETE FROM {$schedules} WHERE service_id <> 0 AND NOT EXISTS ( SELECT 1 FROM {$svc} s WHERE s.id = {$schedules}.service_id )";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; no user input.
 		$wpdb->query( $sql );
 
 		$joins = $wpdb->prefix . 'aponto_staff_services';
 		$sql   = "DELETE FROM {$joins} WHERE NOT EXISTS ( SELECT 1 FROM {$staff} st WHERE st.id = {$joins}.staff_id ) OR NOT EXISTS ( SELECT 1 FROM {$svc} s WHERE s.id = {$joins}.service_id )";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; no user input.
 		$wpdb->query( $sql );
 	}
 
@@ -181,7 +181,7 @@ final class CleanupRunner {
 				WHERE oi.booking_id = b.id AND o.payment_status = 'pending'
 			)
 			ORDER BY b.id ASC LIMIT 200";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$ids = $wpdb->get_col( $wpdb->prepare( $sql, $cutoff ) );
 
 		$service = $this->services->bookingStatusService();
@@ -223,7 +223,7 @@ final class CleanupRunner {
 			WHERE c.email_norm NOT LIKE 'anon-%@invalid'
 			AND COALESCE( b.max_end, c.created_at ) < %s
 			ORDER BY c.id ASC LIMIT 200";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; bound via prepare().
 		$ids = $wpdb->get_col( $wpdb->prepare( $sql, $threshold ) );
 		$ids = array_map( 'intval', is_array( $ids ) ? $ids : array() );
 
@@ -253,7 +253,7 @@ final class CleanupRunner {
 		$tx->begin();
 		try {
 			$lock_sql = "SELECT id, email_norm, created_at FROM {$customers} WHERE id = %d FOR UPDATE";
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); row lock for the re-check.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); row lock for the re-check.
 			$row = $wpdb->get_row( $wpdb->prepare( $lock_sql, $customer_id ), ARRAY_A );
 
 			if ( ! is_array( $row ) || str_ends_with( (string) $row['email_norm'], '@invalid' ) ) {
@@ -263,7 +263,7 @@ final class CleanupRunner {
 			}
 
 			$anchor_sql = "SELECT COALESCE( MAX(end_datetime_utc), %s ) FROM {$bookings} WHERE customer_id = %d";
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); authoritative re-check under the row lock.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); authoritative re-check under the row lock.
 			$anchor = (string) $wpdb->get_var( $wpdb->prepare( $anchor_sql, (string) $row['created_at'], $customer_id ) );
 
 			if ( '' === $anchor || $anchor >= $threshold ) {

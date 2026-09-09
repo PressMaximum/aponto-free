@@ -55,7 +55,7 @@ final class CategoryGateway {
 		$table    = $this->table();
 		$services = $this->servicesTable();
 		$sql      = "SELECT c.id, c.name, c.position, ( SELECT COUNT(*) FROM {$services} s WHERE s.category_id = c.id ) AS count FROM {$table} c ORDER BY c.position ASC, c.id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; no user input.
 		$rows = $this->wpdb->get_results( $sql, ARRAY_A );
 
 		return is_array( $rows ) ? $rows : array();
@@ -70,7 +70,7 @@ final class CategoryGateway {
 	public function find( int $id ): ?array {
 		$table = $this->table();
 		$sql   = "SELECT id, name, position FROM {$table} WHERE id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $id ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -84,7 +84,7 @@ final class CategoryGateway {
 	public function countServices( int $id ): int {
 		$services = $this->servicesTable();
 		$sql      = "SELECT COUNT(*) FROM {$services} WHERE category_id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $id ) );
 	}
 
@@ -94,7 +94,7 @@ final class CategoryGateway {
 	public function maxPosition(): int {
 		$table = $this->table();
 		$sql   = "SELECT COALESCE( MAX( position ), -1 ) FROM {$table}";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
 		return (int) $this->wpdb->get_var( $sql );
 	}
 
@@ -104,7 +104,7 @@ final class CategoryGateway {
 	 * @param array<string, mixed> $data Column => value (validated).
 	 */
 	public function create( array $data ): int {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin insert.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin insert.
 		$this->wpdb->insert( $this->table(), $data, $this->formats( $data ) );
 
 		return (int) $this->wpdb->insert_id;
@@ -117,7 +117,7 @@ final class CategoryGateway {
 	 * @param array<string, mixed> $data Column => value (partial).
 	 */
 	public function update( int $id, array $data ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin update.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin update.
 		$this->wpdb->update( $this->table(), $data, array( 'id' => $id ), $this->formats( $data ), array( '%d' ) );
 	}
 
@@ -127,7 +127,7 @@ final class CategoryGateway {
 	 * @param int $id Category id.
 	 */
 	public function delete( int $id ): void {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin delete.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin delete.
 		$this->wpdb->delete( $this->table(), array( 'id' => $id ), array( '%d' ) );
 	}
 
@@ -139,7 +139,7 @@ final class CategoryGateway {
 	public function uncategorize( int $id ): int {
 		$services = $this->servicesTable();
 		$sql      = "UPDATE {$services} SET category_id = NULL WHERE category_id = %d";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; params bound via prepare().
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $id ) );
 
 		return (int) $affected;
@@ -152,7 +152,7 @@ final class CategoryGateway {
 	 */
 	public function allIds(): array {
 		$table = $this->table();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; no user input.
 		$ids = $this->wpdb->get_col( "SELECT id FROM {$table} ORDER BY position ASC, id ASC" );
 
 		return array_map( 'intval', is_array( $ids ) ? $ids : array() );
@@ -165,7 +165,7 @@ final class CategoryGateway {
 	 */
 	public function reorder( array $ids ): void {
 		foreach ( array_values( $ids ) as $index => $id ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin reorder.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin reorder.
 			$this->wpdb->update( $this->table(), array( 'position' => $index ), array( 'id' => (int) $id ), array( '%d' ), array( '%d' ) );
 		}
 	}

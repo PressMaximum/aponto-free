@@ -1418,10 +1418,16 @@ function Staff({
       status: s.rows.length ? s.status : 'loading',
       error: null
     }));
-    _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.get('/staff', {
+    const query = multiStaff ? {
       status: 'all',
       per_page: 100
-    }).then(res => {
+    } : {
+      status: 'all',
+      order_by: 'id',
+      page: 1,
+      per_page: FREE_STAFF_PROFILE_COUNT
+    };
+    _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.get('/staff', query).then(res => {
       const rows = (res.items || []).map(dto => ({
         ...dto,
         serviceCount: Number(dto.service_count) || 0,
@@ -1437,7 +1443,7 @@ function Staff({
       rows: [],
       error: err.message
     }));
-  }, []);
+  }, [multiStaff]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(load, [load]);
 
   // On multi-staff, apply the deep link ONCE per requested id, and only after the list has loaded (the
@@ -1470,10 +1476,9 @@ function Staff({
     if ('ready' !== state.status || !state.rows.length) {
       return null;
     }
-    const visibleProfile = [...state.rows].sort((left, right) => Number(left.id) - Number(right.id)).slice(0, FREE_STAFF_PROFILE_COUNT)[0];
     return {
       mode: 'edit',
-      staff: visibleProfile
+      staff: state.rows[0]
     };
   }, [multiStaff, state.status, state.rows]);
   const onAdd = () => {

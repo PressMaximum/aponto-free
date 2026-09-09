@@ -358,7 +358,7 @@ final class RescheduleService {
 	 */
 	private function targetIsBookable( int $staff_id, int $service_id, int $location_id ): bool {
 		$table = $this->wpdb->prefix . 'aponto_staff';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare(); in-transaction existence guard.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare(); in-transaction existence guard.
 		$status = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT status FROM {$table} WHERE id = %d", $staff_id ) );
 		if ( 'active' !== $status ) {
 			return false;
@@ -372,7 +372,7 @@ final class RescheduleService {
 			$service_id,
 			$location_id
 		);
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Identifier and values bound above; in-transaction eligibility guard.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Identifier and values bound above; in-transaction eligibility guard.
 		$connected = $this->wpdb->get_var( $sql );
 
 		return null !== $connected;

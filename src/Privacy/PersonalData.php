@@ -382,7 +382,7 @@ final class PersonalData {
 	private function customer( string $email ): ?array {
 		$table = $this->wpdb->prefix . 'aponto_customers';
 		$sql   = "SELECT id, name, email, phone, note FROM {$table} WHERE email_norm = %s";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, strtolower( trim( $email ) ) ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
@@ -403,13 +403,13 @@ final class PersonalData {
 		$sql          = "SELECT DISTINCT o.id, o.code, o.total_minor, o.currency, o.payment_status FROM {$p}aponto_orders o
 			INNER JOIN {$p}aponto_order_items oi ON oi.order_id = o.id
 			WHERE oi.booking_id IN ( {$placeholders} ) ORDER BY o.id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; ids bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; ids bound via prepare().
 		$orders = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $booking_ids ), ARRAY_A );
 		$orders = is_array( $orders ) ? $orders : array();
 
 		foreach ( $orders as &$order ) {
 			$items_sql = "SELECT item_type, amount_minor FROM {$p}aponto_order_items WHERE order_id = %d ORDER BY id ASC";
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 			$items   = $this->wpdb->get_results( $this->wpdb->prepare( $items_sql, (int) $order['id'] ), ARRAY_A );
 			$summary = array();
 			foreach ( is_array( $items ) ? $items : array() as $item ) {
@@ -447,7 +447,7 @@ final class PersonalData {
 		$sql          = "SELECT id, kind, status, amount_minor, currency, gateway, payment_ref, created_at FROM {$table}
 			WHERE booking_id IN ( {$placeholders} ) ORDER BY id ASC";
 		$this->wpdb->flush();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; ids bound via prepare(); the interpolated fragment is a %d-only placeholder list.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; ids bound via prepare(); the interpolated fragment is a %d-only placeholder list.
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $booking_ids ), ARRAY_A );
 
 		return is_array( $rows ) ? array_values( $rows ) : array();
@@ -473,7 +473,7 @@ final class PersonalData {
 		$sql          = "SELECT booking_id, meta_key, meta_value FROM {$table}
 			WHERE booking_id IN ( {$placeholders} ) AND meta_key LIKE %s ORDER BY booking_id ASC, meta_key ASC";
 		$args         = array_merge( $booking_ids, array( $this->wpdb->esc_like( CustomFieldSchema::META_PREFIX ) . '%' ) );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $args ), ARRAY_A );
 
 		$definitions = ( new CustomFieldSchema() )->bySlug();
@@ -508,7 +508,7 @@ final class PersonalData {
 		$table        = $this->wpdb->prefix . 'aponto_activities';
 		$placeholders = implode( ', ', array_fill( 0, count( $booking_ids ), '%d' ) );
 		$sql          = "SELECT id, entity_id, action, meta, initiated_by, created_at FROM {$table} WHERE entity_type = 'booking' AND entity_id IN ( {$placeholders} ) ORDER BY id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; ids bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; ids bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $booking_ids ), ARRAY_A );
 
 		return is_array( $rows ) ? $rows : array();
@@ -529,7 +529,7 @@ final class PersonalData {
 		$table        = $this->wpdb->prefix . 'aponto_notification_deliveries';
 		$placeholders = implode( ', ', array_fill( 0, count( $booking_ids ), '%d' ) );
 		$sql          = "SELECT id, booking_id, template_key, status, payload_cipher FROM {$table} WHERE booking_id IN ( {$placeholders} ) ORDER BY id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; ids bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; ids bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $booking_ids ), ARRAY_A );
 
 		$auth_key    = defined( 'SECURE_AUTH_KEY' ) ? (string) SECURE_AUTH_KEY : '';
@@ -575,7 +575,7 @@ final class PersonalData {
 		$table        = $this->wpdb->prefix . 'aponto_idempotency';
 		$placeholders = implode( ', ', array_fill( 0, count( $booking_ids ), '%d' ) );
 		$sql          = "SELECT booking_id, expires_at FROM {$table} WHERE booking_id IN ( {$placeholders} ) ORDER BY booking_id ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; ids bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; ids bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $booking_ids ), ARRAY_A );
 
 		return is_array( $rows ) ? $rows : array();
@@ -595,7 +595,7 @@ final class PersonalData {
 			LEFT JOIN {$p}aponto_order_items oi ON oi.booking_id = b.id AND oi.item_type = 'booking'
 			LEFT JOIN {$p}aponto_orders o ON o.id = oi.order_id
 			WHERE b.customer_id = %d ORDER BY b.start_datetime_utc ASC";
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $customer_id ), ARRAY_A );
 
 		return is_array( $rows ) ? $rows : array();

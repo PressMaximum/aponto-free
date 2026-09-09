@@ -76,7 +76,9 @@ final class ActivationRedirect {
 			return true;
 		}
 
-		$method = strtoupper( (string) ( $_SERVER['REQUEST_METHOD'] ?? 'GET' ) );
+		$method = isset( $_SERVER['REQUEST_METHOD'] )
+			? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) )
+			: 'GET';
 		if ( 'GET' !== $method ) {
 			return true;
 		}

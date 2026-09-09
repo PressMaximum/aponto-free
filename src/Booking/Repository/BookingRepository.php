@@ -374,7 +374,7 @@ final class BookingRepository {
 		// flush() clears any stale `last_error` from an earlier statement, so the check below can only
 		// ever see THIS read's outcome (same technique the copy migrations use).
 		$this->wpdb->flush();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
 		$created_at = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT created_at FROM {$table} WHERE id = %d", $id ) );
 
 		if ( '' !== (string) $this->wpdb->last_error ) {
@@ -407,7 +407,7 @@ final class BookingRepository {
 	 */
 	public function anchorTokenHash( int $id, string $token_hash ): void {
 		$table = $this->wpdb->prefix . 'aponto_bookings';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Constant table from $wpdb->prefix; single-column anchor inside the reservation transaction, id bound by $wpdb->update.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Constant table from $wpdb->prefix; single-column anchor inside the reservation transaction, id bound by $wpdb->update.
 		$affected = $this->wpdb->update(
 			$table,
 			array( 'token_hash' => $token_hash ),

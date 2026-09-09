@@ -169,7 +169,7 @@ final class PaymentEventLedger {
 		$now = $this->clock->nowSql();
 
 		$suppressed = $this->wpdb->suppress_errors( true );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic unique claim; a duplicate-key failure is the expected "already seen" answer, resolved below.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic unique claim; a duplicate-key failure is the expected "already seen" answer, resolved below.
 		$inserted = $this->wpdb->insert(
 			$this->table(),
 			array(
@@ -211,7 +211,7 @@ final class PaymentEventLedger {
 			$gateway,
 			$event_id
 		);
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Identifier and values are bound above; collision read-back on the exact unique key.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Identifier and values are bound above; collision read-back on the exact unique key.
 		$value = $this->wpdb->get_var( $sql );
 
 		return '1' === (string) $value;
@@ -228,7 +228,7 @@ final class PaymentEventLedger {
 	private function resolveExistingClaim( string $gateway, string $event_id ): EventClaim {
 		$sql = 'SELECT status, claimed_at FROM ' . $this->table() . ' WHERE gateway = %s AND event_id = %s';
 		$this->wpdb->flush();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $gateway, $event_id ), ARRAY_A );
 		if ( '' !== (string) $this->wpdb->last_error ) {
 			throw StorageException::fromSqlError( esc_html( 'payment event claim read-back' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -255,7 +255,7 @@ final class PaymentEventLedger {
 		// it, and the affected-row count is the only honest way to know which of them won.
 		$mine   = $this->clock->nowSql();
 		$update = 'UPDATE ' . $this->table() . ' SET claimed_at = %s WHERE gateway = %s AND event_id = %s AND status = %s AND claimed_at = %s';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); lease compare-and-swap.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); lease compare-and-swap.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $update, $mine, $gateway, $event_id, self::STATUS_PROCESSING, $claimed_at ) );
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'payment event lease reclaim' ), esc_html( (string) $this->wpdb->last_error ) );
@@ -304,7 +304,7 @@ final class PaymentEventLedger {
 		$args[] = self::STATUS_PROCESSING;
 		$args[] = $claim->claimed_at;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed %d clause.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Constant table; every value bound via prepare(); the interpolated fragment is a fixed %d clause.
 		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $args ) );
 
 		if ( false === $affected ) {
@@ -346,11 +346,11 @@ final class PaymentEventLedger {
 		$sql = 'UPDATE ' . $this->table() . ' SET claimed_at = %s'
 			. ' WHERE gateway = %s AND event_id = %s AND status = %s AND claimed_at = %s';
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); lease compare-and-swap. The sniff cannot follow a multi-line prepare() call, so the block is disabled rather than one line ignored.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); lease compare-and-swap. The sniff cannot follow a multi-line prepare() call, so the block is disabled rather than one line ignored.
 		$affected = $this->wpdb->query(
 			$this->wpdb->prepare( $sql, $expired, $gateway, $event_id, self::STATUS_PROCESSING, $claim->claimed_at )
 		);
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		return false !== $affected && (int) $affected > 0;
 	}
@@ -363,7 +363,7 @@ final class PaymentEventLedger {
 	 */
 	public function statusOf( string $gateway, string $event_id ): string {
 		$sql = 'SELECT status FROM ' . $this->table() . ' WHERE gateway = %s AND event_id = %s';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		return (string) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $gateway, $event_id ) );
 	}
 
@@ -374,7 +374,7 @@ final class PaymentEventLedger {
 	 */
 	public function pruneOlderThan( string $cutoff ): void {
 		$sql = 'DELETE FROM ' . $this->table() . ' WHERE received_at < %s';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; cutoff bound via prepare().
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; cutoff bound via prepare().
 		$this->wpdb->query( $this->wpdb->prepare( $sql, $cutoff ) );
 	}
 }

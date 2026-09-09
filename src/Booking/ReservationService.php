@@ -702,14 +702,14 @@ final class ReservationService {
 		// not bookable — the ServicesController flips/deletes it under the SAME per-service lock this
 		// section holds, so this read is race-free.
 		$services = $this->wpdb->prefix . 'aponto_services';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare(); in-transaction existence guard.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare(); in-transaction existence guard.
 		$service_status = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT status FROM {$services} WHERE id = %d", $draft->service_id ) );
 		if ( 'active' !== $service_status ) {
 			return false;
 		}
 
 		$staff = $this->wpdb->prefix . 'aponto_staff';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare(); in-transaction existence guard.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare(); in-transaction existence guard.
 		$status = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT status FROM {$staff} WHERE id = %d", $staff_id ) );
 		if ( 'active' !== $status ) {
 			return false;
@@ -724,7 +724,7 @@ final class ReservationService {
 
 		if ( $draft->location_id > 0 ) {
 			$locations = $this->wpdb->prefix . 'aponto_locations';
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare(); in-transaction existence guard.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare(); in-transaction existence guard.
 			if ( null === $this->wpdb->get_var( $this->wpdb->prepare( "SELECT id FROM {$locations} WHERE id = %d", $draft->location_id ) ) ) {
 				return false;
 			}
