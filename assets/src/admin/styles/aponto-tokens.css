@@ -1,0 +1,222 @@
+/*
+ * Aponto public UI tokens
+ *
+ * This file owns design decisions, not component selectors. Components consume
+ * semantic --ap-* variables so Appearance settings can override one scope
+ * without knowing how the booking form is structured.
+ *
+ * Production scope: .ap-wrap
+ * Documentation scope: .ap-token-scope
+ */
+:where(.ap-wrap, .ap-token-scope) {
+  /*
+   * Public customization seeds. Appearance controls should write these roles,
+   * not every derived shade. `currentColor` is deliberately avoided because
+   * it resolves at the consuming element and would make the token output vary
+   * with component context.
+   */
+  --ap-color-accent: #5b5bd6;
+  --ap-color-on-accent: #ffffff;
+  --ap-checkbox-check-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m3.5 8.1 2.7 2.7 6.3-6.3' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --ap-color-surface: #fdfdfb;
+  --ap-color-canvas: #ffffff;
+  --ap-color-text: #30353a;
+  --ap-color-danger: #c22a2a;
+  --ap-color-success: #2f8a5b;
+  --ap-color-warning: #b5860f;
+  --ap-color-info: #5056c9;
+  --ap-color-inverse-surface: #12151b;
+  --ap-color-on-inverse: #ffffff;
+  --ap-color-on-inverse-danger: #ffb4a8;
+
+  /* Internal tone weights. Presets may tune contrast without adding colors.
+   * muted/soft darkened to WCAG AA (4.5:1 on surface): muted 68→72% (4.55→5.13),
+   * soft 52→70% (2.96→4.82). Deliberate pixel change (founder axe decision). */
+  --ap-tone-text-muted: 72%;
+  --ap-tone-text-soft: 70%;
+  --ap-tone-surface-subtle: 5%;
+  --ap-tone-surface-muted: 7%;
+  --ap-tone-avatar-surface: 5%;
+  --ap-tone-border: 12%;
+  --ap-tone-border-strong: 21%;
+  --ap-tone-accent-subtle: 8%;
+  --ap-tone-accent-soft: 14%;
+  --ap-tone-accent-border: 40%;
+
+  /* Derived neutral roles: one text seed + one surface seed drive the family. */
+  --ap-color-heading: var(--ap-color-text);
+  --ap-color-text-muted: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-text-muted), var(--ap-color-surface));
+  --ap-color-text-soft: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-text-soft), var(--ap-color-surface));
+  --ap-color-surface-subtle: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-surface-subtle), var(--ap-color-surface));
+  --ap-color-surface-muted: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-surface-muted), var(--ap-color-surface));
+  --ap-color-avatar-surface: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-avatar-surface), var(--ap-color-surface));
+  --ap-color-border: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-border), var(--ap-color-surface));
+  --ap-color-border-strong: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-border-strong), var(--ap-color-surface));
+  --ap-color-row-hover: color-mix(in srgb, var(--ap-color-surface-subtle) 50%, var(--ap-color-surface));
+
+  /* Accent and semantic families follow the same seed -> state contract. */
+  --ap-color-accent-subtle: color-mix(in srgb, var(--ap-color-accent) var(--ap-tone-accent-subtle), var(--ap-color-surface));
+  --ap-color-accent-soft: color-mix(in srgb, var(--ap-color-accent) var(--ap-tone-accent-soft), var(--ap-color-surface));
+  --ap-color-accent-border: color-mix(in srgb, var(--ap-color-accent) var(--ap-tone-accent-border), var(--ap-color-border));
+  --ap-color-danger-subtle: color-mix(in srgb, var(--ap-color-danger) 8%, var(--ap-color-surface));
+  --ap-color-danger-border: color-mix(in srgb, var(--ap-color-danger) 24%, var(--ap-color-border));
+  --ap-color-on-danger: color-mix(in srgb, var(--ap-color-danger) 82%, var(--ap-color-text));
+  --ap-color-warning-subtle: color-mix(in srgb, var(--ap-color-warning) 9%, var(--ap-color-surface));
+  --ap-color-warning-border: color-mix(in srgb, var(--ap-color-warning) 24%, var(--ap-color-border));
+  --ap-color-on-warning: color-mix(in srgb, var(--ap-color-warning) 78%, var(--ap-color-text));
+  --ap-color-info-subtle: color-mix(in srgb, var(--ap-color-info) 9%, var(--ap-color-surface));
+  --ap-color-info-border: color-mix(in srgb, var(--ap-color-info) 24%, var(--ap-color-border));
+  --ap-color-on-info: color-mix(in srgb, var(--ap-color-info) 78%, var(--ap-color-text));
+  --ap-color-success-subtle: color-mix(in srgb, var(--ap-color-success) 9%, var(--ap-color-surface));
+  --ap-color-on-success: color-mix(in srgb, var(--ap-color-success) 82%, var(--ap-color-text));
+
+  /*
+   * Host typography is inherited; Aponto only controls scale and emphasis.
+   * Components consume a role, rather than coupling presentation to <b> or
+   * <strong>, so this hierarchy survives very different host fonts.
+   */
+  --ap-font-size-badge: 11px;
+  --ap-font-size-micro: 12px;
+  /* Caption is the smallest operational tier at 13px; 12px is reserved for
+   * non-essential micro copy (--ap-font-size-micro). */
+  --ap-font-size-caption: 13px;
+  --ap-font-size-meta: 15px;
+  --ap-font-size-body: 16px;
+  --ap-font-size-item: 17px;
+  --ap-font-size-control: 16px;
+  --ap-font-size-subheading: 20px;
+  --ap-font-size-heading: 24px;
+  /* Floating-label fields need a roomier scale than dense metadata. */
+  --ap-font-size-field-label: 13px;
+  --ap-font-size-field-value: 16px;
+  --ap-font-size-xs: var(--ap-font-size-caption);
+  --ap-font-size-sm: var(--ap-font-size-meta);
+  --ap-font-weight-regular: 400;
+  --ap-font-weight-medium: 500;
+  --ap-font-weight-semibold: 600;
+  --ap-line-height-body: 1.45;
+  --ap-line-height-compact: 1.3;
+  --ap-line-height-title: 1.25;
+  --ap-letter-spacing-title: -.01em;
+
+  /* 4px spacing foundation. Odd values remain component optical corrections. */
+  --ap-space-0: 0;
+  --ap-space-1: 4px;
+  --ap-space-2: 8px;
+  --ap-space-3: 12px;
+  --ap-space-4: 16px;
+  --ap-space-5: 20px;
+  --ap-space-6: 24px;
+  --ap-space-8: 32px;
+
+  /* Shape and control geometry */
+  --ap-radius-control: 4px;
+  --ap-radius-small: var(--ap-radius-control);
+  --ap-radius-pill: 999px;
+  /* Control scale: choose by density, not by component name. */
+  --ap-size-control-sm: 34px;
+  --ap-size-control-md: 40px;
+  --ap-size-control-lg: 44px;
+  --ap-size-field-compact: 56px;
+  --ap-size-field-relationship: 48px;
+  --ap-size-field-compact-notes: 72px;
+  --ap-size-hit-target: 44px;
+  --ap-size-icon-sm: 14px;
+  --ap-size-icon-md: 18px;
+  --ap-size-icon-lg: 20px;
+
+  /* Backward-compatible aliases used by the booking form. */
+  --ap-size-control: var(--ap-size-control-md);
+  --ap-size-control-compact: var(--ap-size-control-sm);
+  --ap-size-calendar-nav: var(--ap-size-control-sm);
+  --ap-size-stepper: 30px;
+  --ap-size-selection: 18px;
+
+  /* Container contracts */
+  --ap-layout-content: 660px;
+  --ap-layout-catalogue: 820px;
+  --ap-layout-sidebar: 240px;
+  --ap-layout-sidebar-wide: 288px;
+
+  /* Motion contracts */
+  --ap-motion-standard: 170ms cubic-bezier(.2, .7, .3, 1);
+  --ap-motion-step-duration: 340ms;
+  --ap-motion-step-back-duration: 280ms;
+  --ap-motion-step-easing: cubic-bezier(.22, 1, .36, 1);
+  --ap-motion-step-distance: 12px;
+  --ap-motion-step-back-distance: 9px;
+  --ap-motion-stagger: 28ms;
+}
+
+/* Dark is a token preset, not a separate component theme. */
+:where(.stage[data-bg="dark"] .ap-wrap, .ap-token-scope[data-ap-color-scheme="dark"]) {
+  --ap-color-surface: #1a1e25;
+  --ap-color-canvas: var(--ap-color-surface);
+  --ap-color-text: #e7eaef;
+  --ap-tone-text-muted: 68%;
+  /* Dark soft 46→54% (3.98→~4.9) — clears AA in dark too. */
+  --ap-tone-text-soft: 54%;
+  --ap-tone-surface-subtle: 4%;
+  --ap-tone-surface-muted: 6%;
+  --ap-tone-avatar-surface: 7%;
+  --ap-tone-border: 12%;
+  --ap-tone-border-strong: 20%;
+  --ap-tone-accent-subtle: 22%;
+  --ap-tone-accent-soft: 30%;
+}
+
+/*
+ * Dashboard V2 preset.
+ *
+ * Plugin admin, employee portal and user portal opt into this shared preset.
+ * The booking form remains on the public default until its own visual review.
+ */
+:where(.ap-wrap[data-ap-visual="v2"], .ap-token-scope[data-ap-visual="v2"]) {
+  --ap-color-accent: #3366ff;
+  --ap-color-surface: #ffffff;
+  --ap-color-canvas: #ffffff;
+  --ap-color-text: #202124;
+  --ap-color-danger: #c72c41;
+  --ap-color-success: #16865c;
+  --ap-color-warning: #9a6b00;
+  --ap-color-info: #4f5bd5;
+  /* v2 muted/soft to WCAG AA on #fff (surface #fff, text #202124): muted 66→68%
+   * (5.24→5.58), soft 48→67% (3.03→5.35 calc). soft kept just under muted so the
+   * two-tier hierarchy survives; on the admin's pure-white surface AA forces them
+   * close. Founder axe decision (deliberate pixel change). */
+  --ap-tone-text-muted: 68%;
+  --ap-tone-text-soft: 67%;
+  --ap-tone-surface-subtle: 3%;
+  --ap-tone-surface-muted: 5%;
+  --ap-tone-avatar-surface: 5%;
+  --ap-tone-border: 9%;
+  --ap-tone-border-strong: 19%;
+  --ap-tone-accent-subtle: 6%;
+  --ap-tone-accent-soft: 11%;
+  --ap-tone-accent-border: 30%;
+  --ap-font-size-caption: 13px;
+  --ap-font-size-heading: 24px;
+  --ap-radius-control: 4px;
+  --ap-radius-surface: 6px;
+  --ap-shadow-surface: 0 1px 2px color-mix(in srgb, var(--ap-color-inverse-surface) 3%, transparent),
+    0 4px 14px color-mix(in srgb, var(--ap-color-inverse-surface) 2%, transparent);
+  --ap-shadow-control: 0 1px 2px color-mix(in srgb, var(--ap-color-inverse-surface) 4%, transparent);
+}
+
+:where(.ap-token-scope[data-ap-visual="v2"][data-ap-color-scheme="dark"]) {
+  --ap-color-surface: #1a1c21;
+  --ap-color-canvas: #111318;
+  --ap-color-text: #f1f3f5;
+  --ap-tone-text-muted: 70%;
+  /* v2 dark soft 52→56%: the tone is calibrated against `surface`, but soft text
+   * also lands on `surface-subtle`/`surface-muted` (phase badges, tab counts),
+   * where 52% measured 4.43:1. 56% clears AA on the subtle tiers too and stays
+   * below muted so the two-tier hierarchy survives. */
+  --ap-tone-text-soft: 56%;
+  --ap-tone-surface-subtle: 5%;
+  --ap-tone-surface-muted: 8%;
+  --ap-tone-border: 10%;
+  --ap-tone-border-strong: 20%;
+  --ap-tone-accent-subtle: 18%;
+  --ap-tone-accent-soft: 24%;
+}

@@ -1,0 +1,230 @@
+/*
+ * Dark-scheme bridge for the two style systems the `--ap-*` engine cannot reach.
+ *
+ * Why this file exists
+ * -------------------
+ * Aponto's own chrome (`.ap-*`/`.pd-*`) and every dashboard-kit surface that
+ * reads a bridged token are fully token-driven, so `[data-ap-color-scheme="dark"]`
+ * re-seeds them for free (styles/aponto-tokens.css → styles/aponto-admin-bridge.css).
+ * Two things escape that:
+ *
+ *   1. `@wordpress/components`. Core exposes only four theming custom properties
+ *      (`--wp-components-color-{accent,accent-inverted,background,foreground}`)
+ *      and hard-codes the rest — `#fff` surfaces, `#1e1e1e` text,
+ *      `#949494`/`#e0e0e0` borders — partly in `wp-components.css` and partly in
+ *      runtime emotion classes. Settings, the notifications editor and every
+ *      confirm dialog are built from those primitives, so without this sheet a
+ *      dark workspace shows white cards and white inputs.
+ *   2. A handful of dashboard-kit tokens that are DECLARED at `:root` in terms of
+ *      other kit tokens (`--pmdk-compare-*`). The indirection is resolved in the
+ *      `:root` cascade, where the bridge's `.ap-admin` values do not exist yet, so
+ *      the kit's own light literal wins and is then inherited into the app. The
+ *      permanent fix is a kit-side or bridge-side declaration; re-pointing them
+ *      here keeps the fix inside this repo (the bridge file is mirrored as a CI
+ *      fixture in the kit and must not drift).
+ *
+ * Contract
+ * --------
+ *   - DARK ONLY. Light stays byte-identical to today's rendering; every rule is
+ *     scoped by `[data-ap-color-scheme="dark"]`.
+ *   - Values come from `--ap-*` roles only. No literal colors, no per-feature
+ *     selectors: rules address chrome FAMILIES (surface, field, choice, notice,
+ *     overlay), never an Aponto component.
+ *   - Specificity beats emotion's single generated class, so no `!important`
+ *     except where core itself ships one.
+ *   - Overlay chrome (Modal/ConfirmDialog/Popover) renders through a portal on
+ *     `document.body`, outside the token scope — those rules therefore hang off
+ *     the body copy of the attribute that lib/theme.js writes, and stay pinned to
+ *     the Aponto admin page body class so no other screen is touched.
+ */
+
+/* ---- dashboard-kit tokens that resolve in the `:root` cascade -------------- */
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin {
+	--pmdk-compare-head-bg: var( --ap-color-surface );
+	--pmdk-compare-section-title-bg: var( --ap-color-surface-subtle );
+	--pmdk-compare-cta-bg: var( --ap-color-warning-subtle );
+	--pmdk-compare-cta-border: var( --ap-color-warning-border );
+	--pmdk-color-border-subtle: var( --ap-color-border );
+	/* Kit twin of `--pd-color-accent-fg` (see styles/admin-extra.css): the bridge
+	   pins the readable-accent role at a 78% mix, which is tuned for white. Dark
+	   needs a lighter mix to clear AA for kit accent labels (section tabs, compare
+	   heads). Same value on both roles keeps the two chrome systems identical. */
+	--pmdk-accent-fg: color-mix( in srgb, var( --ap-color-accent ) 62%, var( --ap-color-text ) );
+}
+
+/* ---- In-app surfaces ------------------------------------------------------ */
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-card,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-surface {
+	background-color: var( --ap-color-surface );
+	color: var( --ap-color-text );
+}
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-card {
+	box-shadow: 0 0 0 1px var( --ap-color-border );
+}
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-card__header,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-card__footer,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-card__body,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-divider,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-panel__body {
+	border-color: var( --ap-color-border );
+}
+
+/* ---- Copy ----------------------------------------------------------------- */
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-base-control__label,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-input-control__label,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-toggle-control__label,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-radio-control__label,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-checkbox-control__label,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-text,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-truncate {
+	color: var( --ap-color-text );
+}
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-base-control__help,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-toggle-control__help {
+	color: var( --ap-color-text-muted );
+}
+
+/* ---- Fields --------------------------------------------------------------- */
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-text-control__input,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-textarea-control__input,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-select-control__input,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-input-control__input,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-form-token-field__input-container {
+	background-color: var( --ap-color-surface-subtle );
+	border-color: var( --ap-color-border-strong );
+	color: var( --ap-color-text );
+}
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-text-control__input::placeholder,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-textarea-control__input::placeholder {
+	color: var( --ap-color-text-soft );
+}
+/* InputControl (SelectControl, NumberControl, UnitControl…) draws its border through a sibling
+   `__backdrop` element and takes its fill from the `__container` below.
+   The backdrop is BORDER-ONLY, and must stay that way: emotion positions it `absolute; inset: 0`
+   as the LAST child of the container, so it paints over the input and the suffix chevron that
+   precede it. Giving it a background-color therefore hid the control's own text — every
+   SelectControl and NumberControl in dark mode rendered as an empty box (it still worked, because
+   the backdrop is `pointer-events: none`; it was just invisible). The container rule below already
+   carries the dark fill for the whole family, so the fix is simply not to paint here. */
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-input-control__backdrop {
+	border-color: var( --ap-color-border-strong ) !important;
+}
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-input-control__container,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-input-control-suffix-wrapper {
+	background-color: var( --ap-color-surface-subtle );
+	color: var( --ap-color-text );
+}
+/* A `<select>`'s dropdown list is painted by the USER AGENT, not by us: the rules above reach the
+   closed control, but the open option list keeps the UA's light canvas while the `option` text
+   inherits our near-white `--ap-color-text`. Result: white on white — the selected option reads as
+   blank. `color-scheme` is the declaration that actually owns UA-painted widget chrome, so ONE
+   property fixes the popup for every select on the screen (wp-components `SelectControl` and the
+   app's own `.pd-module-select` alike) where per-`option` colours would be both broader and less
+   reliable — several platforms ignore `option` backgrounds outright. Scoped to `select` on purpose:
+   putting `color-scheme` on the token scope would also restyle scrollbars and every other native
+   control app-wide, which is a bigger change than this bug calls for. */
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin select {
+	color-scheme: dark;
+}
+
+/* Secondary/tertiary/link buttons draw their label and hairline from core's
+   accent, which is a FILL seed and only reaches ~3:1 on the dark canvas. The
+   filled primary keeps that seed (white on it clears AA); only the text-on-
+   surface variants move to the readable accent role. */
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-button.is-secondary:not( :disabled ),
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-button.is-tertiary:not( :disabled ),
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-button.is-link:not( :disabled ) {
+	color: var( --pd-color-accent-fg, var( --ap-color-accent ) );
+}
+
+/* ---- Choice controls ------------------------------------------------------ */
+/* `:not( .is-checked )` is load-bearing, not decoration. Core paints the ON state with
+   `.components-form-toggle.is-checked .components-form-toggle__track` (0,3,0); this rule is
+   (0,5,0), so WITHOUT the guard it outranks core on both states and a checked toggle keeps the
+   muted OFF track. The thumb never showed the bug because it already had its own `.is-checked`
+   rule below — so the only remaining ON affordance was the thumb's position, which is exactly
+   the "colour is the whole signal" failure a toggle must not have. Let the checked track fall
+   through to core's accent. */
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-form-toggle:not( .is-checked ) .components-form-toggle__track {
+	background-color: var( --ap-color-surface-muted );
+	border-color: var( --ap-color-border-strong );
+}
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-form-toggle .components-form-toggle__thumb {
+	background-color: var( --ap-color-text );
+}
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-form-toggle.is-checked .components-form-toggle__thumb {
+	background-color: var( --ap-color-on-accent );
+}
+/* UNCHECKED only. Without the guard this also repainted a CHECKED box, and it is
+   more specific than core's own `:checked` accent rule — so on dark a ticked
+   checkbox lost its accent entirely and read as an empty field with a tick
+   floating in it (founder, 2026-09-04). A choice that is ON must look ON in both
+   schemes; the accent fill itself is seeded in styles/admin-extra.css. */
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-radio-control__input[type="radio"]:not( :checked ),
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-checkbox-control__input[type="checkbox"]:not( :checked ):not( [aria-checked="mixed"] ) {
+	background-color: var( --ap-color-surface-subtle );
+	border-color: var( --ap-color-border-strong );
+}
+
+/* ---- Notices -------------------------------------------------------------- */
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-notice {
+	background-color: var( --ap-color-surface-subtle );
+	color: var( --ap-color-text );
+}
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-notice.is-success {
+	background-color: var( --ap-color-success-subtle );
+	border-left-color: var( --ap-color-success );
+	color: var( --ap-color-text );
+}
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-notice.is-warning {
+	background-color: var( --ap-color-warning-subtle );
+	border-left-color: var( --ap-color-warning );
+	color: var( --ap-color-text );
+}
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .components-notice.is-error {
+	background-color: var( --ap-color-danger-subtle );
+	border-left-color: var( --ap-color-danger );
+	color: var( --ap-color-text );
+}
+
+/* ---- Kit accent TEXT ------------------------------------------------------ *
+ * The kit paints accent-colored LABELS straight from `--pmdk-color-accent`, which
+ * the bridge maps to the fill seed. A fill seed is not a text color on a dark
+ * canvas (3.6:1 here), so the dark scheme re-points those label surfaces at the
+ * readable accent-on-surface role — the same role Aponto's own chrome uses. */
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .pmdk-compare__head-cell--center,
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .pmdk-compare__cta-title {
+	color: var( --pd-color-accent-fg, var( --ap-color-accent ) );
+}
+
+/* ---- Portal overlays (Modal · ConfirmDialog · Popover) --------------------- *
+ * These mount on `document.body`, outside `.ap-token-scope`, so they read the
+ * body mirror of the scheme attribute that lib/theme.js writes. The Aponto page
+ * body class keeps every other admin screen untouched. */
+/* The body copy of the token scope resolves `--ap-*` out here; the readable
+   accent role is declared on `.ap-admin`, so restate it for the portal layer. */
+body.toplevel_page_aponto[data-ap-color-scheme="dark"] {
+	--pd-color-accent-fg: color-mix( in srgb, var( --ap-color-accent ) 62%, var( --ap-color-text ) );
+}
+body.toplevel_page_aponto[data-ap-color-scheme="dark"] .components-modal__frame,
+body.toplevel_page_aponto[data-ap-color-scheme="dark"] .components-popover__content {
+	background: var( --ap-color-surface );
+	color: var( --ap-color-text );
+}
+body.toplevel_page_aponto[data-ap-color-scheme="dark"] .components-modal__header {
+	border-bottom-color: var( --ap-color-border );
+}
+/* Body copy: ConfirmDialog wraps its children in `Text`/`Truncate`, which pin
+   their own `#1e1e1e`; without this the message is invisible on a dark frame. */
+body.toplevel_page_aponto[data-ap-color-scheme="dark"] .components-modal__header-heading,
+body.toplevel_page_aponto[data-ap-color-scheme="dark"] .components-modal__content,
+body.toplevel_page_aponto[data-ap-color-scheme="dark"] .components-modal__frame .components-text,
+body.toplevel_page_aponto[data-ap-color-scheme="dark"] .components-modal__frame .components-truncate,
+body.toplevel_page_aponto[data-ap-color-scheme="dark"] .components-popover__content .components-text {
+	color: var( --ap-color-text );
+}
+body.toplevel_page_aponto[data-ap-color-scheme="dark"] .components-modal__frame .components-button.is-secondary:not( :disabled ),
+body.toplevel_page_aponto[data-ap-color-scheme="dark"] .components-modal__frame .components-button.is-tertiary:not( :disabled ),
+body.toplevel_page_aponto[data-ap-color-scheme="dark"] .components-modal__frame .components-button.is-link:not( :disabled ) {
+	color: var( --pd-color-accent-fg, var( --ap-color-accent ) );
+}

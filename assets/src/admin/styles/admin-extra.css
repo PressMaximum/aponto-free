@@ -1,0 +1,1020 @@
+/*
+ * Aponto admin — scoped globals + WordPress-shell integration + new .ap-* bits.
+ *
+ * The mockup's plugin-dashboard.css relies on a few global element resets
+ * (box-sizing, the icon <svg> defaults, body font). Those must NOT leak into the
+ * rest of wp-admin, so they are re-declared here scoped to `.ap-admin`. New
+ * daily-surface additions use `.ap-*` semantic classes on `--ap-*`/`--pmdk-*`
+ * tokens (never new `.pd-*`). Chrome reproduced from the mockup keeps its
+ * existing `.pd-*` names (plugin-dashboard.css).
+ */
+
+/* ---- Shell query container (the mockup's `.pd-frame`) --------------------- *
+ * The reproduced sheet's responsive contract is CONTAINER-driven: the mockup
+ * declares `container-type: inline-size` on `.pd-frame`, the element wrapping
+ * `.ap-admin`, so every `@container (max-width: …)` block measures the app's own
+ * width instead of the browser viewport. Production's analog of that wrapper is
+ * `#aponto-admin-scope` (AdminPage::renderRoot) — same box, same width as
+ * `.ap-admin` — so the ported breakpoints fire at the numbers they were authored
+ * for, with WP's 160px admin menu already excluded.
+ *
+ * It sits on the OUTER scope, never on `.ap-admin`: `.ap-admin` is `overflow:
+ * clip` and is the portal root for BookingsTable's own fixed row menus, so an
+ * engine that did treat a query container as a containing block for fixed
+ * descendants would clip them there. On the scope, their containing block is an
+ * ancestor of the clipping box and they escape it.
+ *
+ * Selected by ID, never by `.ap-token-scope`: `applyColorScheme()` (lib/theme.js)
+ * MIRRORS that class onto `<body>` so `@wordpress/components` portals (Modal,
+ * ConfirmDialog, Popover) can resolve the `--ap-*` engine outside the app. The
+ * class therefore also matches wp-admin's body, and containing the BODY would
+ * put WP's own chrome (`#wpadminbar`, the fixed admin menu) inside a query
+ * container — the one thing the token mirror promises not to do ("both markers
+ * only DECLARE custom properties"). `#aponto-admin-scope` is the app wrapper and
+ * nothing else; the id is `AdminPage::SCOPE_ID`, and this file already addresses
+ * WP nodes by id (`#wpbody-content`, `#wpcontent`).
+ *
+ * Safe for the kit's fixed-mode `createMenu` since dashboard-kit v0.2.1 (K-021):
+ * the primitive nominates the nearest containment ancestor, PROBES the engine,
+ * and only re-expresses its coordinates when the popover really was reparented.
+ * Measured in Chromium at 1440/900/800/760/375: `container-type` alone never
+ * reparents a fixed popover (the kit's own `.pmdk-data-table` container-type has
+ * been an ancestor of every row menu since B4b), so every menu keeps the
+ * byte-identical viewport coordinates it had before this declaration.
+ */
+#aponto-admin-scope { container-type: inline-size; }
+
+/* ---- Route-enter animation: fade only, never transform -------------------- *
+ * The ported `pdPageIn` keyframes slide the page up 5px (`transform:
+ * translateY(5px)` → `none`). A transform on `.pd-page` makes it a containing
+ * block for FIXED descendants for as long as it is set, and every kit row menu
+ * and BookingsTable menu inside the page is `position: fixed` in viewport
+ * coordinates — so during the 220ms enter they land offset by `.pd-page`'s own
+ * origin (measured: +160px across, +157px down at a 1440x900 wp-admin), and
+ * indefinitely in a tab whose animations are throttled (a background/occluded
+ * tab freezes the animation at 0%, where the translate is still applied).
+ *
+ * dashboard-kit v0.2.1's K-021 correction does NOT save this case: it nominates
+ * the NEAREST ancestor whose computed style could contain fixed descendants —
+ * the kit's own `.pmdk-data-table{container-type:inline-size}`, which Chromium
+ * does not actually reparent for — and when the engine probe disagrees with that
+ * candidate it abandons the correction instead of walking further up to
+ * `.pd-page`. Filed as a kit bug; until it ships, do not hand the kit a
+ * transform ancestor.
+ *
+ * Fix here is the cheapest one that removes the hazard outright: keep the
+ * animation's duration/easing/opacity, drop the 5px translate by overriding the
+ * keyframe NAME (the ported sheet stays untouched). Restoring the slide is one
+ * line — delete this rule — once the kit walks the whole chain.
+ */
+@keyframes apPageIn { from { opacity: 0; } to { opacity: 1; } }
+.ap-admin .pd-page { animation-name: apPageIn; }
+
+/* ---- Scoped resets (replace the dropped global rules) --------------------- */
+.ap-admin,
+.ap-admin *,
+.ap-admin *::before,
+.ap-admin *::after { box-sizing: border-box; }
+.ap-admin {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	font-size: var( --ap-font-size-body );
+	line-height: var( --ap-line-height-body );
+	/* Mirror the mockup's `body{color:var(--ap-color-text)}`: without an explicit
+	   base ink, bare text inside wp-admin inherits WP's default color, not the DS. */
+	color: var( --ap-color-text );
+}
+/* WP admin sets an explicit color on headings (#1d2327); the mockup leaves bare
+   headings to inherit the DS ink. Neutralise so h1–h6 inherit like the mockup
+   (fixes the Bookings/Dashboard/editor page titles rendering WP's darker ink). */
+.ap-admin h1, .ap-admin h2, .ap-admin h3,
+.ap-admin h4, .ap-admin h5, .ap-admin h6 { color: inherit; }
+/* The header brand is an `<a>`+logo image in the mockup but a bare `<button>`
+   wordmark in production, so it inherits native button chrome (2px outset border
+   + grey fill) the mockup's `<a>` never had. Neutralise it to a clean wordmark. */
+.ap-admin .pd-brand { border: 0; background: transparent; padding: 0; -webkit-appearance: none; appearance: none; }
+/* R4 — real logo mark inlined into `.pd-brand`. The scoped `.ap-admin svg` reset
+   below sets stroke:currentColor/1.8 on every svg; the logo paths carry their own
+   brand fills but no stroke, so neutralise the inherited stroke (the ring circle
+   keeps its explicit stroke attribute). Sizing comes from `.pd-brand-logo`. */
+.ap-admin .pd-brand-logo { stroke: none; }
+.ap-admin button { cursor: pointer; }
+.ap-admin button, .ap-admin input, .ap-admin select, .ap-admin textarea { font: inherit; color: inherit; }
+.ap-admin svg {
+	display: block; width: var( --ap-size-icon-md ); height: var( --ap-size-icon-md );
+	stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+.ap-admin [data-ap-icon] { fill: currentColor; stroke: none; }
+/* `@wordpress/components` draws FILLED icon paths, so the outline reset above —
+   equal specificity, later in the cascade — turned every one of them into a
+   currentColor OUTLINE. The visible casualty was the CheckboxControl tick, which
+   wp paints `fill:#fff`: it came out as a near-black stroked check on the accent
+   box (founder, 2026-09-04). Restated here rather than weakened above, because the
+   outline treatment is right for Aponto's own glyphs and wrong for the kit's. */
+.ap-admin svg[class^="components-"], .ap-admin svg[class*=" components-"] { fill: currentColor; stroke: none; }
+.ap-admin [hidden] { display: none !important; }
+
+/* ---- wp-components accent seed (founder, 2026-09-04) ---------------------- *
+ * Core exposes four theming custom properties and otherwise falls back to the
+ * WordPress admin blue `#3858e9`. Nothing pointed them at Aponto's accent, so
+ * every wp-components control — checked checkboxes, the ToggleControl track,
+ * filled primary buttons, focus rings — painted WP blue while the app around
+ * them painted `--ap-color-accent`, and the Appearance accent preset never
+ * reached them. DESIGN-SYSTEM "Primary color system" is explicit that one seed
+ * moves filled actions, focus indication and checkboxes TOGETHER, and that each
+ * preset owns a matching foreground rather than assuming white.
+ *
+ * Seeded on `.ap-admin`, so it follows the scheme and the preset for free and
+ * covers every CheckboxControl in the admin — module panels, Settings, the
+ * notifications editor — without naming any of them. The two "darker" steps are
+ * core's hover/active tiers; they mirror `.pd-button.primary:hover`'s own
+ * `88% accent + text` mix, which darkens on light and lightens on dark instead
+ * of hard-coding a darker blue. */
+.ap-admin {
+	--wp-components-color-accent: var( --ap-color-accent );
+	--wp-components-color-accent-inverted: var( --ap-color-on-accent );
+	--wp-components-color-accent-darker-10: color-mix( in srgb, var( --ap-color-accent ) 88%, var( --ap-color-text ) );
+	--wp-components-color-accent-darker-20: color-mix( in srgb, var( --ap-color-accent ) 78%, var( --ap-color-text ) );
+}
+/* The checked box and its tick, from the accent pair. Core's own `:checked` rule
+   now resolves to the accent through the seed above; these two restate the
+   FOREGROUND, which core hard-codes as `#fff` and which the outline reset would
+   otherwise still win against on the tick. Indeterminate rides the same pair —
+   it is the same glyph slot — and the disabled tick drops to a muted ink so an
+   uneditable choice never reads as an active one. */
+.ap-admin svg.components-checkbox-control__checked,
+.ap-admin svg.components-checkbox-control__indeterminate {
+	fill: var( --ap-color-on-accent ); stroke: none;
+}
+.ap-admin .components-checkbox-control:has( :disabled ) svg.components-checkbox-control__checked,
+.ap-admin .components-checkbox-control:has( :disabled ) svg.components-checkbox-control__indeterminate {
+	fill: var( --ap-color-text-soft );
+}
+/* Keyboard focus uses the app's shared ring rather than core's own box-shadow, so
+   a checkbox answers focus exactly like every other control under `.ap-admin`. */
+.ap-admin .components-checkbox-control__input[type="checkbox"]:focus-visible {
+	outline: 2px solid var( --ap-color-accent ); outline-offset: 2px;
+}
+/* WP's `forms.css` caps EVERY select at `.wp-core-ui select{max-width:25rem}`
+   (400px). The mockup has no such cap, so a full-width `.pd-compact-field`
+   rendered a 400px select inside a 1024px box — and the field's
+   absolutely-positioned chevron sat ~600px away from it. Same class of shell
+   bleed as the heading ink above; scoped to our own field wrapper so
+   wp-components controls keep their own sizing. */
+.ap-admin .pd-compact-field > select { max-width: none; }
+
+/* ---- WordPress content-area integration ----------------------------------- *
+ * App-in-content-area: the app is edge-to-edge inside #wpbody-content and owns
+ * its own top bar. Neutralise the default admin gutter/footer ONLY on our page
+ * (body.toplevel_page_aponto), never globally, and never touch #wpwrap / the WP
+ * admin bar / #adminmenu chrome (SPEC-P1 §1.0 — no Amelia-style chrome hijack). */
+body.toplevel_page_aponto #wpcontent { padding-left: 0; }
+body.toplevel_page_aponto #wpbody-content { padding-bottom: 0; }
+body.toplevel_page_aponto #wpbody-content > .notice,
+body.toplevel_page_aponto #wpbody-content > .updated,
+body.toplevel_page_aponto #wpbody-content > .error { margin: 12px 20px 0; }
+body.toplevel_page_aponto #wpfooter { display: none; }
+body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
+
+/* The app root fills the content area. */
+.ap-admin { display: block; min-height: calc( 100vh - 32px ); }
+.ap-admin.is-focused { position: fixed; z-index: 99999; inset: 0; min-height: 100vh; }
+
+/* ---- Page gutter: exactly one owner ---------------------------------------- *
+ * `.pd-main` carries `padding: 24px var(--pd-content-gutter) 40px`, but the
+ * in-flow inspector shell puts the SAME padding on its `.pd-bookings-main`
+ * column so the inspector can stay flush to the content edge. The mockup answers
+ * that by dropping the view gutter on those routes —
+ * `view.classList.toggle('is-bookings', route==='bookings')` plus `is-inflow`
+ * for the shared-inspector routes (plugin-dashboard.js:865 / :794), both
+ * `padding: 0`. Production reproduces both shells with the `.pd-bookings-*`
+ * chrome, so keying off the rendered column instead of a route list keeps a route
+ * that swaps its list for a full-page `.pd-record-editor-page` on the normal
+ * gutter. Without this, inspector-backed routes doubled it to 56px inline and
+ * 48px above the page title (mockup: 28px / 24px). */
+.ap-admin .pd-main:has( > .pd-page > .pd-bookings-main ),
+.ap-admin .pd-main:has( > .pd-page > .pd-bookings-workspace ) { padding: 0; }
+
+/* ---- Boot state ----------------------------------------------------------- */
+.ap-admin-boot {
+	display: flex; align-items: center; gap: 10px;
+	min-height: 240px; padding: 40px;
+	color: var( --ap-color-text-muted ); font-size: var( --ap-font-size-meta );
+}
+
+/* ---- Generic loading / error surfaces (new .ap-* daily surface) ------------ */
+.ap-admin .ap-route-state {
+	display: flex; flex-direction: column; align-items: center; justify-content: center;
+	gap: 10px; min-height: 320px; padding: 48px 24px; text-align: center;
+}
+.ap-admin .ap-route-state .ap-state-icon {
+	display: grid; place-items: center; width: 44px; height: 44px;
+	border-radius: var( --ap-radius-pill ); background: var( --ap-color-surface-muted );
+	color: var( --ap-color-text-muted );
+}
+.ap-admin .ap-route-state .ap-state-icon.is-error {
+	background: var( --ap-color-danger-subtle ); color: var( --ap-color-danger );
+}
+.ap-admin .ap-route-state h2 { margin: 4px 0 0; font-size: var( --ap-font-size-subheading ); font-weight: var( --ap-font-weight-semibold ); }
+.ap-admin .ap-route-state p { margin: 0; max-width: 420px; color: var( --ap-color-text-muted ); font-size: var( --ap-font-size-meta ); }
+
+/* Lazily loaded surface, in flight or failed (assets/src/admin/lib/lazy.jsx). Deliberately
+   quieter than `.ap-route-state`: a chunk arrives in a few hundred milliseconds, so the
+   placeholder must not reserve a full empty screen and then jump. */
+.ap-admin .ap-lazy-state {
+	display: flex; align-items: center; justify-content: center; gap: 10px;
+	min-height: 160px; padding: 32px 24px; text-align: center;
+	color: var( --ap-color-text-muted ); font-size: var( --ap-font-size-meta );
+}
+.ap-admin .ap-lazy-state.is-error { flex-direction: column; gap: 12px; }
+.ap-admin .ap-lazy-state p { margin: 0; max-width: 420px; }
+
+.ap-admin .ap-skeleton {
+	border-radius: var( --ap-radius-control );
+	background: linear-gradient( 90deg, var( --ap-color-surface-subtle ) 25%, var( --ap-color-surface-muted ) 37%, var( --ap-color-surface-subtle ) 63% );
+	background-size: 400% 100%; animation: apSkeleton 1.4s ease infinite;
+}
+@keyframes apSkeleton { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .ap-admin .ap-skeleton { animation: none; } }
+
+/* ---- Dashboard readiness quiet dot ---------------------------------------- */
+.ap-admin .pd-dashboard-attention-empty { display: flex; align-items: center; gap: 12px; }
+.ap-admin .pd-dashboard-attention-empty .pd-state-icon {
+	display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 auto;
+	border-radius: var( --ap-radius-pill ); background: var( --ap-color-success-subtle ); color: var( --ap-color-success );
+}
+.ap-admin .pd-dashboard-attention-empty strong { display: block; font-size: var( --ap-font-size-meta ); }
+.ap-admin .pd-dashboard-attention-empty small { display: block; margin-top: 2px; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
+
+/* ---- Toast (new .ap-* — the mockup toast lives at page root) --------------- */
+.ap-admin .ap-toast {
+	position: fixed; z-index: 100000; left: 50%; bottom: 28px; transform: translate( -50%, 12px );
+	max-width: min( 520px, calc( 100vw - 32px ) );
+	display: flex; align-items: center; gap: 8px;
+	padding: 10px 16px; border-radius: var( --ap-radius-control );
+	background: var( --ap-color-inverse-surface ); color: var( --ap-color-on-inverse );
+	font-size: var( --ap-font-size-meta );
+	box-shadow: 0 12px 34px color-mix( in srgb, var( --ap-color-inverse-surface ) 34%, transparent );
+	opacity: 0; visibility: hidden; transition: opacity var( --ap-motion-standard ), transform var( --ap-motion-standard ), visibility 0s linear .2s;
+}
+.ap-admin .ap-toast.is-visible { opacity: 1; visibility: visible; transform: translate( -50%, 0 ); transition-delay: 0s; }
+.ap-admin .ap-toast .ap-toast-danger { color: var( --ap-color-on-inverse-danger, #ffb4a8 ); }
+
+/* ---- List truncation note (loaded window smaller than server total) -------- */
+.ap-admin .ap-list-note {
+	margin: 10px 0 0; padding: 8px 12px;
+	border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control );
+	background: var( --ap-color-surface-subtle );
+	color: var( --ap-color-text-muted ); font-size: var( --ap-font-size-caption );
+}
+
+/* ---- Staff-gap note (0-staff guidance atop the Services list) -------------- */
+.ap-admin .ap-staff-gap-note {
+	display: flex; align-items: center; gap: 8px; margin: 12px 0 0;
+	border-color: var( --ap-color-warning-border ); background: var( --ap-color-warning-subtle );
+	color: var( --ap-color-on-warning );
+}
+.ap-admin .ap-staff-gap-note > .pd-react-icon { flex: 0 0 auto; font-size: var( --ap-size-icon-md ); color: var( --ap-color-warning ); }
+.ap-admin .ap-staff-gap-text { flex: 1 1 auto; }
+.ap-admin .ap-staff-gap-note > .pd-button { flex: 0 0 auto; }
+
+/* ---- Shell workspace menu (mockup #workspaceMenuButton popover) ------------ */
+/* The mockup emits bare <svg> glyphs, so its `#fullscreenButton > span { flex: 1 }`
+   stretches the label only. `renderIcon` wraps every glyph in `.pd-react-icon`, which
+   the same selector would stretch too — leaving the label to wrap. Pin the glyph and
+   restate the mockup's 17px popover icon size, which `.pd-react-icon > svg { width: 1em }`
+   otherwise wins on source order. */
+/* Escape has to actually close a header dropdown (Offerings ▾ · Resources ▾ ·
+   Settings ▾). The ported mockup CSS paints `.pd-nav-dropdown` for as long as the
+   wrap is hovered or holds focus (`:hover` / `:focus-within`, both `!important`),
+   which outranks the `hidden` attribute React sets on close — and Escape returns
+   focus to the TRIGGER, which lives inside that same wrap. React already opens the
+   menu from onMouseEnter/onFocus, so the attribute is the single source of truth;
+   the extra attribute selector wins on specificity, in any source order. */
+.ap-admin .pd-nav-menu-wrap .pd-nav-dropdown[hidden] { display: none !important; }
+
+.ap-admin .pd-workspace-popover #fullscreenButton > .pd-react-icon { flex: 0 0 auto; font-size: 17px; }
+/* Appearance group (Light · Dark · System). The mockup's grid columns are
+   `18px 1fr 18px`, so both glyph cells need an explicit em size — `.pd-react-icon`
+   sizes its svg at 1em and would otherwise inherit the 15px menu-row font. The
+   `role="group"` wrapper stays a plain block: the popover is a block container and
+   its rows are full-width, so grouping the three radios changes no geometry.
+   (`display: contents` is avoided on purpose — it has a history of dropping
+   role-bearing elements out of the accessibility tree.) */
+.ap-admin .pd-workspace-popover .pd-theme-icon { flex: 0 0 auto; font-size: 17px; }
+.ap-admin .pd-workspace-popover .pd-theme-check { flex: 0 0 auto; font-size: var( --ap-size-icon-md ); }
+
+/* ---- Dark-scheme accent text ----------------------------------------------
+   `--pd-color-accent-fg` is the "readable accent on a surface" role: the accent
+   seed mixed toward the TEXT seed. The v2 preset mixes 78% accent, which is right
+   on white but leaves only ~4.2:1 on the dark canvas because the dark text seed
+   is light. Fall back to the base 62% mix in dark — one declaration fixes every
+   accent label at once (settings rail, module tabs, table links) instead of
+   patching each surface. */
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin {
+	--pd-color-accent-fg: color-mix( in srgb, var( --ap-color-accent ) 62%, var( --ap-color-text ) );
+}
+
+/* ---- Settings route (parent → child rail + folded Notifications section) ---
+   Settings is the one route that runs edge-to-edge: `.pd-main` drops its gutter
+   via `.is-settings` (plugin-dashboard.css, ported from the v4 mockup) and the two
+   columns own their padding instead. Geometry mirrors the mockup's
+   `.pd-settings-screen` / `-sidebar` / `-content`: 240px rail, 24px 14px 36px and
+   24px 28px 40px, separated by a border rather than a grid gap.
+
+   Height: `.pd-main` has no definite height outside fullscreen, so `min-height:100%`
+   would collapse to `auto` and strand the rail divider above the fold on short tabs.
+   Mirror the mockup's `calc(100vh - 144px)` against the real chrome instead — WP admin
+   bar (32px, the same figure `#wpbody-content` already assumes above) + the 64px shell
+   header; fullscreen drops the admin bar and re-points the variable at 64px. */
+.ap-admin { --ap-settings-chrome: 96px; }
+.ap-admin.is-focused { --ap-settings-chrome: 64px; }
+.ap-admin .ap-settings-layout {
+	display: grid; grid-template-columns: 240px minmax( 0, 1fr ); align-items: stretch;
+	min-height: calc( 100dvh - var( --ap-settings-chrome ) );
+}
+.ap-admin .ap-settings-nav {
+	display: flex; flex-direction: column; gap: 4px;
+	padding: 24px 14px 36px; border-inline-end: 1px solid var( --ap-color-border );
+}
+/* Parent → child tree, mirroring the mockup's `.pd-settings-node*` geometry
+   (mockup css:86): 44px icon-decorated node, 28px-indented 40px children, and a
+   caret that rotates on the open branch. A parent click also selects its first
+   child, so the tree never grows a second "expand vs. select" interaction. */
+.ap-admin .ap-settings-branch { display: flex; flex-direction: column; }
+.ap-admin .ap-settings-node {
+	width: 100%; min-height: 44px;
+	display: grid; grid-template-columns: 18px minmax( 0, 1fr ) auto; gap: 10px; align-items: center;
+	padding: 0 10px; border: 1px solid transparent; border-radius: var( --ap-radius-control );
+	background: transparent; color: var( --ap-color-text-muted ); font: inherit;
+	font-size: var( --ap-font-size-meta ); font-weight: var( --ap-font-weight-medium ); text-align: start;
+}
+.ap-admin .ap-settings-node.is-leaf { grid-template-columns: 18px minmax( 0, 1fr ); }
+.ap-admin .ap-settings-node > .ap-settings-node-icon { flex: 0 0 auto; font-size: var( --ap-size-icon-md ); }
+.ap-admin .ap-settings-node > .ap-settings-node-caret {
+	flex: 0 0 auto; font-size: 12px; color: var( --ap-color-text-soft );
+	transition: rotate var( --ap-motion-standard );
+}
+/* Open state points the caret DOWN in both directions. The individual `rotate`
+   property is used instead of `transform: rotate()` because rtlcss negates
+   rotations inside `transform` (it left the open caret pointing up in
+   `admin-rtl.css`) but does not touch `rotate`. */
+.ap-admin .ap-settings-branch.is-open > .ap-settings-node > .ap-settings-node-caret { rotate: 90deg; }
+/* RTL: mirror the `caret-right` glyph so a closed branch points inline-end.
+   Closed branches ONLY: per CSS Transforms 2 the matrix is translate -> rotate ->
+   scale -> transform, so a mirror composed with the open state's `rotate: 90deg`
+   turns the caret up instead of down. Scoped on `<html dir="rtl">` — `.ap-admin`
+   itself never carries `dir`. */
+[dir="rtl"] .ap-admin .ap-settings-branch:not( .is-open ) > .ap-settings-node > .ap-settings-node-caret { transform: scaleX( -1 ); }
+.ap-admin .ap-settings-node:hover { background: var( --ap-color-row-hover ); color: var( --ap-color-text ); }
+.ap-admin .ap-settings-branch.is-open > .ap-settings-node {
+	color: var( --pd-color-accent-fg, var( --ap-color-accent ) ); font-weight: var( --ap-font-weight-semibold );
+}
+/* accent-fg (darker accent, mixed toward text) clears AA on accent-subtle; the raw
+   accent seed on accent-subtle is 4.33:1 (axe serious). */
+.ap-admin .ap-settings-node[aria-current="page"] {
+	background: var( --ap-color-accent-subtle ); color: var( --pd-color-accent-fg, var( --ap-color-accent ) );
+	font-weight: var( --ap-font-weight-semibold );
+}
+.ap-admin .ap-settings-children {
+	display: flex; flex-direction: column; gap: 3px;
+	margin: 2px 0 8px; padding-inline-start: 28px;
+}
+.ap-admin .ap-settings-child {
+	width: 100%; min-height: 40px; padding: 0 12px; border: 0; border-radius: var( --ap-radius-control );
+	background: transparent; color: var( --ap-color-text-muted ); font: inherit;
+	font-size: var( --ap-font-size-meta ); font-weight: var( --ap-font-weight-medium ); text-align: start;
+}
+.ap-admin .ap-settings-child:hover { background: var( --ap-color-row-hover ); color: var( --ap-color-text ); }
+.ap-admin .ap-settings-child[aria-current="page"] {
+	background: var( --ap-color-accent-subtle ); color: var( --pd-color-accent-fg, var( --ap-color-accent ) );
+	font-weight: var( --ap-font-weight-semibold );
+}
+/* Mockup caps the settings panel at 820px (`.pd-settings-content .pd-settings-panel`).
+   Here the panel IS the padded column, so the cap carries its 28px inline padding to
+   leave the same 820px content box, left-aligned. */
+.ap-admin .ap-settings-panel { min-width: 0; max-width: 876px; padding: 24px 28px 40px; }
+.ap-admin .ap-settings-panel .components-notice { margin-inline: 0; }
+/* Mockup collapses settings at its 820px *container* breakpoint, and since the
+   shell scope carries `container-type` (see the top of this file) so does this —
+   the query now measures the app's own width, like the mockup, instead of a
+   viewport that still counted WP's 160px admin menu. */
+@container ( max-width: 820px ) {
+	.ap-admin .ap-settings-layout { grid-template-columns: 1fr; min-height: 0; }
+	/* The rail stays a column here — a wrapped row cannot carry the child group of
+	   an open branch (mockup keeps `.pd-settings-navigation` vertical and only
+	   bounds its width at this breakpoint). */
+	.ap-admin .ap-settings-nav {
+		max-width: 360px; padding: 18px 20px;
+		border-inline-end: 0; border-block-end: 1px solid var( --ap-color-border );
+	}
+	.ap-admin .ap-settings-panel { max-width: none; padding: 20px; }
+}
+
+/* ---- Narrow-shell nav guard ------------------------------------------------
+   The mockup answers a cramped shell at <=820px by hiding `.pd-navigation` behind a
+   hamburger (`.pd-mobile-menu`) + a slide-in `.pd-mobile-panel`. NEITHER markup
+   exists in the app yet — App.jsx renders `.pd-navigation` only — and now that the
+   shell scope is a query container the ported rules DO fire, so their
+   `.pd-navigation{display:none}` would leave the app with no in-app navigation at
+   all. Two jobs until the mobile panel is built (every route also stays reachable
+   from the WP submenu meanwhile):
+
+   1. <=1100px: the app carries two more nav items than the mockup, so the row
+      outgrows the header below ~1000px of container — and `.ap-admin` is
+      `overflow: clip`, so the tail was silently CUT (109px lost at a 900px viewport
+      before this file's container landed, 49px after the ported <=1100px
+      compaction). Scroll it instead, from the first ported breakpoint down.
+   2. <=820px: re-assert the nav the hamburger rules hide, and keep the <=1100px
+      compaction rather than the mockup's brand-copy-returns layout, which only
+      makes sense once the nav really is behind a hamburger. */
+@container ( max-width: 1100px ) {
+	.ap-admin .pd-brand { min-width: auto; }
+	.ap-admin .pd-navigation { overflow-x: auto; scrollbar-width: none; }
+	/* An absolutely positioned dropdown cannot paint outside a scroll container.
+	   Release the overflow only while one of the three header menus is open; the
+	   closed navigation keeps its horizontal-scroll fallback on narrow shells. */
+	.ap-admin .pd-navigation.has-open-menu { overflow: visible; }
+	.ap-admin .pd-navigation::-webkit-scrollbar { display: none; }
+	.ap-admin .pd-nav-daily, .ap-admin .pd-nav-tools { flex: 0 0 auto; }
+}
+@container ( max-width: 820px ) {
+	.ap-admin .pd-navigation { display: flex; }
+	.ap-admin .pd-brand-copy { display: none; }
+}
+
+/* ---- Section action buttons used in the editor (mockup markup) ------------ *
+ * `.pd-section-action` is fully specified by the ported mockup sheet
+ * (plugin-dashboard.css: `min-height:24px; gap:5px; padding:0 3px;` + 12px glyph,
+ * hover = underline). The full re-declaration that used to live here (30px tall,
+ * `padding:0 8px`, `gap:6px`, 14px glyph, accent-soft hover pill) silently
+ * outranked it and inflated every inspector/editor section head by 2–4px vs the
+ * mockup. Only the flex pin stays: `renderIcon` wraps each glyph in
+ * `.pd-react-icon`, which the mockup's bare `<svg>` never needed. */
+.ap-admin .pd-section-action > .pd-react-icon { flex: 0 0 auto; }
+/* A section action for a capability that has not shipped is DISABLED, never a
+   live control that explains itself in a toast afterwards (Guideline 5/11 — the
+   badge and the note beside it carry the reason before the click). The ported
+   sheet gives `.pd-section-action` an accent colour and a hover underline, so
+   both are neutralised here. */
+.ap-admin .pd-section-action:disabled { color: var( --ap-color-text-soft ); cursor: default; }
+.ap-admin .pd-section-action:disabled:hover { text-decoration: none; }
+
+/* Same rule inside a `role="menu"` popover, where the row stays FOCUSABLE
+   (`aria-disabled`, not `disabled`) so the roving menu still reaches it and
+   announces its hint — the hover/focus surfaces are kept flat so it never reads
+   as actionable. Attribute selector outranks the ported sheet's `:hover`. */
+.ap-admin .pd-table-actions-popover > button[aria-disabled="true"],
+.ap-admin .pd-table-actions-popover > button[aria-disabled="true"]:hover { background: transparent; color: var( --ap-color-text-soft ); cursor: default; }
+.ap-admin .pd-table-actions-popover > button[aria-disabled="true"] strong { color: var( --ap-color-text-soft ); }
+
+/* ---- Booking-editor footer overflow menu (R2, kit createMenu) -------------- *
+ * The shared sheet styles the mockup's `<details><summary>` trigger; production
+ * binds the kit's headless `createMenu` (full keyboard contract) on a plain
+ * `<button data-menu-trigger>` + `[role=menu]` — mirror the summary chrome onto
+ * the button. The popover/item rules (`.pd-inspector-more-menu>div…`) apply
+ * unchanged. */
+.ap-admin .pd-inspector-more-menu > .pd-button.icon-only[data-menu-trigger] {
+	width: var( --ap-size-control-sm ); min-width: var( --ap-size-control-sm ); height: var( --ap-size-control-sm );
+	box-sizing: border-box; display: grid; place-items: center; padding: 0;
+	border-color: transparent; background: var( --ap-color-surface-subtle ); color: var( --ap-color-text-muted ); cursor: pointer;
+}
+.ap-admin .pd-inspector-more-menu > .pd-button.icon-only[data-menu-trigger]:hover {
+	border-color: transparent; background: var( --ap-color-surface-muted ); color: var( --ap-color-text );
+}
+.ap-admin .pd-inspector-more-menu > .pd-button.icon-only[data-menu-trigger]:focus-visible {
+	outline: 2px solid var( --ap-color-accent ); outline-offset: 2px;
+	border-color: transparent; background: var( --ap-color-surface-subtle );
+}
+.ap-admin .pd-inspector-more-menu > .pd-button.icon-only[data-menu-trigger] svg { width: 18px; height: 18px; }
+
+/* ---- Booking-editor footer: `Notify customer` on its own row -------------- *
+ * Founder decision 2026-07-25 (D1 of the spacing audit). The mockup's booking
+ * inspector footer is a single 62px row (`padding:14px 20px`, 34px buttons)
+ * because its notify toggle stays `hidden` until a status transition is pending;
+ * production always offers the choice, so the toggle and the buttons split the
+ * 340px content box at the 380px default with zero slack — and the label
+ * ellipsised at the 344px panel minimum. The toggle now gets its own band
+ * directly above an untouched `.pd-booking-inspector-foot`, so the button row is
+ * still the mockup's 62px footer (markup: BookingEditor.jsx `NotifyRow`).
+ * Rhythm: inline padding matches the footer's 20px so the checkbox lines up with
+ * the buttons below it, and the 10px block-start is the mockup's own stacked
+ * footer (`.pd-drawer-confirm-foot`: `padding:10px 20px`, `gap:10px`). The gap
+ * down to the buttons is the footer's own 14px padding-top. Opaque surface fill:
+ * the panel body scrolls underneath. */
+.ap-admin .ap-inspector-notify-row {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	padding: 10px 20px 0;
+	background: var( --ap-color-surface );
+}
+/* Follow the footer's own narrow-container gutter (plugin-dashboard.css:921). */
+@container bookings-page (max-width: 520px) {
+	.ap-admin .ap-inspector-notify-row { padding-inline: 16px; }
+}
+
+/* ---- Fixed-height controls never wrap their label ------------------------- *
+ * `.pd-button` is a 34/40px box, and the mockup lets it shrink (`min-width:
+ * var(--ap-size-control-md)` overrides the flex automatic minimum, for the
+ * icon-only case). Every mockup label was short enough that it never mattered;
+ * production strings are longer, so a crowded row squeezed the box below its text
+ * and the label broke onto a second line OUTSIDE the 34px box — "Create page" in
+ * the Dashboard booking-page rail, and "Create booking" back when the booking
+ * inspector footer still shared its row with the notify toggle. Keep labels on
+ * one line and let the flexible COPY beside them absorb the squeeze instead.
+ * The `.pd-notify-toggle` ellipsis clamp that used to live here is gone with the
+ * notify row above: the label owns a full-width row now and always fits. */
+.ap-admin .pd-button,
+.ap-admin .pmdk-button { white-space: nowrap; }
+.ap-admin .pd-inspector-foot-actions > .pd-button,
+.ap-admin .pd-booking-page-line > .pd-button { flex: 0 0 auto; }
+
+/* ---- Kit avatar → DS initial-avatar tint ---------------------------------- *
+ * The kit's `.pmdk-avatar` defaults to a neutral grey fill + 1px border. The DS
+ * (and every mockup list/inspector) specifies initial avatars use "one shared
+ * quiet primary tint and no neutral border" — accent-soft fill + readable accent
+ * ink. Align every kit avatar in the app (lists, inspector identity, dashboard). */
+.ap-admin .pmdk-avatar {
+	background: var( --ap-color-accent-soft );
+	color: var( --pmdk-accent-fg );
+	border: 0;
+}
+
+/* ---- Kit list chrome → mockup `.pd-data-list` rhythm ---------------------- *
+ * `PMDKDataTable` renders the kit's own `.pmdk-toolbar` / `.pmdk-search` /
+ * `.pmdk-pagination` (Services · Staff · Customers and module-owned lists). The kit ships the
+ * DEFAULT tier of those primitives — a boxed toolbar (`padding:12px 14px`), a
+ * `--pmdk-size-control-md` (40px) search field and a ruled `padding:8px 14px`
+ * pagination — whereas the mockup's v2 list tier is flat and flush: the toolbar
+ * and footer share the table's edge and only carry vertical rhythm
+ * (`.pd-bookings-list .pd-toolbar{padding:0 0 14px}` / `.pd-pagination{padding:9px 0}`,
+ * mockup css:741-953), and the search is the 34px compact control
+ * (`--ap-size-control-sm`, `.pd-catalog-search{width:320px;…;flex:0 1 320px}`).
+ * Bookings already matches because `BookingsTable.jsx` hand-writes the `.pd-*`
+ * markup; this block brings the four kit lists onto the same numbers so the search
+ * box stops reading as an oversized unstyled input inset from its own table. */
+.ap-admin .pmdk-data-list .pmdk-toolbar { padding: 0 0 14px; }
+.ap-admin .pmdk-data-list .pmdk-pagination { padding: 9px 0; border-top: 0; }
+.ap-admin .pmdk-data-list .pmdk-toolbar .pmdk-search {
+	width: 320px; min-width: 190px; max-width: 360px; flex: 0 1 320px;
+}
+.ap-admin .pmdk-data-list .pmdk-toolbar .pmdk-search input {
+	height: var( --ap-size-control-sm ); min-height: var( --ap-size-control-sm );
+}
+/* The kit positions its search glyph with `.pmdk-search > .pmdk-react-icon`, but
+ * `renderIcon` emits the product's `.pd-react-icon`, so the wrapper never matched
+ * and stayed in normal flow — an empty 0×0 inline-flex box on its own line that
+ * pushed the input down and made the field 63px tall instead of 34px. Same rule as
+ * the mockup's `.pd-search > .pd-react-icon` (mockup css:509-510). */
+.ap-admin .pmdk-search > .pd-react-icon {
+	position: absolute; z-index: 1; top: 50%; left: 12px; width: 18px; height: 18px;
+	display: grid; place-items: center; color: var( --ap-color-text-muted );
+	line-height: 0; transform: translateY( -50% ); pointer-events: none;
+}
+/* No `[dir=rtl]` companion on purpose: wp-scripts runs rtlcss over the whole
+ * sheet, so `left` already becomes `right` in `admin-rtl.css`. */
+.ap-admin .pmdk-search > .pd-react-icon > svg { position: static; width: 17px; height: 17px; display: block; transform: none; }
+/* Row of 34px controls: the kit sizes the trailing icon cluster for its own 42px
+ * tier (`.pmdk-toolbar-actions{height:42px}` + `flex:0 0 42px` children). */
+.ap-admin .pmdk-data-list .pmdk-toolbar-actions { height: var( --ap-size-control-sm ); }
+.ap-admin .pmdk-data-list .pmdk-toolbar-actions > .pmdk-column-manager,
+.ap-admin .pmdk-data-list .pmdk-toolbar-actions > .pmdk-export-trigger { flex: 0 0 var( --ap-size-control-sm ); }
+
+/* ---- List cells: identity (avatar + name), truncation --------------------- */
+.ap-admin .ap-cell-identity { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.ap-admin .ap-cell-identity .pmdk-avatar { width: 28px; height: 28px; font-size: var( --ap-font-size-caption ); }
+.ap-admin .ap-cell-truncate { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- Inspector: identity header, aggregates strip, warnings, notes --------- */
+.ap-admin .ap-inspector-identity { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+.ap-admin .ap-inspector-identity strong { display: block; font-size: var( --ap-font-size-subheading ); font-weight: var( --ap-font-weight-semibold ); }
+.ap-admin .ap-inspector-identity span { display: block; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
+/* The generic copy rule above also matches the avatar span. Restore the avatar's
+   centering and accent ink after that rule so its initial cannot sit at the
+   circle's top-left corner in staff/customer inspectors. */
+.ap-admin .ap-inspector-identity > .pmdk-avatar {
+	display: grid; place-items: center; flex: 0 0 auto;
+	color: var( --pmdk-accent-fg ); line-height: 1;
+}
+/* 2x2 since the no-show count joined the strip (D-R33). A fourth COLUMN would have left every
+   cell ~86px at the 344px panel minimum, where "Last booking" already carries a date; two rows
+   of two give the date more room than it had at three columns, and the block stays balanced
+   instead of trailing one lone cell onto a second row. */
+.ap-admin .ap-aggregates-strip {
+	display: grid; grid-template-columns: repeat( 2, minmax( 0, 1fr ) ); gap: 1px;
+	margin: 14px 0 4px; padding: 0; overflow: hidden;
+	border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control );
+	background: var( --ap-color-border );
+}
+.ap-admin .ap-aggregates-strip > div { padding: 10px 12px; background: var( --ap-color-surface ); }
+.ap-admin .ap-aggregates-strip dt { margin: 0; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
+.ap-admin .ap-aggregates-strip dd { margin: 3px 0 0; font-size: var( --ap-font-size-subheading ); font-weight: var( --ap-font-weight-semibold ); font-variant-numeric: tabular-nums; }
+.ap-admin .ap-aggregates-strip dd.ap-aggregate-date { font-size: var( --ap-font-size-meta ); }
+.ap-admin .ap-inspector-warning {
+	display: flex; align-items: center; gap: 7px; margin: 8px 0 0; padding: 8px 10px;
+	border-radius: var( --ap-radius-control ); background: var( --ap-color-warning-subtle ); color: var( --ap-color-warning );
+	font-size: var( --ap-font-size-caption );
+}
+.ap-admin .ap-inspector-warning svg { width: 14px; height: 14px; flex: 0 0 auto; }
+.ap-admin .ap-inspector-note { margin: 0; white-space: pre-wrap; font-size: var( --ap-font-size-meta ); color: var( --ap-color-text ); }
+
+/* ---- Field-level validation error ----------------------------------------- */
+.ap-admin .ap-field-error { margin: -6px 0 2px; color: var( --ap-color-danger ); font-size: var( --ap-font-size-caption ); }
+.ap-admin .pd-compact-field.has-error input,
+.ap-admin .pd-compact-field.has-error textarea { border-color: var( --ap-color-danger-border ); }
+
+/* ---- Status pills (services / staff / locations lists) -------------------- */
+.ap-admin .ap-status-pill {
+	display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px;
+	border-radius: var( --ap-radius-pill ); font-size: var( --ap-font-size-caption );
+	font-weight: var( --ap-font-weight-medium ); text-transform: capitalize; letter-spacing: .01em;
+	background: var( --ap-color-surface-muted ); color: var( --ap-color-text-muted );
+}
+/* on-success (darker) instead of the success seed: the seed text on success-subtle
+   is 4.06:1 (axe serious); the darker on-* mix clears AA (~5.2:1). */
+.ap-admin .ap-status-pill.is-active { background: var( --ap-color-success-subtle ); color: var( --ap-color-on-success ); }
+.ap-admin .ap-status-pill.is-draft { background: var( --ap-color-warning-subtle ); color: var( --ap-color-warning ); }
+.ap-admin .ap-status-pill.is-archived { background: var( --ap-color-surface-muted ); color: var( --ap-color-text-soft ); }
+.ap-admin .ap-status-pill.is-small { height: 20px; padding: 0 7px; }
+.ap-admin .ap-color-dot { width: 10px; height: 10px; flex: 0 0 auto; border-radius: 50%; box-shadow: inset 0 0 0 1px color-mix( in srgb, var( --ap-color-text ) 12%, transparent ); }
+.ap-admin .ap-premium-badge {
+	margin-inline-start: 4px; padding: 1px 6px; border-radius: var( --ap-radius-pill );
+	background: color-mix( in srgb, var( --ap-color-on-accent, #fff ) 22%, transparent );
+	color: inherit; font-size: var( --ap-font-size-micro ); font-weight: var( --ap-font-weight-semibold ); text-transform: uppercase; letter-spacing: .04em;
+}
+
+/* ---- Reserved / empty state cards (tabs, categories, locations) ------------ */
+.ap-admin .ap-reserved-tab,
+.ap-admin .ap-empty-card {
+	display: flex; flex-direction: column; align-items: center; justify-content: center;
+	gap: 8px; min-height: 300px; padding: 40px 24px; text-align: center;
+	border: 1px dashed var( --ap-color-border ); border-radius: var( --ap-radius-surface );
+	background: var( --ap-color-surface-subtle );
+}
+.ap-admin .ap-reserved-tab h2, .ap-admin .ap-empty-card h2 { margin: 4px 0 0; font-size: var( --ap-font-size-subheading ); font-weight: var( --ap-font-weight-semibold ); }
+.ap-admin .ap-reserved-tab p, .ap-admin .ap-empty-card p { margin: 0; max-width: 460px; color: var( --ap-color-text-muted ); font-size: var( --ap-font-size-meta ); }
+.ap-admin .ap-empty-card .pmdk-button { margin-top: 8px; }
+.ap-admin .ap-reserved-tab .ap-state-icon, .ap-admin .ap-empty-card .ap-state-icon {
+	display: grid; place-items: center; width: 44px; height: 44px; border-radius: var( --ap-radius-pill );
+	background: var( --ap-color-surface-muted ); color: var( --ap-color-text-muted );
+}
+
+/* ---- Full-page record editors (services / staff / locations) -------------- *
+ * R3 — the editors compose the DS `.pd-record-editor-*` primitives (flat
+ * sections divided by rules, sticky left section-nav) from plugin-dashboard.css,
+ * replacing the old bordered `.ap-editor-section` cards. The nav renders
+ * <button>s (in-page scroll, no hash-router side effects) rather than the mockup
+ * `<a>`, so mirror the `.pd-editor-nav a` styling onto them. The shell header is
+ * non-sticky (position:relative), so pin the nav near the top instead of 96px. */
+.ap-admin .pd-record-editor-page .pd-editor-nav { top: 24px; }
+.ap-admin .pd-record-editor-page .pd-editor-nav button {
+	min-height: 40px; width: 100%; display: flex; align-items: center;
+	padding: 0 10px; border: 0; border-radius: var( --ap-radius-control );
+	background: transparent; color: var( --ap-color-text-muted ); font: inherit;
+	font-size: var( --ap-font-size-meta ); font-weight: var( --ap-font-weight-medium ); text-align: start;
+}
+.ap-admin .pd-record-editor-page .pd-editor-nav button:hover { color: var( --ap-color-text ); }
+.ap-admin .pd-record-editor-page .pd-editor-nav button.is-active { background: var( --ap-color-accent-subtle ); color: var( --pd-color-accent-fg ); }
+.ap-admin .ap-inline-create { display: flex; align-items: flex-start; gap: 8px; }
+.ap-admin .ap-inline-create .pd-compact-field { flex: 1; }
+.ap-admin .ap-inline-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+
+/* ---- Featured image + colour fields (service editor) ---------------------- */
+.ap-admin .ap-image-field { display: flex; align-items: center; gap: 12px; }
+.ap-admin .ap-image-thumb, .ap-admin .ap-image-placeholder { width: 52px; height: 52px; flex: 0 0 auto; border-radius: var( --ap-radius-control ); object-fit: cover; }
+.ap-admin .ap-image-placeholder { display: grid; place-items: center; border: 1px dashed var( --ap-color-border ); color: var( --ap-color-text-soft ); }
+.ap-admin .ap-image-actions { display: flex; align-items: center; gap: 6px; }
+.ap-admin .ap-color-field { display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.ap-admin .ap-color-label { color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
+.ap-admin .ap-color-input { display: flex; align-items: center; gap: 8px; }
+.ap-admin .ap-color-input input[type="color"] { width: 40px; height: 32px; padding: 0; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); background: none; }
+
+/* ---- Service reorder (dnd within a category) ------------------------------ */
+.ap-admin .ap-reorder { padding: 16px; }
+.ap-admin .ap-reorder-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.ap-admin .ap-reorder-head strong { display: block; font-size: var( --ap-font-size-subheading ); }
+.ap-admin .ap-reorder-head span { display: block; margin-top: 2px; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
+.ap-admin .ap-reorder-actions { display: flex; gap: 8px; }
+.ap-admin .ap-reorder-list { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ap-admin .ap-reorder-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); background: var( --ap-color-surface ); }
+.ap-admin .ap-reorder-row.is-dragging { box-shadow: 0 8px 24px color-mix( in srgb, var( --ap-color-text ) 16%, transparent ); }
+.ap-admin .ap-reorder-handle { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: var( --ap-radius-control ); background: transparent; color: var( --ap-color-text-soft ); cursor: grab; }
+.ap-admin .ap-reorder-handle:active { cursor: grabbing; }
+.ap-admin .ap-reorder-name { flex: 1; font-weight: var( --ap-font-weight-medium ); }
+
+/* Staff workspace now uses the shared `.pd-record-editor-*` layout (R3); its
+ * bespoke `.ap-workspace-*` grid/nav/scroll rules were removed. */
+
+/* ---- Work hours (inherited summary + editable grid) ----------------------- */
+.ap-admin .ap-hours-list { display: flex; flex-direction: column; gap: 0; margin: 10px 0 0; padding: 0; list-style: none; }
+.ap-admin .ap-hours-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var( --ap-color-border-subtle, var( --ap-color-border ) ); font-size: var( --ap-font-size-meta ); }
+.ap-admin .ap-hours-list li:last-child { border-bottom: 0; }
+.ap-admin .ap-hours-list li span { color: var( --ap-color-text-muted ); }
+.ap-admin .ap-hours-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+/* A save is in flight: the controls are really disabled, so say so visually too. */
+.ap-admin .ap-hours-grid.is-busy { opacity: 0.65; }
+.ap-admin .ap-hours-day { padding: 10px 12px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); }
+.ap-admin .ap-hours-day-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.ap-admin .ap-hours-period { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.ap-admin .ap-hours-period input[type="time"] { height: 32px; padding: 0 8px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); background: var( --ap-color-surface ); }
+.ap-admin .ap-hours-period .ap-hours-time { height: 32px; padding: 0 8px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); background: var( --ap-color-surface ); color: var( --ap-color-text ); font: inherit; }
+.ap-admin .ap-hours-toolbar { display: flex; justify-content: flex-end; margin-bottom: 6px; }
+.ap-admin .ap-hours-closed { color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
+.ap-admin .ap-hours-save { margin-top: 4px; }
+
+/* ---- Time off (blocked periods) ------------------------------------------- */
+.ap-admin .ap-timeoff-form { margin: 8px 0 12px; padding: 12px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); background: var( --ap-color-surface-subtle ); }
+.ap-admin .ap-timeoff-list { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; }
+.ap-admin .ap-timeoff-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); }
+.ap-admin .ap-timeoff-list strong { display: block; font-size: var( --ap-font-size-meta ); font-weight: var( --ap-font-weight-medium ); }
+.ap-admin .ap-timeoff-list span { display: block; margin-top: 2px; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
+.ap-admin .pd-icon-button.sm { width: 28px; height: 28px; min-height: 28px; }
+.ap-admin .pd-icon-button.sm svg { width: 14px; height: 14px; }
+
+/* ---- Service editor: eligible-staff multi-select (D-R28) ------------------ */
+.ap-admin .ap-eligibility-list { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 0; padding: 0; list-style: none; max-height: 320px; overflow-y: auto; }
+.ap-admin .ap-eligibility-list li label { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); cursor: pointer; }
+.ap-admin .ap-eligibility-list li label:hover { background: var( --ap-color-surface-subtle ); }
+.ap-admin .ap-eligibility-list.is-readonly li { padding: 8px 12px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); }
+.ap-admin .ap-eligibility-name { font-size: var( --ap-font-size-meta ); font-weight: var( --ap-font-weight-medium ); }
+.ap-admin .ap-eligibility-meta { margin-left: auto; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
+/* "Specific locations" — this member's rows are location-scoped, so the ticked box does not mean
+   "every location" for them (D-R28 copy fix). Sits before the meta line, which keeps `margin-left:
+   auto` and stays flush right. */
+.ap-admin .ap-eligibility-scope { padding: 1px 6px; border: 1px solid var( --ap-color-border ); border-radius: 999px; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); white-space: nowrap; }
+
+/* ---- Staff workspace: read-only assigned-services list (D-R28) ------------ */
+/* Read-only integration status in the staff editor (D-R35). Deliberately quieter than the services
+   list beside it: it is a STATUS line with one escape hatch, not a collection the editor manages. */
+.ap-admin .ap-staff-integrations { display: flex; flex-direction: column; gap: 4px; margin: 10px 0 0; padding: 0; list-style: none; }
+.ap-admin .ap-staff-integrations li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: var( --ap-font-size-meta ); color: var( --ap-color-text-muted ); }
+.ap-admin .ap-staff-integrations a { color: var( --ap-color-accent ); font-weight: var( --ap-font-weight-medium ); text-decoration: none; flex: 0 0 auto; }
+.ap-admin .ap-staff-integrations a:hover, .ap-admin .ap-staff-integrations a:focus-visible { text-decoration: underline; }
+
+.ap-admin .ap-staff-services-list { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; }
+.ap-admin .ap-staff-services-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); }
+.ap-admin .ap-staff-services-list a { color: var( --ap-color-text ); font-size: var( --ap-font-size-meta ); font-weight: var( --ap-font-weight-medium ); text-decoration: none; }
+.ap-admin .ap-staff-services-list a:hover { text-decoration: underline; }
+
+/* ---- Categories simple table (reuses pmdk table chrome) ------------------- */
+.ap-admin .ap-simple-table .pmdk-table { min-width: 0; }
+
+/* ---- Categories: drag-reorder + inline rename (C2) ------------------------ */
+.ap-admin .ap-cat-table .ap-cat-drag-col { width: 40px; }
+.ap-admin .ap-cat-table .ap-cat-drag { width: 40px; padding-right: 0; }
+.ap-admin .ap-cat-table tr.is-dragging { background: var( --ap-color-surface ); box-shadow: 0 8px 24px color-mix( in srgb, var( --ap-color-text ) 16%, transparent ); }
+.ap-admin .ap-cat-name { display: inline-flex; align-items: center; max-width: 100%; padding: 4px 8px; margin: -4px -8px; border: 0; border-radius: var( --ap-radius-control ); background: transparent; text-align: left; cursor: text; }
+.ap-admin .ap-cat-name:hover { background: var( --ap-color-surface-subtle ); }
+.ap-admin .ap-cat-rename-input { width: 100%; max-width: 260px; height: 32px; padding: 0 8px; border: 1px solid var( --ap-color-accent ); border-radius: var( --ap-radius-control ); background: var( --ap-color-surface ); color: var( --ap-color-text ); font: inherit; }
+
+/* ---- In-app confirm dialog contents (C13 / review F item 3) ---------------
+ * Rendered by a wp-components Modal, which portals to document.body — OUTSIDE
+ * the `.ap-admin` scope — so these selectors are intentionally unscoped. */
+.ap-confirm-modal { max-width: 420px; }
+.ap-confirm-message { margin: 0 0 4px; }
+.ap-confirm-input { width: 100%; min-height: 64px; margin-top: 8px; padding: 8px; border: 1px solid #949494; border-radius: 4px; font: inherit; resize: vertical; box-sizing: border-box; }
+.ap-confirm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+/* Refund dialog fields. Same portal caveat as above — and the same reason these carry no
+   `--ap-*` token: the Modal renders outside `.ap-wrap`, where the token scope is defined. */
+.ap-refund-field { display: block; margin-top: 12px; font-size: 12px; font-weight: 600; }
+.ap-refund-field .ap-confirm-input { min-height: 0; font-weight: 400; }
+.ap-refund-field input.ap-confirm-input { height: 34px; }
+.ap-refund-error { margin: 6px 0 0; color: #b32d2e; font-size: 12px; }
+
+/* ---- Booking inspector: payment status + the gateway ledger (D-R38) --------
+ * The badge REUSES `.pd-status`, the app's one status-pill shape, and only supplies the tone —
+ * a second pill component would drift from the booking-status one it sits three lines above.
+ * The tone modifiers are prefixed `ap-pay-` rather than named after the states, because
+ * `.pd-status.pending` already means a PENDING BOOKING and the two are different facts about the
+ * same row. */
+.ap-admin .pd-status.ap-pay-none { --pd-status-tone: var( --ap-color-text-soft ); }
+.ap-admin .pd-status.ap-pay-pending { --pd-status-tone: var( --ap-color-warning ); }
+.ap-admin .pd-status.ap-pay-paid { --pd-status-tone: var( --ap-color-success ); }
+.ap-admin .pd-status.ap-pay-partial { --pd-status-tone: var( --ap-color-warning ); }
+.ap-admin .pd-status.ap-pay-refunded { --pd-status-tone: var( --ap-color-text-soft ); }
+
+.ap-admin .ap-order-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* A flat surface with quiet dividers, never a nested card (DESIGN-SYSTEM "Tables"). The rows wrap
+   at the 344px inspector minimum instead of scrolling sideways: a reference the operator cannot
+   read is the same as no reference. */
+.ap-admin .ap-txn-list { display: flex; flex-direction: column; border-top: 1px solid var( --ap-color-border ); }
+.ap-admin .ap-txn-row {
+	display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px;
+	padding: 8px 0; border-bottom: 1px solid var( --ap-color-border );
+	font-size: var( --ap-font-size-caption ); line-height: var( --ap-line-height-compact );
+}
+.ap-admin .ap-txn-kind { font-weight: var( --ap-font-weight-semibold ); color: var( --ap-color-text ); }
+.ap-admin .ap-txn-amount { color: var( --ap-color-text ); }
+.ap-admin .ap-txn-status { color: var( --ap-color-text-muted ); }
+.ap-admin .ap-txn-status.is-succeeded { color: var( --ap-color-success ); }
+.ap-admin .ap-txn-status.is-failed { color: var( --ap-color-danger ); }
+.ap-admin .ap-txn-status.is-pending, .ap-admin .ap-txn-status.is-voiding { color: var( --ap-color-warning ); }
+.ap-admin .ap-txn-ref { flex: 1 1 8rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var( --ap-color-text-soft ); }
+.ap-admin .ap-txn-when { margin-inline-start: auto; white-space: nowrap; color: var( --ap-color-text-soft ); }
+
+/* ---- Reduced-motion guard for our animations ------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+	.ap-admin .ap-toast { transition: none; }
+}
+
+/* ---- Settings tabs (C1 — schema-driven §1.6) ------------------------------ */
+.ap-admin .ap-settings-app { display: flex; flex-direction: column; gap: 16px; padding-bottom: 8px; }
+.ap-admin .ap-settings-card { margin: 0; }
+.ap-admin .ap-settings-card .components-card__header { display: block; }
+
+/* Toggle whose visible label is the row beside it: the control still needs a real
+   <label for> for its accessible name, so hide only that element (WP's own
+   screen-reader-text geometry). See NotificationsApp template rows. */
+.ap-admin .ap-toggle-label-sr .components-toggle-control__label {
+	position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+	overflow: hidden; clip: rect( 0 0 0 0 ); clip-path: inset( 50% );
+	white-space: nowrap; border: 0;
+}
+.ap-admin .ap-settings-card-title { margin: 0; font-size: var( --ap-font-size-subheading ); font-weight: var( --ap-font-weight-semibold ); }
+.ap-admin .ap-settings-card-desc { margin: 4px 0 0; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); font-weight: var( --ap-font-weight-regular ); }
+.ap-admin .ap-field-error { color: var( --ap-color-danger ); font-size: var( --ap-font-size-caption ); }
+.ap-admin .ap-settings-actions-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.ap-admin .ap-settings-conflict-body { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.ap-admin .ap-hint-steps { margin: 0 0 12px; color: var( --ap-color-text-soft ); }
+
+/* Value + unit control (C5 lead time / booking window). */
+.ap-admin .ap-duration-controls { display: flex; gap: 8px; align-items: stretch; }
+.ap-admin .ap-duration-number { max-width: 120px; }
+.ap-admin .ap-duration-unit { min-width: 120px; }
+
+/* Read-only diagnostics grid (Advanced tab). */
+.ap-admin .ap-diagnostics {
+	display: grid; grid-template-columns: repeat( 2, minmax( 0, 1fr ) ); gap: 1px; margin: 0; padding: 0;
+	overflow: hidden; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); background: var( --ap-color-border );
+}
+.ap-admin .ap-diagnostics > div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; background: var( --ap-color-surface ); }
+.ap-admin .ap-diagnostics dt { margin: 0; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
+.ap-admin .ap-diagnostics dd { margin: 0; font-size: var( --ap-font-size-caption ); font-weight: var( --ap-font-weight-medium ); font-variant-numeric: tabular-nums; }
+.ap-admin .ap-diagnostics-checks { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.ap-admin .ap-diagnostics-checks li { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: var( --ap-radius-pill ); background: var( --ap-color-surface-muted ); font-size: var( --ap-font-size-caption ); }
+.ap-admin .ap-diagnostics-checks li[data-status="ok"] { background: var( --ap-color-success-subtle ); }
+.ap-admin .ap-diagnostics-checks li strong { text-transform: capitalize; }
+
+/* ---- Modules surface (C1 — read-only catalog §6) -------------------------- */
+.ap-admin .ap-modules-compare { margin-top: 24px; }
+.ap-admin .ap-modules-compare > h2 { margin: 0 0 4px; font-size: var( --ap-font-size-subheading ); font-weight: var( --ap-font-weight-semibold ); }
+.ap-admin .ap-modules-compare > .ap-modules-compare-note { margin: 0 0 12px; max-width: 68ch; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
+/* Accent TEXT on a surface uses `--pd-color-accent-fg` (the accent mixed toward
+   the text seed), never the raw seed: the seed is tuned as a FILL. On dark it is
+   only 3.4:1 against the canvas, and the fg role lightens with the dark text seed
+   the same way it darkens on white — one role, both schemes. */
+.ap-admin .ap-module-link { display: inline-flex; align-items: center; color: var( --pd-color-accent-fg, var( --ap-color-accent ) ); font-size: var( --ap-font-size-caption ); font-weight: var( --ap-font-weight-medium ); text-decoration: none; }
+.ap-admin .ap-module-link:hover { text-decoration: underline; }
+
+/* Module card glyph size (beta fix, founder report 2026-07-25).
+ * The kit sizes the 34px `.pmdk-module-icon` BOX but never the glyph inside it —
+ * it assumes the consumer's icon node is its own `.pmdk-react-icon`. Aponto's
+ * `renderIcon()` emits `.pd-react-icon`, so the only rule that reached the SVG was
+ * the generic `.ap-admin .pd-react-icon > svg { width: 1em }` fallback
+ * (plugin-dashboard.css:203) — 13px of inherited font-size inside a 34px box,
+ * against the mockup's 31px glyph (mockup css:83 `.pd-module-glyph`). Restate the
+ * mockup size on the kit's box; the kit-side gap is noted for upstream. */
+.ap-admin .pmdk-module-icon > .pd-react-icon { display: grid; place-items: center; line-height: 0; }
+.ap-admin .pmdk-module-icon > .pd-react-icon > svg { width: 31px; height: 31px; display: block; }
+
+/* Modules browse toolbar (D-R21). The `.pd-module-*` chrome ships in
+ * plugin-dashboard.css straight from the mockup, which emits a bare `<svg>`;
+ * `renderIcon()` wraps every glyph in `.pd-react-icon`, so the search-affix and
+ * empty-state glyph rules need the wrapper restated (same pattern as
+ * `.pmdk-search > .pd-react-icon` above). */
+.ap-admin .pd-module-search > .pd-react-icon {
+	position: absolute; z-index: 1; top: 50%; left: 12px; width: 17px; height: 17px;
+	display: grid; place-items: center; color: var( --ap-color-text-soft ); line-height: 0;
+	transform: translateY( -50% ); pointer-events: none;
+}
+.ap-admin .pd-module-search > .pd-react-icon > svg { position: static; width: 17px; height: 17px; display: block; transform: none; }
+.ap-admin .pd-module-empty > .pd-react-icon { display: grid; place-items: center; color: var( --ap-color-text-soft ); line-height: 0; }
+.ap-admin .pd-module-empty > .pd-react-icon > svg { width: 28px; height: 28px; display: block; }
+/* The empty panel is a centred grid; keep its own children stacked. */
+.ap-admin .pd-module-empty { grid-auto-flow: row; align-content: center; justify-items: center; }
+.ap-admin .pd-module-empty > .pd-button { margin-top: 12px; }
+
+/* ---- Modules section sub-navigation (founder 2026-08-28) ------------------ *
+ * "All modules" + one pill per active settings-owning module, rendered on the
+ * catalog AND on every module panel (modules/ModulesSubnav.jsx).
+ *
+ * On the catalog this sits directly above `.pmdk-section-tabs`, so its weight is
+ * the whole point: the category tabs are 44px underlined tabs that filter the
+ * grid, this NAVIGATES the section, and two rows of equal weight would read as
+ * siblings. It therefore borrows the register the app already uses for quiet
+ * chips — `.pd-filter-chip`'s 28px pill on `--ap-color-surface-muted` at caption
+ * size — with the active treatment shared by `.pd-editor-nav a.is-active` and
+ * `.pd-segmented button[aria-pressed="true"]` (`--ap-color-accent-subtle` fill +
+ * accent foreground). No new visual language, just a lighter one. */
+.ap-admin .ap-module-subnav {
+	/* ONE distance from the chips to whatever follows them — the category tabs on the
+	   catalog, the panel body on `#modules/{code}` — so the section reads as one rhythm
+	   however you entered it (founder, 2026-09-04). */
+	display: flex; flex-wrap: wrap; align-items: center; gap: var( --ap-space-2 );
+	margin: 0 0 var( --ap-space-4 );
+}
+.ap-admin .ap-module-subnav-item {
+	height: 28px; display: inline-flex; align-items: center; padding: 0 11px;
+	border-radius: var( --ap-radius-pill ); background: var( --ap-color-surface-muted );
+	color: var( --ap-color-text-muted ); font-size: var( --ap-font-size-caption );
+	font-weight: var( --ap-font-weight-medium ); text-decoration: none; white-space: nowrap;
+}
+.ap-admin .ap-module-subnav-item:hover { background: var( --ap-color-row-hover ); color: var( --ap-color-text ); }
+.ap-admin .ap-module-subnav-item.is-active {
+	background: var( --ap-color-accent-subtle ); color: var( --pd-color-accent-fg, var( --ap-color-accent ) );
+}
+
+/* Pointer clicks must not leave a ring behind (founder, 2026-09-04).
+ *
+ * These are navigation chips and tabs: clicking one SELECTS it, and the selected treatment
+ * (accent fill / accent underline) already says so. The ring came from wp-admin's own
+ * `common.css`, which styles a plain `a:focus` with a 2px `box-shadow` — a `:focus` rule,
+ * not `:focus-visible`, so a mouse click on a hash link left it painted on top of the
+ * active state. Suppressed on `:focus` and restored on `:focus-visible`, which is the pair
+ * the rest of `.ap-admin` already uses, so a keyboard user still sees exactly where they
+ * are. Same rule for the kit's category tabs, which sit right below this row. */
+.ap-admin .ap-module-subnav-item:focus,
+.ap-admin .pmdk-section-tabs button:focus { box-shadow: none; outline: none; }
+.ap-admin .ap-module-subnav-item:focus-visible,
+.ap-admin .pmdk-section-tabs button:focus-visible {
+	outline: 2px solid var( --ap-color-accent ); outline-offset: 2px;
+}
+
+/* The record-editor head is a flex ROW, so the title column has to be allowed to shrink or
+   the breadcrumb's own ellipsis (`.pd-record-editor-head h1 strong`) can never fire on a long
+   module name. Stretching it also keeps the description left-aligned with the `h1`. */
+.ap-admin .pd-record-editor-title { min-width: 0; flex: 1 1 auto; }
+
+/* ---- Module settings panel shell (founder, 2026-09-04) -------------------- *
+ * ONE spacing contract for every module panel, owned by the free-shipped panel HOST
+ * (`modules/ModuleSettingsRoute.jsx`) rather than by each module's bundle. Google
+ * Calendar, Outlook, Reminders and Custom fields each invented their own gaps —
+ * different distances under the same subnav, an intro paragraph flush against its
+ * numbered steps, a label sitting on its field — because nothing shared said what a
+ * section, an intro, a field or an action row should measure.
+ *
+ * These classes are module-AGNOSTIC (no module name appears here) and belong to the
+ * route, which ships in Free: the panel host, its head and its subnav are free code, so
+ * the container geometry they impose is too. A module's own bundle keeps only what is
+ * genuinely its own — the connection pill, the redirect-URI field, the field-builder
+ * rows — in its `styles.js`.
+ *
+ * Everything is on the `--ap-space-*` scale; nothing here introduces a colour. */
+.ap-admin .ap-module-panel {
+	display: flex; flex-direction: column; gap: var( --ap-space-5 ); margin: 0;
+}
+/* wp-components ships `.components-notice` with margins of its own; the column gap is
+   the only vertical spacing on this surface. */
+.ap-admin .ap-module-panel .components-notice { margin: 0; }
+.ap-admin .ap-module-panel__section { margin: 0; }
+.ap-admin .ap-module-panel__section-head h2 {
+	margin: 0; font-size: var( --ap-font-size-item ); font-weight: var( --ap-font-weight-medium );
+	line-height: var( --ap-line-height-title );
+}
+/* The card body is the piece that was missing: its children used to butt against each
+   other because every one of them zeroes its own margin. */
+.ap-admin .ap-module-panel__body {
+	display: flex; flex-direction: column; gap: var( --ap-space-4 );
+}
+.ap-admin .ap-module-panel__intro {
+	margin: 0; max-width: 72ch; color: var( --ap-color-text-muted );
+	font-size: var( --ap-font-size-meta ); line-height: var( --ap-line-height-body );
+}
+/* Numbered setup steps. WP admin's `common.css` puts a blanket `margin-bottom: 6px` on
+   every `li`, which is why the list needs its own reset before the gap can be trusted. */
+.ap-admin .ap-module-panel__steps {
+	display: flex; flex-direction: column; gap: var( --ap-space-2 );
+	margin: 0; padding-inline-start: var( --ap-space-5 ); max-width: 72ch;
+}
+.ap-admin .ap-module-panel__steps li {
+	margin: 0; color: var( --ap-color-text-muted ); line-height: var( --ap-line-height-body );
+}
+.ap-admin .ap-module-panel__steps strong { color: var( --ap-color-text ); font-weight: var( --ap-font-weight-semibold ); }
+/* A label + its control + its help line are ONE thing, so they sit closer to each other
+   than two neighbouring things do. */
+.ap-admin .ap-module-panel__field { display: flex; flex-direction: column; gap: var( --ap-space-2 ); }
+.ap-admin .ap-module-panel__label {
+	margin: 0; color: var( --ap-color-text ); font-size: var( --ap-font-size-field-label );
+	font-weight: var( --ap-font-weight-semibold ); line-height: var( --ap-line-height-compact );
+}
+.ap-admin .ap-module-panel__help {
+	margin: 0; max-width: 72ch; color: var( --ap-color-text-soft );
+	font-size: var( --ap-font-size-caption ); line-height: var( --ap-line-height-body );
+}
+.ap-admin .ap-module-panel__error {
+	margin: 0; color: var( --ap-color-danger ); font-size: var( --ap-font-size-caption );
+	line-height: var( --ap-line-height-compact );
+}
+.ap-admin .ap-module-panel__actions {
+	display: flex; align-items: center; gap: var( --ap-space-2 ); flex-wrap: wrap;
+}
+/* Operational rows are a flat surface with quiet dividers, never a nested card
+   (DESIGN-SYSTEM "Tables"). */
+.ap-admin .ap-module-panel__table {
+	display: flex; flex-direction: column; border-top: 1px solid var( --ap-color-border );
+}
+.ap-admin .ap-module-panel__row {
+	display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+	gap: var( --ap-space-3 ); padding: var( --ap-space-3 ) 0;
+	border-bottom: 1px solid var( --ap-color-border );
+}

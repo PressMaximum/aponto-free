@@ -1,0 +1,51 @@
+{
+  "name": "aponto",
+  "version": "1.0.1",
+  "description": "Aponto appointment booking plugin by PressMaximum.",
+  "license": "GPL-2.0-or-later",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build-assets.mjs",
+    "build:free": "node scripts/build-assets.mjs free",
+    "build:premium": "node scripts/build-assets.mjs premium",
+    "build:mockup:plugin-dashboard": "webpack --config docs/mockups/v4/plugin-dashboard/webpack.config.js",
+    "dist": "npm run test:plan-parity && npm run build:free && npm run build:premium && node build/scripts/build-dist.mjs",
+    "dist:ci": "APONTO_UPDATE_URI=https://updates.pressmaximum.com/aponto npm run dist",
+    "mirror:free:export": "node build/scripts/export-free-mirror.mjs",
+    "i18n:json": "python3 scripts/i18n/make-script-json.py languages/aponto-vi.po languages",
+    "test:plan-parity": "node build/scripts/check-plan-parity.mjs",
+    "plan:premium": "node build/scripts/swap-plan.mjs premium",
+    "plan:free": "node build/scripts/swap-plan.mjs free",
+    "test:dist-smoke": "bash scripts/ci/dist-smoke.sh",
+    "test:plugin-check": "bash scripts/ci/plugin-check.sh",
+    "build:form": "node scripts/build-assets.mjs free",
+    "env:start": "wp-env start",
+    "env:stop": "wp-env stop",
+    "test:unit:js": "wp-scripts test-unit-js --config tests/js/jest.config.js",
+    "test:e2e:form": "playwright test --config tests/e2e/form/playwright.config.js",
+    "budget:form": "node scripts/form-bundle-budget.mjs",
+    "budget:admin": "node scripts/admin-bundle-budget.mjs",
+    "test:unit": "wp-env run tests-cli --env-cwd=wp-content/plugins/aponto vendor/bin/phpunit --testsuite unit",
+    "test:integration": "wp-env run tests-cli --env-cwd=wp-content/plugins/aponto vendor/bin/phpunit --testsuite integration",
+    "test:integration:multisite": "wp-env run tests-cli --env-cwd=wp-content/plugins/aponto bash -c \"WP_MULTISITE=1 vendor/bin/phpunit --testsuite integration\"",
+    "test:concurrency": "wp-env run cli bash wp-content/plugins/aponto/tests/concurrency/run_all.sh"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "@wordpress/env": "11.10.0",
+    "@wordpress/scripts": "32.6.0",
+    "adm-zip": "0.5.16",
+    "copy-webpack-plugin": "10.2.4",
+    "glob": "7.2.3",
+    "webpack": "5.108.4"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "6.3.1",
+    "@dnd-kit/sortable": "10.0.0",
+    "@dnd-kit/utilities": "3.2.2",
+    "@event-calendar/core": "5.10.0",
+    "@pressmaximum/dashboard-kit": "github:PressMaximum/dashboard-kit#v0.2.3",
+    "@tanstack/react-table": "8.21.3",
+    "preact": "10.29.7"
+  }
+}

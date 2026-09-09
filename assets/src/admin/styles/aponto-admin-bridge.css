@@ -1,0 +1,170 @@
+/*
+ * Aponto → dashboard-kit token bridge (admin surfaces)
+ *
+ * Scope: .ap-admin  (the plugin admin dashboard wrapper)
+ * Direction: Aponto keeps `--ap-*` as its brand/source-of-truth; this sheet
+ * maps them onto the kit's `--pmdk-*` theming API so kit primitives styled with
+ * `--pmdk-*` render in Aponto's brand + DS look. One thin file per product
+ * (ds-kit-pipeline-handoff §1). Aponto's `--ap-*` engine (aponto-tokens.css)
+ * already derives every role; the bridge is a pure, mechanical rename — feeding
+ * those pre-derived values to the kit names. It defines NO new look.
+ *
+ * KIT-P2 status: nothing consumes `--pmdk-*` yet, so the P2 gates prove two
+ * bounded things (kit `tests/vr/`): the pixel gate shows adding this sheet to
+ * the live gallery is NON-DESTRUCTIVE (zero-diff), and the token gate shows
+ * every declaration matches the frozen intended-mapping table AND resolves in
+ * the `.ap-admin` cascade. Consumer-pixel proof lands at KIT-P3/P5 when
+ * `.pd-*` surfaces actually read kit tokens. Production home — a <link> in the
+ * real plugin admin bundle — is wired at KIT-P5.
+ *
+ * A copy of this file is committed in the kit as a CI fixture
+ * (`tests/vr/fixtures/aponto-admin-bridge.css`). If you edit this file,
+ * re-copy it there (kit `tests/vr/check-bridge-sync.mjs` reminds you) and
+ * update the intended-mapping table in `tests/vr/verify-tokens.mjs`.
+ */
+
+.ap-admin {
+	/* === Seed + neutral colors ===================================== */
+	--pmdk-color-accent: var( --ap-color-accent );
+	--pmdk-color-on-accent: var( --ap-color-on-accent );
+	--pmdk-color-text: var( --ap-color-text );
+	--pmdk-color-heading: var( --ap-color-heading );
+	--pmdk-color-text-muted: var( --ap-color-text-muted );
+	--pmdk-color-text-soft: var( --ap-color-text-soft );
+	--pmdk-color-bg: var( --ap-color-surface ); /* kit `bg` == DS `surface` */
+	--pmdk-color-surface: var( --ap-color-surface );
+	--pmdk-color-canvas: var( --ap-color-canvas );
+	--pmdk-color-bg-subtle: var( --ap-color-surface-subtle );
+	--pmdk-color-surface-subtle: var( --ap-color-surface-subtle );
+	--pmdk-color-surface-muted: var( --ap-color-surface-muted );
+	--pmdk-color-avatar-surface: var( --ap-color-avatar-surface );
+	--pmdk-color-border: var( --ap-color-border );
+	--pmdk-color-border-strong: var( --ap-color-border-strong );
+	--pmdk-color-row-hover: var( --ap-color-row-hover );
+	--pmdk-color-inverse-surface: var( --ap-color-inverse-surface );
+	--pmdk-color-on-inverse: var( --ap-color-on-inverse );
+
+	/* === Accent-derived =========================================== */
+	--pmdk-color-accent-subtle: var( --ap-color-accent-subtle );
+	--pmdk-color-accent-soft: var( --ap-color-accent-soft );
+	--pmdk-color-accent-border: var( --ap-color-accent-border );
+	/* mockup `--pd-color-accent-fg` — readable accent-on-surface text.
+	   78% = v2-final founder-approved weight (A3/M1 debt, 2026-07-18 — matches
+	   the kit tokens.css fixture; check-bridge-sync keys on this value). */
+	--pmdk-accent-fg: color-mix( in srgb, var( --ap-color-accent ) 78%, var( --ap-color-text ) );
+	--pmdk-control-border-active: var( --ap-color-accent );
+
+	/* === Semantic families ======================================== */
+	--pmdk-color-danger: var( --ap-color-danger );
+	--pmdk-color-danger-subtle: var( --ap-color-danger-subtle );
+	--pmdk-color-danger-border: var( --ap-color-danger-border );
+	--pmdk-color-on-danger: var( --ap-color-on-danger );
+	--pmdk-color-warning: var( --ap-color-warning );
+	--pmdk-color-warning-subtle: var( --ap-color-warning-subtle );
+	--pmdk-color-warning-border: var( --ap-color-warning-border );
+	--pmdk-color-on-warning: var( --ap-color-on-warning );
+	--pmdk-color-info: var( --ap-color-info );
+	--pmdk-color-info-subtle: var( --ap-color-info-subtle );
+	--pmdk-color-info-border: var( --ap-color-info-border );
+	--pmdk-color-on-info: var( --ap-color-on-info );
+	--pmdk-color-success: var( --ap-color-success );
+	--pmdk-color-success-subtle: var( --ap-color-success-subtle );
+	--pmdk-color-on-success: var( --ap-color-on-success );
+	/* Aponto has no `success-border`; derive it in-family from the seed. */
+	--pmdk-color-success-border: color-mix( in srgb, var( --ap-color-success ) 24%, var( --ap-color-border ) );
+
+	/* === Type ===================================================== */
+	--pmdk-font-size-base: var( --ap-font-size-body );
+	--pmdk-font-size-body: var( --ap-font-size-body );
+	--pmdk-font-size-badge: var( --ap-font-size-badge );
+	--pmdk-font-size-micro: var( --ap-font-size-micro );
+	--pmdk-font-size-caption: var( --ap-font-size-caption );
+	--pmdk-font-size-meta: var( --ap-font-size-meta );
+	--pmdk-font-size-control: var( --ap-font-size-control );
+	--pmdk-font-size-item: var( --ap-font-size-item );
+	--pmdk-font-size-subheading: var( --ap-font-size-subheading );
+	--pmdk-font-size-heading: var( --ap-font-size-heading );
+	--pmdk-font-size-field-label: var( --ap-font-size-field-label );
+	--pmdk-font-size-field-value: var( --ap-font-size-field-value );
+	--pmdk-font-weight-regular: var( --ap-font-weight-regular );
+	--pmdk-font-weight-medium: var( --ap-font-weight-medium );
+	--pmdk-font-weight-semibold: var( --ap-font-weight-semibold );
+	--pmdk-line-height-base: var( --ap-line-height-body );
+	--pmdk-line-height-body: var( --ap-line-height-body );
+	--pmdk-line-height-compact: var( --ap-line-height-compact );
+	--pmdk-line-height-title: var( --ap-line-height-title );
+	--pmdk-letter-spacing-title: var( --ap-letter-spacing-title );
+
+	/* === Space (4px foundation) =================================== */
+	--pmdk-space-0: var( --ap-space-0 );
+	--pmdk-space-1: var( --ap-space-1 );
+	--pmdk-space-2: var( --ap-space-2 );
+	--pmdk-space-3: var( --ap-space-3 );
+	--pmdk-space-4: var( --ap-space-4 );
+	--pmdk-space-5: var( --ap-space-5 );
+	--pmdk-space-6: var( --ap-space-6 );
+	--pmdk-space-8: var( --ap-space-8 );
+
+	/* === Geometry ================================================= */
+	--pmdk-radius-small: var( --ap-radius-small );
+	--pmdk-radius-control: var( --ap-radius-control );
+	--pmdk-radius-pill: var( --ap-radius-pill );
+	--pmdk-size-control-sm: var( --ap-size-control-sm );
+	--pmdk-size-control-md: var( --ap-size-control-md );
+	--pmdk-size-control-lg: var( --ap-size-control-lg );
+	--pmdk-size-field-compact: var( --ap-size-field-compact );
+	--pmdk-size-field-relationship: var( --ap-size-field-relationship );
+	--pmdk-size-field-compact-notes: var( --ap-size-field-compact-notes );
+	--pmdk-size-hit-target: var( --ap-size-hit-target );
+	--pmdk-size-icon-sm: var( --ap-size-icon-sm );
+	--pmdk-size-icon-md: var( --ap-size-icon-md );
+	--pmdk-size-icon-lg: var( --ap-size-icon-lg );
+
+	/* === Motion =================================================== */
+	--pmdk-motion-standard: var( --ap-motion-standard );
+
+	/* === Component-tier (promoted mockup `--pd-*`) ================ */
+	--pmdk-control-border-default: color-mix( in srgb, var( --ap-color-text ) 18%, var( --ap-color-surface ) );
+	--pmdk-control-border-hover: color-mix( in srgb, var( --ap-color-text ) 30%, var( --ap-color-surface ) );
+	--pmdk-data-border-strong: var( --ap-color-border-strong );
+	--pmdk-data-border-medium: color-mix( in srgb, var( --ap-color-border-strong ) 55%, var( --ap-color-border ) );
+	--pmdk-data-border-soft: color-mix( in srgb, var( --ap-color-border ) 72%, transparent );
+	--pmdk-content-gutter: 28px; /* mockup `--pd-content-gutter` */
+	--pmdk-inspector-width: 360px; /* mockup `--pd-inflow-inspector-width` */
+
+	/* === Dangling-token aliases ==================================== *
+	 * The mockup consumes six `--ap-*` tokens that aponto-tokens.css never
+	 * defines (silent no-ops today). Fixing them in the *live* mockup would
+	 * shift pixels (e.g. `--ap-radius-card` renders sharp corners at 3 sites),
+	 * so the mockup is left untouched for the KIT-P2 zero-diff gate — the fix
+	 * lands as these kit-side aliases to *defined* aponto tokens, applied when
+	 * consumers switch to `--pmdk-*` at KIT-P3/P5. `--ap-color-accent-strong`
+	 * is intentionally dropped (contract), so it is NOT aliased. */
+	--pmdk-radius-card: var( --ap-radius-surface ); /* fixes `--ap-radius-card` (v2 = 6px) */
+	--pmdk-color-success-soft: var( --ap-color-success-subtle ); /* fixes `--ap-color-success-soft` */
+	--pmdk-line-height-label: var( --ap-line-height-compact ); /* fixes `--ap-line-height-label` */
+	/* `--pmdk-motion-duration-fast` + `--pmdk-motion-ease-standard` have no
+	   Aponto source (aponto ships only the `--ap-motion-standard` shorthand);
+	   they keep the kit defaults 120ms / cubic-bezier(.2,.7,.3,1). */
+}
+
+/*
+ * STAYS IN THE BRIDGE (Aponto-only — NOT promoted to `--pmdk-*`)
+ * These remain `--ap-*` consumed by Aponto's own composition CSS; the kit
+ * has no equivalent and should not grow one:
+ *   - Booking-form layout containers: --ap-layout-content / -catalogue
+ *     / -sidebar / -sidebar-wide.
+ *   - Step-transition motion: --ap-motion-step-* / --ap-motion-stagger.
+ *   - v2 preset literals already living in aponto-tokens.css (#3366ff accent,
+ *     shadows, radius-surface) — the bridge references them, it does not fork.
+ *   - Booking inspector width: --pd-booking-inspector-width (380px) — a denser
+ *     variant of the kit's 360px inspector; stays product-side until KIT-P3
+ *     decides whether the kit ships a second inspector tier.
+ *   - Back-compat aliases: --ap-size-control / -compact / -calendar-nav /
+ *     -stepper / -selection.
+ *   - Not-in-kit accent triplet: the kit's `--pmdk-color-accent-rgb` keeps its
+ *     default (Aponto has no rgb-triplet token); only translucent fallbacks use
+ *     it and the primary color-mix paths do not need it.
+ *   - `--pmdk-color-border-subtle`: kept at the kit default (#f0f0f1); Aponto
+ *     has no distinct subtle-divider token.
+ */

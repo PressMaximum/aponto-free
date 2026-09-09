@@ -1,0 +1,255 @@
+/*
+ * Aponto admin calendar — Event Calendar (vkurko, v5) restyle to the Q10
+ * Fresha-style target. Ported from spikes/ec-look/src/styles/ec-look.css and
+ * scoped under `.ap-admin` (the spike's :root/body/.ap-shell chrome is dropped;
+ * tokens come from aponto-tokens.css + the bridge). CSS/DOM hooks and version-bump
+ * risks are catalogued in docs/research/spike-ec-look-results.md.
+ *
+ * Class contract kept identical to the spike so the ported JS modules
+ * (event-content.js, now-indicator.js, ec-adapter data) work unchanged:
+ *   .ec (+ --ec-* vars) · .ap-ev / .ap-ev--{status} · .ap-ev-card · .ap-nonwork
+ *   · .ap-now-line / .ap-now-dot / .ap-now-bubble
+ * The custom toolbar is React (`.ap-cal-*`).
+ */
+
+/* Per-status seeds for cards. */
+.ap-admin .ap-cal {
+	--ap-st-pending: var( --ap-color-warning );
+	--ap-st-confirmed: var( --ap-color-success );
+	--ap-st-completed: var( --ap-color-info );
+	--ap-st-cancelled: var( --ap-color-danger );
+	/* Neutral, not a second red (D-R33): a no-show is a fact about the visit, not an alarm.
+	   `text-soft` is re-tuned per scheme in aponto-tokens.css, so this reads correctly in
+	   light AND dark without a raw colour of its own. */
+	--ap-st-no_show: var( --ap-color-text-soft );
+}
+
+/* ---- Route frame ---------------------------------------------------------- *
+ * The mockup's calendar frame is a plain `.pd-card`, which the v2 preset rounds at
+ * `--ap-radius-surface` (6px) — `--ap-radius-control` (4px) is the control tier and
+ * left this one surface a step sharper than every other card in the app. The canvas
+ * fill stays: the EC grid variables are remapped to `--ap-color-canvas`, which is
+ * the darker of the two surface roles in the dark scheme. */
+/* Founder decision 2026-07-25 (D7): no shadow here — a deliberate divergence from
+ * the mockup's `.pd-card` shadow. Parity audits must not re-add it. */
+.ap-admin .ap-cal-card {
+	border: 1px solid var( --ap-color-border );
+	border-radius: var( --ap-radius-surface );
+	background: var( --ap-color-canvas );
+	overflow: hidden;
+}
+.ap-admin .ap-cal-host { padding: 4px 8px 10px; }
+.ap-admin .ap-cal-host.is-loading { min-height: 480px; }
+
+/* Armed "Block time" mode: the next click on the grid writes a blocked period instead of
+ * opening the New-booking drawer, so the pointer says so (the toolbar button's
+ * "Blocking… pick a slot" label is the primary cue; Escape disarms). */
+.ap-admin .ap-cal.is-blocking .ec-body { cursor: crosshair; }
+
+/* …and the mode must have NO dead zones. Event Calendar paints events in a layer above the
+ * day cells and binds its own pointer handler to them, so `dateClick`/`select` never fire for
+ * a pixel an event covers: while armed, clicking a booking navigated to #bookings and clicking
+ * a blocked period did nothing at all — a click on the SAME slot one pixel to the side blocked
+ * it fine. Making events pointer-transparent hands the click to the `.ec-day` underneath, so
+ * EC reports the exact instant through its documented callbacks. `.ec-day` keeps the crosshair
+ * because the events no longer take hover either. (`eventClick` also guards the mode in JS —
+ * see ApontoCalendar.jsx — for keyboard activation and for a stale stylesheet.) */
+.ap-admin .ap-cal.is-blocking .ec-event { pointer-events: none; }
+
+/* =============================================================================
+ * 1. Remap EC variables → Aponto tokens (white airy grid; accent now-line)
+ * ========================================================================== */
+.ap-admin .ec {
+	--ec-bg-color: var( --ap-color-canvas );
+	--ec-text-color: var( --ap-color-text );
+	--ec-border-color: var( --ap-color-border );
+	--ec-today-bg-color: color-mix( in srgb, var( --ap-color-accent ) 4%, var( --ap-color-canvas ) );
+	--ec-highlight-color: var( --ap-color-accent-soft );
+	--ec-now-indicator-color: var( --ap-color-accent );
+	--ec-bg-event-opacity: 1;
+	border: 0;
+	font-family: inherit;
+	color: var( --ap-color-text );
+}
+.ap-admin .ec .ec-toolbar, .ap-admin .ec-header .ec-toolbar { display: none !important; }
+
+.ap-admin .ec .ec-day-head {
+	border: 0; padding: 10px 6px 12px;
+	color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-micro );
+	font-weight: var( --ap-font-weight-semibold ); letter-spacing: .02em; text-transform: uppercase;
+}
+.ap-admin .ec .ec-day-head .ec-today { color: var( --ap-color-accent ); }
+
+.ap-admin .ec .ec-sidebar, .ap-admin .ec .ec-sidebar .ec-time {
+	border: 0; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-badge );
+}
+.ap-admin .ec .ec-sidebar { --ec-sidebar-width: 62px; }
+
+.ap-admin .ec .ec-body, .ap-admin .ec .ec-days, .ap-admin .ec .ec-time-grid { border: 0; }
+.ap-admin .ec .ec-day { border-inline-start: 0; }
+.ap-admin .ec .ec-day + .ec-day { border-inline-start: 1px solid var( --ap-color-border ); }
+.ap-admin .ec .ec-all-day { display: none; }
+
+/* =============================================================================
+ * 2. Non-working hours = diagonal stripes (background events .ap-nonwork)
+ * ========================================================================== */
+.ap-admin .ec .ec-bg-event.ap-nonwork {
+	background-color: color-mix( in srgb, var( --ap-color-text ) 3.5%, var( --ap-color-canvas ) );
+	background-image: repeating-linear-gradient(
+		-45deg,
+		transparent 0, transparent 5px,
+		color-mix( in srgb, var( --ap-color-text ) 8%, transparent ) 5px,
+		color-mix( in srgb, var( --ap-color-text ) 8%, transparent ) 6px
+	);
+	opacity: 1;
+}
+
+/* Blocked periods (C3): a labelled hatched block, visually distinct from closed hours. */
+.ap-admin .ec .ec-event.ap-blocked {
+	padding: 2px 5px;
+	border: 1px dashed color-mix( in srgb, var( --ap-color-text ) 32%, transparent );
+	border-radius: var( --ap-radius-control );
+	background-color: color-mix( in srgb, var( --ap-color-text ) 6%, var( --ap-color-canvas ) );
+	background-image: repeating-linear-gradient(
+		-45deg,
+		transparent 0, transparent 4px,
+		color-mix( in srgb, var( --ap-color-text ) 11%, transparent ) 4px,
+		color-mix( in srgb, var( --ap-color-text ) 11%, transparent ) 5px
+	);
+	color: var( --ap-color-text-soft );
+	box-shadow: none;
+	overflow: hidden;
+}
+.ap-admin .ec .ec-event.ap-blocked .ec-event-body { padding: 0; }
+.ap-admin .ec .ec-event.ap-blocked .ap-blocked-label {
+	font-size: var( --ap-font-size-caption );
+	font-weight: var( --ap-font-weight-medium );
+	line-height: 1.2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* =============================================================================
+ * 3. Minimal event card (colour via .ap-ev--{status})
+ * ========================================================================== */
+.ap-admin .ec .ec-event.ap-ev {
+	--ap-st: var( --ap-color-accent );
+	padding: 0; border: 0; border-radius: var( --ap-radius-control );
+	background: transparent; box-shadow: none; overflow: hidden;
+}
+.ap-admin .ec .ec-event.ap-ev .ec-event-body { padding: 0; }
+.ap-admin .ec .ec-event.ap-ev--pending { --ap-st: var( --ap-st-pending ); }
+.ap-admin .ec .ec-event.ap-ev--confirmed { --ap-st: var( --ap-st-confirmed ); }
+.ap-admin .ec .ec-event.ap-ev--completed { --ap-st: var( --ap-st-completed ); }
+.ap-admin .ec .ec-event.ap-ev--cancelled { --ap-st: var( --ap-st-cancelled ); }
+.ap-admin .ec .ec-event.ap-ev--no_show { --ap-st: var( --ap-st-no_show ); }
+
+.ap-admin .ap-ev-card {
+	height: 100%; min-height: 100%;
+	display: flex; flex-direction: column; gap: 1px;
+	padding: 4px 7px 4px 9px; border-radius: var( --ap-radius-control );
+	background: color-mix( in srgb, var( --ap-st ) 12%, var( --ap-color-canvas ) );
+	border: 1px solid color-mix( in srgb, var( --ap-st ) 26%, var( --ap-color-border ) );
+	border-inline-start: 3px solid var( --ap-st );
+	color: color-mix( in srgb, var( --ap-st ) 72%, var( --ap-color-text ) );
+	overflow: hidden; cursor: pointer; container-type: size;
+}
+.ap-admin .ap-ev-card > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.25; }
+.ap-admin .ap-ev-time { font-size: var( --ap-font-size-badge ); font-weight: var( --ap-font-weight-semibold ); font-variant-numeric: tabular-nums; opacity: .9; }
+.ap-admin .ap-ev-name { font-size: var( --ap-font-size-micro ); font-weight: var( --ap-font-weight-semibold ); color: var( --ap-color-text ); }
+.ap-admin .ap-ev-svc { font-size: var( --ap-font-size-badge ); color: var( --ap-color-text-muted ); }
+.ap-admin .ec .ec-event.ap-ev--cancelled .ap-ev-name { text-decoration: line-through; color: var( --ap-color-text-muted ); }
+@container (max-height: 34px) {
+	.ap-admin .ap-ev-svc { display: none; }
+	.ap-admin .ap-ev-card { gap: 0; padding-block: 2px; }
+	.ap-admin .ap-ev-time { font-size: 10px; }
+}
+
+/* =============================================================================
+ * 4. Now-indicator overlay — line + axis bubble
+ * ========================================================================== */
+.ap-admin .ap-now-line { position: absolute; right: 0; height: 0; border-top: 2px solid var( --ap-color-accent ); z-index: 6; pointer-events: none; }
+.ap-admin .ap-now-dot { position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var( --ap-color-accent ); }
+.ap-admin .ap-now-bubble {
+	position: absolute; left: 0; transform: translateY( -50% );
+	display: flex; align-items: center; justify-content: center;
+	height: 20px; padding: 0 6px; border-radius: 10px;
+	background: var( --ap-color-accent ); color: var( --ap-color-on-accent );
+	font-size: var( --ap-font-size-badge ); font-weight: 700; font-variant-numeric: tabular-nums;
+	white-space: nowrap; z-index: 7; pointer-events: none;
+	box-shadow: 0 1px 3px color-mix( in srgb, var( --ap-color-accent ) 40%, transparent );
+}
+
+/* =============================================================================
+ * 5. Custom toolbar (React `.ap-cal-*`) — 34px compact tier (SPEC-P1 §6.2)
+ * ========================================================================== */
+.ap-admin .ap-cal-toolbar {
+	display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+	min-height: 56px; padding: 10px 14px; border-bottom: 1px solid var( --ap-color-border );
+}
+.ap-admin .ap-cal-tb-left, .ap-admin .ap-cal-tb-right { display: flex; align-items: center; gap: 8px; }
+.ap-admin .ap-cal-icon-btn {
+	width: var( --ap-size-control-sm ); height: var( --ap-size-control-sm );
+	display: inline-flex; align-items: center; justify-content: center;
+	border: 1px solid var( --ap-color-border-strong ); border-radius: var( --ap-radius-control );
+	background: var( --ap-color-canvas ); color: var( --ap-color-text );
+}
+.ap-admin .ap-cal-icon-btn:hover { border-color: var( --ap-color-accent-border ); color: var( --ap-color-accent ); }
+.ap-admin .ap-cal-btn {
+	height: var( --ap-size-control-sm ); display: inline-flex; align-items: center; gap: 6px; padding: 0 12px;
+	border: 1px solid var( --ap-color-border-strong ); border-radius: var( --ap-radius-control );
+	background: var( --ap-color-canvas ); color: var( --ap-color-text );
+	font: inherit; font-size: var( --ap-font-size-meta ); font-weight: var( --ap-font-weight-semibold );
+}
+.ap-admin .ap-cal-btn--ghost:hover { border-color: var( --ap-color-accent-border ); color: var( --ap-color-accent ); }
+.ap-admin .ap-cal-btn--primary { border-color: var( --ap-color-accent ); background: var( --ap-color-accent ); color: var( --ap-color-on-accent ); }
+.ap-admin .ap-cal-btn svg, .ap-admin .ap-cal-icon-btn svg { width: 15px; height: 15px; }
+.ap-admin .ap-cal-title { margin-inline-start: 6px; font-size: var( --ap-font-size-item ); font-weight: var( --ap-font-weight-semibold ); white-space: nowrap; }
+.ap-admin .ap-cal-tz { display: inline-flex; align-items: center; gap: 6px; margin-inline-end: 4px; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
+.ap-admin .ap-cal-tz svg { width: 14px; height: 14px; }
+.ap-admin .ap-cal-seg { display: inline-flex; padding: 3px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); background: var( --ap-color-surface-subtle ); }
+.ap-admin .ap-cal-seg-btn {
+	height: 28px; padding: 0 14px; border: 0; border-radius: 3px; background: transparent;
+	color: var( --ap-color-text-muted ); font: inherit; font-size: var( --ap-font-size-caption ); font-weight: var( --ap-font-weight-semibold );
+}
+/* Accent TEXT on a surface uses `--pd-color-accent-fg` (accent mixed toward the
+   text seed) rather than the raw fill seed — the seed alone is 3.97:1 on the dark
+   canvas. The role darkens on white and lightens on dark, so one declaration
+   clears AA in both schemes. */
+.ap-admin .ap-cal-seg-btn[aria-pressed="true"] {
+	background: var( --ap-color-canvas ); color: var( --pd-color-accent-fg, var( --ap-color-accent ) );
+	box-shadow: 0 1px 2px color-mix( in srgb, var( --ap-color-text ) 12%, transparent );
+}
+
+/* ---- Calendar filters row (status + service) ------------------------------ */
+.ap-admin .ap-cal-filters {
+	display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+	padding: 10px 14px; border-bottom: 1px solid var( --ap-color-border );
+}
+.ap-admin .ap-cal-filters .pd-select { min-width: 150px; }
+.ap-admin .ap-cal-filters .ap-cal-filters-label { color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); font-weight: var( --ap-font-weight-medium ); }
+
+/* =============================================================================
+ * Print day-sheet (C4): a clean reception list of the day's bookings. Hidden on
+ * screen; the @media print block hides everything else and reveals only this.
+ * ========================================================================== */
+.ap-daysheet { display: none; }
+.ap-daysheet-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+.ap-daysheet-table th, .ap-daysheet-table td { padding: 6px 10px; text-align: left; border-bottom: 1px solid #ccc; font-size: 12pt; }
+.ap-daysheet-head h1 { margin: 0; font-size: 18pt; }
+.ap-daysheet-head p { margin: 2px 0 0; font-size: 12pt; }
+.ap-daysheet-scope { font-size: 10pt; font-style: italic; color: #444; }
+
+@media print {
+	body * { visibility: hidden; }
+	.ap-daysheet, .ap-daysheet * { visibility: visible; }
+	.ap-daysheet {
+		display: block;
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		padding: 0 8px;
+		color: #000;
+		background: #fff;
+	}
+}

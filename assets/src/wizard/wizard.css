@@ -1,0 +1,870 @@
+/*
+ * Onboarding wizard chrome (SPEC-P1 §4).
+ *
+ * Two jobs, in this order:
+ *
+ *   1. the full-screen takeover. `WizardPage::bodyClass()` puts `aponto-wizard-fullscreen` on the
+ *      admin body of THIS screen only, and everything under that selector hides the surrounding
+ *      wp-admin chrome (menu, admin bar, footer, screen options). Notices are removed PHP-side
+ *      rather than hidden here — `WizardPage::suppressNotices()` empties the notice hooks of
+ *      everything registered by the time `in_admin_header` fires — so a plugin that prints markup
+ *      outside the notice hooks cannot leave a hole in the layout;
+ *   2. the wizard's own surface, built on the `aponto-wizard` class hooks the app already carried
+ *      for exactly this ("theme track A3" note in index.js). Colors, radii, spacing and type all
+ *      come from the shared `--ap-*` tokens (imported alongside this file in index.js), so the
+ *      wizard reads as the same product as the admin SPA rather than as raw wp-components.
+ *
+ * RTL contract (D8): wp-scripts runs rtlcss over this sheet to emit `wizard-rtl.css`, and
+ * `WizardPage::enqueue()` swaps the two with `wp_style_add_data( …, 'rtl', 'replace' )`. Physical
+ * LTR values are therefore correct AS AUTHORED — never add a hand-written `[dir=rtl]` companion
+ * here: rtlcss flips it a second time and hands RTL users the LTR value back.
+ */
+
+/* ---------------------------------------------------------------- 1. takeover */
+
+/* The admin bar's 32px (46px on small screens) reservation lives on <html>, which no body class can
+ * reach. `:has()` is the only selector that can, and its absence degrades to a harmless gap at the
+ * top rather than a broken layout. */
+html:has( body.aponto-wizard-fullscreen ) {
+	padding-top: 0;
+}
+
+body.aponto-wizard-fullscreen #adminmenumain,
+body.aponto-wizard-fullscreen #wpadminbar,
+body.aponto-wizard-fullscreen #wpfooter,
+body.aponto-wizard-fullscreen #screen-meta,
+body.aponto-wizard-fullscreen #screen-meta-links {
+	display: none;
+}
+
+body.aponto-wizard-fullscreen #wpcontent {
+	margin-left: 0;
+	padding-left: 0;
+}
+
+body.aponto-wizard-fullscreen #wpbody-content {
+	padding-bottom: 0;
+}
+
+body.aponto-wizard-fullscreen #wpbody {
+	padding-top: 0;
+}
+
+/* No horizontal scrollbar at any width — the header row is the only thing that could produce one.
+ * `clip`, NOT `hidden`: `overflow: hidden` on one axis turns the body into a scroll container, and
+ * `position: sticky` then resolves against that container instead of the viewport — which silently
+ * kills the sticky header below. `clip` suppresses the same overflow without creating a scrollport.
+ * The literal background is a fallback for overscroll only: the wizard surface itself covers the
+ * whole viewport and paints from the tokens. Body is outside the token scope, so it cannot. */
+body.aponto-wizard-fullscreen {
+	overflow-x: clip;
+	min-width: 0;
+	background: #fff;
+}
+
+/* ------------------------------------------------------------------ 2. shell */
+
+.aponto-wizard {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+	min-height: 100dvh;
+	background: var(--ap-color-surface-subtle);
+	color: var(--ap-color-text);
+	font-size: var(--ap-font-size-body);
+	line-height: var(--ap-line-height-body);
+	box-sizing: border-box;
+
+	/*
+	 * ONE accent on this screen.
+	 *
+	 * wp-components paints its own blue (#3858e9) into toggles, focus rings and input backdrops,
+	 * and wp-admin paints a third (#2271b1) into links — so a single card could show three
+	 * different blues next to the product accent (#3366ff). Both upstream families are re-pointed
+	 * at the product token HERE, at the wizard root, so every wp-components control inherits the
+	 * Aponto accent instead of being patched selector by selector. Scoped to `.aponto-wizard`:
+	 * nothing outside this screen sees these values.
+	 */
+	--wp-components-color-accent: var(--ap-color-accent);
+	--wp-components-color-accent-darker-10: color-mix(in srgb, var(--ap-color-accent) 90%, var(--ap-color-inverse-surface));
+	--wp-components-color-accent-darker-20: color-mix(in srgb, var(--ap-color-accent) 80%, var(--ap-color-inverse-surface));
+	--wp-components-color-accent-inverted: var(--ap-color-on-accent);
+	--wp-admin-theme-color: var(--ap-color-accent);
+	--wp-admin-theme-color-darker-10: color-mix(in srgb, var(--ap-color-accent) 90%, var(--ap-color-inverse-surface));
+	--wp-admin-theme-color-darker-20: color-mix(in srgb, var(--ap-color-accent) 80%, var(--ap-color-inverse-surface));
+}
+
+/* Belt and braces for the three places the QA pass caught wearing the wp blue: the toggle track,
+ * the focused input backdrop and links inside a notice. The variables above already cover current
+ * wp-components, but these controls have changed their internals repeatedly across releases and the
+ * wizard must not go back to two blues when WordPress next refactors them. */
+.aponto-wizard .components-form-toggle.is-checked .components-form-toggle__track {
+	background-color: var(--ap-color-accent);
+	border-color: var(--ap-color-accent);
+}
+
+.aponto-wizard .components-input-control__container:focus-within .components-input-control__backdrop,
+.aponto-wizard .components-input-control:focus-within .components-input-control__backdrop {
+	border-color: var(--ap-color-accent);
+	box-shadow: 0 0 0 0.5px var(--ap-color-accent);
+}
+
+.aponto-wizard *,
+.aponto-wizard *::before,
+.aponto-wizard *::after {
+	box-sizing: border-box;
+}
+
+/* Screen-reader-only text. Local rather than wp-admin's `.screen-reader-text` so the wizard keeps
+ * its own contract if the surrounding admin stylesheet ever stops loading. */
+.aponto-wizard .aponto-wizard-sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* ----------------------------------------------------------------- 3. header */
+
+/*
+ * Three tracks, and the two OUTER ones are the same `1fr`: that is what pins the progress cluster to
+ * the viewport's centre line. A flex row centred "by content" (what this was) let the cluster drift
+ * as the visible label changed width from step to step, and centred it on the gap between the brand
+ * and Exit rather than on the header. Equal fr tracks absorb both differences.
+ *
+ * Grid + `justify-self` rather than absolute positioning on purpose: `left: 50%; translateX(-50%)`
+ * is a physical pair, and rtlcss flips exactly one half of it when it emits `wizard-rtl.css` (D8).
+ * The track model has no direction in it at all, and it keeps the progress IN FLOW, so the cluster
+ * can never overlap the brand or the exit action at a narrow width.
+ *
+ * Sticky (QA V8a): the Business step is taller than a 800px-high viewport, and a wizard that scrolls
+ * its own progress indicator and its only exit off the screen strands the user. The header keeps its
+ * opaque surface + bottom border while stuck, so the card scrolls under a solid edge.
+ */
+.aponto-wizard-header {
+	position: sticky;
+	top: 0;
+	z-index: 20;
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	align-items: center;
+	gap: var(--ap-space-6);
+	min-height: 64px;
+	padding: var(--ap-space-2) var(--ap-space-6);
+	background: var(--ap-color-surface);
+	border-bottom: 1px solid var(--ap-color-border);
+}
+
+.aponto-wizard-brand {
+	display: flex;
+	align-items: center;
+	justify-self: start;
+	min-width: 0;
+}
+
+.aponto-wizard-logo {
+	display: block;
+	width: auto;
+	height: 22px;
+}
+
+.aponto-wizard-header-end {
+	display: flex;
+	align-items: center;
+	justify-self: end;
+	min-width: 0;
+}
+
+.aponto-wizard .aponto-wizard-exit.components-button {
+	height: var(--ap-size-control-sm);
+	padding: 0 var(--ap-space-3);
+	border-radius: var(--ap-radius-control);
+	color: var(--ap-color-text-soft);
+	font-size: var(--ap-font-size-caption);
+}
+
+.aponto-wizard .aponto-wizard-exit.components-button:hover:not( :disabled ) {
+	background: var(--ap-color-surface-muted);
+	color: var(--ap-color-text);
+}
+
+/* --------------------------------------------------------------- 4. progress */
+
+/* The middle grid track. Content-sized, and centred by the two equal `1fr` siblings around it. */
+.aponto-wizard-progress {
+	display: flex;
+	min-width: 0;
+	align-items: center;
+	justify-content: center;
+}
+
+.aponto-wizard-steps {
+	display: flex;
+	align-items: center;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aponto-wizard-step {
+	display: flex;
+	align-items: center;
+	gap: var(--ap-space-2);
+	margin: 0;
+	min-width: 0;
+}
+
+/* Quiet connector between consecutive steps. */
+.aponto-wizard-step + .aponto-wizard-step::before {
+	content: "";
+	display: block;
+	flex: 0 0 auto;
+	width: 24px;
+	height: 1px;
+	margin-right: var(--ap-space-2);
+	background: var(--ap-color-border-strong);
+}
+
+.aponto-wizard-step-marker {
+	display: inline-flex;
+	flex: 0 0 auto;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border: 1px solid var(--ap-color-border-strong);
+	border-radius: var(--ap-radius-pill);
+	background: var(--ap-color-surface);
+	color: var(--ap-color-text-soft);
+	font-size: var(--ap-font-size-micro);
+	font-weight: var(--ap-font-weight-semibold);
+	line-height: 1;
+	transition: background-color var(--ap-motion-standard), border-color var(--ap-motion-standard), color var(--ap-motion-standard);
+}
+
+.aponto-wizard-step-check {
+	width: 12px;
+	height: 12px;
+}
+
+/*
+ * Three real label tiers, not two shades a percent apart (QA V5). `text-soft` (5.35:1) and
+ * `text-muted` (5.58:1) are deliberately near-identical in the v2 preset, so using one for
+ * "complete" and the other for "upcoming" produced no hierarchy at all. Weight carries the current
+ * step, full text colour carries the completed ones, muted carries what is still ahead.
+ *
+ * Base = upcoming.
+ */
+.aponto-wizard-step-label {
+	color: var(--ap-color-text-muted);
+	font-size: var(--ap-font-size-caption);
+	font-weight: var(--ap-font-weight-regular);
+	white-space: nowrap;
+}
+
+.aponto-wizard-step.is-current .aponto-wizard-step-marker {
+	border-color: var(--ap-color-accent);
+	background: var(--ap-color-accent);
+	color: var(--ap-color-on-accent);
+}
+
+.aponto-wizard-step.is-current .aponto-wizard-step-label {
+	color: var(--ap-color-heading);
+	font-weight: var(--ap-font-weight-semibold);
+}
+
+/* Completed steps read SOLID, the way every shipped setup wizard draws them. The subtle fill this
+ * replaced measured 1.08:1 against the header — a marker you had to look for. */
+.aponto-wizard-step.is-complete .aponto-wizard-step-marker {
+	border-color: var(--ap-color-accent);
+	background: var(--ap-color-accent);
+	color: var(--ap-color-on-accent);
+}
+
+.aponto-wizard-step.is-complete .aponto-wizard-step-label {
+	color: var(--ap-color-text);
+	font-weight: var(--ap-font-weight-regular);
+}
+
+/* The compact counter and the track replace the list below 600px (see §7). */
+.aponto-wizard-progress-compact,
+.aponto-wizard-progress-track {
+	display: none;
+}
+
+.aponto-wizard-progress-compact {
+	margin: 0;
+	color: var(--ap-color-text-soft);
+	font-size: var(--ap-font-size-caption);
+	white-space: nowrap;
+}
+
+.aponto-wizard-progress-track {
+	position: absolute;
+	right: 0;
+	bottom: -1px;
+	left: 0;
+	height: 3px;
+	background: var(--ap-color-surface-muted);
+}
+
+.aponto-wizard-progress-fill {
+	display: block;
+	height: 100%;
+	background: var(--ap-color-accent);
+	transition: width var(--ap-motion-standard);
+}
+
+/* ------------------------------------------------------------------- 5. main */
+
+/* `margin: auto` on the content column, not `align-items: center`: it centers on BOTH axes while
+ * there is room to spare, and a step taller than the viewport (the Hours grid) simply grows the
+ * main area and scrolls the page from the top instead of being clipped. */
+/* 20px, down from 32px: at 1280x800 the Business step's "Continue" fell below the fold, and
+ * vertical padding on a step that is already the tallest in the flow is the cheapest 24px to give
+ * back (QA V8b). Together with the tighter card padding and help-text rhythm below this brings the
+ * card bottom back inside the viewport. */
+.aponto-wizard-main {
+	display: flex;
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: var(--ap-space-3) var(--ap-space-5);
+}
+
+.aponto-wizard-content {
+	width: 100%;
+	min-width: 0;
+	max-width: 680px;
+	margin: auto;
+}
+
+/* Rendered only when it HAS an action (index.js) — an always-present empty row reserved
+ * 34px + 8px on Welcome and Done and pushed the card 21px off optical centre there (QA V3).
+ * No `min-height` here for the same reason: the row is exactly as tall as its button. */
+.aponto-wizard-toolbar {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: var(--ap-space-1);
+}
+
+.aponto-wizard .aponto-wizard-toolbar .components-button {
+	height: var(--ap-size-control-sm);
+	color: var(--ap-color-text-soft);
+	font-size: var(--ap-font-size-caption);
+}
+
+/*
+ * Notices on product tokens (QA V11). wp-components paints a heavy 4px status bar down one edge on
+ * a flat grey panel; inside a white card that reads as a WordPress artifact rather than as part of
+ * the product. A 1px tinted outline over the matching subtle surface says the same thing in the
+ * app's own language, and the status families come from the tokens so light/dark and any future
+ * preset follow automatically. The border shorthand deliberately resets wp's `border-left` too;
+ * rtlcss mirrors the whole rule for RTL, so nothing is hand-flipped here (D8).
+ */
+.aponto-wizard .components-notice {
+	display: block;
+	margin: 0 0 var(--ap-space-4);
+	padding: var(--ap-space-3) var(--ap-space-4);
+	border: 1px solid var(--ap-color-border);
+	border-radius: var(--ap-radius-control);
+	background: var(--ap-color-surface-subtle);
+	color: var(--ap-color-text);
+	font-size: var(--ap-font-size-caption);
+	line-height: var(--ap-line-height-body);
+	box-shadow: none;
+}
+
+.aponto-wizard .components-notice .components-notice__content {
+	margin: 0;
+	font-size: inherit;
+}
+
+.aponto-wizard .components-notice.is-success {
+	border-color: color-mix(in srgb, var(--ap-color-success) 24%, var(--ap-color-border));
+	background: var(--ap-color-success-subtle);
+	color: var(--ap-color-on-success);
+}
+
+.aponto-wizard .components-notice.is-warning {
+	border-color: var(--ap-color-warning-border);
+	background: var(--ap-color-warning-subtle);
+	color: var(--ap-color-on-warning);
+}
+
+.aponto-wizard .components-notice.is-error {
+	border-color: var(--ap-color-danger-border);
+	background: var(--ap-color-danger-subtle);
+	color: var(--ap-color-on-danger);
+}
+
+/* wp-admin's global `a { color: #2271b1 }` is the third blue the QA pass found. */
+.aponto-wizard .components-notice a,
+.aponto-wizard .components-external-link {
+	color: var(--ap-color-accent);
+	text-decoration: underline;
+}
+
+/* ------------------------------------------------------------------- 6. card */
+
+.aponto-wizard .aponto-wizard-card {
+	border: 1px solid var(--ap-color-border);
+	border-radius: var(--ap-radius-surface, 6px);
+	background: var(--ap-color-surface);
+	box-shadow: var(--ap-shadow-surface);
+}
+
+.aponto-wizard .aponto-wizard-card .components-card__header {
+	display: block;
+	padding: var(--ap-space-4) var(--ap-space-6);
+	border-bottom: 1px solid var(--ap-color-border);
+	background: transparent;
+}
+
+.aponto-wizard .aponto-wizard-card .components-card__body {
+	padding: var(--ap-space-5) var(--ap-space-6);
+}
+
+.aponto-wizard .aponto-wizard-card .components-card__footer {
+	padding: var(--ap-space-4) var(--ap-space-6);
+	border-top: 1px solid var(--ap-color-border);
+	background: transparent;
+}
+
+/*
+ * Welcome is a title, a subtitle and one sentence. Three ruled sections for that is chrome for its
+ * own sake (QA V10), so the internal rules come off and the card reads as ONE panel — the shape a
+ * shipped welcome screen has. Structure and copy are untouched; only the two borders go.
+ */
+.aponto-wizard .aponto-wizard-card.is-plain .components-card__header {
+	padding-bottom: 0;
+	border-bottom: 0;
+}
+
+.aponto-wizard .aponto-wizard-card.is-plain .components-card__body {
+	padding-top: var(--ap-space-4);
+}
+
+.aponto-wizard .aponto-wizard-card.is-plain .components-card__footer {
+	padding-top: var(--ap-space-4);
+	border-top: 0;
+}
+
+/* One h1 per screen: the step title IS the page title (the header carries only the brand mark). */
+.aponto-wizard .aponto-wizard-title {
+	margin: 0;
+	padding: 0;
+	color: var(--ap-color-heading);
+	font-size: var(--ap-font-size-heading);
+	font-weight: var(--ap-font-weight-semibold);
+	line-height: var(--ap-line-height-title);
+	letter-spacing: var(--ap-letter-spacing-title);
+}
+
+/* The heading receives focus on every step change (programmatic, tabindex="-1"), so it must not
+ * paint a ring for pointer users — only for keyboard focus. */
+.aponto-wizard .aponto-wizard-title:focus {
+	outline: none;
+}
+
+.aponto-wizard .aponto-wizard-title:focus-visible {
+	outline: 2px solid var(--ap-color-accent);
+	outline-offset: 4px;
+}
+
+.aponto-wizard .aponto-wizard-subtitle {
+	margin: var(--ap-space-1) 0 0;
+	color: var(--ap-color-text-soft);
+	font-size: var(--ap-font-size-meta);
+}
+
+.aponto-wizard .aponto-wizard-block-markup {
+	margin: 0;
+	padding: var(--ap-space-2) var(--ap-space-3);
+	border: 1px solid var(--ap-color-border);
+	border-radius: var(--ap-radius-control);
+	background: var(--ap-color-surface-muted);
+	color: var(--ap-color-text-muted);
+	font-family: Menlo, Consolas, monaco, monospace;
+	font-size: var(--ap-font-size-caption);
+}
+
+.aponto-wizard .aponto-wizard-muted {
+	color: var(--ap-color-text-soft);
+	font-size: var(--ap-font-size-caption);
+}
+
+/*
+ * Inline field error — the product's EXISTING field-error treatment (`.ap-field-error`,
+ * assets/src/admin/styles/admin-extra.css) in the wizard's own class namespace: the danger colour at
+ * caption size, sitting directly under the control it belongs to. No new visual language; the same
+ * red the SPA's editors already use for a rejected field.
+ */
+.aponto-wizard .aponto-wizard-field-error {
+	margin: 0;
+	color: var(--ap-color-danger);
+	font-size: var(--ap-font-size-caption);
+}
+
+/* The field stack owns the rhythm above this note; its own top margin double-counted it. */
+.aponto-wizard .aponto-wizard-formats {
+	margin: 0;
+}
+
+/* ------------------------------------------------------- 6b. control tier */
+
+/*
+ * The SPA's field tier, not Gutenberg's sidebar tier (QA V2).
+ *
+ * wp-components defaults a control to 32px with an 11px UPPERCASE label — the density of an editor
+ * inspector panel, which is why the wizard read as "a WordPress screen" next to the admin SPA's
+ * 40px controls and 13px sentence-case labels. The height comes from `__next40pxDefaultSize` on
+ * every TextControl/SelectControl (index.js); the label and help typography come from here.
+ */
+/*
+ * The tripled class is not a typo. SelectControl's label is an emotion component whose own rule is
+ * emitted as `.css-HASH.css-HASH.css-HASH { font-size: 11px; text-transform: uppercase }` — a
+ * deliberate 0-3-0 specificity bump, injected into <head> AFTER this stylesheet. A plain
+ * `.aponto-wizard .components-input-control__label` (0-2-0) loses to it: colour and weight landed,
+ * the 11px uppercase did not. Repeating our own hooks meets it at 0-4-0. The hashed class cannot be
+ * targeted (it changes with every wp-components build) and `!important` would be worse.
+ */
+.aponto-wizard .components-base-control__label.components-base-control__label.components-base-control__label,
+.aponto-wizard .components-input-control__label.components-input-control__label.components-input-control__label {
+	display: block;
+	margin-bottom: var(--ap-space-1);
+	padding: 0;
+	color: var(--ap-color-text);
+	font-size: var(--ap-font-size-caption);
+	font-weight: var(--ap-font-weight-medium);
+	line-height: var(--ap-line-height-body);
+	letter-spacing: normal;
+	text-transform: none;
+}
+
+.aponto-wizard .components-base-control__help.components-base-control__help.components-base-control__help,
+.aponto-wizard .components-input-control__help.components-input-control__help.components-input-control__help {
+	margin-top: var(--ap-space-1);
+	margin-bottom: 0;
+	color: var(--ap-color-text-soft);
+	font-size: var(--ap-font-size-caption);
+	font-style: normal;
+	line-height: var(--ap-line-height-body);
+}
+
+.aponto-wizard .components-input-control__input,
+.aponto-wizard .components-text-control__input,
+.aponto-wizard .components-select-control__input,
+.aponto-wizard .components-textarea-control__input {
+	font-size: var(--ap-font-size-meta);
+}
+
+/*
+ * Address is a TEXTAREA on both surfaces (index.js): `business.address` is declared with the
+ * textarea control in `src/Support/Settings.php`, so the wizard's single-line field was the odd one
+ * out. Everything the control needs for the wizard's tier it already inherits — the 13px
+ * sentence-case label and the help line from the rules above, the resting hairline and the accent
+ * focus ring from wp-components, which reads the accent variables re-pointed at the wizard root.
+ * What is left is the field tier itself: the 15px face (rule above; wp-components ships the 13px
+ * inspector face) and a body-tier line box, plus a floor of two control heights so a two-line
+ * address has room before the resize handle is touched. TextareaControl is an emotion component
+ * (ONE hashed class, 0-1-0), so a two-class selector wins without the tripling §6b needs for the
+ * label — and without `!important`.
+ */
+.aponto-wizard .components-textarea-control__input {
+	min-height: calc( var(--ap-size-control-md) * 2 );
+	line-height: var(--ap-line-height-body);
+}
+
+/* Product accent on the commit action + the 40px page-level control tier (DESIGN-SYSTEM.md
+ * "Core visual rules" 3). wp-components ships its own blue; the wizard is Aponto, not wp-admin. */
+.aponto-wizard .components-card__footer .components-button {
+	min-height: var(--ap-size-control-md);
+	border-radius: var(--ap-radius-control);
+}
+
+.aponto-wizard .components-button.is-primary {
+	background: var(--ap-color-accent);
+	color: var(--ap-color-on-accent);
+	box-shadow: none;
+}
+
+.aponto-wizard .components-button.is-primary:hover:not( :disabled ):not( [aria-disabled="true"] ) {
+	background: color-mix(in srgb, var(--ap-color-accent) 86%, var(--ap-color-inverse-surface));
+	color: var(--ap-color-on-accent);
+}
+
+/*
+ * DISABLED is not the accent (founder QA, 2026-08).
+ *
+ * The rule above paints the accent unconditionally, which also repainted the disabled button: core
+ * fades only the label and keeps the accent fill, and our full-strength `color` put the label back.
+ * "Create service" with an empty name, and "Continue" with no staff name, therefore looked exactly
+ * like the live commit action — the owner clicked a button that could not respond. Disabled leaves
+ * the accent role entirely, which is the call both neighbours already make: the SPA's kit button
+ * (`.pd-button:disabled`, plugin-dashboard.css) and wp-admin's own `.button-primary:disabled`. The
+ * label stays at the muted text role rather than fading further: the owner still has to be able to
+ * READ what the button will do once the field is filled. `cursor: default`, not `not-allowed` — the
+ * action is a step not yet reached, not a forbidden one.
+ */
+.aponto-wizard .components-button.is-primary:disabled,
+.aponto-wizard .components-button.is-primary[aria-disabled="true"] {
+	background: var(--ap-color-surface-muted);
+	color: var(--ap-color-text-muted);
+	box-shadow: inset 0 0 0 1px var(--ap-color-border);
+	cursor: default;
+}
+
+/*
+ * The same contract for the text buttons — Back, Skip and "I'll do it myself" while a step is
+ * saving, "Exit setup" and "Start over" while the skip request is in flight, and the Done step's
+ * secondary actions. Core mutes these on its own, but with a hardcoded #949494 that cannot follow
+ * the dark scheme — and it loses outright on two of them: "Exit setup" (§3) and "Start over" (§5)
+ * set their colour outside the variant at core's specificity but LATER in this sheet, so they
+ * painted their ENABLED colour while disabled. The extra class here settles both.
+ */
+.aponto-wizard .components-button.is-secondary:disabled,
+.aponto-wizard .components-button.is-secondary[aria-disabled="true"],
+.aponto-wizard .components-button.is-tertiary:disabled,
+.aponto-wizard .components-button.is-tertiary[aria-disabled="true"] {
+	color: color-mix(in srgb, var(--ap-color-text) 42%, var(--ap-color-surface));
+	background: transparent;
+	cursor: default;
+}
+
+.aponto-wizard .components-button:focus-visible,
+.aponto-wizard a:focus-visible {
+	outline: 2px solid var(--ap-color-accent);
+	outline-offset: 2px;
+	box-shadow: none;
+}
+
+/* ------------------------------------------------------------- 6c. hours grid */
+
+/*
+ * One weekday per row, edge to edge.
+ *
+ * The row used to pack day + times against the START and stop a third of the way into the card
+ * (content ended at x=724 inside a 947px inner edge — QA V6). `space-between` gives the grid the
+ * full column: the day toggle anchors the start, the two pickers anchor the end, and the eye reads
+ * one straight right-hand rule down the whole week instead of a ragged stop.
+ *
+ * The min-height is QA V7: a CLOSED day carries only a text span, so its row collapsed to 23px
+ * against the 40px open rows and Saturday/Sunday visibly tightened at the foot of the list. The row
+ * now has the control height as a floor whether it holds pickers or the word "Closed".
+ */
+.aponto-wizard-hours-toolbar {
+	display: flex;
+	justify-content: flex-start;
+	margin-bottom: var(--ap-space-1);
+}
+
+.aponto-wizard .aponto-wizard-hours-apply.components-button {
+	height: var(--ap-size-control-sm);
+	padding: 0;
+	color: var(--ap-color-accent);
+	font-size: var(--ap-font-size-caption);
+	background: transparent;
+}
+
+.aponto-wizard .aponto-wizard-hours-apply.components-button:hover:not( :disabled ) {
+	color: var(--ap-color-accent);
+	background: transparent;
+	text-decoration: underline;
+}
+
+/* One weekday: its row, plus the inline error the row earns when its range is inverted (QA A). The
+   error is tucked tight under its own row rather than taking the stack's full 8px rhythm, so it
+   reads as belonging to that day. */
+.aponto-wizard-hours-item {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ap-space-1);
+}
+
+.aponto-wizard-hours-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--ap-space-4);
+	min-height: var(--ap-size-control-md);
+}
+
+.aponto-wizard-hours-day {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.aponto-wizard-hours-times {
+	display: flex;
+	flex: 0 0 auto;
+	align-items: center;
+	justify-content: flex-end;
+	gap: var(--ap-space-2);
+	min-height: var(--ap-size-control-md);
+}
+
+.aponto-wizard-hours-time {
+	flex: 0 0 auto;
+	width: 132px;
+}
+
+.aponto-wizard-hours-sep {
+	flex: 0 0 auto;
+	color: var(--ap-color-text-soft);
+}
+
+/* ------------------------------------------------------------ 7. breakpoints */
+
+/* Below full desktop: keep the markers, but only the current step keeps a visible label. Six
+ * translated labels are not guaranteed to fit — Vietnamese and German run roughly 40% longer than
+ * the English ones — and a row that wraps or clips is worse than a row of dots. The threshold is
+ * set where the longest realistic label set still clears the brand and the exit action. */
+@media screen and (max-width: 1180px) {
+	.aponto-wizard-header {
+		gap: var(--ap-space-4);
+		padding: var(--ap-space-2) var(--ap-space-4);
+	}
+
+	.aponto-wizard-step:not( .is-current ) .aponto-wizard-step-label {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.aponto-wizard-step + .aponto-wizard-step::before {
+		width: 16px;
+		margin-right: var(--ap-space-1);
+	}
+
+	.aponto-wizard-step {
+		gap: var(--ap-space-1);
+	}
+
+	.aponto-wizard-main {
+		padding: var(--ap-space-5) var(--ap-space-4);
+	}
+}
+
+/* Phone: the list becomes screen-reader-only and the header states the position in words, with a
+ * progress track on its bottom edge. */
+@media screen and (max-width: 600px) {
+	.aponto-wizard-header {
+		min-height: 56px;
+		gap: var(--ap-space-3);
+		padding: var(--ap-space-2) var(--ap-space-4);
+	}
+
+	.aponto-wizard-logo {
+		height: 18px;
+	}
+
+	.aponto-wizard-steps {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.aponto-wizard-progress-compact,
+	.aponto-wizard-progress-track {
+		display: block;
+	}
+
+	.aponto-wizard-main {
+		padding: var(--ap-space-4) var(--ap-space-3);
+	}
+
+	.aponto-wizard-content {
+		max-width: none;
+	}
+
+	.aponto-wizard .aponto-wizard-card .components-card__header,
+	.aponto-wizard .aponto-wizard-card .components-card__body {
+		padding: var(--ap-space-5) var(--ap-space-4);
+	}
+
+	.aponto-wizard .aponto-wizard-card .components-card__footer {
+		padding: var(--ap-space-4);
+	}
+
+	.aponto-wizard .aponto-wizard-title {
+		font-size: var(--ap-font-size-subheading);
+	}
+
+	/* Two 132px pickers plus the day toggle do not fit a phone row: the times drop to their own
+	   line and share it evenly instead of squeezing the weekday name to nothing. */
+	.aponto-wizard-hours-row {
+		flex-wrap: wrap;
+		gap: var(--ap-space-2);
+	}
+
+	.aponto-wizard-hours-row:not( .is-closed ) .aponto-wizard-hours-day,
+	.aponto-wizard-hours-row:not( .is-closed ) .aponto-wizard-hours-times {
+		width: 100%;
+	}
+
+	.aponto-wizard-hours-times {
+		justify-content: flex-start;
+	}
+
+	.aponto-wizard-hours-time {
+		flex: 1 1 0;
+		width: auto;
+	}
+
+	/* A closed day has nothing to wrap FOR — "Closed" stays on the weekday's own line rather
+	   than claiming an empty control-height row of its own. */
+	.aponto-wizard-hours-row.is-closed {
+		flex-wrap: nowrap;
+	}
+
+	.aponto-wizard-hours-row.is-closed .aponto-wizard-hours-times {
+		justify-content: flex-end;
+	}
+}
+
+/*
+ * Very narrow: stack the step actions (QA V9).
+ *
+ * The Done step carries three actions and at 375px they had 8px of slack between them — the first
+ * translation longer than the English collides. Below 420px each action takes the full width and the
+ * groups reverse, so the primary commit sits on top and "Back" at the bottom: the order every mobile
+ * dialog uses, and the same `column-reverse` pattern the admin SPA's drawer footer already follows.
+ */
+@media screen and (max-width: 420px) {
+	.aponto-wizard .components-card__footer .aponto-wizard-actions,
+	.aponto-wizard .components-card__footer .aponto-wizard-actions-end {
+		flex-direction: column-reverse;
+		align-items: stretch;
+		gap: var(--ap-space-2);
+		width: 100%;
+	}
+
+	.aponto-wizard .components-card__footer .components-button {
+		width: 100%;
+		justify-content: center;
+	}
+}
+
+@media ( prefers-reduced-motion: reduce ) {
+	.aponto-wizard-step-marker,
+	.aponto-wizard-progress-fill {
+		transition: none;
+	}
+}
