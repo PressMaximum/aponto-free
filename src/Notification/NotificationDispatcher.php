@@ -1694,7 +1694,12 @@ final class NotificationDispatcher {
 			return;
 		}
 		restore_previous_locale();
-		unload_textdomain( 'aponto' );
+		// `$reloadable = true` is NOT cosmetic. Without it `unload_textdomain()` records the domain
+		// in `$l10n_unloaded`, which permanently disables WordPress' just-in-time loading for
+		// `aponto` for the REST of the request — so on a non-English site every Aponto string
+		// rendered after an email was sent silently fell back to English (the admin screen that
+		// triggered the send, the response it rendered, the next mail queued in the same request).
+		unload_textdomain( 'aponto', true );
 		\Aponto\Support\Translations::loadCurrentLocale();
 	}
 

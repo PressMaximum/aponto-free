@@ -81,6 +81,7 @@ final class Kernel {
 	public function boot(): void {
 		$this->registerCoreServices();
 		$this->registerLifecycleHooks();
+		add_action( 'init', array( $this, 'loadTranslations' ) );
 		$this->registerLoggerHooks();
 		$this->registerEditionProviders();
 		add_action( 'admin_notices', array( $this, 'renderNotices' ) );
@@ -101,6 +102,19 @@ final class Kernel {
 		add_action( Cron::HOOK, array( Cron::class, 'run' ) );
 		$this->registerRuntime();
 		$this->registerProviders();
+	}
+
+	/**
+	 * Load translations on init, including while schema maintenance mode is active — a site stuck
+	 * in maintenance still renders admin notices, and they must not be English-only.
+	 *
+	 * Edition-neutral: {@see \Aponto\Support\Translations::loadCurrentLocale()} registers the
+	 * catalog bundled in `languages/` (both editions ship it) and then fires the extension seam. A
+	 * wp.org language pack still wins — `WP_Textdomain_Registry` searches `WP_LANG_DIR/plugins`
+	 * before any path a plugin registers for itself.
+	 */
+	public function loadTranslations(): void {
+		\Aponto\Support\Translations::loadCurrentLocale();
 	}
 
 	/**

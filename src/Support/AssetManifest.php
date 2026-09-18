@@ -42,7 +42,7 @@ final class AssetManifest {
 		}
 
 		$edition = Assets::editionDir();
-		$suffix  = Assets::isDebug() ? '.asset.php' : '.min.asset.php';
+		$suffix  = self::variantSuffix( $edition, $entry );
 
 		// Keep the compile-time local root as the first operand. `$edition`, `$entry` and `$suffix`
 		// have all been allow-listed by this class; none can originate in request data.
@@ -89,6 +89,31 @@ final class AssetManifest {
 	}
 
 	/**
+	 * The manifest extension for the build variant this request serves.
+	 *
+	 * Mirrors {@see Assets::filename()}, including its fallback: an install whose `.min` siblings
+	 * never arrived serves the readable bundle, and its dependency metadata has to come from the
+	 * readable manifest beside it. Without that mirror a module panel whose `.min.asset.php` is
+	 * absent is skipped entirely by {@see \Aponto\Admin\AdminPage::enqueueModuleBundles()} — the
+	 * settings panel simply never appears — even though its readable bundle is right there.
+	 *
+	 * Both return values are literals of this class, so the allow-listing the include expression
+	 * relies on is unchanged.
+	 *
+	 * @param string $edition Validated edition directory name.
+	 * @param string $entry   Validated logical entry.
+	 */
+	private static function variantSuffix( string $edition, string $entry ): string {
+		if ( Assets::isDebug() ) {
+			return '.asset.php';
+		}
+
+		return is_file( self::DIST_ROOT . $edition . '/' . $entry . '.min.asset.php' )
+			? '.min.asset.php'
+			: '.asset.php';
+	}
+
+	/**
 	 * Validate an entry and confirm its active manifest is a local readable file.
 	 *
 	 * At most one slash is allowed: core entries are top-level (`admin`) and module panels use
@@ -107,8 +132,7 @@ final class AssetManifest {
 			return false;
 		}
 
-		$suffix   = Assets::isDebug() ? '.asset.php' : '.min.asset.php';
-		$manifest = self::DIST_ROOT . $edition . '/' . $entry . $suffix;
+		$manifest = self::DIST_ROOT . $edition . '/' . $entry . self::variantSuffix( $edition, $entry );
 		if ( ! is_file( $manifest ) || ! is_readable( $manifest ) ) {
 			return false;
 		}

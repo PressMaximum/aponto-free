@@ -555,8 +555,14 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
  * box stops reading as an oversized unstyled input inset from its own table. */
 .ap-admin .pmdk-data-list .pmdk-toolbar { padding: 0 0 14px; }
 .ap-admin .pmdk-data-list .pmdk-pagination { padding: 9px 0; border-top: 0; }
+/* `flex-basis` is a MAIN-AXIS length, and the kit's own narrow rule turns this toolbar into a
+   column — at which point a 320px basis stopped being a width and became a 320px-tall search
+   box, with the filter and New customer buttons stranded below a blank third of the pane
+   (visible whenever the in-flow inspector narrowed the list; beta report 2026-09-17). The
+   width triplet already says everything this needs in either direction, so the basis stays
+   `auto` and only the shrink behaviour is declared. */
 .ap-admin .pmdk-data-list .pmdk-toolbar .pmdk-search {
-	width: 320px; min-width: 190px; max-width: 360px; flex: 0 1 320px;
+	width: 320px; min-width: 190px; max-width: 360px; flex: 0 1 auto;
 }
 .ap-admin .pmdk-data-list .pmdk-toolbar .pmdk-search input {
 	height: var( --ap-size-control-sm ); min-height: var( --ap-size-control-sm );

@@ -937,6 +937,16 @@ final class BookingManagePage {
 		);
 		wp_enqueue_style( self::STYLE_HANDLE );
 
+		// Idempotent by construction. `wp_print_styles( $handle )` is a NO-OP for a handle already
+		// in `WP_Styles::$done`, and every call here renders a COMPLETE standalone document with
+		// its own `<head>`: the second and every later render in one PHP process would otherwise
+		// ship a head with no stylesheet at all. That breaks the uniform-404 contract (two renders
+		// of the same wrong token must be byte-identical) and unstyles any page rendered after a
+		// cancel/confirm round trip. Forgetting the handle first is the correct re-print, not a
+		// duplicate one — nothing else printed it into THIS document.
+		$styles       = wp_styles();
+		$styles->done = array_values( array_diff( $styles->done, array( self::STYLE_HANDLE ) ) );
+
 		ob_start();
 		wp_print_styles( self::STYLE_HANDLE );
 

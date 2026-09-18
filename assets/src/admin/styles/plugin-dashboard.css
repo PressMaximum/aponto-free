@@ -716,9 +716,28 @@
 /* Bookings uses an in-flow appointment inspector: the list stays available and never becomes inert. */
 .ap-admin .pd-main.is-bookings{min-height:calc(100dvh - 144px);padding:0}
 .ap-admin.is-focused .pd-main.is-bookings{min-height:calc(100dvh - 64px)}
-.ap-admin .pd-bookings-page{max-width:none;container-name:bookings-page;container-type:inline-size}
+/* The `bookings-page` container is what every responsive rule for the shared in-flow inspector
+   queries — including the one at max-width:840px that stacks the inspector above the list and
+   disables the resizer. Only the Bookings route wore the class that ESTABLISHES it, so on
+   Customers and Services those queries matched nothing: the inspector stayed an inline column at
+   every width (a ~750px window left the list a ~150px sliver), and the `min-width:841px` rule that
+   sizes the inspector's CONTENT never applied either, so the panel's content sat at its intrinsic
+   width inside a much wider track with an empty gutter beside it (beta report 2026-09-17).
+   `.pd-inflow-page` establishes the same container for lib/InflowWorkspace.jsx without dragging in
+   the Bookings-only page chrome that `.pd-bookings-page` also carries. */
+.ap-admin .pd-bookings-page,.ap-admin .pd-inflow-page{max-width:none;container-name:bookings-page;container-type:inline-size}
 .ap-admin .pd-bookings-workspace{--pd-booking-inspector-width:380px;display:grid;grid-template-columns:minmax(0,1fr) 0 minmax(0,0);align-items:stretch;gap:0;transition:grid-template-columns 360ms cubic-bezier(.4,0,.2,1),grid-template-rows 360ms cubic-bezier(.4,0,.2,1)}
-.ap-admin .pd-bookings-workspace.is-inspecting:not(.is-closing){grid-template-columns:minmax(0,1fr) 6px minmax(344px,var(--pd-booking-inspector-width))}
+/* DIVERGES from the mockup CSS on purpose, to implement what the mockup's own SPEC says.
+   SPEC.md "Shared quick views" requires the inspector to resize "while preserving at least
+   360px for main content"; the mockup stylesheet never encoded that, and paired a list track
+   that could shrink to zero (`minmax(0,1fr)`) with an inspector track that could not shrink at
+   all (`minmax(344px,…)`). Every pixel a narrower window took therefore came out of the LIST,
+   until the Customers table, its pagination and its New customer button were pushed out of
+   view (beta report 2026-09-17). Swapping which track holds the floor makes the INSPECTOR
+   yield, and `min(360px,100%)` keeps that floor from overflowing the container itself at the
+   narrow breakpoint below, where the two panes stack instead. lib/inspector-width.js applies
+   the same rule to the number this custom property carries. */
+.ap-admin .pd-bookings-workspace.is-inspecting:not(.is-closing){grid-template-columns:minmax(min(360px,100%),1fr) 6px minmax(0,var(--pd-booking-inspector-width))}
 .ap-admin .pd-bookings-workspace.is-resizing{user-select:none;transition:none}
 .ap-admin .pd-bookings-workspace>.pd-inflow-resizer{grid-column:2;grid-row:1}
 .ap-admin .pd-bookings-main{min-width:0;grid-column:1;padding:24px var(--pd-content-gutter) 40px}
@@ -904,7 +923,11 @@
 
 /* A side-by-side inspector narrows the list pane, but it is not a mobile viewport. */
 @container bookings-page (min-width:841px){
-	.ap-admin .pd-booking-inspector>*{width:var(--pd-booking-inspector-width);box-sizing:border-box;align-self:flex-end}
+	/* The content follows the TRACK, and is only capped by the preferred width. It used to be set
+	   to that width outright, which was safe while the track was guaranteed to equal it — but the
+	   track now yields to the list's 360px floor, and a child wider than its own column then
+	   overflowed to the left and had its heading and fields clipped. */
+	.ap-admin .pd-booking-inspector>*{width:100%;max-width:var(--pd-booking-inspector-width);box-sizing:border-box;align-self:flex-end}
   .ap-admin .pd-bookings-workspace.is-inspecting .pd-toolbar-main{align-items:center;flex-direction:row}
   .ap-admin .pd-bookings-workspace.is-inspecting .pd-toolbar-query{width:100%;align-items:center;flex-direction:row}
   .ap-admin .pd-bookings-workspace.is-inspecting .pd-search{width:auto;min-width:180px;max-width:320px;flex:1 1 280px}

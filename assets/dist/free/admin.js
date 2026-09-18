@@ -9427,8 +9427,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   InflowWorkspace: () => (/* binding */ InflowWorkspace)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _inspector_width_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./inspector-width.js */ "./assets/src/admin/lib/inspector-width.js");
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
 /**
@@ -9440,13 +9439,12 @@ __webpack_require__.r(__webpack_exports__);
  * existing `.pd-bookings-workspace` / `.pd-booking-inspector` / `.pd-inflow-resizer`
  * chrome (the mockup's shared inspector), so module-owned inspectors can reuse it without
  * reintroducing a standalone core route or authoring new table/shell CSS.
+ *
+ * The width itself lives in `lib/inspector-width.js`, which the Bookings route shares: the
+ * rendered width answers to the workspace it is actually in, not only to the stored preference.
  */
 
 
-const MIN_W = 320;
-const MAX_W = 520;
-const DEFAULT_W = 380;
-const clampW = w => Math.round(Math.min(MAX_W, Math.max(MIN_W, Number(w) || DEFAULT_W)));
 function InflowWorkspace({
   widthKey,
   open,
@@ -9455,49 +9453,19 @@ function InflowWorkspace({
   children,
   inspector
 }) {
-  const [width, setWidth] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => {
-    try {
-      return clampW(window.localStorage.getItem(widthKey));
-    } catch (e) {
-      return DEFAULT_W;
-    }
-  });
-  const [resizing, setResizing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const widthRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(width);
-  widthRef.current = width;
-  const startResize = e => {
-    if (e.button !== 0) {
-      return;
-    }
-    e.preventDefault();
-    const startX = e.clientX;
-    const startW = widthRef.current;
-    setResizing(true);
-    const move = me => setWidth(clampW(startW + (startX - me.clientX)));
-    const up = () => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-      setResizing(false);
-      try {
-        window.localStorage.setItem(widthKey, String(widthRef.current));
-      } catch (err) {/* ignore */}
-    };
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
-  };
-  const keyResize = e => {
-    let next = width;
-    if (e.key === 'ArrowLeft') next = width + 16;else if (e.key === 'ArrowRight') next = width - 16;else if (e.key === 'Home') next = DEFAULT_W;else if (e.key === 'End') next = MAX_W;else return;
-    e.preventDefault();
-    next = clampW(next);
-    setWidth(next);
-    try {
-      window.localStorage.setItem(widthKey, String(next));
-    } catch (err) {/* ignore */}
-  };
+  const {
+    width,
+    maxWidth,
+    stacked,
+    resizing,
+    workspaceRef,
+    startResize,
+    keyResize
+  } = (0,_inspector_width_js__WEBPACK_IMPORTED_MODULE_0__.useInspectorWidth)(widthKey);
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
-    className: "pd-page",
+    className: "pd-page pd-inflow-page",
     children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+      ref: workspaceRef,
       className: `pd-bookings-workspace${open ? ' is-inspecting' : ''}${resizing ? ' is-resizing' : ''}`,
       style: {
         '--pd-booking-inspector-width': `${width}px`
@@ -9508,15 +9476,16 @@ function InflowWorkspace({
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
         className: "pd-inflow-resizer",
         role: "separator",
-        "aria-orientation": "vertical",
+        "aria-orientation": stacked ? 'horizontal' : 'vertical',
         "aria-label": `Resize ${label.toLowerCase()}`,
-        "aria-valuemin": MIN_W,
-        "aria-valuemax": MAX_W,
-        "aria-valuenow": width,
-        tabIndex: open ? 0 : -1,
+        "aria-valuemin": stacked ? undefined : _inspector_width_js__WEBPACK_IMPORTED_MODULE_0__.MIN_W,
+        "aria-valuemax": stacked ? undefined : maxWidth,
+        "aria-valuenow": stacked ? undefined : width,
+        "aria-disabled": stacked ? true : undefined,
+        tabIndex: open && !stacked ? 0 : -1,
         hidden: !open,
-        onPointerDown: startResize,
-        onKeyDown: keyResize,
+        onPointerDown: stacked ? undefined : startResize,
+        onKeyDown: stacked ? undefined : keyResize,
         children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("span", {
           "aria-hidden": "true",
           children: [width, "px"]
@@ -11032,6 +11001,246 @@ function renderIcon(name, className = '') {
 
 /***/ },
 
+/***/ "./assets/src/admin/lib/inspector-width.js"
+/*!*************************************************!*\
+  !*** ./assets/src/admin/lib/inspector-width.js ***!
+  \*************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DEFAULT_W: () => (/* binding */ DEFAULT_W),
+/* harmony export */   MAX_SHARE: () => (/* binding */ MAX_SHARE),
+/* harmony export */   MAX_W: () => (/* binding */ MAX_W),
+/* harmony export */   MIN_MAIN_W: () => (/* binding */ MIN_MAIN_W),
+/* harmony export */   MIN_W: () => (/* binding */ MIN_W),
+/* harmony export */   RESIZER_W: () => (/* binding */ RESIZER_W),
+/* harmony export */   STACK_MAX_W: () => (/* binding */ STACK_MAX_W),
+/* harmony export */   clampPreferredWidth: () => (/* binding */ clampPreferredWidth),
+/* harmony export */   fitInspectorWidth: () => (/* binding */ fitInspectorWidth),
+/* harmony export */   isStacked: () => (/* binding */ isStacked),
+/* harmony export */   readPreferredWidth: () => (/* binding */ readPreferredWidth),
+/* harmony export */   useInspectorWidth: () => (/* binding */ useInspectorWidth),
+/* harmony export */   writePreferredWidth: () => (/* binding */ writePreferredWidth)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/**
+ * Shared in-flow inspector width: the user's stored PREFERENCE, and the width actually
+ * rendered for the space that exists right now.
+ *
+ * The mockup states the contract (docs/mockups/v4/plugin-dashboard/SPEC.md, "Shared quick
+ * views"): the inspector is "resizable from 320px to 520px while preserving at least 360px
+ * for main content", and "a temporary narrow viewport clamps only the rendered width and must
+ * not overwrite that preference."
+ *
+ * Neither half was implemented. The clamp was a pure pixel range with no idea how much room
+ * existed, measured once at mount and never again, and the grid track beside it was
+ * `minmax(0, 1fr)` against the inspector's `minmax(344px, …)` floor — so every pixel a
+ * narrower window took came out of the LIST, down to nothing. On a 1100px window the Customers
+ * list fell to 554px: the toolbar broke into a stack, the table's 1046px of columns collapsed
+ * into a 514px scroller showing Name/Email and nothing else, and the pagination and New
+ * customer button were pushed out of view (beta report 2026-09-17).
+ *
+ * So the rendered width answers to three limits at once — the stored preference, the 360px the
+ * list is owed, and a 45% share of the workspace — and is recomputed whenever the workspace is
+ * resized. The preference itself is only ever written by a deliberate drag or key press.
+ */
+
+
+/** Narrowest inspector a user can choose. */
+const MIN_W = 320;
+/** Widest inspector a user can choose. */
+const MAX_W = 520;
+/** Opening width for a route with no stored preference. */
+const DEFAULT_W = 380;
+/** Main content is owed this much before the inspector may take anything (SPEC). */
+const MIN_MAIN_W = 360;
+/** The grid's separator track, which also sits between the two panes. */
+const RESIZER_W = 6;
+/**
+ * Hard share cap. The 360px rule alone still allows a 520px inspector to take 55% of a 940px
+ * workspace; the list is then technically "preserved" and practically unusable. Whichever of the
+ * two limits binds first, wins.
+ */
+const MAX_SHARE = 0.45;
+/**
+ * At or below this container width the stylesheet stops splitting the workspace into columns and
+ * STACKS the inspector above the list (`@container bookings-page (max-width:840px)`), which is
+ * what SPEC.md calls the narrow dashboard breakpoint: "the inspector stacks before the main pane,
+ * the separator becomes horizontal and resizing is disabled". The number is duplicated here so the
+ * separator can drop its handlers and its tab stop in the same breath the CSS drops the cursor.
+ */
+const STACK_MAX_W = 840;
+
+/**
+ * Clamp a value to the range a user is allowed to choose. Anything unparseable — absent storage,
+ * a hand-edited key, a stale value from an older build — becomes the default rather than 0.
+ *
+ * @param {*} value Candidate width.
+ * @return {number} Width within [MIN_W, MAX_W].
+ */
+function clampPreferredWidth(value) {
+  const parsed = Number(value);
+  return Math.round(Math.min(MAX_W, Math.max(MIN_W, Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_W)));
+}
+
+/**
+ * The width to RENDER: the preference, reduced to what the current workspace can spare.
+ *
+ * `available` of 0/NaN means "not measured yet" (first paint, or no ResizeObserver): answer the
+ * clamped preference, which is what the component did before, rather than guessing a cap from a
+ * width nobody has measured.
+ *
+ * When the workspace is so narrow that even the smallest inspector would break the 360px rule,
+ * MIN_W is returned: the stylesheet's narrow breakpoint stacks the two panes there, so the width
+ * stops being a split and becomes a stacked block.
+ *
+ * @param {*} preferred Stored or in-drag preference.
+ * @param {number} available Workspace width in CSS pixels.
+ * @return {number} Width to render.
+ */
+function fitInspectorWidth(preferred, available) {
+  const wanted = clampPreferredWidth(preferred);
+  const room = Number(available);
+  if (!Number.isFinite(room) || room <= 0) {
+    return wanted;
+  }
+  const cap = Math.min(room - RESIZER_W - MIN_MAIN_W, room * MAX_SHARE);
+  if (cap < MIN_W) {
+    return MIN_W;
+  }
+  return Math.round(Math.min(wanted, cap));
+}
+
+/**
+ * Whether the stylesheet is stacking the two panes rather than splitting them side by side.
+ *
+ * Unmeasured (0/NaN) answers false: the side-by-side layout is the default the markup renders
+ * with, so an unmeasured first paint must not announce a disabled separator it will then enable.
+ *
+ * @param {number} available Workspace width in CSS pixels.
+ * @return {boolean} True when the narrow breakpoint owns the layout.
+ */
+function isStacked(available) {
+  const room = Number(available);
+  return Number.isFinite(room) && room > 0 && room <= STACK_MAX_W;
+}
+
+/**
+ * Read a persisted preference, tolerating a storage that throws (private mode, blocked cookies).
+ *
+ * @param {string} key Storage key.
+ * @return {number} Clamped preference.
+ */
+function readPreferredWidth(key) {
+  try {
+    return clampPreferredWidth(window.localStorage.getItem(key));
+  } catch (e) {
+    return DEFAULT_W;
+  }
+}
+
+/**
+ * Persist a preference. Silent on failure: a width is a convenience, never worth an error.
+ *
+ * @param {string} key   Storage key.
+ * @param {number} value Preference to store.
+ */
+function writePreferredWidth(key, value) {
+  try {
+    window.localStorage.setItem(key, String(value));
+  } catch (e) {/* ignore */}
+}
+
+/**
+ * The in-flow inspector's width, its resizer handlers, and the ref that measures the workspace.
+ *
+ * Returns the RENDERED width plus the live maximum, so the separator's ARIA values and its px
+ * readout describe the pane the user can actually see rather than a preference the viewport is
+ * overriding.
+ *
+ * @param {string} widthKey Namespaced localStorage key for this route's preference.
+ */
+function useInspectorWidth(widthKey) {
+  const [preferred, setPreferred] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => readPreferredWidth(widthKey));
+  const [available, setAvailable] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const [resizing, setResizing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const workspaceRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const preferredRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(preferred);
+  preferredRef.current = preferred;
+
+  // Measure the workspace, and keep measuring it. A width clamped once at mount is a width that
+  // is wrong the moment the window changes — which is exactly how the list got crushed.
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useLayoutEffect)(() => {
+    const node = workspaceRef.current;
+    if (!node) {
+      return undefined;
+    }
+    const measure = () => setAvailable(node.getBoundingClientRect().width);
+    measure();
+
+    // Both, deliberately: the observer catches the sidebar collapsing or the pane changing
+    // without the window doing anything, and the window event catches the viewport change
+    // itself, which an observer can deliver a frame late.
+    window.addEventListener('resize', measure);
+    if (typeof window.ResizeObserver !== 'function') {
+      return () => window.removeEventListener('resize', measure);
+    }
+    const observer = new window.ResizeObserver(measure);
+    observer.observe(node);
+    return () => {
+      window.removeEventListener('resize', measure);
+      observer.disconnect();
+    };
+  }, []);
+  const width = fitInspectorWidth(preferred, available);
+  const maxWidth = Math.max(MIN_W, fitInspectorWidth(MAX_W, available));
+  const stacked = isStacked(available);
+  const commit = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(next => {
+    const value = clampPreferredWidth(next);
+    setPreferred(value);
+    writePreferredWidth(widthKey, value);
+  }, [widthKey]);
+  const startResize = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(e => {
+    if (e.button !== 0) {
+      return;
+    }
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = fitInspectorWidth(preferredRef.current, workspaceRef.current?.getBoundingClientRect().width);
+    setResizing(true);
+    const move = me => setPreferred(clampPreferredWidth(startW + (startX - me.clientX)));
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      setResizing(false);
+      // A drag is a deliberate choice, so it IS written — unlike the viewport clamp above.
+      writePreferredWidth(widthKey, preferredRef.current);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  }, [widthKey]);
+  const keyResize = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(e => {
+    let next = width;
+    if (e.key === 'ArrowLeft') next = width + 16;else if (e.key === 'ArrowRight') next = width - 16;else if (e.key === 'Home') next = DEFAULT_W;else if (e.key === 'End') next = maxWidth;else return;
+    e.preventDefault();
+    commit(next);
+  }, [width, maxWidth, commit]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => () => setResizing(false), []);
+  return {
+    width,
+    maxWidth,
+    stacked,
+    resizing,
+    workspaceRef,
+    startResize,
+    keyResize
+  };
+}
+
+/***/ },
+
 /***/ "./assets/src/admin/lib/lazy.jsx"
 /*!***************************************!*\
   !*** ./assets/src/admin/lib/lazy.jsx ***!
@@ -12512,14 +12721,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _bookings_BookingsTable_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../bookings/BookingsTable.jsx */ "./assets/src/admin/bookings/BookingsTable.jsx");
 /* harmony import */ var _lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/lazy.jsx */ "./assets/src/admin/lib/lazy.jsx");
 /* harmony import */ var _lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../lib/notification-outcome.js */ "./assets/src/admin/lib/notification-outcome.js");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__);
+/* harmony import */ var _lib_inspector_width_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../lib/inspector-width.js */ "./assets/src/admin/lib/inspector-width.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__);
 /**
  * Bookings route (SPEC-P1 §1.4). Flat operational list (reused TanStack
  * BookingsTable) + the in-flow booking editor in a two-column push workspace
  * (no backdrop/body-lock/focus-trap; the list stays interactive). Server data via
  * GET /bookings; status/reschedule/paid/delete/create wired to REST.
  */
+
 
 
 
@@ -12559,10 +12770,11 @@ const PREMATURE = {
     declined: 'Not marked — the appointment hasn\'t started yet.'
   }
 };
+
+// The booking editor shares the in-flow inspector's width rules with every other route
+// (lib/inspector-width.js): one stored preference per route, one viewport-aware clamp. This file
+// used to carry its own copy — with a different 344px floor — so a fix to one never reached the other.
 const WIDTH_KEY = 'aponto.admin.booking-inspector-width.v1';
-const MIN_W = 344;
-const MAX_W = 520;
-const clampW = w => Math.round(Math.min(MAX_W, Math.max(MIN_W, Number(w) || 380)));
 function Bookings() {
   const showToast = (0,_lib_toast_jsx__WEBPACK_IMPORTED_MODULE_7__.useToast)();
   const {
@@ -12576,16 +12788,15 @@ function Bookings() {
     total: 0
   });
   const [editor, setEditor] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null); // { mode, id, row, action, prefill }
-  const [width, setWidth] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => {
-    try {
-      return clampW(window.localStorage.getItem(WIDTH_KEY));
-    } catch (e) {
-      return 380;
-    }
-  });
-  const [resizing, setResizing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const widthRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(width);
-  widthRef.current = width;
+  const {
+    width,
+    maxWidth,
+    stacked,
+    resizing,
+    workspaceRef,
+    startResize,
+    keyResize
+  } = (0,_lib_inspector_width_js__WEBPACK_IMPORTED_MODULE_12__.useInspectorWidth)(WIDTH_KEY);
   const load = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     setState(s => ({
       ...s,
@@ -12756,50 +12967,18 @@ function Bookings() {
     params.set('_wpnonce', _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.nonce);
     window.open(`${base}/export/bookings.csv?${params.toString()}`, '_blank', 'noopener');
   };
-
-  // ---- Inspector resize (pointer + keyboard, persisted) ------------------
-  const startResize = e => {
-    if (e.button !== 0) {
-      return;
-    }
-    e.preventDefault();
-    const startX = e.clientX;
-    const startW = widthRef.current;
-    setResizing(true);
-    const move = me => setWidth(clampW(startW + (startX - me.clientX)));
-    const up = () => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-      setResizing(false);
-      try {
-        window.localStorage.setItem(WIDTH_KEY, String(widthRef.current));
-      } catch (err) {/* ignore */}
-    };
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
-  };
-  const keyResize = e => {
-    let next = width;
-    if (e.key === 'ArrowLeft') next = width + 16;else if (e.key === 'ArrowRight') next = width - 16;else if (e.key === 'Home') next = 380;else if (e.key === 'End') next = MAX_W;else return;
-    e.preventDefault();
-    next = clampW(next);
-    setWidth(next);
-    try {
-      window.localStorage.setItem(WIDTH_KEY, String(next));
-    } catch (err) {/* ignore */}
-  };
   let content;
   if (state.loading) {
-    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.RouteLoading, {
+    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.RouteLoading, {
       label: "Loading bookings"
     });
   } else if (state.error) {
-    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.RouteError, {
+    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.RouteError, {
       message: state.error,
       onRetry: load
     });
   } else {
-    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_bookings_BookingsTable_jsx__WEBPACK_IMPORTED_MODULE_9__.BookingsTable, {
+    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_bookings_BookingsTable_jsx__WEBPACK_IMPORTED_MODULE_9__.BookingsTable, {
       data: state.rows,
       totalCount: state.rows.length,
       pageSize: 25,
@@ -12816,52 +12995,54 @@ function Bookings() {
       onExport: onExport
     });
   }
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
     className: "pd-page pd-bookings-page",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
+      ref: workspaceRef,
       className: `pd-bookings-workspace${editor ? ' is-inspecting' : ''}${resizing ? ' is-resizing' : ''}`,
       style: {
         '--pd-booking-inspector-width': `${width}px`
       },
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
         className: "pd-bookings-main",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.PageHeader, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.PageHeader, {
           title: "Bookings"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("section", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("section", {
           className: "pd-bookings-list pd-data-list",
           "aria-label": "Bookings list",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)("div", {
             className: "pd-tanstack-bookings",
             id: "bookingsTableRoot",
             children: content
-          }), !state.loading && !state.error && state.total > state.rows.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("p", {
+          }), !state.loading && !state.error && state.total > state.rows.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("p", {
             className: "ap-list-note",
             role: "status",
             children: ["Showing the first ", state.rows.length, " of ", state.total, " bookings in this window \u2014 narrow the date range or search to find the rest."]
           }) : null]
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)("div", {
         className: "pd-inflow-resizer",
         role: "separator",
-        "aria-orientation": "vertical",
+        "aria-orientation": stacked ? 'horizontal' : 'vertical',
         "aria-label": "Resize booking editor",
-        "aria-valuemin": MIN_W,
-        "aria-valuemax": MAX_W,
-        "aria-valuenow": width,
-        tabIndex: editor ? 0 : -1,
+        "aria-valuemin": stacked ? undefined : _lib_inspector_width_js__WEBPACK_IMPORTED_MODULE_12__.MIN_W,
+        "aria-valuemax": stacked ? undefined : maxWidth,
+        "aria-valuenow": stacked ? undefined : width,
+        "aria-disabled": stacked ? true : undefined,
+        tabIndex: editor && !stacked ? 0 : -1,
         hidden: !editor,
-        onPointerDown: startResize,
-        onKeyDown: keyResize,
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("span", {
+        onPointerDown: stacked ? undefined : startResize,
+        onKeyDown: stacked ? undefined : keyResize,
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("span", {
           "aria-hidden": "true",
           children: [width, "px"]
         })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("aside", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)("aside", {
         className: "pd-booking-inspector",
         id: "bookingInspector",
         "aria-labelledby": "bookingInspectorTitle",
         hidden: !editor,
-        children: editor ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(BookingEditor, {
+        children: editor ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(BookingEditor, {
           mode: editor.mode,
           bookingId: editor.id,
           row: editor.row,
@@ -46882,7 +47063,7 @@ const PUBLIC_VERSION = '5';
 /******/ 		// This function allow to reference async chunks
 /******/ 		__webpack_require__.u = (chunkId) => {
 /******/ 			// return url for filenames based on template
-/******/ 			return "" + chunkId + ".js?ver=" + {"admin-chunk-vendor":"e8a10aa66afa6469b5af","admin-chunk-settings":"1075b0f93eaf9749b025","admin-chunk-services":"413f81d2d25baf097e6c","admin-chunk-staff":"0d82277b62d8ba09443f","admin-chunk-modules":"db4c418c34b826ce48dc","admin-chunk-booking-editor":"1bec0e80a8550732578d","admin-chunk-refund-dialog":"281a467c6dc9c40e571c"}[chunkId] + "";
+/******/ 			return "" + chunkId + ".js?ver=" + {"admin-chunk-vendor":"e8a10aa66afa6469b5af","admin-chunk-settings":"ed1d10d469f04937cb44","admin-chunk-services":"d879193faccfe20a4b3a","admin-chunk-staff":"1bdcc5169b499a15e770","admin-chunk-modules":"04c96e67b52a7659e1dd","admin-chunk-booking-editor":"7e675162ec9b2b6760c6","admin-chunk-refund-dialog":"281a467c6dc9c40e571c"}[chunkId] + "";
 /******/ 		};
 /******/ 	})();
 /******/ 	

@@ -1,0 +1,6181 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Aponto 0.9.0-beta\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/aponto\n"
+"POT-Creation-Date: 2026-09-17T09:22:41+00:00\n"
+"PO-Revision-Date: 2026-07-27 03:26+0000\n"
+"Last-Translator: \n"
+"Language-Team: Vietnamese\n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Domain: aponto\n"
+
+#. Plugin Name of the plugin
+#: aponto.php src/Admin/AdminPage.php:181 src/Admin/AdminPage.php:182
+#: src/Admin/AdminPage.php:208 src/Admin/AdminPage.php:209
+#: assets/src/wizard/Chrome.jsx:238
+msgid "Aponto"
+msgstr "Aponto"
+
+#. Description of the plugin
+#: aponto.php
+msgid "Appointment booking plugin by PressMaximum."
+msgstr ""
+
+#. Author of the plugin
+#: aponto.php
+msgid "PressMaximum"
+msgstr ""
+
+#. Author URI of the plugin
+#: aponto.php
+msgid "https://pressmaximum.com"
+msgstr ""
+
+#: src/Admin/AdminPage.php:125 src/Admin/AdminPage.php:225
+#: assets/src/admin/routes/SettingsRoute.jsx:181
+msgid "Settings"
+msgstr "Cài đặt"
+
+#: src/Admin/AdminPage.php:197 src/Admin/AdminPage.php:198
+msgid "Aponto Settings"
+msgstr ""
+
+#: src/Admin/AdminPage.php:218
+msgid "Dashboard"
+msgstr "Bảng điều khiển"
+
+#: src/Admin/AdminPage.php:219 assets/src/admin/modules/catalog.js:585
+#: assets/src/admin/settings/SettingsApp.jsx:653
+msgid "Bookings"
+msgstr "Lịch đặt"
+
+#: src/Admin/AdminPage.php:220
+msgid "Calendar"
+msgstr "Lịch"
+
+#: src/Admin/AdminPage.php:221
+msgid "Customers"
+msgstr "Khách hàng"
+
+#: src/Admin/AdminPage.php:222 assets/src/admin/settings/SettingsApp.jsx:651
+msgid "Services"
+msgstr "Dịch vụ"
+
+#: src/Admin/AdminPage.php:223 assets/src/admin/settings/SettingsApp.jsx:652
+#: assets/src/wizard/Chrome.jsx:56
+msgid "Staff"
+msgstr "Nhân viên"
+
+#: src/Admin/AdminPage.php:224 assets/src/admin/modules/ModulesApp.jsx:291
+#: assets/src/admin/modules/ModuleSettingsRoute.jsx:88
+#: assets/src/admin/modules/ModulesSubnav.jsx:73
+msgid "Modules"
+msgstr "Mô-đun"
+
+#: src/Admin/AdminPage.php:249 src/Admin/AdminPage.php:250
+msgid "Setup wizard"
+msgstr ""
+
+#: src/Admin/AdminPage.php:292
+msgid "Loading Aponto…"
+msgstr ""
+
+#: src/Frontend/BlockRegistrar.php:338
+#: assets/src/form/lib/payment-gateways.free.js:30
+msgid "Credit / debit card"
+msgstr ""
+
+#: src/Frontend/BlockRegistrar.php:341
+#: assets/src/pro/payments_paypal/form-registry.js:35
+#: assets/src/pro/payments_paypal/form-registry.js:37
+msgid "PayPal"
+msgstr ""
+
+#: src/Frontend/BlockRegistrar.php:344 assets/src/admin/settings/catalog.js:176
+msgid "Online payment"
+msgstr ""
+
+#: src/Frontend/BookingManagePage.php:279
+msgid "Please confirm the cancellation once more."
+msgstr "Vui lòng xác nhận hủy thêm một lần nữa."
+
+#: src/Frontend/BookingManagePage.php:412
+msgid "Too many attempts right now. Please wait a moment and try again."
+msgstr "Hiện có quá nhiều lần thử. Vui lòng đợi một lát rồi thử lại."
+
+#: src/Frontend/BookingManagePage.php:415
+msgid ""
+"We could not cancel this booking. Please try again or contact the business."
+msgstr ""
+"Chúng tôi không thể hủy lịch đặt này. Vui lòng thử lại hoặc liên hệ với cơ "
+"sở."
+
+#: src/Frontend/BookingManagePage.php:515
+#: src/Frontend/BookingManagePage.php:641
+msgid "Your appointment"
+msgstr "Lịch hẹn của bạn"
+
+#: src/Frontend/BookingManagePage.php:519 assets/src/form/lib/copy.js:285
+msgid "Total"
+msgstr "Tổng cộng"
+
+#: src/Frontend/BookingManagePage.php:540
+msgid "Payment pending"
+msgstr ""
+
+#. translators: %s: local time the held slot is released, e.g. "3:45 PM".
+#: src/Frontend/BookingManagePage.php:544
+#, php-format
+msgid "Your slot is held until %s. Complete the payment to confirm it."
+msgstr ""
+
+#. translators: %s: local time the held slot is released, e.g. "3:45 PM".
+#: src/Frontend/BookingManagePage.php:549
+#, php-format
+msgid ""
+"Your slot is held until %s. If the payment does not arrive by then the "
+"business will release it — please contact them to pay."
+msgstr ""
+
+#: src/Frontend/BookingManagePage.php:555
+msgid "Pay now"
+msgstr ""
+
+#: src/Frontend/BookingManagePage.php:557
+msgid "Waiting for confirmation."
+msgstr "Đang chờ xác nhận."
+
+#: src/Frontend/BookingManagePage.php:557
+msgid "We will email you when the business responds."
+msgstr "Chúng tôi sẽ gửi email cho bạn khi cơ sở phản hồi."
+
+#: src/Frontend/BookingManagePage.php:568
+msgid "This booking can no longer be cancelled online."
+msgstr "Không thể hủy lịch đặt này trực tuyến nữa."
+
+#: src/Frontend/BookingManagePage.php:569
+msgid ""
+"Online cancellation has closed for this booking. Please contact the business "
+"to make changes."
+msgstr ""
+"Đã đóng hủy trực tuyến cho lịch đặt này. Vui lòng liên hệ với cơ sở để thay "
+"đổi."
+
+#: src/Frontend/BookingManagePage.php:574
+msgid "Add to calendar (.ics)"
+msgstr "Thêm vào lịch (.ics)"
+
+#: src/Frontend/BookingManagePage.php:577
+msgid "Add to Google"
+msgstr "Thêm vào Google"
+
+#: src/Frontend/BookingManagePage.php:581
+msgid "Reschedule"
+msgstr "Đổi lịch"
+
+#: src/Frontend/BookingManagePage.php:581 assets/src/admin/App.jsx:83
+#: assets/src/admin/App.jsx:87 assets/src/admin/modules/catalog.js:392
+#: assets/src/admin/modules/catalog.js:429
+#: assets/src/admin/modules/ModulesApp.jsx:403
+#: assets/src/admin/routes/Services.jsx:31
+#: assets/src/admin/routes/Services.jsx:32
+msgid "Premium"
+msgstr "Premium"
+
+#: src/Frontend/BookingManagePage.php:584
+msgid "Cancel booking"
+msgstr "Hủy lịch đặt"
+
+#. translators: %s: cancellation deadline date and time.
+#: src/Frontend/BookingManagePage.php:591
+#, php-format
+msgid "Free to cancel online until %s."
+msgstr "Được hủy trực tuyến miễn phí đến %s."
+
+#: src/Frontend/BookingManagePage.php:613
+msgid "Cancel this appointment?"
+msgstr "Hủy lịch hẹn này?"
+
+#: src/Frontend/BookingManagePage.php:619
+msgid "Reason"
+msgstr "Lý do"
+
+#: src/Frontend/BookingManagePage.php:619 assets/src/form/lib/copy.js:70
+#: assets/src/form/lib/copy.js:73
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:363
+msgid "(optional)"
+msgstr "(không bắt buộc)"
+
+#: src/Frontend/BookingManagePage.php:620
+msgid "Tell the business why you are cancelling"
+msgstr "Cho cơ sở biết lý do bạn hủy"
+
+#: src/Frontend/BookingManagePage.php:623
+msgid "Keep appointment"
+msgstr "Giữ lịch hẹn"
+
+#: src/Frontend/BookingManagePage.php:624
+msgid "Confirm cancellation"
+msgstr "Xác nhận hủy"
+
+#: src/Frontend/BookingManagePage.php:643
+msgid "This appointment was cancelled."
+msgstr "Lịch hẹn này đã bị hủy."
+
+#: src/Frontend/BookingManagePage.php:643
+msgid "A confirmation has been emailed to you."
+msgstr "Một email xác nhận đã được gửi tới bạn."
+
+#: src/Frontend/BookingManagePage.php:655
+msgid "This link is not valid"
+msgstr "Liên kết này không hợp lệ"
+
+#: src/Frontend/BookingManagePage.php:656
+msgid ""
+"The booking link may have expired or already been used. Please check the "
+"latest email we sent you."
+msgstr ""
+"Liên kết đặt lịch có thể đã hết hạn hoặc đã được dùng. Vui lòng kiểm tra "
+"email mới nhất chúng tôi gửi cho bạn."
+
+#. translators: 1: time at the business, 2: the business time-zone label.
+#: src/Frontend/BookingManagePage.php:689 assets/src/form/lib/copy.js:61
+#, php-format
+msgid "That’s %1$s at the studio · %2$s"
+msgstr "Tức là %1$s tại cơ sở · %2$s"
+
+#: src/Frontend/BookingManagePage.php:710
+#: assets/src/admin/lib/payment-status.js:110
+msgid "Pending"
+msgstr "Chờ xử lý"
+
+#: src/Frontend/BookingManagePage.php:711
+#: assets/src/admin/routes/BookingEditor.jsx:790
+msgid "Confirmed"
+msgstr "Đã xác nhận"
+
+#: src/Frontend/BookingManagePage.php:712
+#: assets/src/admin/routes/BookingEditor.jsx:792
+#: assets/src/wizard/Chrome.jsx:179
+msgid "Completed"
+msgstr "Đã hoàn thành"
+
+#: src/Frontend/BookingManagePage.php:713
+#: assets/src/admin/lib/payment-status.js:117
+#: assets/src/admin/routes/BookingEditor.jsx:791
+msgid "Cancelled"
+msgstr "Đã hủy"
+
+#: src/Frontend/BookingManagePage.php:915
+msgid "Manage your booking"
+msgstr "Quản lý lịch đặt của bạn"
+
+#: src/Installation/Installer.php:263
+msgid "Aponto could not be activated"
+msgstr ""
+
+#: src/Installation/Installer.php:264
+msgid ""
+"Aponto could not create or verify its database tables. The plugin was "
+"deactivated so it never runs on an incomplete schema."
+msgstr ""
+
+#: src/Installation/Installer.php:269
+msgid ""
+"Aponto needs a database that can create its tables and write bookings inside "
+"a transaction: MySQL 5.7 or newer, or MariaDB 10.4 or newer, with the InnoDB "
+"storage engine — the recommended setup for a live site. SQLite is also fully "
+"supported through the official WordPress SQLite database integration, for "
+"local and preview sites."
+msgstr ""
+
+#: src/Installation/Installer.php:273
+msgid ""
+"If the message above mentions a storage engine, please ask your host to "
+"enable InnoDB. If it mentions a missing table or column, please make sure "
+"the database user is allowed to create tables. Then activate Aponto again."
+msgstr ""
+
+#: src/Installation/Installer.php:280
+msgid "Aponto activation failed"
+msgstr ""
+
+#: src/Installation/Seeder.php:328
+msgid "We received your booking — {service_name}"
+msgstr "Chúng tôi đã nhận được lịch đặt của bạn — {service_name}"
+
+#: src/Installation/Seeder.php:329
+msgid ""
+"Hi {customer_name},\n"
+"\n"
+"We received your booking for {service_name} on {booking_date} at "
+"{booking_time}.\n"
+"\n"
+"Your reference is {order_code}.\n"
+"Manage your booking: {manage_link}\n"
+"\n"
+"{business_name}"
+msgstr ""
+"Chào {customer_name},\n"
+"\n"
+"Chúng tôi đã nhận được lịch đặt {service_name} của bạn vào {booking_date} "
+"lúc {booking_time}.\n"
+"\n"
+"Mã tham chiếu của bạn là {order_code}.\n"
+"Quản lý lịch đặt: {manage_link}\n"
+"\n"
+"{business_name}"
+
+#: src/Installation/Seeder.php:330
+msgid "Your booking is confirmed — {service_name}"
+msgstr "Lịch đặt của bạn đã được xác nhận — {service_name}"
+
+#: src/Installation/Seeder.php:331
+msgid ""
+"Hi {customer_name},\n"
+"\n"
+"Your booking for {service_name} with {staff_name} on {booking_date} at "
+"{booking_time} is confirmed.\n"
+"\n"
+"Reference: {order_code}\n"
+"Manage your booking: {manage_link}\n"
+"\n"
+"{business_name}"
+msgstr ""
+"Chào {customer_name},\n"
+"\n"
+"Lịch đặt {service_name} với {staff_name} vào {booking_date} lúc "
+"{booking_time} đã được xác nhận.\n"
+"\n"
+"Mã tham chiếu: {order_code}\n"
+"Quản lý lịch đặt: {manage_link}\n"
+"\n"
+"{business_name}"
+
+#: src/Installation/Seeder.php:332
+msgid "Your booking was rescheduled — {service_name}"
+msgstr "Lịch đặt của bạn đã được dời — {service_name}"
+
+#: src/Installation/Seeder.php:333
+msgid ""
+"Hi {customer_name},\n"
+"\n"
+"Your booking for {service_name} has been rescheduled to {booking_date} at "
+"{booking_time}.\n"
+"\n"
+"Reference: {order_code}\n"
+"Manage your booking: {manage_link}\n"
+"\n"
+"{business_name}"
+msgstr ""
+"Chào {customer_name},\n"
+"\n"
+"Lịch đặt {service_name} của bạn đã được dời sang {booking_date} lúc "
+"{booking_time}.\n"
+"\n"
+"Mã tham chiếu: {order_code}\n"
+"Quản lý lịch đặt: {manage_link}\n"
+"\n"
+"{business_name}"
+
+#: src/Installation/Seeder.php:334
+msgid "Your booking was cancelled — {service_name}"
+msgstr "Lịch đặt của bạn đã bị hủy — {service_name}"
+
+#: src/Installation/Seeder.php:335
+msgid ""
+"Hi {customer_name},\n"
+"\n"
+"Your booking for {service_name} on {booking_date} at {booking_time} has been "
+"cancelled.\n"
+"\n"
+"Reference: {order_code}\n"
+"View your booking: {manage_link}\n"
+"\n"
+"Book again: {booking_page_link}\n"
+"\n"
+"{business_name}"
+msgstr ""
+
+#: src/Installation/Seeder.php:336
+msgid "Thank you for visiting {business_name}"
+msgstr "Cảm ơn bạn đã ghé {business_name}"
+
+#: src/Installation/Seeder.php:337
+msgid ""
+"Hi {customer_name},\n"
+"\n"
+"Thank you for choosing {service_name}. We hope to see you again.\n"
+"\n"
+"{business_name}"
+msgstr ""
+"Chào {customer_name},\n"
+"\n"
+"Cảm ơn bạn đã chọn {service_name}. Hẹn gặp lại bạn.\n"
+"\n"
+"{business_name}"
+
+#: src/Installation/Seeder.php:338
+msgid "Reminder: your booking for {service_name} is coming up"
+msgstr ""
+
+#: src/Installation/Seeder.php:339
+msgid ""
+"Hi {customer_name},\n"
+"\n"
+"This is a reminder for your booking for {service_name} on {booking_date} at "
+"{booking_time}.\n"
+"\n"
+"Reference: {order_code}\n"
+"Manage your booking: {manage_link}\n"
+"\n"
+"{business_name}"
+msgstr ""
+
+#: src/Installation/Seeder.php:340
+msgid "We missed you at {business_name}"
+msgstr ""
+
+#: src/Installation/Seeder.php:341
+msgid ""
+"Hi {customer_name},\n"
+"\n"
+"We had you down for {service_name} on {booking_date} at {booking_time}, but "
+"we did not get to see you.\n"
+"\n"
+"Reference: {order_code}\n"
+"\n"
+"Book again: {booking_page_link}\n"
+"\n"
+"{business_name}"
+msgstr ""
+
+#: src/Installation/Seeder.php:342
+msgid "New booking — {service_name}"
+msgstr "Lịch đặt mới — {service_name}"
+
+#: src/Installation/Seeder.php:343
+msgid ""
+"A new booking was made.\n"
+"\n"
+"Service: {service_name}\n"
+"Staff: {staff_name}\n"
+"When: {booking_date} {booking_time}\n"
+"Customer: {customer_name} ({customer_email})\n"
+"Phone: {customer_phone}\n"
+"Reference: {order_code}"
+msgstr ""
+"Có một lịch đặt mới.\n"
+"\n"
+"Dịch vụ: {service_name}\n"
+"Nhân viên: {staff_name}\n"
+"Thời gian: {booking_date} {booking_time}\n"
+"Khách hàng: {customer_name} ({customer_email})\n"
+"Điện thoại: {customer_phone}\n"
+"Mã tham chiếu: {order_code}"
+
+#: src/Installation/Seeder.php:344
+msgid "Booking cancelled — {service_name}"
+msgstr "Lịch đặt bị hủy — {service_name}"
+
+#: src/Installation/Seeder.php:345
+msgid ""
+"A booking was cancelled.\n"
+"\n"
+"Service: {service_name}\n"
+"When: {booking_date} {booking_time}\n"
+"Customer: {customer_name} ({customer_email})\n"
+"Reference: {order_code}\n"
+"Reason: {cancel_reason}"
+msgstr ""
+"Một lịch đặt đã bị hủy.\n"
+"\n"
+"Dịch vụ: {service_name}\n"
+"Thời gian: {booking_date} {booking_time}\n"
+"Khách hàng: {customer_name} ({customer_email})\n"
+"Mã tham chiếu: {order_code}\n"
+"Lý do: {cancel_reason}"
+
+#: src/Installation/Seeder.php:346
+msgid "Complete your payment — {service_name}"
+msgstr ""
+
+#: src/Installation/Seeder.php:347
+msgid ""
+"Hi {customer_name},\n"
+"\n"
+"We are holding your appointment for {service_name} on {booking_date} at "
+"{booking_time}, but we have not received your payment yet.\n"
+"\n"
+"Amount due: {amount_due}\n"
+"Reference: {order_code}\n"
+"Please complete your payment by {payment_deadline}\n"
+"Pay now: {payment_link}\n"
+"Manage your booking: {manage_link}\n"
+"\n"
+"If we do not receive it in time the slot is released automatically.\n"
+"\n"
+"{business_name}"
+msgstr ""
+
+#: src/Installation/Seeder.php:348
+msgid "Your refund is on its way — {service_name}"
+msgstr ""
+
+#: src/Installation/Seeder.php:349
+msgid ""
+"Hi {customer_name},\n"
+"\n"
+"We have refunded {refund_amount} for your booking of {service_name} on "
+"{booking_date}.\n"
+"\n"
+"Reference: {order_code}\n"
+"Payment status: {payment_status}\n"
+"\n"
+"Depending on your bank, it can take a few days for the money to appear.\n"
+"\n"
+"{business_name}"
+msgstr ""
+
+#: src/Installation/Seeder.php:350
+msgid "New booking for you — {service_name}"
+msgstr ""
+
+#: src/Installation/Seeder.php:351
+msgid ""
+"Hi {staff_name},\n"
+"\n"
+"A new booking was added to your calendar.\n"
+"\n"
+"Service: {service_name}\n"
+"When: {booking_date} {booking_time}\n"
+"Customer: {customer_name} ({customer_email})\n"
+"Phone: {customer_phone}\n"
+"Reference: {order_code}"
+msgstr ""
+
+#: src/Installation/Seeder.php:355
+msgid ""
+"Hi {staff_name},\n"
+"\n"
+"A booking was removed from your calendar.\n"
+"\n"
+"Service: {service_name}\n"
+"When: {booking_date} {booking_time}\n"
+"Customer: {customer_name}\n"
+"Reference: {order_code}\n"
+"Reason: {cancel_reason}"
+msgstr ""
+
+#: src/Integration/IntegrationService.php:458
+msgid ""
+"Aponto cannot store this connection securely because this site has no unique "
+"SECURE_AUTH_KEY. See Tools → Site Health for how to add one."
+msgstr ""
+
+#: src/Integration/RemoteEventSync.php:214 src/Payments/PaymentCron.php:125
+msgid "Every five minutes (Aponto)"
+msgstr ""
+
+#: src/Kernel.php:217 src/Kernel.php:311
+msgid "Aponto can store notification payloads encrypted"
+msgstr ""
+
+#: src/Kernel.php:222 src/Kernel.php:256
+msgid "Aponto can put a booking-management link in every email"
+msgstr ""
+
+#: src/Kernel.php:259 src/Kernel.php:314
+msgid "Security"
+msgstr ""
+
+#: src/Kernel.php:262
+msgid ""
+"Aponto can rebuild each booking’s management link, so every customer email "
+"can carry one."
+msgstr ""
+
+#: src/Kernel.php:270
+msgid ""
+"Booking-management links can only be sent in the first email on this site, "
+"because there is no unique SECURE_AUTH_KEY. See the SECURE_AUTH_KEY check "
+"above."
+msgstr ""
+
+#: src/Kernel.php:277
+msgid "Aponto cannot read its booking-link secret"
+msgstr ""
+
+#: src/Kernel.php:280
+msgid ""
+"Aponto’s booking-link secret no longer opens under this site’s "
+"SECURE_AUTH_KEY, so customer emails are going out without a management link "
+"or a payment link. This happens when the key in wp-config.php changes — "
+"after a site copy, a restore, or a manual key rotation. If the key change "
+"was intended, run the repair command below: it replaces the secret so new "
+"bookings get links again, and keeps the old one. If it was NOT intended — or "
+"this site runs on several servers — put the original SECURE_AUTH_KEY back "
+"instead, which also restores links for existing bookings. Aponto never "
+"replaces the secret on its own, because a running request cannot tell those "
+"two cases apart."
+msgstr ""
+
+#: src/Kernel.php:291
+msgid "Aponto replaced its booking-link secret recently"
+msgstr ""
+
+#: src/Kernel.php:294
+msgid ""
+"Aponto’s booking-link secret was replaced by a repair run, so new bookings "
+"get management links again. Bookings made before the change cannot have "
+"their links rebuilt unless the original SECURE_AUTH_KEY is restored — the "
+"previous secret is kept in the aponto_manage_token_secret_prev option in "
+"case it is. If you did not change the key deliberately, check whether wp-"
+"config.php was replaced."
+msgstr ""
+
+#: src/Kernel.php:317
+msgid ""
+"SECURE_AUTH_KEY is set, so Aponto encrypts stored notification payloads and "
+"can retry failed emails."
+msgstr ""
+
+#: src/Kernel.php:324
+msgid "Aponto works best with a unique SECURE_AUTH_KEY"
+msgstr ""
+
+#: src/Kernel.php:327
+msgid ""
+"SECURE_AUTH_KEY in wp-config.php is missing or still the placeholder. Aponto "
+"keeps working — bookings and emails are unaffected — but failed emails "
+"cannot be stored encrypted for retry, and booking-management links can only "
+"be sent in the first email. Most hosts set this key automatically; if yours "
+"did not, ask your host how to replace the WordPress security keys in wp-"
+"config.php."
+msgstr ""
+
+#: src/Kernel.php:342
+msgid ""
+"Aponto: the premium edition was requested (APONTO_DEV) but the Pro files are "
+"missing. Running in Free mode."
+msgstr ""
+
+#. translators: %s: migration identifier.
+#: src/Kernel.php:356
+#, php-format
+msgid ""
+"Aponto: a database migration did not complete (%s). It will be retried "
+"automatically."
+msgstr ""
+
+#: src/Notification/NotificationContext.php:208
+#: assets/src/admin/lib/payment-status.js:51
+msgid "Awaiting payment"
+msgstr ""
+
+#: src/Notification/NotificationContext.php:210
+#: assets/src/admin/lib/payment-status.js:58
+msgid "Paid"
+msgstr ""
+
+#: src/Notification/NotificationContext.php:212
+msgid "Partially refunded"
+msgstr ""
+
+#: src/Notification/NotificationContext.php:214
+#: assets/src/admin/lib/payment-status.js:68
+#: assets/src/admin/routes/BookingEditor.jsx:800
+msgid "Refunded"
+msgstr ""
+
+#: src/Notification/NotificationContext.php:216
+msgid "Unpaid"
+msgstr ""
+
+#. translators: 1: appointment time at the studio, 2: friendly studio timezone label "City (GMT±N)", 3: the same time in the customer's timezone, 4: friendly customer timezone label "City (GMT±N)".
+#: src/Notification/NotificationContext.php:420
+#, php-format
+msgid "%1$s — %2$s (customer time: %3$s — %4$s)"
+msgstr "%1$s — %2$s (giờ khách: %3$s — %4$s)"
+
+#. translators: 1: appointment time in the visitor's timezone, 2: friendly timezone label "City (GMT±N)", 3: the same time in the business timezone.
+#: src/Notification/NotificationContext.php:430
+#, php-format
+msgid "%1$s — %2$s (%3$s at the studio)"
+msgstr "%1$s — %2$s (%3$s tại cơ sở)"
+
+#. translators: 1: appointment time, 2: friendly timezone label "City (GMT±N)".
+#: src/Notification/NotificationContext.php:439
+#, php-format
+msgid "%1$s — %2$s"
+msgstr "%1$s — %2$s"
+
+#: src/Notification/NotificationDispatcher.php:1774
+msgid "Schedule conflict"
+msgstr "Trùng lịch"
+
+#: src/Onboarding/WizardPage.php:296
+msgid "You are not allowed to do this."
+msgstr "Bạn không được phép thực hiện thao tác này."
+
+#: src/Onboarding/WizardPage.php:299
+msgid "You are not allowed to create pages."
+msgstr "Bạn không được phép tạo trang."
+
+#: src/Onboarding/WizardPage.php:357
+msgid "That step could not be saved. Please try again."
+msgstr "Không thể lưu bước này. Vui lòng thử lại."
+
+#: src/Onboarding/WizardService.php:390
+msgid ""
+"Those business hours could not be read. Reload this page and set your hours "
+"again."
+msgstr ""
+
+#: src/Onboarding/WizardService.php:404 assets/src/wizard/index.js:264
+msgid "The end time must be after the start time."
+msgstr ""
+
+#: src/Onboarding/WizardService.php:407
+msgid ""
+"Some business hours are invalid. Check the highlighted days and try again."
+msgstr ""
+
+#: src/Onboarding/WizardService.php:491 src/Onboarding/WizardService.php:495
+#: src/Onboarding/WizardService.php:520 src/Rest/Args.php:113
+#: src/Rest/Args.php:117 assets/src/wizard/index.js:283
+msgid "A name is required."
+msgstr ""
+
+#: src/Onboarding/WizardService.php:498 src/Rest/Args.php:120
+#: assets/src/wizard/index.js:286
+msgid "This name is too long."
+msgstr ""
+
+#: src/Onboarding/WizardService.php:528 assets/src/wizard/index.js:302
+msgid "Enter a valid email address, or leave it blank."
+msgstr ""
+
+#: src/Onboarding/WizardService.php:678
+msgid "Book an appointment"
+msgstr "Đặt lịch hẹn"
+
+#: src/Payments/PaymentDispatcher.php:126
+#: src/Payments/PaymentDispatcher.php:177
+#: src/Payments/PaymentDispatcher.php:244
+msgid "The payment gateway returned an unexpected response."
+msgstr ""
+
+#: src/Payments/PaymentDispatcher.php:213
+msgid "This payment gateway is not available on this site."
+msgstr ""
+
+#: src/Payments/PaymentService.php:2460
+msgid "Payment received for a booking that had expired"
+msgstr ""
+
+#: src/Payments/PaymentService.php:2461
+msgid ""
+"A payment arrived after this booking's hold had already expired, so the "
+"appointment was released and is NOT booked.\n"
+"\n"
+"Service: {service_name}\n"
+"When: {booking_date} {booking_time}\n"
+"Customer: {customer_name} ({customer_email})\n"
+"Reference: {order_code}\n"
+"Amount paid: {amount_paid}\n"
+"\n"
+"Please refund the customer or re-book them."
+msgstr ""
+
+#: src/Payments/PaymentService.php:3065
+msgid "A booking payment needs review"
+msgstr ""
+
+#: src/Payments/PaymentService.php:3066
+msgid ""
+"This booking's payment hold has expired, but the payment gateway will not "
+"confirm what happened to the payment, so the appointment has NOT been "
+"released.\n"
+"\n"
+"Service: {service_name}\n"
+"When: {booking_date} {booking_time}\n"
+"Customer: {customer_name} ({customer_email})\n"
+"Reference: {order_code}\n"
+"\n"
+"Check this order in your payment gateway's dashboard. If the customer was "
+"charged, refund them or keep the appointment; if they were not, cancel the "
+"booking here and the appointment will be released."
+msgstr ""
+
+#: src/Payments/Stripe/Config.php:424
+msgid ""
+"Enter the TEST publishable key from your Stripe dashboard. It starts with "
+"pk_test_."
+msgstr ""
+
+#: src/Payments/Stripe/Config.php:425
+msgid ""
+"Enter the LIVE publishable key from your Stripe dashboard. It starts with "
+"pk_live_."
+msgstr ""
+
+#: src/Payments/Stripe/Config.php:429
+msgid ""
+"Enter the TEST secret key from your Stripe dashboard. It starts with "
+"sk_test_ or rk_test_."
+msgstr ""
+
+#: src/Payments/Stripe/Config.php:430
+msgid ""
+"Enter the LIVE secret key from your Stripe dashboard. It starts with "
+"sk_live_ or rk_live_."
+msgstr ""
+
+#: src/Payments/Stripe/Config.php:433
+msgid ""
+"Enter the signing secret of your Stripe webhook endpoint. It starts with "
+"whsec_."
+msgstr ""
+
+#. translators: %d: maximum number of characters.
+#: src/Payments/Stripe/Config.php:441
+#, php-format
+msgid "Keep the statement descriptor suffix to %d characters or fewer."
+msgstr ""
+
+#: src/Payments/Stripe/Config.php:445
+msgid ""
+"The statement descriptor suffix may use letters, numbers, spaces and . , - "
+"only."
+msgstr ""
+
+#: src/Payments/Stripe/Config.php:449
+#: src/Payments/Stripe/WebhookEndpoint.php:157
+msgid "Choose Test mode or Live mode."
+msgstr ""
+
+#: src/Payments/Stripe/Driver.php:184
+msgid ""
+"Ready to take payments through Stripe. Live mode: real cards are charged."
+msgstr ""
+
+#: src/Payments/Stripe/Driver.php:185
+msgid "Ready to take payments through Stripe. Test mode: no real charges."
+msgstr ""
+
+#: src/Payments/Stripe/Driver.php:191
+msgid ""
+"Add your LIVE publishable key, secret key and webhook signing secret to "
+"finish setup."
+msgstr ""
+
+#: src/Payments/Stripe/Driver.php:192
+msgid ""
+"Add your TEST publishable key, secret key and webhook signing secret to "
+"finish setup."
+msgstr ""
+
+#: src/Payments/Stripe/Driver.php:194
+msgid "This module is switched off, so Stripe is not offered at checkout."
+msgstr ""
+
+#: src/Payments/Stripe/Driver.php:303
+msgid ""
+"Add your Stripe publishable key, secret key and webhook signing secret first."
+msgstr ""
+
+#: src/Payments/Stripe/Driver.php:315
+msgid ""
+"Stripe rejected this secret key. Copy it again from your Stripe dashboard."
+msgstr ""
+
+#: src/Payments/Stripe/Driver.php:322
+msgid "Could not reach Stripe. Check the connection and try again."
+msgstr ""
+
+#: src/Payments/Stripe/Driver.php:326
+msgid "Stripe could not complete the request."
+msgstr ""
+
+#: src/Payments/Stripe/Driver.php:333
+msgid "Connected to Stripe (live mode)."
+msgstr ""
+
+#: src/Payments/Stripe/Driver.php:334
+msgid "Connected to Stripe (test mode)."
+msgstr ""
+
+#: src/Payments/Stripe/Driver.php:726
+msgid ""
+"This payment was taken in test mode; switch the module to Test mode to "
+"refund it."
+msgstr ""
+
+#: src/Payments/Stripe/Driver.php:727
+msgid ""
+"This payment was taken in live mode; switch the module to Live mode to "
+"refund it."
+msgstr ""
+
+#: src/Payments/Stripe/WebhookEndpoint.php:164
+#: src/Payments/Stripe/WebhookEndpoint.php:465
+msgid "Save a valid secret key for this mode first."
+msgstr ""
+
+#: src/Payments/Stripe/WebhookEndpoint.php:177
+#: src/Rest/Controller/ModulesController.php:316
+msgid ""
+"Aponto cannot store this secret securely because this site has no unique "
+"SECURE_AUTH_KEY. See Tools → Site Health for how to add one."
+msgstr ""
+
+#: src/Payments/Stripe/WebhookEndpoint.php:484
+msgid ""
+"Stripe cannot reach this site’s URL, so one-click registration only works on "
+"a publicly reachable site. Add the webhook by hand in your Stripe dashboard "
+"using the URL shown above."
+msgstr ""
+
+#: src/Privacy/PersonalData.php:51 src/Privacy/PersonalData.php:63
+#: src/Privacy/PersonalData.php:121
+msgid "Aponto bookings"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:93
+msgid "Aponto customer"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:97 assets/src/wizard/index.js:983
+msgid "Name"
+msgstr "Tên"
+
+#: src/Privacy/PersonalData.php:101
+#: assets/src/admin/notifications/NotificationsApp.jsx:510
+#: assets/src/form/lib/copy.js:67 assets/src/wizard/index.js:1000
+msgid "Email"
+msgstr "Email"
+
+#: src/Privacy/PersonalData.php:105 assets/src/form/lib/copy.js:69
+#: assets/src/wizard/index.js:679
+msgid "Phone"
+msgstr "Số điện thoại"
+
+#: src/Privacy/PersonalData.php:109 src/Privacy/PersonalData.php:149
+msgid "Note"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:125 assets/src/wizard/Chrome.jsx:57
+msgid "Service"
+msgstr "Dịch vụ"
+
+#: src/Privacy/PersonalData.php:129
+msgid "Start (UTC)"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:133
+msgid "End (UTC)"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:137 src/Privacy/PersonalData.php:232
+#: src/Privacy/PersonalData.php:304
+#: assets/src/admin/notifications/NotificationsApp.jsx:512
+msgid "Status"
+msgstr "Trạng thái"
+
+#: src/Privacy/PersonalData.php:141
+#: assets/src/admin/settings/SettingsApp.jsx:649 assets/src/wizard/index.js:688
+msgid "Timezone"
+msgstr "Múi giờ"
+
+#: src/Privacy/PersonalData.php:153
+msgid "Consent at"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:157 src/Privacy/PersonalData.php:198
+msgid "Order code"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:172
+msgid "Aponto booking form answers"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:176 src/Privacy/PersonalData.php:266
+#: src/Privacy/PersonalData.php:296 src/Privacy/PersonalData.php:326
+#: assets/src/admin/modules/catalog.js:30
+#: assets/src/admin/modules/catalog.js:60 assets/src/admin/settings/ia.js:84
+#: assets/src/form/editor.jsx:269
+msgid "Booking"
+msgstr "Đặt lịch"
+
+#: src/Privacy/PersonalData.php:180
+msgid "Question"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:184
+msgid "Answer"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:194
+msgid "Aponto orders"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:202
+msgid "Total (minor units)"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:206 src/Privacy/PersonalData.php:240
+#: assets/src/admin/settings/catalog.js:117 assets/src/wizard/index.js:702
+msgid "Currency"
+msgstr "Đơn vị tiền tệ"
+
+#: src/Privacy/PersonalData.php:210
+msgid "Payment status"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:214
+msgid "Items"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:224
+msgid "Aponto payments"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:228
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:555
+msgid "Type"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:236
+msgid "Amount (minor units)"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:244
+msgid "Payment provider"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:248
+msgid "Provider reference"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:252
+msgid "Date"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:262
+msgid "Aponto booking activity"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:270
+msgid "Action"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:274
+msgid "Details"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:278
+msgid "Initiated by"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:282
+msgid "When (UTC)"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:292
+msgid "Aponto notifications"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:300
+msgid "Template"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:308
+msgid "Recipient"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:312
+#: assets/src/admin/notifications/NotificationsApp.jsx:676
+#: assets/src/pro/reminders/RemindersPanel.jsx:439
+msgid "Subject"
+msgstr "Tiêu đề"
+
+#: src/Privacy/PersonalData.php:322
+msgid "Aponto booking requests"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:330
+msgid "Record"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:331
+msgid "A booking-request deduplication record exists."
+msgstr ""
+
+#: src/Privacy/PersonalData.php:334
+msgid "Expires (UTC)"
+msgstr ""
+
+#: src/Privacy/PersonalData.php:371
+msgid ""
+"Aponto customer contact data was anonymized; booking audit records were "
+"retained."
+msgstr ""
+
+#: src/Privacy/PersonalData.php:537
+msgid "(encrypted content unavailable)"
+msgstr ""
+
+#: src/Pro/CalendarGoogle/Driver.php:220
+msgid "Add your Google Cloud Client ID and Client Secret first."
+msgstr ""
+
+#: src/Pro/CalendarGoogle/Driver.php:228 src/Pro/CalendarOutlook/Driver.php:288
+msgid "Credentials are saved. Connect a staff member to finish."
+msgstr ""
+
+#. translators: %s: the connected Google account.
+#. translators: %s: the connected Microsoft account.
+#: src/Pro/CalendarGoogle/Driver.php:246 src/Pro/CalendarOutlook/Driver.php:312
+#, php-format
+msgid "Connected to %s."
+msgstr ""
+
+#: src/Pro/CalendarGoogle/Driver.php:735
+msgid ""
+"Google is rate-limiting this account right now. The connection is fine — try "
+"again shortly."
+msgstr ""
+
+#: src/Pro/CalendarGoogle/Driver.php:743
+msgid ""
+"Google no longer accepts this authorization. Connect this staff member again."
+msgstr ""
+
+#: src/Pro/CalendarGoogle/Driver.php:750
+msgid "Could not reach Google Calendar. Try again in a moment."
+msgstr ""
+
+#: src/Pro/CalendarGoogle/EventMapper.php:87
+#: src/Pro/CalendarOutlook/EventMapper.php:164
+#: assets/src/form/components/Confirmation.jsx:33
+msgid "Appointment"
+msgstr "Lịch hẹn"
+
+#. translators: %s: staff member name.
+#: src/Pro/CalendarGoogle/EventMapper.php:97
+#: src/Pro/CalendarOutlook/EventMapper.php:171
+#, php-format
+msgid "Staff: %s"
+msgstr ""
+
+#. translators: %s: service name.
+#: src/Pro/CalendarGoogle/EventMapper.php:100
+#: src/Pro/CalendarOutlook/EventMapper.php:174
+#, php-format
+msgid "Service: %s"
+msgstr ""
+
+#: src/Pro/CalendarGoogle/EventMapper.php:104
+#: src/Pro/CalendarOutlook/EventMapper.php:178
+msgid "Created by Aponto."
+msgstr ""
+
+#: src/Pro/CalendarOutlook/Driver.php:280
+msgid ""
+"Add your Microsoft Entra Application (client) ID and client secret first."
+msgstr ""
+
+#: src/Pro/CalendarOutlook/Driver.php:313
+#: assets/src/admin/modules/catalog.js:75
+msgid "Outlook Calendar"
+msgstr "Outlook Calendar"
+
+#: src/Pro/CalendarOutlook/Driver.php:1063
+msgid ""
+"Microsoft no longer accepts this authorization. Connect this staff member "
+"again."
+msgstr ""
+
+#: src/Pro/CalendarOutlook/Driver.php:1076
+msgid ""
+"Microsoft refused access to this mailbox. Check that the account has a "
+"mailbox licence and that your app registration still grants "
+"Calendars.ReadWrite."
+msgstr ""
+
+#: src/Pro/CalendarOutlook/Driver.php:1083
+msgid "Could not reach Outlook Calendar. Try again in a moment."
+msgstr ""
+
+#: src/Pro/CustomFields/Definitions.php:143
+msgid "A list of fields is required."
+msgstr ""
+
+#. translators: %d: maximum number of custom booking-form fields.
+#: src/Pro/CustomFields/Definitions.php:152
+#, php-format
+msgid "You can add at most %d fields."
+msgstr ""
+
+#: src/Pro/CustomFields/Definitions.php:166
+#: src/Pro/CustomFields/Definitions.php:185
+#: src/Pro/CustomFields/Definitions.php:295
+#: src/Pro/CustomFields/Definitions.php:307
+#: src/Pro/CustomFields/Definitions.php:348
+#: src/Pro/Reminders/StepConfig.php:299
+#: src/Rest/Controller/IntegrationsController.php:359
+#: src/Rest/Controller/ModulesController.php:372
+#: src/Rest/Controller/ModulesController.php:385
+#: src/Rest/Controller/ModulesController.php:463
+#: src/Rest/Controller/NotificationsController.php:283
+#: src/Rest/Controller/SettingsController.php:131
+#: src/Rest/Support/CustomFieldInput.php:66
+#: src/Rest/Support/CustomFieldInput.php:73
+#: src/Rest/Support/CustomFieldInput.php:112
+msgid "This value is invalid."
+msgstr ""
+
+#: src/Pro/CustomFields/Definitions.php:172
+msgid "A label is required."
+msgstr ""
+
+#: src/Pro/CustomFields/Definitions.php:174
+msgid "This label is too long."
+msgstr ""
+
+#: src/Pro/CustomFields/Definitions.php:179 src/Rest/Args.php:262
+#: src/Rest/Args.php:399 src/Rest/Support/CustomFieldInput.php:136
+msgid "This value is not allowed."
+msgstr ""
+
+#: src/Pro/CustomFields/Definitions.php:276
+msgid "Add at least one option."
+msgstr ""
+
+#. translators: %d: maximum number of choices in a dropdown field.
+#: src/Pro/CustomFields/Definitions.php:283
+#, php-format
+msgid "You can add at most %d options."
+msgstr ""
+
+#: src/Pro/CustomFields/Definitions.php:303
+msgid "An option label is required."
+msgstr ""
+
+#: src/Pro/CustomFields/Definitions.php:311
+msgid "This option is a duplicate."
+msgstr ""
+
+#. translators: %d: maximum answer length in characters.
+#: src/Pro/CustomFields/Definitions.php:357
+#, php-format
+msgid "Enter a length between 1 and %d."
+msgstr ""
+
+#: src/Pro/MultiLocation/ManageLocationsController.php:222
+#: src/Rest/Controller/ServicesController.php:518
+#: src/Rest/Controller/StaffController.php:528
+msgid "At least one field must be provided."
+msgstr ""
+
+#: src/Pro/MultiLocation/ManageLocationsController.php:238
+msgid "A text value is required."
+msgstr ""
+
+#. translators: %d: maximum character count.
+#: src/Pro/MultiLocation/ManageLocationsController.php:245
+#, php-format
+msgid "Must be at most %d characters."
+msgstr ""
+
+#: src/Pro/MultiLocation/ManageLocationsController.php:259
+msgid "A two-letter country code is required."
+msgstr ""
+
+#: src/Pro/MultiLocation/ManageLocationsController.php:265
+msgid "Use a two-letter ISO country code."
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Config.php:448
+msgid ""
+"Copy the value straight from your LIVE PayPal app — this one has characters "
+"PayPal never uses."
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Config.php:449
+msgid ""
+"Copy the value straight from your SANDBOX PayPal app — this one has "
+"characters PayPal never uses."
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Config.php:455
+msgid ""
+"Paste the Webhook ID PayPal shows after you save the webhook, not the "
+"endpoint URL."
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Config.php:460
+msgid "Choose Sandbox mode or Live mode."
+msgstr ""
+
+#. translators: %d: maximum number of characters.
+#: src/Pro/PaymentsPayPal/Config.php:467
+#, php-format
+msgid "PayPal shows at most %d characters here."
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Config.php:647
+msgid ""
+"Ready to take payments through PayPal. Live mode: real PayPal accounts are "
+"charged."
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Config.php:648
+msgid ""
+"Ready to take payments through PayPal. Sandbox mode: no real money moves."
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Config.php:650
+msgid "This module is switched off, so PayPal is not offered at checkout."
+msgstr ""
+
+#. translators: %s: comma-separated list of missing field names.
+#: src/Pro/PaymentsPayPal/Config.php:659
+#, php-format
+msgid ""
+"Live mode is incomplete — add your LIVE %s. PayPal is not offered until you "
+"do."
+msgstr ""
+
+#. translators: %s: comma-separated list of missing field names.
+#: src/Pro/PaymentsPayPal/Config.php:664
+#, php-format
+msgid ""
+"Sandbox mode is incomplete — add your SANDBOX %s. PayPal is not offered "
+"until you do."
+msgstr ""
+
+#. translators: %s: the site's ISO-4217 currency code.
+#: src/Pro/PaymentsPayPal/Config.php:670 src/Pro/PaymentsPayPal/Driver.php:398
+#, php-format
+msgid ""
+"PayPal does not accept payments in %s, so this gateway is not offered. "
+"Change the site currency, or use another gateway."
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Config.php:674
+msgid "PayPal is not ready to take payments yet."
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Config.php:946
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:364
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:615
+msgid "Client ID"
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Config.php:949
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:635
+msgid "Secret"
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Config.php:952
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:656
+msgid "Webhook ID"
+msgstr ""
+
+#. translators: %s: the active PayPal mode — Sandbox or Live.
+#: src/Pro/PaymentsPayPal/Driver.php:345
+#, php-format
+msgid "Add the %s Client ID and Secret first."
+msgstr ""
+
+#. translators: %s: the active PayPal mode — Sandbox or Live.
+#: src/Pro/PaymentsPayPal/Driver.php:359
+#, php-format
+msgid ""
+"PayPal rejected these credentials. Check that they come from your %s app."
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Driver.php:368
+msgid "PayPal could not be reached. Try again in a moment."
+msgstr ""
+
+#. translators: %s: the active PayPal mode — Sandbox or Live.
+#: src/Pro/PaymentsPayPal/Driver.php:383
+#, php-format
+msgid ""
+"Credentials are valid for %s mode. Add that mode’s Webhook ID to finish "
+"setup."
+msgstr ""
+
+#. translators: %s: the active PayPal mode — Sandbox or Live.
+#: src/Pro/PaymentsPayPal/Driver.php:409
+#, php-format
+msgid "Connected to PayPal (%s mode)."
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Driver.php:423
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:147
+#: assets/src/pro/payments_paypal/rest.js:297
+msgid "Live"
+msgstr ""
+
+#: src/Pro/PaymentsPayPal/Driver.php:423
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:147
+#: assets/src/pro/payments_paypal/rest.js:297
+msgid "Sandbox"
+msgstr ""
+
+#: src/Pro/Reminders/Provider.php:102
+msgid "Every five minutes (Aponto reminders)"
+msgstr ""
+
+#: src/Pro/Reminders/StepConfig.php:191
+msgid "A list of reminder steps is required."
+msgstr ""
+
+#. translators: %d: maximum number of reminder steps.
+#: src/Pro/Reminders/StepConfig.php:197
+#, php-format
+msgid "Up to %d reminder steps are allowed."
+msgstr ""
+
+#: src/Pro/Reminders/StepConfig.php:212
+msgid "This reminder step is invalid."
+msgstr ""
+
+#: src/Pro/Reminders/StepConfig.php:224
+msgid "Choose when this reminder is sent."
+msgstr ""
+
+#: src/Pro/Reminders/StepConfig.php:258
+msgid "Enter a whole number of minutes."
+msgstr ""
+
+#. translators: 1: minimum minutes, 2: maximum minutes.
+#: src/Pro/Reminders/StepConfig.php:267
+#, php-format
+msgid "Choose an offset between %1$d and %2$d minutes."
+msgstr ""
+
+#: src/Pro/Reminders/StepConfig.php:311 src/Rest/Router.php:91
+#: src/Rest/Support/CustomFieldInput.php:97
+#: src/Rest/Support/CustomFieldInput.php:129 assets/src/form/lib/copy.js:91
+msgid "This field is required."
+msgstr ""
+
+#. translators: %d: maximum length in characters.
+#: src/Pro/Reminders/StepConfig.php:318
+#, php-format
+msgid "Keep this under %d characters."
+msgstr ""
+
+#. translators: %s: placeholder token.
+#: src/Pro/Reminders/StepConfig.php:329
+#: src/Rest/Controller/NotificationsController.php:230
+#, php-format
+msgid "Unknown placeholder: %s"
+msgstr "Trường thay thế không xác định: %s"
+
+#: src/Rest/Args.php:87
+msgid "A valid identifier is required."
+msgstr ""
+
+#: src/Rest/Args.php:133 src/Rest/Controller/NotificationsController.php:332
+msgid "A valid email address is required."
+msgstr "Cần một địa chỉ email hợp lệ."
+
+#: src/Rest/Args.php:149
+msgid "This phone number is invalid."
+msgstr ""
+
+#: src/Rest/Args.php:162
+msgid "A valid UTC date-time is required."
+msgstr ""
+
+#: src/Rest/Args.php:175
+msgid "A valid date is required."
+msgstr ""
+
+#: src/Rest/Args.php:240
+msgid "A valid timezone is required."
+msgstr ""
+
+#: src/Rest/Args.php:352
+msgid "Page must be at least 1."
+msgstr ""
+
+#: src/Rest/Args.php:367
+msgid "Per-page must be between 1 and 100."
+msgstr ""
+
+#: src/Rest/Controller/BlockedPeriodsController.php:105
+msgid "The end of the window must be after its start."
+msgstr ""
+
+#: src/Rest/Controller/BlockedPeriodsController.php:140
+msgid "The end must be after the start."
+msgstr ""
+
+#: src/Rest/Controller/BookingsController.php:164
+#: src/Rest/Controller/ExportController.php:128
+msgid "\"from\" must be before \"to\"."
+msgstr ""
+
+#: src/Rest/Controller/BookingsController.php:214
+#: src/Rest/Controller/PublicBookingsController.php:244
+msgid "Customer details are required."
+msgstr ""
+
+#: src/Rest/Controller/BookingsController.php:324
+msgid "At least one booking field must be provided."
+msgstr ""
+
+#: src/Rest/Controller/CustomersController.php:150
+#: src/Rest/Controller/CustomersController.php:200
+msgid "A customer with this email already exists."
+msgstr ""
+
+#: src/Rest/Controller/EligibilityController.php:281
+msgid "A list of staff/location assignments is required."
+msgstr ""
+
+#: src/Rest/Controller/EligibilityController.php:290
+msgid "Each assignment needs a staff_id."
+msgstr ""
+
+#: src/Rest/Controller/EligibilityController.php:297
+msgid "Every staff_id must be a positive integer."
+msgstr ""
+
+#: src/Rest/Controller/EligibilityController.php:306
+msgid "Every location_id must be a non-negative integer."
+msgstr ""
+
+#: src/Rest/Controller/EligibilityController.php:315
+msgid "Assignment pairs must be distinct."
+msgstr ""
+
+#: src/Rest/Controller/IntegrationsController.php:192
+#: src/Rest/Controller/IntegrationsController.php:254
+msgid "A staff member is required."
+msgstr ""
+
+#: src/Rest/Controller/IntegrationsController.php:364
+msgid "This value is too long."
+msgstr ""
+
+#: src/Rest/Controller/ModulesController.php:175
+msgid "A boolean enabled flag is required."
+msgstr ""
+
+#: src/Rest/Controller/ModulesController.php:241
+msgid "A settings object is required."
+msgstr ""
+
+#: src/Rest/Controller/ModulesController.php:247
+msgid "Unknown setting key."
+msgstr ""
+
+#: src/Rest/Controller/NotificationsController.php:200
+msgid "A list of templates is required."
+msgstr "Cần một danh sách mẫu."
+
+#: src/Rest/Controller/NotificationsController.php:209
+msgid "Each item must be an object."
+msgstr "Mỗi mục phải là một đối tượng."
+
+#: src/Rest/Controller/NotificationsController.php:214
+msgid "Unknown template key."
+msgstr "Khóa mẫu không xác định."
+
+#: src/Rest/Controller/NotificationsController.php:222
+msgid "A subject is required."
+msgstr "Cần có tiêu đề."
+
+#: src/Rest/Controller/NotificationsController.php:225
+msgid "A body is required."
+msgstr "Cần có nội dung."
+
+#: src/Rest/Controller/NotificationsController.php:241
+msgid "All templates are required."
+msgstr "Cần đủ tất cả các mẫu."
+
+#: src/Rest/Controller/NotificationsController.php:284
+msgid "Enter a valid email address or leave it blank."
+msgstr ""
+
+#: src/Rest/Controller/PaymentsController.php:148
+msgid "A payment reference is required."
+msgstr ""
+
+#: src/Rest/Controller/PaymentsController.php:399
+msgid "The refund amount must be a positive whole number of minor units."
+msgstr ""
+
+#: src/Rest/Controller/PublicAvailabilityController.php:112
+msgid "\"from_date\" must not be after \"to_date\"."
+msgstr ""
+
+#: src/Rest/Controller/PublicBookingsController.php:215
+msgid "A valid idempotency key header is required."
+msgstr ""
+
+#: src/Rest/Controller/PublicBookingsController.php:263
+msgid "A phone number is required."
+msgstr ""
+
+#: src/Rest/Controller/PublicBookingsController.php:266
+msgid "Consent is required."
+msgstr ""
+
+#: src/Rest/Controller/PublicBookingsController.php:295
+msgid "This time is outside the allowed booking window."
+msgstr ""
+
+#: src/Rest/Controller/PublicBookingsController.php:309
+msgid "This service is free, so it takes no payment method."
+msgstr ""
+
+#: src/Rest/Controller/PublicBookingsController.php:315
+msgid "Please choose a payment method."
+msgstr ""
+
+#: src/Rest/Controller/PublicBookingsController.php:386
+msgid "The management link has been sent to your email."
+msgstr ""
+
+#: src/Rest/Controller/PublicBookingsController.php:420
+#: src/Rest/Controller/PublicBookingsController.php:428
+#: src/Rest/Controller/PublicBookingsController.php:437
+#: src/Rest/Support/CustomFieldInput.php:85
+msgid "Unknown field."
+msgstr ""
+
+#: src/Rest/Controller/PublicBookingsController.php:471
+msgid "That payment method is not available."
+msgstr ""
+
+#: src/Rest/Controller/PublicServicesController.php:82
+msgid "Unexpected parameter."
+msgstr ""
+
+#: src/Rest/Controller/ScheduleController.php:168
+#: src/Rest/Controller/ScheduleController.php:216
+msgid "A weekly schedule is required."
+msgstr ""
+
+#: src/Rest/Controller/ScheduleController.php:176
+msgid "Overrides must be a list."
+msgstr ""
+
+#: src/Rest/Controller/ScheduleController.php:361
+msgid "Each weekly entry needs a weekday."
+msgstr ""
+
+#: src/Rest/Controller/ScheduleController.php:366
+msgid "Weekday must be between 1 and 7."
+msgstr ""
+
+#: src/Rest/Controller/ScheduleController.php:370
+msgid "Weekdays must be unique."
+msgstr ""
+
+#: src/Rest/Controller/ScheduleController.php:411
+msgid "Each override needs a valid date."
+msgstr ""
+
+#: src/Rest/Controller/ScheduleController.php:416
+msgid "Override dates must be unique."
+msgstr ""
+
+#: src/Rest/Controller/ScheduleController.php:454
+msgid "Periods must be a list."
+msgstr ""
+
+#: src/Rest/Controller/ScheduleController.php:463
+msgid "Each period needs a start and end minute."
+msgstr ""
+
+#: src/Rest/Controller/ScheduleController.php:470
+msgid "Periods must be within 0..1440 with start before end."
+msgstr ""
+
+#: src/Rest/Controller/ScheduleController.php:475
+msgid "Periods must be sorted and must not overlap."
+msgstr ""
+
+#: src/Rest/Controller/ServiceCategoriesController.php:212
+#: src/Rest/Controller/ServicesController.php:391
+msgid "A non-empty list of ids is required."
+msgstr ""
+
+#: src/Rest/Controller/ServiceCategoriesController.php:218
+#: src/Rest/Controller/ServicesController.php:397
+msgid "Every id must be a positive integer."
+msgstr ""
+
+#: src/Rest/Controller/ServiceCategoriesController.php:223
+#: src/Rest/Controller/ServicesController.php:402
+msgid "Ids must be distinct."
+msgstr ""
+
+#: src/Rest/Controller/ServiceCategoriesController.php:241
+msgid "The list must contain exactly every category."
+msgstr ""
+
+#: src/Rest/Controller/ServiceCategoriesController.php:279
+#: src/Rest/Controller/StaffController.php:518
+msgid "Position must be zero or greater."
+msgstr ""
+
+#. translators: %s: original service name.
+#: src/Rest/Controller/ServicesController.php:371
+#, php-format
+msgid "%s (copy)"
+msgstr ""
+
+#: src/Rest/Controller/ServicesController.php:420
+msgid "The list must contain exactly every service."
+msgstr ""
+
+#: src/Rest/Errors.php:45
+msgid "That time slot is no longer available. Please pick another time."
+msgstr ""
+
+#: src/Rest/Errors.php:47
+msgid "The system is busy right now. Please try again in a moment."
+msgstr ""
+
+#: src/Rest/Errors.php:49
+msgid ""
+"This booking request does not match. Please resubmit your current booking."
+msgstr ""
+
+#: src/Rest/Errors.php:51
+msgid "Your previous request is still being processed. Please wait a moment."
+msgstr ""
+
+#: src/Rest/Errors.php:53
+msgid "Too many requests. Please try again later."
+msgstr ""
+
+#: src/Rest/Errors.php:55
+msgid "Your current plan does not allow this operation."
+msgstr ""
+
+#: src/Rest/Errors.php:57
+msgid ""
+"This item cannot be deleted because related records exist. Archive it "
+"instead."
+msgstr ""
+
+#: src/Rest/Errors.php:59
+msgid "This action is not available for the current status."
+msgstr ""
+
+#: src/Rest/Errors.php:61
+msgid "The cancellation deadline for this booking has passed."
+msgstr ""
+
+#: src/Rest/Errors.php:63
+msgid "The requested resource was not found or is not available."
+msgstr ""
+
+#: src/Rest/Errors.php:65
+msgid "The submitted data is invalid."
+msgstr ""
+
+#: src/Rest/Errors.php:67
+msgid "You are not allowed to perform this operation."
+msgstr ""
+
+#: src/Rest/Errors.php:69
+msgid "You must be signed in to perform this operation."
+msgstr ""
+
+#: src/Rest/Errors.php:71
+msgid "The requested date range exceeds the allowed maximum."
+msgstr ""
+
+#: src/Rest/Errors.php:73
+msgid "The service is temporarily unavailable. Please try again shortly."
+msgstr ""
+
+#: src/Rest/Errors.php:75
+msgid "Settings changed elsewhere — reload to get the latest values."
+msgstr ""
+
+#: src/Rest/Errors.php:77 src/Rest/Errors.php:97
+msgid "The request could not be completed."
+msgstr ""
+
+#: src/Rest/Errors.php:79
+msgid "This integration is not available on this site."
+msgstr ""
+
+#: src/Rest/Errors.php:81
+msgid ""
+"This authorization link has expired or was already used. Start the "
+"connection again."
+msgstr ""
+
+#: src/Rest/Errors.php:83
+msgid ""
+"The calendar provider could not complete this request. Please try again."
+msgstr ""
+
+#: src/Rest/Errors.php:87
+msgid "This request could not be verified."
+msgstr ""
+
+#: src/Rest/Errors.php:89
+msgid "Online payment is not available for this booking right now."
+msgstr ""
+
+#: src/Rest/Errors.php:91
+msgid "The current payment status does not allow this action."
+msgstr ""
+
+#: src/Rest/Errors.php:95
+msgid "The payment provider could not complete this request. Please try again."
+msgstr ""
+
+#: src/Rest/Errors.php:227
+msgid ""
+"This appointment has not started yet. Force it with a reason to mark it as a "
+"no-show."
+msgstr ""
+
+#: src/Rest/Errors.php:228
+msgid ""
+"This appointment has not ended yet. Force-complete it to close it early."
+msgstr "Cuộc hẹn này chưa kết thúc. Dùng hoàn tất cưỡng bức để đóng sớm."
+
+#: src/Rest/RequestValidator.php:169 src/Rest/RequestValidator.php:208
+msgid "A number is required."
+msgstr ""
+
+#: src/Rest/RequestValidator.php:174 src/Rest/RequestValidator.php:213
+msgid "A whole number is required."
+msgstr ""
+
+#. translators: 1: minimum, 2: maximum.
+#: src/Rest/RequestValidator.php:181
+#, php-format
+msgid "Must be between %1$d and %2$d."
+msgstr ""
+
+#. translators: %d: step.
+#: src/Rest/RequestValidator.php:187
+#, php-format
+msgid "Must be a multiple of %d."
+msgstr ""
+
+#: src/Rest/RequestValidator.php:219
+msgid "This value is out of range."
+msgstr ""
+
+#: src/Rest/RequestValidator.php:297
+msgid "A valid #RRGGBB color is required."
+msgstr ""
+
+#: src/Rest/Support/CustomFieldInput.php:118
+#: src/Rest/Support/CustomFieldInput.php:144
+msgid "This answer is too long."
+msgstr ""
+
+#: assets/src/admin/App.jsx:56 assets/src/form/editor.jsx:148
+msgid "Loading services…"
+msgstr "Đang tải dịch vụ…"
+
+#: assets/src/admin/App.jsx:60
+msgid "Loading staff…"
+msgstr ""
+
+#: assets/src/admin/App.jsx:64 assets/src/admin/settings/SettingsApp.jsx:377
+msgid "Loading settings…"
+msgstr ""
+
+#: assets/src/admin/App.jsx:68
+msgid "Loading modules…"
+msgstr ""
+
+#: assets/src/admin/App.jsx:72
+msgid "Loading module settings…"
+msgstr ""
+
+#: assets/src/admin/bookings/BookingsTable.jsx:128
+#: assets/src/admin/bookings/BookingsTable.jsx:932
+#: assets/src/admin/bookings/BookingsTable.jsx:937
+#: assets/src/admin/lib/payment-status.js:108
+msgid "Payment"
+msgstr ""
+
+#: assets/src/admin/index.js:66
+msgid ""
+"This part of the dashboard could not be loaded. Reload the page to try again."
+msgstr ""
+
+#: assets/src/admin/lib/confirm.jsx:51
+msgid "Are you sure?"
+msgstr ""
+
+#: assets/src/admin/lib/confirm.jsx:73
+#: assets/src/admin/routes/RefundDialog.jsx:82
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:475
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:514
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:172
+msgid "Cancel"
+msgstr ""
+
+#: assets/src/admin/lib/confirm.jsx:80
+msgid "Confirm"
+msgstr ""
+
+#: assets/src/admin/lib/lazy.jsx:34
+#: assets/src/admin/lib/MultiSelectPopover.jsx:343
+#: assets/src/admin/routes/ServiceEditor.jsx:599
+msgid "Loading…"
+msgstr ""
+
+#: assets/src/admin/lib/lazy.jsx:43
+msgid "This part of the dashboard could not be loaded."
+msgstr ""
+
+#: assets/src/admin/lib/lazy.jsx:45 assets/src/form/lib/copy.js:83
+msgid "Try again"
+msgstr "Thử lại"
+
+#: assets/src/admin/lib/MultiSelectPopover.jsx:188
+#: assets/src/admin/lib/MultiSelectPopover.jsx:282
+msgid "Select items"
+msgstr ""
+
+#: assets/src/admin/lib/MultiSelectPopover.jsx:192
+msgid "%d item selected"
+msgid_plural "%d items selected"
+msgstr[0] ""
+
+#: assets/src/admin/lib/MultiSelectPopover.jsx:258
+msgid "Search items…"
+msgstr ""
+
+#: assets/src/admin/lib/MultiSelectPopover.jsx:262
+msgid "Search items"
+msgstr ""
+
+#: assets/src/admin/lib/MultiSelectPopover.jsx:273
+msgid "%d selected"
+msgid_plural "%d selected"
+msgstr[0] ""
+
+#: assets/src/admin/lib/MultiSelectPopover.jsx:286
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:177
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:378
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:416
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:197
+msgid "Clear"
+msgstr ""
+
+#: assets/src/admin/lib/MultiSelectPopover.jsx:336
+msgid "No matching items."
+msgstr ""
+
+#: assets/src/admin/lib/MultiSelectPopover.jsx:350
+msgid "Could not load items."
+msgstr ""
+
+#: assets/src/admin/lib/MultiSelectPopover.jsx:363
+msgid "Retry"
+msgstr ""
+
+#: assets/src/admin/lib/MultiSelectPopover.jsx:371
+msgid "Showing the first %d matches. Refine your search for more."
+msgstr ""
+
+#. translators: %s: local time the payment hold expires, e.g. "3:48 PM".
+#: assets/src/admin/lib/payment-status.js:48
+msgid "Hold until %s"
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:52
+msgid ""
+"The slot is held while the customer pays. It is released automatically if "
+"they do not."
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:58
+msgid "Paid in full."
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:62
+msgid "Partly refunded"
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:63
+msgid "Part of this payment has been refunded."
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:69
+msgid "The full amount has been refunded."
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:74
+msgid "Not paid"
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:75
+msgid "No online payment was taken for this booking."
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:108
+#: assets/src/admin/routes/BookingEditor.jsx:670
+msgid "Refund"
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:111
+msgid "Succeeded"
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:112
+#: assets/src/admin/notifications/NotificationsApp.jsx:96
+msgid "Failed"
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:116
+msgid "Cancelling"
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:202
+msgid ""
+"This order’s currency cannot be refunded from here. Refund it in your "
+"payment provider’s dashboard."
+msgstr ""
+
+#. translators: %d: number of decimal places the store currency allows.
+#: assets/src/admin/lib/payment-status.js:212
+msgid "Enter an amount greater than zero, with at most %d decimal places."
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:215
+msgid "Enter a whole amount greater than zero."
+msgstr ""
+
+#: assets/src/admin/lib/payment-status.js:218
+msgid "That is more than is left to refund."
+msgstr ""
+
+#: assets/src/admin/modules/catalog.js:29
+msgid "All"
+msgstr "Tất cả"
+
+#: assets/src/admin/modules/catalog.js:31
+#: assets/src/admin/modules/catalog.js:61
+#: assets/src/admin/modules/catalog.js:597
+#: assets/src/admin/settings/catalog.js:36 assets/src/admin/settings/ia.js:100
+msgid "Payments"
+msgstr "Thanh toán"
+
+#: assets/src/admin/modules/catalog.js:32
+#: assets/src/admin/modules/catalog.js:62
+#: assets/src/admin/modules/catalog.js:613
+msgid "Connections"
+msgstr "Kết nối"
+
+#: assets/src/admin/modules/catalog.js:33
+#: assets/src/admin/modules/catalog.js:63
+msgid "Site & Tools"
+msgstr "Trang & Công cụ"
+
+#: assets/src/admin/modules/catalog.js:42
+msgid "All businesses"
+msgstr "Mọi loại hình kinh doanh"
+
+#: assets/src/admin/modules/catalog.js:43
+msgid "Beauty & wellness"
+msgstr "Làm đẹp & chăm sóc sức khỏe"
+
+#: assets/src/admin/modules/catalog.js:44
+msgid "Coaching & consulting"
+msgstr "Huấn luyện & tư vấn"
+
+#: assets/src/admin/modules/catalog.js:45
+msgid "Fitness & classes"
+msgstr "Thể hình & lớp học"
+
+#: assets/src/admin/modules/catalog.js:46
+msgid "Healthcare"
+msgstr "Y tế"
+
+#: assets/src/admin/modules/catalog.js:47
+msgid "Events & experiences"
+msgstr "Sự kiện & trải nghiệm"
+
+#: assets/src/admin/modules/catalog.js:48
+msgid "Venues & rentals"
+msgstr "Địa điểm & cho thuê"
+
+#: assets/src/admin/modules/catalog.js:49
+msgid "Agencies & web"
+msgstr "Agency & dịch vụ web"
+
+#: assets/src/admin/modules/catalog.js:50
+msgid "Field services"
+msgstr "Dịch vụ tận nơi"
+
+#: assets/src/admin/modules/catalog.js:68
+msgid "Multiple staff"
+msgstr "Nhiều nhân viên"
+
+#: assets/src/admin/modules/catalog.js:68
+msgid "Let several team members take bookings on their own schedules."
+msgstr "Cho phép nhiều nhân viên nhận lịch đặt theo lịch làm việc riêng."
+
+#: assets/src/admin/modules/catalog.js:69
+msgid "Google Calendar"
+msgstr "Google Calendar"
+
+#: assets/src/admin/modules/catalog.js:69
+msgid "Two-way sync so bookings land on staff Google calendars."
+msgstr ""
+"Đồng bộ hai chiều để lịch đặt xuất hiện trên Google Calendar của nhân viên."
+
+#: assets/src/admin/modules/catalog.js:74
+msgid "Reminders"
+msgstr "Nhắc lịch"
+
+#: assets/src/admin/modules/catalog.js:74
+msgid ""
+"Custom reminder schedules and follow-ups, on top of the built-in 24-hour "
+"email."
+msgstr ""
+"Lịch nhắc tùy chỉnh và email theo dõi, bên cạnh email nhắc 24 giờ có sẵn."
+
+#: assets/src/admin/modules/catalog.js:75
+msgid "Two-way sync with Outlook and Microsoft 365 calendars."
+msgstr "Đồng bộ hai chiều với lịch Outlook và Microsoft 365."
+
+#: assets/src/admin/modules/catalog.js:76
+#: assets/src/admin/modules/catalog.js:622
+msgid "Video meeting links"
+msgstr "Link phòng họp video"
+
+#: assets/src/admin/modules/catalog.js:76
+msgid "Auto-create Zoom or Google Meet links for online bookings."
+msgstr "Tự động tạo link Zoom hoặc Google Meet cho lịch đặt trực tuyến."
+
+#: assets/src/admin/modules/catalog.js:77
+msgid "Custom fields"
+msgstr "Trường tùy chỉnh"
+
+#: assets/src/admin/modules/catalog.js:77
+msgid "Collect extra details on the booking form."
+msgstr "Thu thập thêm thông tin trên biểu mẫu đặt lịch."
+
+#: assets/src/admin/modules/catalog.js:78
+#: assets/src/admin/modules/catalog.js:631
+msgid "CSV import"
+msgstr "Nhập CSV"
+
+#: assets/src/admin/modules/catalog.js:78
+msgid "Bulk-import customers and bookings from a spreadsheet."
+msgstr "Nhập hàng loạt khách hàng và lịch đặt từ bảng tính."
+
+#: assets/src/admin/modules/catalog.js:84
+#: assets/src/admin/modules/catalog.js:605
+msgid "Stripe payments"
+msgstr "Thanh toán Stripe"
+
+#: assets/src/admin/modules/catalog.js:84
+msgid ""
+"Take card payments inside the booking form with your own Stripe account. "
+"Free."
+msgstr ""
+
+#: assets/src/admin/modules/catalog.js:88
+#: assets/src/admin/modules/catalog.js:606
+msgid "PayPal payments"
+msgstr "Thanh toán PayPal"
+
+#: assets/src/admin/modules/catalog.js:88
+msgid "Let customers pay with their PayPal account at checkout."
+msgstr ""
+
+#: assets/src/admin/modules/catalog.js:89
+#: assets/src/admin/modules/catalog.js:607
+msgid "Deposits"
+msgstr "Tiền cọc"
+
+#: assets/src/admin/modules/catalog.js:89
+msgid "Require a partial payment to confirm a booking."
+msgstr "Yêu cầu thanh toán một phần để xác nhận lịch đặt."
+
+#: assets/src/admin/modules/catalog.js:90
+#: assets/src/admin/modules/catalog.js:608
+msgid "Coupons"
+msgstr "Mã giảm giá"
+
+#: assets/src/admin/modules/catalog.js:90
+msgid "Offer discount codes at checkout."
+msgstr "Cung cấp mã giảm giá ở bước thanh toán."
+
+#: assets/src/admin/modules/catalog.js:91
+#: assets/src/admin/modules/catalog.js:590
+msgid "Group bookings"
+msgstr "Đặt lịch theo nhóm"
+
+#: assets/src/admin/modules/catalog.js:91
+msgid "Allow several attendees in a single time slot."
+msgstr "Cho phép nhiều người tham dự trong cùng một khung giờ."
+
+#: assets/src/admin/modules/catalog.js:92
+msgid "Shared assets"
+msgstr "Tài nguyên dùng chung"
+
+#: assets/src/admin/modules/catalog.js:92
+msgid "Book rooms and equipment alongside services."
+msgstr "Đặt phòng và thiết bị kèm theo dịch vụ."
+
+#: assets/src/admin/modules/catalog.js:93
+msgid "Recurring bookings"
+msgstr "Lịch đặt định kỳ"
+
+#: assets/src/admin/modules/catalog.js:93
+msgid "Let customers book repeating appointments."
+msgstr "Cho phép khách đặt lịch hẹn lặp lại."
+
+#: assets/src/admin/modules/catalog.js:94
+msgid "Multiple locations"
+msgstr "Nhiều địa điểm"
+
+#: assets/src/admin/modules/catalog.js:94
+msgid "Run bookings across several business locations."
+msgstr "Vận hành đặt lịch trên nhiều địa điểm kinh doanh."
+
+#: assets/src/admin/modules/catalog.js:95
+#: assets/src/admin/modules/catalog.js:592
+msgid "Waitlist"
+msgstr "Danh sách chờ"
+
+#: assets/src/admin/modules/catalog.js:95
+msgid "Let customers join a waitlist when slots are full."
+msgstr "Cho phép khách vào danh sách chờ khi đã hết chỗ."
+
+#: assets/src/admin/modules/catalog.js:96
+msgid "SMS notifications"
+msgstr "Thông báo SMS"
+
+#: assets/src/admin/modules/catalog.js:96
+msgid "Send confirmations and reminders by text message."
+msgstr "Gửi xác nhận và nhắc lịch qua tin nhắn."
+
+#: assets/src/admin/modules/catalog.js:97
+#: assets/src/admin/modules/catalog.js:623
+msgid "Webhooks"
+msgstr "Webhook"
+
+#: assets/src/admin/modules/catalog.js:97
+msgid "Send booking events to external services in real time."
+msgstr "Gửi sự kiện đặt lịch tới dịch vụ bên ngoài theo thời gian thực."
+
+#: assets/src/admin/modules/catalog.js:98
+msgid "WooCommerce"
+msgstr "WooCommerce"
+
+#: assets/src/admin/modules/catalog.js:98
+msgid "Use WooCommerce as the checkout and payment gateway."
+msgstr "Dùng WooCommerce làm trang thanh toán và cổng thanh toán."
+
+#: assets/src/admin/modules/catalog.js:99
+msgid "Service catalog"
+msgstr "Danh mục dịch vụ"
+
+#: assets/src/admin/modules/catalog.js:99
+msgid "Public service pages with descriptions and galleries."
+msgstr "Trang dịch vụ công khai kèm mô tả và thư viện ảnh."
+
+#: assets/src/admin/modules/catalog.js:100
+#: assets/src/admin/modules/catalog.js:633
+msgid "Team roles"
+msgstr "Vai trò nhóm"
+
+#: assets/src/admin/modules/catalog.js:100
+msgid "Fine-grained permissions for staff and managers."
+msgstr "Phân quyền chi tiết cho nhân viên và quản lý."
+
+#: assets/src/admin/modules/catalog.js:101
+#: assets/src/admin/modules/catalog.js:634
+msgid "White label"
+msgstr "White label"
+
+#: assets/src/admin/modules/catalog.js:101
+msgid "Replace Aponto branding with your own."
+msgstr "Thay thương hiệu Aponto bằng thương hiệu của bạn."
+
+#: assets/src/admin/modules/catalog.js:105
+#: assets/src/admin/settings/catalog.js:43
+msgid "Booking form"
+msgstr "Biểu mẫu đặt lịch"
+
+#: assets/src/admin/modules/catalog.js:105
+msgid ""
+"Gutenberg block and shortcode with styling controls — identical in Free and "
+"Premium."
+msgstr ""
+"Block Gutenberg và shortcode kèm tùy chọn giao diện — giống nhau ở bản Free "
+"và Premium."
+
+#: assets/src/admin/modules/catalog.js:106
+msgid "Availability engine"
+msgstr "Bộ máy lịch trống"
+
+#: assets/src/admin/modules/catalog.js:106
+msgid ""
+"Weekly hours, date overrides, buffers, lead time and timezone-correct slots."
+msgstr ""
+"Giờ làm việc theo tuần, ghi đè theo ngày, thời gian đệm, thời gian báo trước "
+"và khung giờ đúng múi giờ."
+
+#: assets/src/admin/modules/catalog.js:109
+msgid "24-hour reminder"
+msgstr "Nhắc lịch trước 24 giờ"
+
+#: assets/src/admin/modules/catalog.js:109
+msgid "One automatic email reminder about 24 hours before confirmed bookings."
+msgstr ""
+"Một email nhắc lịch tự động, gửi khoảng 24 giờ trước các lịch đặt đã xác "
+"nhận."
+
+#: assets/src/admin/modules/catalog.js:110
+#: assets/src/admin/modules/catalog.js:615
+msgid "Email notifications"
+msgstr "Thông báo email"
+
+#: assets/src/admin/modules/catalog.js:110
+msgid "Event-triggered emails with editable templates and placeholders."
+msgstr "Email gửi theo sự kiện, với mẫu và placeholder chỉnh sửa được."
+
+#: assets/src/admin/modules/catalog.js:111
+msgid "Calendar links"
+msgstr "Link thêm vào lịch"
+
+#: assets/src/admin/modules/catalog.js:111
+msgid "ICS downloads and add-to-Google links on every confirmation."
+msgstr ""
+"Tải file ICS và link thêm vào Google Calendar trong mọi email xác nhận."
+
+#: assets/src/admin/modules/catalog.js:112
+#: assets/src/admin/modules/catalog.js:630
+msgid "CSV export"
+msgstr "Xuất CSV"
+
+#: assets/src/admin/modules/catalog.js:112
+msgid "Export bookings for spreadsheets and reporting."
+msgstr "Xuất lịch đặt ra bảng tính và báo cáo."
+
+#: assets/src/admin/modules/catalog.js:138
+msgid "Integration"
+msgstr "Tích hợp"
+
+#: assets/src/admin/modules/catalog.js:138
+msgid "Module"
+msgstr "Mô-đun"
+
+#: assets/src/admin/modules/catalog.js:169
+#: assets/src/admin/modules/catalog.js:229
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:534
+#: assets/src/modules/payments_stripe/rest.js:357
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:579
+#: assets/src/pro/payments_paypal/rest.js:456
+msgid "Setup needed"
+msgstr ""
+
+#: assets/src/admin/modules/catalog.js:174
+msgid "Configured · no staff connected"
+msgstr ""
+
+#. translators: %d: number of staff members connected to an integration.
+#: assets/src/admin/modules/catalog.js:180
+msgid "%d staff connected"
+msgid_plural "%d staff connected"
+msgstr[0] ""
+
+#. translators: %d: number of services an integration acts for.
+#: assets/src/admin/modules/catalog.js:193
+msgid "%d service"
+msgid_plural "%d services"
+msgstr[0] ""
+
+#: assets/src/admin/modules/catalog.js:234
+msgid "Ready · Test mode"
+msgstr ""
+
+#: assets/src/admin/modules/catalog.js:237
+msgid "Ready · Live"
+msgstr ""
+
+#: assets/src/admin/modules/catalog.js:240
+msgid "Ready"
+msgstr ""
+
+#: assets/src/admin/modules/catalog.js:393
+#: assets/src/admin/modules/ModulesApp.jsx:402
+msgid "Free"
+msgstr "Free"
+
+#: assets/src/admin/modules/catalog.js:401
+#: assets/src/admin/modules/ModulesApp.jsx:404
+msgid "Included"
+msgstr "Có sẵn"
+
+#: assets/src/admin/modules/catalog.js:444
+#: assets/src/admin/modules/catalog.js:466
+msgid "Coming soon"
+msgstr "Sắp ra mắt"
+
+#. translators: %s: roadmap phase code, e.g. "P2b".
+#: assets/src/admin/modules/catalog.js:471
+msgid "Coming soon · %s"
+msgstr ""
+
+#: assets/src/admin/modules/catalog.js:587
+msgid "Unlimited bookings"
+msgstr "Lịch đặt không giới hạn"
+
+#: assets/src/admin/modules/catalog.js:588
+msgid "Staff members"
+msgstr "Nhân viên"
+
+#: assets/src/admin/modules/catalog.js:588
+msgid "1"
+msgstr "1"
+
+#: assets/src/admin/modules/catalog.js:588
+msgid "Unlimited"
+msgstr "Không giới hạn"
+
+#: assets/src/admin/modules/catalog.js:589
+msgid "Services & categories"
+msgstr "Dịch vụ & danh mục"
+
+#: assets/src/admin/modules/catalog.js:591
+msgid "Recurring appointments"
+msgstr "Lịch hẹn định kỳ"
+
+#: assets/src/admin/modules/catalog.js:599
+msgid "Mark bookings paid / unpaid"
+msgstr "Đánh dấu lịch đặt đã/chưa thanh toán"
+
+#: assets/src/admin/modules/catalog.js:618
+msgid "24-hour email reminder"
+msgstr "Email nhắc lịch trước 24 giờ"
+
+#: assets/src/admin/modules/catalog.js:619
+msgid "Custom reminder schedules"
+msgstr "Lịch nhắc tùy chỉnh"
+
+#: assets/src/admin/modules/catalog.js:620
+msgid "Calendar sync (Google, Outlook)"
+msgstr "Đồng bộ lịch (Google, Outlook)"
+
+#: assets/src/admin/modules/catalog.js:621
+msgid "SMS reminders"
+msgstr "Nhắc lịch qua SMS"
+
+#: assets/src/admin/modules/catalog.js:628
+msgid "Site & tools"
+msgstr "Trang & công cụ"
+
+#: assets/src/admin/modules/catalog.js:631
+#: assets/src/admin/modules/catalog.js:632
+msgid "Coming"
+msgstr "Sắp có"
+
+#: assets/src/admin/modules/catalog.js:632
+msgid "Service catalog pages"
+msgstr "Trang danh mục dịch vụ"
+
+#: assets/src/admin/modules/ModulesApp.jsx:76
+msgid "Module categories"
+msgstr "Danh mục mô-đun"
+
+#: assets/src/admin/modules/ModulesApp.jsx:134
+#: assets/src/admin/modules/ModulesApp.jsx:317
+#: assets/src/admin/modules/ModulesApp.jsx:416
+#: assets/src/admin/modules/ModuleSettingsRoute.jsx:129
+msgid "Compare plans"
+msgstr "So sánh các gói"
+
+#. translators: %s: module name, e.g. "Email notifications".
+#: assets/src/admin/modules/ModulesApp.jsx:147
+msgid "Open %s"
+msgstr "Mở %s"
+
+#: assets/src/admin/modules/ModulesApp.jsx:151
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:327
+msgid "Open"
+msgstr "Mở"
+
+#: assets/src/admin/modules/ModulesApp.jsx:171
+#: assets/src/pro/reminders/RemindersPanel.jsx:379
+msgid "Enabled"
+msgstr ""
+
+#: assets/src/admin/modules/ModulesApp.jsx:172
+msgid "Disabled"
+msgstr ""
+
+#: assets/src/admin/modules/ModulesApp.jsx:194
+#: assets/src/admin/modules/ModulesApp.jsx:195
+msgid "Search modules"
+msgstr "Tìm mô-đun"
+
+#: assets/src/admin/modules/ModulesApp.jsx:201
+msgid "Industry"
+msgstr "Ngành nghề"
+
+#: assets/src/admin/modules/ModulesApp.jsx:247
+msgid "Module enabled — reloading to load its settings."
+msgstr ""
+
+#: assets/src/admin/modules/ModulesApp.jsx:253
+msgid "The module could not be updated."
+msgstr ""
+
+#: assets/src/admin/modules/ModulesApp.jsx:299
+msgid ""
+"Everything Aponto does, and everything it will. Premium modules are included "
+"with an upgrade as each one ships."
+msgstr ""
+"Tất cả những gì Aponto làm được, và những gì sắp có. Mô-đun Premium được bao "
+"gồm khi bạn nâng cấp, ngay khi từng mô-đun ra mắt."
+
+#: assets/src/admin/modules/ModulesApp.jsx:303
+msgid ""
+"Everything Aponto does, and everything it will. Premium modules light up "
+"here as each one ships."
+msgstr ""
+
+#: assets/src/admin/modules/ModulesApp.jsx:325
+msgid "The module catalog could not be loaded."
+msgstr "Không thể tải danh mục mô-đun."
+
+#. translators: %d: number of modules matching the current filters.
+#: assets/src/admin/modules/ModulesApp.jsx:348
+msgid "%d module"
+msgid_plural "%d modules"
+msgstr[0] "%d mô-đun"
+
+#: assets/src/admin/modules/ModulesApp.jsx:369
+msgid "No modules match"
+msgstr "Không có mô-đun nào phù hợp"
+
+#: assets/src/admin/modules/ModulesApp.jsx:370
+msgid "Clear a filter or try another search term."
+msgstr "Hãy bỏ bớt bộ lọc hoặc thử từ khóa khác."
+
+#: assets/src/admin/modules/ModulesApp.jsx:373
+msgid "Clear filters"
+msgstr "Xóa bộ lọc"
+
+#: assets/src/admin/modules/ModulesApp.jsx:384
+msgid "Free versus Premium"
+msgstr "Free so với Premium"
+
+#: assets/src/admin/modules/ModulesApp.jsx:385
+msgid "Free vs Premium"
+msgstr "Free vs Premium"
+
+#: assets/src/admin/modules/ModulesApp.jsx:393
+msgid ""
+"Premium modules roll out progressively — the column shows what belongs to "
+"each plan, not what has already shipped."
+msgstr ""
+"Mô-đun Premium ra mắt dần theo lộ trình — cột này cho biết mỗi gói gồm những "
+"gì, chứ không phải những gì đã ra mắt."
+
+#: assets/src/admin/modules/ModulesApp.jsx:401
+msgid "Feature"
+msgstr "Tính năng"
+
+#: assets/src/admin/modules/ModulesApp.jsx:405
+msgid "Not included"
+msgstr "Không có"
+
+#: assets/src/admin/modules/ModulesApp.jsx:408
+msgid "Aponto Premium"
+msgstr "Aponto Premium"
+
+#: assets/src/admin/modules/ModulesApp.jsx:411
+msgid ""
+"Staff, calendar sync, custom reminders, deposits and more — each module is "
+"included as it ships on the roadmap."
+msgstr ""
+"Nhiều nhân viên, đồng bộ lịch, nhắc lịch tùy chỉnh, tiền cọc và hơn thế nữa "
+"— mỗi mô-đun được bao gồm ngay khi ra mắt theo lộ trình."
+
+#: assets/src/admin/modules/ModuleSettingsRoute.jsx:119
+msgid ""
+"This module is part of Aponto Premium. It is not available on this site yet."
+msgstr ""
+
+#: assets/src/admin/modules/ModuleSettingsRoute.jsx:120
+msgid "This module is not available on this site."
+msgstr ""
+
+#: assets/src/admin/modules/ModuleSettingsRoute.jsx:133
+#: assets/src/admin/modules/ModuleSettingsRoute.jsx:195
+msgid "Back to Modules"
+msgstr ""
+
+#: assets/src/admin/modules/ModuleSettingsRoute.jsx:183
+msgid "This module has no settings UI loaded"
+msgstr ""
+
+#. translators: %s: module name, e.g. "Google Calendar".
+#: assets/src/admin/modules/ModuleSettingsRoute.jsx:187
+msgid ""
+"%s is active, but its settings screen did not load. Rebuild the plugin "
+"assets or reload the page."
+msgstr ""
+
+#: assets/src/admin/modules/ModulesSubnav.jsx:68
+msgid "All modules"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:57
+#: assets/src/form/lib/copy.js:312 assets/src/form/lib/copy.js:326
+msgid "Booking received"
+msgstr "Đã nhận đặt lịch"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:58
+msgid "Booking confirmed"
+msgstr "Đặt lịch đã xác nhận"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:59
+msgid "Booking rescheduled"
+msgstr "Đặt lịch đã đổi giờ"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:60
+#: assets/src/admin/notifications/NotificationsApp.jsx:65
+#: assets/src/admin/notifications/NotificationsApp.jsx:67
+msgid "Booking cancelled"
+msgstr "Đặt lịch đã hủy"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:61
+msgid "Booking completed"
+msgstr "Đặt lịch đã hoàn thành"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:62
+msgid "Customer did not show up"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:63
+msgid "Reminder (24h before)"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:64
+#: assets/src/admin/notifications/NotificationsApp.jsx:66
+msgid "New booking"
+msgstr "Đặt lịch mới"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:68
+msgid "Payment still needed"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:69
+msgid "Refund issued"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:77
+msgid "To the customer"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:78
+msgid "To you"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:79
+msgid "To the assigned staff member"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:95
+msgid "Sent"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:97
+msgid "Queued"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:98
+msgid "Sending"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:103
+msgid "To: site admin"
+msgstr "Đến: quản trị viên"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:106
+msgid "To: assigned staff"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:108
+msgid "To: customer"
+msgstr "Đến: khách hàng"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:154
+msgid "Could not load templates."
+msgstr "Không thể tải các mẫu."
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:228
+msgid "Changes saved."
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:231
+msgid "Could not save templates."
+msgstr "Không thể lưu các mẫu."
+
+#. translators: %s: recipient email.
+#: assets/src/admin/notifications/NotificationsApp.jsx:254
+msgid "Test email sent to %s."
+msgstr "Đã gửi email thử tới %s."
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:257
+msgid "The test email could not be sent. Check your site email settings."
+msgstr "Không thể gửi email thử. Hãy kiểm tra cấu hình email của trang."
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:262
+msgid "Could not send the test email."
+msgstr "Không thể gửi email thử."
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:277
+#: assets/src/admin/settings/ia.js:117
+msgid "Notifications"
+msgstr "Thông báo"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:280
+msgid ""
+"Emails sent to customers and to you when bookings change. Times use each "
+"booking’s timezone."
+msgstr ""
+"Email gửi tới khách và tới bạn khi lịch đặt thay đổi. Giờ hiển thị theo múi "
+"giờ của từng lịch đặt."
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:301
+msgid "Templates"
+msgstr "Mẫu"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:359
+#: assets/src/admin/settings/SettingsApp.jsx:453
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:417
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:953
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:426
+#: assets/src/pro/reminders/RemindersPanel.jsx:327
+msgid "Save changes"
+msgstr "Lưu thay đổi"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:363
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:956
+msgid "You have unsaved changes."
+msgstr "Bạn có thay đổi chưa lưu."
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:381
+msgid "Sender"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:385
+msgid ""
+"Who booking emails come from. Leave blank to use your site’s default. "
+"Applies only to Aponto’s emails."
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:395
+msgid "From name"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:398
+msgid "Your business name"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:406
+msgid "From email"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:417
+msgid "Reply-To (optional)"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:425
+msgid ""
+"Some hosts require the From address to be on your own domain to avoid spam "
+"filtering."
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:459
+msgid "Could not load the send log."
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:479
+msgid "Send log"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:483
+msgid "Refresh"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:501
+msgid "No emails have been sent yet."
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:509
+msgid "Time"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:511
+msgid "To"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:534
+msgid "Previous"
+msgstr ""
+
+#. translators: 1: current page, 2: total pages.
+#: assets/src/admin/notifications/NotificationsApp.jsx:539
+msgid "Page %1$d of %2$d"
+msgstr ""
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:545
+msgid "Next"
+msgstr ""
+
+#. translators: %s: template name.
+#: assets/src/admin/notifications/NotificationsApp.jsx:641
+msgid "Enable %s email"
+msgstr "Bật email %s"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:682
+#: assets/src/pro/reminders/RemindersPanel.jsx:448
+msgid "Placeholders"
+msgstr "Trường thay thế"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:690
+#: assets/src/pro/reminders/RemindersPanel.jsx:456
+msgid "Insert into body"
+msgstr "Chèn vào nội dung"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:710
+#: assets/src/pro/reminders/RemindersPanel.jsx:478
+msgid "Body"
+msgstr "Nội dung"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:711
+msgid "Plain text. Line breaks become paragraphs in the email."
+msgstr "Văn bản thuần. Ngắt dòng sẽ thành đoạn trong email."
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:728
+msgid "Send a test"
+msgstr "Gửi thử"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:736
+msgid "Recipient email"
+msgstr "Email người nhận"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:749
+msgid "Send test"
+msgstr "Gửi thử"
+
+#: assets/src/admin/notifications/NotificationsApp.jsx:754
+msgid "Uses a sample booking. Save your changes first to test the latest text."
+msgstr ""
+"Dùng một lịch đặt mẫu. Hãy lưu thay đổi trước để thử nội dung mới nhất."
+
+#: assets/src/admin/routes/BookingEditor.jsx:47
+msgid "Loading refund form…"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:445
+msgid "Marked as paid."
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:445
+msgid "Marked unpaid."
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:461
+msgid "Refund requested — the gateway is still processing it."
+msgstr ""
+
+#. translators: %s: refunded amount, already formatted as money.
+#: assets/src/admin/routes/BookingEditor.jsx:464
+msgid "Refunded %s."
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:543
+msgid "Products & extras arrive with the Premium extras module."
+msgstr "Sản phẩm và dịch vụ kèm thêm sẽ ra mắt cùng mô-đun Extras của Premium."
+
+#: assets/src/admin/routes/BookingEditor.jsx:559
+msgid "No available times"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:559
+msgid "Pick a service to see times"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:647
+msgid "Order"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:658 assets/src/form/lib/copy.js:25
+msgid "Payment method"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:667
+msgid "Mark unpaid"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:667
+msgid "Mark as paid"
+msgstr ""
+
+#. translators: %s: payment gateway name, e.g. "Stripe".
+#: assets/src/admin/routes/BookingEditor.jsx:677
+msgid "Managed by %s."
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:678
+msgid "the payment gateway"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:683
+msgid "A refund is already in progress at the gateway."
+msgstr ""
+
+#. translators: %s: payment gateway name, e.g. "Stripe".
+#: assets/src/admin/routes/BookingEditor.jsx:689
+#: assets/src/admin/routes/BookingEditor.jsx:871
+msgid "Enable the %s module to refund this payment."
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:697
+msgid "Booking form answers"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:789
+msgid "Booking created"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:793
+msgid "Rescheduled"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:794
+msgid "Marked as no-show"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:795
+msgid "Payment received"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:796
+msgid "Payment received after the hold expired"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:797
+msgid "Payment status changed"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:798
+msgid "Payment hold expired"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:799
+msgid "Payment hold released"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:804
+msgid "Gateway refused this amount"
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:876
+msgid "The gateway refused the refund — try again later."
+msgstr ""
+
+#: assets/src/admin/routes/BookingEditor.jsx:879
+msgid "The refund could not be completed."
+msgstr ""
+
+#: assets/src/admin/routes/RefundDialog.jsx:37
+msgid "Refund this payment"
+msgstr ""
+
+#. translators: 1: refundable amount, formatted as money. 2: gateway name, e.g. "Stripe".
+#: assets/src/admin/routes/RefundDialog.jsx:47
+msgid ""
+"%1$s of this payment can still be refunded through %2$s. The money goes back "
+"to the card the customer paid with; the booking is not cancelled."
+msgstr ""
+
+#. translators: %s: ISO currency code, e.g. "USD".
+#: assets/src/admin/routes/RefundDialog.jsx:59
+msgid "Amount (%s)"
+msgstr ""
+
+#: assets/src/admin/routes/RefundDialog.jsx:73
+msgid "Reason (optional, recorded in the activity log)"
+msgstr ""
+
+#: assets/src/admin/routes/RefundDialog.jsx:91
+msgid "Refunding…"
+msgstr ""
+
+#. translators: %s: amount to refund, formatted as money.
+#: assets/src/admin/routes/RefundDialog.jsx:94
+msgid "Refund %s"
+msgstr ""
+
+#. translators: 1: lowest allowed price, 2: highest allowed price, both formatted money.
+#: assets/src/admin/routes/ServiceEditor.jsx:187
+msgid "Price must be between %1$s and %2$s."
+msgstr ""
+
+#. translators: %d: the highest allowed lead time in minutes.
+#: assets/src/admin/routes/ServiceEditor.jsx:199
+msgid "Lead time must be a whole number of minutes between 0 and %d."
+msgstr ""
+
+#. translators: %d: the highest allowed booking horizon in days.
+#: assets/src/admin/routes/ServiceEditor.jsx:207
+msgid "Horizon must be a whole number of days between 1 and %d."
+msgstr ""
+
+#. translators: %s: the reason the staff assignments could not be saved.
+#: assets/src/admin/routes/ServiceEditor.jsx:266
+msgid "Service saved, but the staff assignments were not: %s"
+msgstr ""
+
+#: assets/src/admin/routes/ServiceEditor.jsx:370
+msgid "Free — coming soon"
+msgstr "Free — sắp ra mắt"
+
+#: assets/src/admin/routes/ServiceEditor.jsx:372
+msgid ""
+"Public title, booking visibility, card summary and gallery are part of the "
+"Service catalog module — free, and not built yet. They will appear here once "
+"it ships; no placeholder controls until then."
+msgstr ""
+"Tiêu đề công khai, hiển thị khi đặt lịch, mô tả ngắn và thư viện ảnh thuộc "
+"mô-đun Danh mục dịch vụ — miễn phí, và chưa được xây dựng. Chúng sẽ xuất "
+"hiện ở đây ngay khi mô-đun ra mắt; từ giờ đến lúc đó không có điều khiển tạm "
+"nào."
+
+#: assets/src/admin/routes/ServiceEditor.jsx:597
+msgid "Create the service first — then choose who can be booked for it."
+msgstr ""
+
+#: assets/src/admin/routes/ServiceEditor.jsx:604
+msgid ""
+"No staff assigned — this service is not bookable until someone can take it."
+msgstr ""
+
+#: assets/src/admin/routes/ServiceEditor.jsx:609
+msgid ""
+"Choose who can be booked for this service. Anyone you tick here is assigned "
+"at every location; staff already limited to specific locations keep that "
+"narrower scope, and are marked below."
+msgstr ""
+
+#: assets/src/admin/routes/ServiceEditor.jsx:617
+msgid "Search staff"
+msgstr ""
+
+#: assets/src/admin/routes/ServiceEditor.jsx:635
+msgid "Specific locations"
+msgstr ""
+
+#: assets/src/admin/routes/ServiceEditor.jsx:645
+msgid "No staff match that search."
+msgstr ""
+
+#: assets/src/admin/routes/ServiceEditor.jsx:646
+msgid "No active staff yet. Add someone on the Staff screen first."
+msgstr ""
+
+#: assets/src/admin/routes/ServiceEditor.jsx:651
+#: assets/src/admin/settings/BusinessHoursPanel.jsx:157
+#: assets/src/admin/settings/SettingsApp.jsx:454
+#: assets/src/admin/settings/SettingsApp.jsx:458 assets/src/form/lib/copy.js:82
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:417
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:436
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:475
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:426
+#: assets/src/wizard/index.js:443
+msgid "Saving…"
+msgstr "Đang lưu…"
+
+#: assets/src/admin/routes/ServiceEditor.jsx:651
+msgid "Save assignments"
+msgstr ""
+
+#: assets/src/admin/routes/ServiceEditor.jsx:657
+msgid "Your staff member takes every service automatically."
+msgstr ""
+
+#. translators: %d: the numeric id of a staff member that could not be resolved to a name.
+#: assets/src/admin/routes/ServiceEditor.jsx:665
+msgid "Staff #%d"
+msgstr ""
+
+#: assets/src/admin/routes/Services.jsx:234
+msgid ""
+"Ships with a later Premium module — there is nothing to set up here yet."
+msgstr ""
+"Sẽ ra mắt cùng một mô-đun Premium sau này — hiện chưa có gì để thiết lập ở "
+"đây."
+
+#: assets/src/admin/routes/SettingsRoute.jsx:149
+msgid "Open setup wizard"
+msgstr ""
+
+#: assets/src/admin/routes/SettingsRoute.jsx:163
+msgid "Settings sections"
+msgstr ""
+
+#: assets/src/admin/settings/BusinessHoursPanel.jsx:60
+msgid "Could not load business hours."
+msgstr ""
+
+#: assets/src/admin/settings/BusinessHoursPanel.jsx:108
+msgid "Business hours saved."
+msgstr ""
+
+#: assets/src/admin/settings/BusinessHoursPanel.jsx:115
+msgid "Could not save business hours."
+msgstr ""
+
+#: assets/src/admin/settings/BusinessHoursPanel.jsx:124
+msgid "Business hours"
+msgstr ""
+
+#: assets/src/admin/settings/BusinessHoursPanel.jsx:126
+msgid ""
+"The weekly opening hours every staff member inherits. Set a day Closed to "
+"block it."
+msgstr ""
+
+#: assets/src/admin/settings/BusinessHoursPanel.jsx:157
+msgid "Save business hours"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:24 assets/src/admin/settings/ia.js:68
+#: assets/src/wizard/Chrome.jsx:54
+msgid "Business"
+msgstr "Doanh nghiệp"
+
+#: assets/src/admin/settings/catalog.js:25
+msgid "Shown on confirmations, emails and the calendar file."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:28 assets/src/admin/settings/ia.js:77
+msgid "Localization"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:29
+msgid "How dates, times and money are formatted."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:32
+msgid "Booking policy"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:33
+msgid ""
+"Availability rules applied to every service unless a service overrides them."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:40
+msgid ""
+"When customers pay online, and what happens while they do. Applies to every "
+"payment method."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:44
+msgid "What you ask customers for when they book."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:47
+msgid "Consent"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:48
+msgid "Add a consent checkbox to the booking form."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:51
+msgid "Data retention"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:52
+msgid "Automatically anonymize personal data after a while."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:55
+msgid "Diagnostics"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:56
+msgid "Troubleshooting switches for support."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:59
+msgid "Data & uninstall"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:60
+msgid "What happens to your data when the plugin is removed."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:65
+msgid "Sunday"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:66
+msgid "Monday"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:67
+msgid "Tuesday"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:68
+msgid "Wednesday"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:69
+msgid "Thursday"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:70
+msgid "Friday"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:71
+msgid "Saturday"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:81
+#: assets/src/pro/reminders/RemindersPanel.jsx:51
+msgid "minutes"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:82
+#: assets/src/pro/reminders/RemindersPanel.jsx:50
+msgid "hours"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:83
+#: assets/src/admin/settings/catalog.js:86
+#: assets/src/pro/reminders/RemindersPanel.jsx:49
+msgid "days"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:87
+msgid "weeks"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:88
+msgid "months (30 days)"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:101 assets/src/wizard/index.js:649
+msgid "Business name"
+msgstr "Tên cơ sở"
+
+#: assets/src/admin/settings/catalog.js:102
+msgid "Shown on confirmations, emails and the calendar (.ics) file."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:105
+msgid "Business address"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:107
+msgid "Used as the location on confirmations, emails and the calendar file."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:110
+msgid "Business phone"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:113
+msgid "Booking alerts email"
+msgstr "Email nhận thông báo đặt lịch"
+
+#: assets/src/admin/settings/catalog.js:114
+msgid ""
+"Where new-booking and cancellation alerts are sent. Leave blank to use the "
+"WordPress admin email."
+msgstr ""
+"Nơi nhận thông báo đặt lịch mới và hủy lịch. Để trống để dùng email quản trị "
+"WordPress."
+
+#: assets/src/admin/settings/catalog.js:118
+msgid "Used for service prices and order totals."
+msgstr "Dùng cho giá dịch vụ và tổng đơn hàng."
+
+#: assets/src/admin/settings/catalog.js:125
+msgid "Date format"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:126
+msgid "PHP date format, e.g. F j, Y."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:129
+msgid "Time format"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:130
+msgid "PHP time format, e.g. g:i a."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:133
+msgid "Week starts on"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:138
+msgid "New bookings are"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:141
+msgid "Pending — you approve each one"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:142
+msgid "Confirmed automatically"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:146
+msgid "Minimum lead time"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:147
+msgid "How soon before an appointment a customer may book. 0 = no minimum."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:155
+msgid "Booking window"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:156
+msgid "How far ahead customers can book."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:164
+msgid "Time-slot interval (minutes)"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:165
+msgid "Default gap between the start times you offer."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:168
+msgid "Cancellation notice (hours)"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:169
+msgid ""
+"How long before the appointment a customer may still cancel. 0 = any time up "
+"to the start."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:172
+msgid "Auto-cancel unconfirmed after (hours)"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:173
+msgid "Cancel still-pending bookings automatically. 0 = never."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:179
+msgid "Off — pay on-site only"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:180
+msgid "Optional — customers choose"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:181
+msgid "Required — online payment needed to book"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:186
+msgid ""
+"Until a payment method is set up and switched on, this behaves as if payment "
+"were off — bookings are never refused because no gateway is ready."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:189
+msgid "Hold the slot for"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:190
+msgid ""
+"How long a slot stays reserved while the customer pays. The slot is released "
+"automatically if the payment is not completed. 10 to 1440 minutes."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:195
+msgid "Confirm automatically when paid"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:196
+msgid ""
+"Confirm the booking as soon as the payment succeeds, instead of leaving it "
+"pending for you to approve."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:199
+msgid "Auto-confirm free bookings"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:200
+msgid ""
+"When a service is free (price 0), confirm it immediately instead of leaving "
+"it pending. Priced services still follow “New bookings are” above."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:203
+msgid "Phone number field"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:206
+msgid "Don’t ask for a phone number"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:207
+msgid "Optional"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:208
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:501
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:591
+msgid "Required"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:212
+msgid "Show a consent checkbox"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:213
+msgid "Ask customers to agree before they can book."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:216
+msgid "Consent text"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:218
+msgid "The wording shown next to the checkbox."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:221
+msgid "Anonymize personal data after (months)"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:222
+msgid "0 = keep indefinitely. Runs on a daily schedule."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:225
+msgid "Enable debug logging"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:226
+msgid "Records diagnostic events for support. Turns itself off after 72 hours."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:229
+msgid "Behind a trusted proxy"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:230
+msgid ""
+"Read the visitor IP from X-Forwarded-For. Only enable if a reverse proxy "
+"sets it."
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:233
+msgid "Delete all data on uninstall"
+msgstr ""
+
+#: assets/src/admin/settings/catalog.js:234
+msgid ""
+"When the plugin is deleted, permanently remove every Aponto table, option "
+"and setting. Off by default."
+msgstr ""
+
+#: assets/src/admin/settings/ia.js:63
+msgid "General"
+msgstr "Chung"
+
+#: assets/src/admin/settings/ia.js:89
+msgid "Policy"
+msgstr ""
+
+#: assets/src/admin/settings/ia.js:109
+msgid "Form presentation"
+msgstr ""
+
+#: assets/src/admin/settings/ia.js:121
+msgid "Templates, sender and send log"
+msgstr ""
+
+#: assets/src/admin/settings/ia.js:126
+msgid "Privacy"
+msgstr "Quyền riêng tư"
+
+#: assets/src/admin/settings/ia.js:128
+msgid "Retention, export and erasure"
+msgstr ""
+
+#: assets/src/admin/settings/ia.js:134
+msgid "Advanced"
+msgstr "Nâng cao"
+
+#: assets/src/admin/settings/ia.js:136
+msgid "Diagnostics, logs and uninstall"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:130
+#: assets/src/pro/reminders/RemindersPanel.jsx:424
+msgid "Unit"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:218
+msgid "You have unsaved settings. Discard them?"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:271
+msgid "Could not load settings."
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:318
+msgid "Change the store currency?"
+msgstr "Đổi đơn vị tiền tệ của cửa hàng?"
+
+#: assets/src/admin/settings/SettingsApp.jsx:319
+msgid ""
+"Existing prices keep their numbers but will be read in the new currency — "
+"review your service prices after saving."
+msgstr ""
+"Giá hiện có giữ nguyên con số nhưng sẽ được đọc theo tiền tệ mới — hãy kiểm "
+"tra lại giá dịch vụ sau khi lưu."
+
+#: assets/src/admin/settings/SettingsApp.jsx:323
+msgid "Change currency"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:341
+msgid "Settings saved."
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:351
+msgid "Some settings need attention — see the highlighted fields."
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:353
+msgid "Could not save settings."
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:363
+msgid "Discard your unsaved changes?"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:364
+msgid "Everything you edited since the last save will be lost."
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:365
+#: assets/src/admin/settings/SettingsApp.jsx:455
+#: assets/src/admin/settings/SettingsApp.jsx:466
+msgid "Discard changes"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:366
+#: assets/src/admin/settings/SettingsApp.jsx:467
+msgid "Keep editing"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:391
+msgid ""
+"Settings changed elsewhere — reload to get the latest values. Reloading "
+"discards your unsaved edits."
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:397
+msgid "Reload settings"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:452
+msgid "Settings actions"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:456
+msgid "No unsaved changes"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:457
+msgid "Unsaved changes"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:469
+msgid "You have unsaved settings. Leaving now will discard them."
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:561
+msgid "Booking form appearance"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:563
+msgid "The accent color and corner radius are part of the booking form block."
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:569
+msgid ""
+"To change them: open the page that holds your booking form, select the "
+"Aponto booking form block, then adjust the color and rounding in the block "
+"settings (Inspector) on the right."
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:577
+msgid "Edit booking page"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:596
+msgid "Data access requests"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:598
+msgid ""
+"Handle GDPR export and erasure requests with WordPress’s built-in privacy "
+"tools — Aponto data is included automatically."
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:609
+msgid "Export personal data"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:614
+msgid "Erase personal data"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:633
+msgid "Could not load diagnostics."
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:642
+msgid "Plugin version"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:643
+msgid "Edition"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:644
+msgid "WordPress"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:645
+msgid "PHP"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:646
+msgid "Database"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:647
+msgid "Schema version"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:648
+msgid "Tables OK"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:648
+msgid "Yes"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:648
+msgid "No"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:661
+msgid "System status"
+msgstr ""
+
+#: assets/src/admin/settings/SettingsApp.jsx:663
+msgid "A read-only snapshot for support. No personal data is included."
+msgstr ""
+
+#: assets/src/form/components/Calendar.jsx:107
+msgid "Month"
+msgstr "Tháng"
+
+#: assets/src/form/components/Calendar.jsx:119
+msgid "Year"
+msgstr "Năm"
+
+#: assets/src/form/editor.jsx:134
+msgid "All services (visitor chooses)"
+msgstr "Tất cả dịch vụ (khách tự chọn)"
+
+#: assets/src/form/editor.jsx:143
+msgid "Preselected service"
+msgstr "Dịch vụ chọn sẵn"
+
+#: assets/src/form/editor.jsx:149
+msgid "Skip the service step by preselecting one service."
+msgstr "Bỏ qua bước chọn dịch vụ bằng cách chọn sẵn một dịch vụ."
+
+#: assets/src/form/editor.jsx:204
+msgid "Any staff (visitor chooses)"
+msgstr ""
+
+#: assets/src/form/editor.jsx:213
+msgid "Preselected staff"
+msgstr ""
+
+#: assets/src/form/editor.jsx:216
+msgid "Skip the staff step by preselecting one team member."
+msgstr ""
+
+#: assets/src/form/editor.jsx:284
+msgid "Appearance"
+msgstr "Giao diện"
+
+#: assets/src/form/editor.jsx:288
+msgid "Accent color"
+msgstr "Màu nhấn"
+
+#: assets/src/form/editor.jsx:303
+msgid "Corner radius (px)"
+msgstr "Bo góc (px)"
+
+#: assets/src/form/editor.jsx:322
+msgid "Color scheme"
+msgstr "Chế độ màu"
+
+#: assets/src/form/editor.jsx:325
+msgid "Light"
+msgstr "Sáng"
+
+#: assets/src/form/editor.jsx:326
+msgid "Dark"
+msgstr "Tối"
+
+#: assets/src/form/editor.jsx:328
+msgid ""
+"Set here and nowhere else — the form never follows the visitor’s device or "
+"your admin theme."
+msgstr ""
+"Chỉnh tại đây và chỉ tại đây — form không bao giờ chạy theo thiết bị của "
+"khách hay theme quản trị của bạn."
+
+#: assets/src/form/lib/copy.js:14
+msgid "Choose a service"
+msgstr "Chọn dịch vụ"
+
+#: assets/src/form/lib/copy.js:18
+msgid "Browse a category or search by name."
+msgstr "Duyệt theo danh mục hoặc tìm theo tên."
+
+#: assets/src/form/lib/copy.js:19
+msgid "Search or browse all available services."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:20
+msgid "Pick the service you’d like to book."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:21
+msgid "Pick a date & time"
+msgstr "Chọn ngày và giờ"
+
+#: assets/src/form/lib/copy.js:22
+msgid "Choose an available appointment."
+msgstr "Chọn một khung giờ còn trống."
+
+#: assets/src/form/lib/copy.js:23
+msgid "Your details"
+msgstr "Thông tin của bạn"
+
+#: assets/src/form/lib/copy.js:26
+msgid "Choose how you would like to pay."
+msgstr ""
+
+#. translators: 1: current step, 2: total steps.
+#: assets/src/form/lib/copy.js:30 assets/src/wizard/Chrome.jsx:190
+msgid "Step %1$d of %2$d"
+msgstr "Bước %1$d / %2$d"
+
+#: assets/src/form/lib/copy.js:33
+msgid "Search all services…"
+msgstr "Tìm trong tất cả dịch vụ…"
+
+#: assets/src/form/lib/copy.js:34
+msgid "All services"
+msgstr "Tất cả dịch vụ"
+
+#: assets/src/form/lib/copy.js:35
+msgid "All categories"
+msgstr ""
+
+#. translators: %s: formatted starting price, e.g. "$40".
+#: assets/src/form/lib/copy.js:37
+msgid "from %s"
+msgstr "từ %s"
+
+#. translators: %d: number of services in a category.
+#: assets/src/form/lib/copy.js:39
+msgid "%d services"
+msgstr "%d dịch vụ"
+
+#: assets/src/form/lib/copy.js:40
+msgid "1 service"
+msgstr "1 dịch vụ"
+
+#: assets/src/form/lib/copy.js:41
+msgid "No services are available for online booking right now."
+msgstr "Hiện chưa có dịch vụ nào mở đặt lịch trực tuyến."
+
+#: assets/src/form/lib/copy.js:42
+msgid "Please check back soon or contact us."
+msgstr "Vui lòng quay lại sau hoặc liên hệ với chúng tôi."
+
+#. translators: %s: the text the visitor typed into the service search.
+#: assets/src/form/lib/copy.js:44
+msgid "No services match “%s”."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:45
+msgid "Change service"
+msgstr "Đổi dịch vụ"
+
+#: assets/src/form/lib/copy.js:48
+msgid "Previous month"
+msgstr "Tháng trước"
+
+#: assets/src/form/lib/copy.js:49
+msgid "Next month"
+msgstr "Tháng sau"
+
+#: assets/src/form/lib/copy.js:50
+msgid "Available times"
+msgstr "Khung giờ trống"
+
+#. translators: 1: day label e.g. "Aug 3", 2: number of open start times.
+#: assets/src/form/lib/copy.js:52
+msgid "%1$s · %2$d open"
+msgstr ""
+
+#. translators: %s: the selected day, e.g. "Monday, 3 August".
+#: assets/src/form/lib/copy.js:54
+msgid "No open times on %s — try another day."
+msgstr "Không còn giờ trống vào %s — hãy thử ngày khác."
+
+#: assets/src/form/lib/copy.js:55
+msgid "Times shown in"
+msgstr "Giờ hiển thị theo"
+
+#: assets/src/form/lib/copy.js:56
+msgid "Your timezone"
+msgstr ""
+
+#: assets/src/form/lib/copy.js:62
+msgid "(refreshed)"
+msgstr "(đã cập nhật)"
+
+#: assets/src/form/lib/copy.js:65
+msgid "Full name"
+msgstr "Họ và tên"
+
+#: assets/src/form/lib/copy.js:66
+msgid "Jordan Reyes"
+msgstr "Nguyễn Văn An"
+
+#: assets/src/form/lib/copy.js:68
+msgid "you@example.com"
+msgstr "ban@example.com"
+
+#: assets/src/form/lib/copy.js:71
+msgid "(555) 123-4567"
+msgstr "0901 234 567"
+
+#: assets/src/form/lib/copy.js:72
+msgid "Notes for the business"
+msgstr "Ghi chú cho cơ sở"
+
+#: assets/src/form/lib/copy.js:74
+msgid "Anything we should know?"
+msgstr "Bạn có điều gì cần lưu ý không?"
+
+#: assets/src/form/lib/copy.js:75
+msgid "I agree to the booking terms and privacy policy."
+msgstr "Tôi đồng ý với điều khoản đặt lịch và chính sách bảo mật."
+
+#: assets/src/form/lib/copy.js:76
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:374
+msgid "Choose…"
+msgstr ""
+
+#: assets/src/form/lib/copy.js:79 assets/src/wizard/DoneStep.jsx:107
+#: assets/src/wizard/index.js:603 assets/src/wizard/index.js:743
+#: assets/src/wizard/index.js:943 assets/src/wizard/index.js:1034
+msgid "Back"
+msgstr "Quay lại"
+
+#: assets/src/form/lib/copy.js:80 assets/src/wizard/index.js:640
+#: assets/src/wizard/index.js:777 assets/src/wizard/index.js:974
+msgid "Continue"
+msgstr "Tiếp tục"
+
+#: assets/src/form/lib/copy.js:81
+msgid "Book appointment"
+msgstr "Đặt lịch hẹn"
+
+#: assets/src/form/lib/copy.js:86
+msgid "Please enter your name."
+msgstr "Vui lòng nhập tên của bạn."
+
+#: assets/src/form/lib/copy.js:87
+msgid "Please enter your email."
+msgstr "Vui lòng nhập email của bạn."
+
+#: assets/src/form/lib/copy.js:88
+msgid "That email doesn’t look right."
+msgstr "Email này có vẻ chưa đúng."
+
+#: assets/src/form/lib/copy.js:89
+msgid "Please enter a phone number."
+msgstr "Vui lòng nhập số điện thoại."
+
+#: assets/src/form/lib/copy.js:90
+msgid "Please accept the booking terms to continue."
+msgstr "Vui lòng chấp nhận điều khoản đặt lịch để tiếp tục."
+
+#. translators: %d: maximum number of characters allowed in the answer.
+#: assets/src/form/lib/copy.js:93
+msgid "Please keep this under %d characters."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:94
+msgid "Please pick a time."
+msgstr "Vui lòng chọn một khung giờ."
+
+#: assets/src/form/lib/copy.js:95
+msgid "We couldn’t submit your booking."
+msgstr "Chúng tôi không thể gửi đặt lịch của bạn."
+
+#: assets/src/form/lib/copy.js:98
+msgid "This form is out of date — please refresh the page and book again."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:102
+msgid ""
+"Something in the form needs attention. Please review your details and try "
+"again."
+msgstr ""
+"Có mục trong biểu mẫu cần xem lại. Vui lòng kiểm tra thông tin và thử lại."
+
+#: assets/src/form/lib/copy.js:109
+msgid "Pay on-site"
+msgstr ""
+
+#: assets/src/form/lib/copy.js:110
+msgid "Settle at your appointment"
+msgstr ""
+
+#: assets/src/form/lib/copy.js:114
+msgid "Secure"
+msgstr ""
+
+#: assets/src/form/lib/copy.js:115
+msgid "Loading secure payment…"
+msgstr ""
+
+#. translators: %s: formatted order total, e.g. "$55.00".
+#: assets/src/form/lib/copy.js:117
+msgid "You will be charged %s now."
+msgstr ""
+
+#. translators: %s: formatted order total, e.g. "$55.00".
+#: assets/src/form/lib/copy.js:119
+msgid "No payment needed now — the full %s is due at your appointment."
+msgstr ""
+
+#. translators: %s: formatted order total, e.g. "$55.00".
+#: assets/src/form/lib/copy.js:124
+msgid "Pay %s & book"
+msgstr ""
+
+#: assets/src/form/lib/copy.js:127
+msgid "Use the payment buttons above to finish your booking."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:134
+msgid "Finish or close the payment window to continue."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:138
+msgid "Processing…"
+msgstr ""
+
+#. translators: %s: formatted order total, e.g. "$55.00".
+#: assets/src/form/lib/copy.js:140
+msgid "Pay %s & finish booking"
+msgstr ""
+
+#. translators: %s: local time the held slot is released, e.g. "3:45 PM".
+#: assets/src/form/lib/copy.js:142 assets/src/form/lib/copy.js:190
+msgid "Your slot is held until %s."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:144
+msgid "This booking is already paid"
+msgstr ""
+
+#: assets/src/form/lib/copy.js:145
+msgid ""
+"Nothing more to do — check your email for the link to manage this booking."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:155
+msgid "Your payment window has closed"
+msgstr ""
+
+#: assets/src/form/lib/copy.js:156
+msgid ""
+"The payment did not arrive in time, so the slot is being released. You can "
+"book again below."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:160
+msgid "Book again"
+msgstr ""
+
+#: assets/src/form/lib/copy.js:164
+msgid "Payment is busy right now"
+msgstr ""
+
+#: assets/src/form/lib/copy.js:165
+msgid ""
+"Your slot is still held. Something else is finishing on this booking — try "
+"again in a moment."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:169
+msgid "Pay on-site instead"
+msgstr ""
+
+#: assets/src/form/lib/copy.js:173
+msgid "Nothing has been booked or charged yet."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:177
+msgid ""
+"We couldn’t complete the payment. Please check your details and try again."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:181
+msgid "We couldn’t start the payment."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:185
+msgid ""
+"This payment method can’t take this amount. Please contact us to complete "
+"your booking."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:191
+msgid "Your slot is still held for a short while."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:192
+msgid "Your slot is still held"
+msgstr ""
+
+#. translators: %s: local time the held slot is released, e.g. "3:45 PM".
+#: assets/src/form/lib/copy.js:194
+msgid ""
+"We couldn’t release it — it stays held until %s, then frees up automatically."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:198
+msgid "We couldn’t release it right away. It frees up automatically."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:205
+msgid "That time is back on sale. Nothing has been charged."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:209
+msgid "Payment not completed"
+msgstr ""
+
+#: assets/src/form/lib/copy.js:210
+msgid "Nothing has been charged. You can try again while your slot is held."
+msgstr ""
+
+#. translators: 1: formatted amount paid, 2: order code, e.g. "AP-7Q2F4".
+#: assets/src/form/lib/copy.js:219
+msgid "Paid %1$s · reference %2$s"
+msgstr ""
+
+#. translators: %s: order code, e.g. "AP-7Q2F4".
+#: assets/src/form/lib/copy.js:224
+msgid "Payment received · reference %s"
+msgstr ""
+
+#: assets/src/form/lib/copy.js:225
+msgid "Payment processing — we’ll email you as soon as it clears."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:229 assets/src/form/lib/copy.js:316
+msgid "Check your email — we’ve sent a link to manage this booking."
+msgstr ""
+"Hãy kiểm tra email — chúng tôi đã gửi liên kết để quản lý lịch đặt này."
+
+#: assets/src/form/lib/copy.js:239
+msgid "Your card was declined. Try another card, or check with your bank."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:243
+msgid "That card doesn’t have enough available funds. Try another card."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:247
+msgid "That card has expired. Try another card."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:248
+msgid "That security code didn’t match. Check the code and try again."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:252
+msgid "The payment couldn’t be processed just now. Please try again."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:256
+msgid "Your bank couldn’t verify that payment. Try again, or use another card."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:264
+msgid "That payment method was declined. Choose another one and try again."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:270
+msgid ""
+"We couldn’t confirm the amount for this payment. Please contact us before "
+"trying again."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:278
+msgid ""
+"Your slot was released before the payment went through, so we didn’t take "
+"it. Nothing has been charged — please pick a new time."
+msgstr ""
+
+#: assets/src/form/lib/copy.js:284
+msgid "Your booking"
+msgstr "Lịch đặt của bạn"
+
+#. translators: label before the same appointment time in the business's own timezone.
+#: assets/src/form/lib/copy.js:287
+msgid "Studio"
+msgstr "Cơ sở"
+
+#: assets/src/form/lib/copy.js:290
+msgid "Time no longer available"
+msgstr "Khung giờ không còn trống"
+
+#: assets/src/form/lib/copy.js:291
+msgid "Availability refreshed. Pick another time."
+msgstr "Đã cập nhật lịch trống. Hãy chọn giờ khác."
+
+#: assets/src/form/lib/copy.js:292
+msgid "Too many attempts."
+msgstr "Quá nhiều lần thử."
+
+#. translators: %d: number of seconds to wait before retrying.
+#: assets/src/form/lib/copy.js:294
+msgid "Please wait %ds and try again."
+msgstr "Vui lòng đợi %d giây rồi thử lại."
+
+#. translators: %d: number of seconds to wait before retrying.
+#: assets/src/form/lib/copy.js:296
+msgid "Try again in %ds"
+msgstr "Thử lại sau %d giây"
+
+#: assets/src/form/lib/copy.js:297
+msgid "Your booking is still processing."
+msgstr "Đặt lịch của bạn vẫn đang được xử lý."
+
+#: assets/src/form/lib/copy.js:298
+msgid "Keep this page open. We’ll check again automatically."
+msgstr "Hãy giữ nguyên trang này. Chúng tôi sẽ tự động kiểm tra lại."
+
+#: assets/src/form/lib/copy.js:299
+msgid "Checking…"
+msgstr "Đang kiểm tra…"
+
+#: assets/src/form/lib/copy.js:300
+msgid "We couldn’t confirm just now."
+msgstr "Chúng tôi chưa thể xác nhận ngay lúc này."
+
+#: assets/src/form/lib/copy.js:301
+msgid "The server was busy. Your booking was not created — retry safely."
+msgstr ""
+"Máy chủ đang bận. Đặt lịch của bạn chưa được tạo — có thể thử lại an toàn."
+
+#: assets/src/form/lib/copy.js:305
+msgid "We couldn’t process this request."
+msgstr "Chúng tôi không thể xử lý yêu cầu này."
+
+#: assets/src/form/lib/copy.js:306
+msgid "Please refresh and try again, or contact us if it persists."
+msgstr ""
+"Vui lòng tải lại trang và thử lại, hoặc liên hệ với chúng tôi nếu vẫn lỗi."
+
+#: assets/src/form/lib/copy.js:307
+msgid "We couldn’t load services."
+msgstr "Chúng tôi không thể tải danh sách dịch vụ."
+
+#: assets/src/form/lib/copy.js:308
+msgid "We couldn’t load available times."
+msgstr "Chúng tôi không thể tải các khung giờ trống."
+
+#: assets/src/form/lib/copy.js:309
+msgid "Check your connection and try again."
+msgstr "Hãy kiểm tra kết nối và thử lại."
+
+#: assets/src/form/lib/copy.js:313
+msgid "We’ll email you the moment it’s confirmed."
+msgstr "Chúng tôi sẽ gửi email cho bạn ngay khi được xác nhận."
+
+#: assets/src/form/lib/copy.js:314
+msgid "Appointment confirmed"
+msgstr "Lịch hẹn đã được xác nhận"
+
+#: assets/src/form/lib/copy.js:315
+msgid "Your appointment is confirmed."
+msgstr "Lịch hẹn của bạn đã được xác nhận."
+
+#: assets/src/form/lib/copy.js:320
+msgid "ORDER"
+msgstr "MÃ ĐƠN"
+
+#: assets/src/form/lib/copy.js:321
+msgid "Add to calendar"
+msgstr "Thêm vào lịch"
+
+#: assets/src/form/lib/copy.js:322
+msgid "Google"
+msgstr "Google"
+
+#: assets/src/form/lib/copy.js:323
+msgid ".ics"
+msgstr ".ics"
+
+#: assets/src/form/lib/copy.js:324
+msgid "Print"
+msgstr "In"
+
+#: assets/src/form/lib/copy.js:325
+msgid "Book another appointment"
+msgstr "Đặt thêm lịch hẹn khác"
+
+#: assets/src/form/lib/copy.js:327
+msgid "This appointment is already on file."
+msgstr "Lịch hẹn này đã được ghi nhận."
+
+#: assets/src/form/lib/copy.js:328
+msgid ""
+"Your manage link and calendar file were already emailed to you. Check your "
+"inbox to add it to your calendar."
+msgstr ""
+"Liên kết quản lý và tệp lịch đã được gửi tới email của bạn. Hãy kiểm tra hộp "
+"thư để thêm vào lịch của bạn."
+
+#: assets/src/form/lib/payment-gateways.free.js:31
+msgid "Secured checkout · Visa, Mastercard, Amex"
+msgstr ""
+
+#: assets/src/form/lib/payment-gateways.free.js:32
+msgid "Card details"
+msgstr ""
+
+#: assets/src/form/lib/payment-gateways.free.js:33
+msgid "Card payments are temporarily unavailable."
+msgstr ""
+
+#: assets/src/form/lib/payment-gateways.free.js:37
+#: assets/src/form/lib/payments.js:122
+msgid "The payment was cancelled — you can try again."
+msgstr ""
+
+#. translators: 1: formatted amount paid, 2: order code, e.g. "AP-7Q2F4".
+#: assets/src/form/lib/payment-gateways.free.js:42
+msgid "Paid %1$s by card · reference %2$s"
+msgstr ""
+
+#: assets/src/form/lib/payments.js:118
+msgid "This payment method is temporarily unavailable."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:136
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:484
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:163
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:512
+msgid "Live mode"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:137
+msgid "Real cards will be charged."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:143
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:484
+msgid "Test mode"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:144
+msgid "No real charges. Use Stripe’s test cards to try a booking end to end."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:174
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:375
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:413
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:194
+msgid "Replace"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:186
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:387
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:425
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:643
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:206
+msgid "Keep it"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:259
+msgid "Could not load the Stripe settings."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:302
+msgid "Webhook endpoint updated in Stripe."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:303
+msgid "Webhook endpoint created in Stripe and the signing secret saved."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:311
+msgid "Stripe could not register the endpoint — see the fields below."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:312
+msgid "Could not register the webhook endpoint with Stripe."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:338
+msgid "Stripe settings saved."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:348
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:358
+msgid "Some values were not accepted — see the fields below."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:349
+msgid "Could not save the Stripe settings."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:370
+#: assets/src/modules/payments_stripe/rest.js:484
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:381
+#: assets/src/pro/payments_paypal/rest.js:591
+msgid "The connection test did not succeed."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:403
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:422
+msgid "Reload the page to load the webhook details."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:440
+msgid "How Stripe payments work here"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:444
+msgid ""
+"You connect your own Stripe account, so the money goes straight to you. "
+"Customers pay inside the booking form — card, and Apple Pay, Google Pay or "
+"Link wherever Stripe enables them for your account — without leaving your "
+"site. The slot is held while they pay."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:450
+msgid ""
+"Payment methods that redirect the customer to another site or settle later "
+"(bank debits, vouchers, buy-now-pay-later) are not offered in this version."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:460
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:473
+msgid "1. Mode"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:464
+msgid ""
+"Both key sets are kept, so you can switch back and forth without pasting "
+"anything again. Set up in Test, try a real booking, then switch to Live when "
+"you are happy."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:470
+msgid "Stripe mode"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:488
+msgid "Real charges"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:489
+msgid "No real charges"
+msgstr ""
+
+#. translators: %d: section number.
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:524
+msgid "%d. Live keys"
+msgstr ""
+
+#. translators: %d: section number.
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:529
+msgid "%d. Test keys"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:534
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:579
+msgid "Complete"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:542
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:589
+msgid "Kept for when you go live. Not in use right now."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:543
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:590
+msgid "Kept for testing. Not in use right now."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:546
+msgid "Show keys"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:553
+msgid ""
+"Copy these from the Stripe Dashboard with the test-mode toggle OFF, under "
+"Developers → API keys."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:557
+msgid ""
+"Copy these from the Stripe Dashboard with the test-mode toggle ON, under "
+"Developers → API keys."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:565
+msgid "Publishable key"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:574
+msgid "Starts with pk_live_. This one is sent to the browser by design."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:575
+msgid "Starts with pk_test_. This one is sent to the browser by design."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:582
+msgid "That is a TEST key. Paste it into the Test keys section instead."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:583
+msgid "That is a LIVE key. Paste it into the Live keys section instead."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:592
+msgid "Secret key"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:595
+msgid ""
+"Starts with sk_live_ or rk_live_. Stored encrypted and never shown again."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:596
+msgid ""
+"Starts with sk_test_ or rk_test_. Stored encrypted and never shown again."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:598
+msgid "Secret key saved"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:599
+msgid "Secret key will be cleared on save"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:600
+msgid "Keep the saved secret key"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:612
+msgid "Webhook signing secret"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:613
+msgid ""
+"Starts with whsec_. Stripe issues a DIFFERENT one for test and live — the "
+"two are not interchangeable."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:619
+msgid "Signing secret saved (registered automatically)"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:620
+msgid "Signing secret saved"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:622
+msgid "Signing secret will be cleared on save"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:623
+msgid "Keep the saved signing secret"
+msgstr ""
+
+#. translators: %s: Stripe webhook endpoint id.
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:638
+msgid "Registered endpoint: %s"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:646
+msgid ""
+"This site is not reachable from the internet, so Stripe cannot deliver to "
+"it. Use the Stripe CLI below while you develop, and register the endpoint "
+"from the live site."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:660
+msgid "Registering…"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:661
+msgid "Register webhook with Stripe"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:665
+msgid ""
+"Creates the endpoint in your Stripe account and saves the signing secret for "
+"you. You can also add it by hand below."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:669
+msgid "Save this mode’s secret key first."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:684
+msgid "4. Webhook endpoint"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:688
+msgid ""
+"Add this endpoint in the Stripe Dashboard under Developers → Webhooks. "
+"Payments still complete without it, but the webhook is how a booking is "
+"finished for a customer who closes the tab mid-payment, and how refunds made "
+"in Stripe come back here."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:694
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:701
+msgid "Endpoint URL"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:709
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:348
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:383
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:717
+msgid "Copied"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:709
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:348
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:383
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:717
+msgid "Copy"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:717
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:732
+msgid "Events to send"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:728
+msgid ""
+"The URL is the same in both modes, but Stripe issues a separate signing "
+"secret for each — paste it into that mode’s section above, or use the "
+"Register button there."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:739
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:754
+msgid "Testing on a local site"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:742
+msgid ""
+"Stripe cannot reach a site that is not on the public internet. Forward the "
+"events with the Stripe CLI instead — it prints its own signing secret, which "
+"is the one to paste above while you test."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:761
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:769
+msgid "5. Test the connection"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:765
+msgid ""
+"Asks Stripe for your account details with the ACTIVE mode’s saved secret "
+"key. Nothing is charged."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:769
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:784
+msgid "Testing…"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:769
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:784
+msgid "Test connection"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:783
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:798
+msgid "6. Options"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:787
+msgid "Send Stripe’s email receipt"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:788
+msgid ""
+"Stripe emails its own payment receipt to the customer, in addition to your "
+"Aponto booking confirmation."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:798
+msgid "Statement descriptor suffix"
+msgstr ""
+
+#. translators: %d: maximum number of characters.
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:808
+msgid ""
+"Appears after your Stripe account name on the customer’s card statement, so "
+"they recognise the charge. Up to %d characters; letters, numbers and spaces."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:829
+msgid ""
+"Payment requirement, hold duration and auto-confirm live in Settings → "
+"Booking → Payments — they apply to every payment method, not just Stripe."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/PaymentsStripePanel.jsx:833
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:836
+msgid "Open payment settings"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/rest.js:199
+msgid "Live keys saved · signing secret saved"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/rest.js:200
+msgid "Test keys saved · signing secret saved"
+msgstr ""
+
+#: assets/src/modules/payments_stripe/rest.js:208
+msgid ""
+"Live set incomplete — add the 3 keys below. No card payment is offered until "
+"you do."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/rest.js:209
+msgid ""
+"Test set incomplete — add the 3 keys below. No card payment is offered until "
+"you do."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/rest.js:307
+msgid ""
+"Stripe is not offered at checkout until the publishable key and secret key "
+"below are saved."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/rest.js:313
+msgid ""
+"The Stripe module is switched off for this site, so the gateway is not "
+"offered at checkout."
+msgstr ""
+
+#. translators: %s: the site's ISO-4217 currency code, e.g. "VND".
+#: assets/src/modules/payments_stripe/rest.js:322
+msgid ""
+"Stripe does not accept payments in %s, so it is not offered at checkout. "
+"Change the site currency, or take payments with another method."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/rest.js:328
+msgid ""
+"Stripe does not accept payments in this site’s currency, so it is not "
+"offered at checkout."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/rest.js:418
+msgid ""
+"Stripe payments are not active on this site. Reload the page to continue."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/rest.js:421
+#: assets/src/modules/payments_stripe/rest.js:473
+msgid "The Stripe driver is not loaded on this site."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/rest.js:468
+msgid "Stripe answered. Your keys work."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/rest.js:474
+msgid "Add your publishable key and secret key first."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/rest.js:475
+msgid "Stripe rejected the secret key. Check that you copied the whole key."
+msgstr ""
+
+#: assets/src/modules/payments_stripe/rest.js:476
+msgid ""
+"Aponto could not reach Stripe. Check the site’s outbound connection and try "
+"again."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:118
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:127
+msgid "Not connected"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:121
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:130
+msgid "Needs reconnect"
+msgstr ""
+
+#. translators: %s: the connected Google account address.
+#. translators: %s: the connected Microsoft account address.
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:128
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:137
+msgid "Connected as %s"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:131
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:140
+msgid "Connected"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:163
+msgid "Google Calendar connected."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:167
+msgid "Google did not grant access. Nothing was changed."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:168
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:178
+msgid "The connection could not be completed. Start it again."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:191
+msgid "Could not load the Google Calendar settings."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:212
+msgid "Google Calendar settings saved."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:214
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:224
+msgid "Could not save the settings."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:229
+msgid "Google did not return an authorization link."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:233
+msgid "Could not start the Google connection."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:245
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:255
+msgid "Connection is working."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:249
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:259
+msgid "The connection is not working."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:257
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:267
+msgid "Could not test the connection."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:273
+msgid "Disconnected. Existing calendar events were left in place."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:275
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:290
+msgid "Could not disconnect."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:307
+msgid "1. Create a Google Cloud OAuth client"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:311
+msgid ""
+"Aponto connects with your own Google Cloud credentials, so your calendar "
+"data never passes through anyone else. This is a one-time setup. Only this "
+"app setup is technical: your staff then connect with their own Google "
+"accounts in one click."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:318
+msgid "In the Google Cloud Console, create a project and open"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:319
+msgid "APIs & Services → OAuth consent screen"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:320
+msgid ""
+". Choose External, keep it in Testing, and add the staff Google accounts as "
+"test users."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:323
+msgid "Enable the"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:323
+msgid "Google Calendar API"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:324
+msgid " for the project."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:327
+msgid "Credentials → Create credentials → OAuth client ID"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:328
+msgid ", choose Web application, and paste the redirect URI below."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:334
+msgid "Authorized redirect URI"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:352
+msgid ""
+"Paste this exactly, including the scheme and the trailing query. Google "
+"rejects anything that differs — and it will not accept a plain http address "
+"unless the host is localhost."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:360
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:398
+msgid "2. Credentials"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:373
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:411
+msgid "Client secret saved"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:385
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:423
+msgid "Client secret will be cleared on save"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:395
+msgid "Client secret"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:400
+msgid "Stored encrypted. It is never shown again after saving."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:412
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:643
+msgid "Keep the saved secret"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:420
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:459
+msgid "Sync all services"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:421
+msgid ""
+"When off, only services you mark for this integration are pushed to Google."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:427
+msgid "Treat all-day Google events as busy"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:428
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:467
+msgid ""
+"Turn this off if you keep informational all-day entries on the same calendar."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:436
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:475
+msgid "Save credentials"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:444
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:483
+msgid "3. Staff connections"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:449
+msgid "Save your Client ID and Client Secret first — connecting needs them."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:453
+msgid ""
+"Each staff member signs in with their own Google account. Their bookings "
+"appear on that calendar, and their existing Google events remove matching "
+"slots from your booking form."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:473
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:512
+msgid ""
+"Disconnect this staff member? Events already on their calendar stay there."
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:478
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:489
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:517
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:528
+msgid "Disconnect"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:486
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:525
+msgid "Test"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:499
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:538
+msgid "Connect"
+msgstr ""
+
+#: assets/src/pro/calendar_google/CalendarGooglePanel.jsx:509
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:548
+msgid "Add a staff member first — connections are per person."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:173
+msgid "Outlook Calendar connected."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:177
+msgid "Microsoft did not grant access. Nothing was changed."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:201
+msgid "Could not load the Outlook Calendar settings."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:222
+msgid "Outlook Calendar settings saved."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:239
+msgid "Microsoft did not return a sign-in link."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:243
+msgid "Could not start the Microsoft connection."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:284
+msgid ""
+"Disconnected. Existing calendar events were left in place. To withdraw the "
+"app permission on the Microsoft side too, use your Microsoft account privacy "
+"settings."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:322
+msgid "1. Register an app in Microsoft Entra"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:326
+msgid ""
+"Aponto connects with your own Microsoft Entra app registration, so your "
+"calendar data never passes through anyone else. This is a one-time setup. "
+"Only this app setup is technical: your staff then connect with their own "
+"Microsoft accounts in one click."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:333
+msgid "In the Azure portal, open"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:334
+msgid "Microsoft Entra ID → App registrations → New registration"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:335
+msgid ". Name it anything you like."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:338
+msgid "For Supported account types choose"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:340
+msgid ""
+"Accounts in any organizational directory and personal Microsoft accounts"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:345
+msgid ", so both Microsoft 365 and outlook.com staff can sign in."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:348
+msgid "Add a Redirect URI of platform type"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:348
+msgid "Web"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:349
+msgid " and paste the value below, then Register."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:352
+msgid "Copy the"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:353
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:402
+msgid "Application (client) ID"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:354
+msgid ", then open"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:355
+msgid "Certificates & secrets → New client secret"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:356
+msgid " and copy its Value immediately — Microsoft shows it only once."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:359
+msgid "Under"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:359
+msgid "API permissions"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:360
+msgid ""
+", add the delegated Microsoft Graph permissions Calendars.ReadWrite, "
+"User.Read and offline_access."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:369
+msgid "Redirect URI"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:387
+msgid ""
+"Paste this exactly, including the scheme and the trailing query. Microsoft "
+"rejects anything that differs — and it will not accept a plain http address "
+"unless the host is localhost."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:432
+msgid "Client secret value"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:437
+msgid ""
+"Paste the secret Value, not its Secret ID. Stored encrypted, and never shown "
+"again after saving."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:443
+msgid "Directory (tenant)"
+msgstr ""
+
+#. translators: %s: the default tenant keyword.
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:449
+msgid ""
+"Leave this as %s unless your app is single-tenant. Accepts common, "
+"organizations, consumers, or your directory (tenant) ID."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:460
+msgid ""
+"When off, only services you mark for this integration are pushed to Outlook."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:466
+msgid "Treat all-day Outlook events as busy"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:488
+msgid ""
+"Save your Application (client) ID and client secret first — connecting needs "
+"them."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:492
+msgid ""
+"Each staff member signs in with their own Microsoft account. Their bookings "
+"appear on that calendar, and their existing Outlook events remove matching "
+"slots from your booking form."
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:555
+msgid ""
+"Disconnecting removes the tokens stored on this site. To withdraw the "
+"permission on the Microsoft side, a personal account uses"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:557
+msgid "account privacy settings"
+msgstr ""
+
+#: assets/src/pro/calendar_outlook/CalendarOutlookPanel.jsx:559
+msgid ", and a work or school account uses My Apps in Microsoft Entra."
+msgstr ""
+
+#: assets/src/pro/custom_fields/field-types.js:45
+msgid "Single line"
+msgstr ""
+
+#: assets/src/pro/custom_fields/field-types.js:46
+msgid "A short written answer — a reference, a name, a room number."
+msgstr ""
+
+#: assets/src/pro/custom_fields/field-types.js:51
+msgid "Paragraph"
+msgstr ""
+
+#: assets/src/pro/custom_fields/field-types.js:52
+msgid "A longer written answer, for notes and descriptions."
+msgstr ""
+
+#: assets/src/pro/custom_fields/field-types.js:57
+msgid "Dropdown"
+msgstr ""
+
+#: assets/src/pro/custom_fields/field-types.js:58
+msgid "One answer chosen from a list you write."
+msgstr ""
+
+#: assets/src/pro/custom_fields/field-types.js:63
+msgid "Checkbox"
+msgstr ""
+
+#: assets/src/pro/custom_fields/field-types.js:64
+msgid "A single yes/no tick box."
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:168
+msgid "Choose a field type"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:170
+msgid "What kind of field is it?"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:226
+msgid "Choices"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:230
+msgid "Choice"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:231
+msgid "Saved value"
+msgstr ""
+
+#. translators: %d: position of the choice in the list, starting at 1.
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:245
+msgid "Move choice %d up"
+msgstr ""
+
+#. translators: %d: position of the choice in the list, starting at 1.
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:258
+msgid "Move choice %d down"
+msgstr ""
+
+#. translators: %d: position of the choice in the list, starting at 1.
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:273
+msgid "Choice %d"
+msgstr ""
+
+#. translators: %d: position of the choice in the list, starting at 1.
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:290
+msgid "Saved value for choice %d"
+msgstr ""
+
+#. translators: %d: position of the choice in the list, starting at 1.
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:302
+msgid "Remove choice %d"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:324
+msgid "Add choice"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:345
+msgid "Preview"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:352
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:359
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:479
+msgid "Untitled field"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:375
+msgid "Choose… (no choices yet)"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:386
+msgid "Hidden — this field is not shown to customers right now."
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:387
+msgid "Shown on the Details step, after the built-in contact fields."
+msgstr ""
+
+#. translators: %s: field label.
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:446
+msgid "Move %s up"
+msgstr ""
+
+#. translators: %s: field label.
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:459
+msgid "Move %s down"
+msgstr ""
+
+#. translators: 1: field type name, e.g. "Dropdown". 2: permanent machine key.
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:485
+msgid "%1$s · %2$s"
+msgstr ""
+
+#. translators: %s: field type name, e.g. "Dropdown".
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:491
+msgid "%s · not saved yet"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:498
+msgid "Fix this"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:504
+msgid "Hidden"
+msgstr ""
+
+#. translators: %s: field label.
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:516
+msgid "Show “%s” on the booking form"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:531
+msgid "Label"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:539
+msgid ""
+"Another field uses this exact wording. Customers will see the same label "
+"twice."
+msgstr ""
+
+#. translators: %d: the highest answer length this type accepts, in characters.
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:576
+msgid "Length limit (max %d)"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:592
+msgid "The customer cannot finish booking without answering."
+msgstr ""
+
+#. translators: %s: the field's permanent machine key, wrapped in <key></key>.
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:614
+msgid ""
+"Key <key>%s</key> — permanent. Every answer is stored under it, so it never "
+"changes."
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:622
+msgid "A permanent key is created from this field the first time you save."
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:634
+msgid "Remove this field? Answers already collected stay on their bookings."
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:640
+#: assets/src/pro/reminders/RemindersPanel.jsx:386
+msgid "Remove"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:655
+msgid "Remove field"
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:711
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:820
+#: assets/src/pro/custom_fields/rest.js:58
+msgid "Request failed."
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:814
+msgid "Booking form fields saved."
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:869
+msgid "No extra fields yet"
+msgstr ""
+
+#. translators: %d: the highest number of custom fields allowed.
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:873
+msgid ""
+"Add up to %d of your own fields to the booking form — an intake note, a "
+"preference, a consent tick. Answers are saved with the booking and travel "
+"with it into exports."
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:881
+msgid "Add your first field"
+msgstr ""
+
+#. translators: 1: number of fields in use. 2: the maximum allowed.
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:892
+msgid "%1$d of %2$d field used"
+msgid_plural "%1$d of %2$d fields used"
+msgstr[0] ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:906
+msgid "That is the maximum."
+msgstr ""
+
+#: assets/src/pro/custom_fields/FieldBuilderPanel.jsx:915
+msgid "Add field"
+msgstr ""
+
+#: assets/src/pro/custom_fields/rest.js:42
+msgid "Could not reach the server."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/form-registry.js:36
+msgid "Pay with your PayPal account"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/form-registry.js:38
+msgid "PayPal is temporarily unavailable."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/form-registry.js:39
+msgid "You closed PayPal — you can try again or pay another way."
+msgstr ""
+
+#. translators: 1: formatted amount paid, 2: order code, e.g. "AP-7Q2F4".
+#: assets/src/pro/payments_paypal/form-registry.js:44
+msgid "Paid %1$s with PayPal · reference %2$s"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:164
+msgid "Real PayPal accounts will be charged."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:170
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:512
+msgid "Sandbox mode"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:171
+msgid ""
+"PayPal’s test environment: no real money moves. Sign in with a sandbox buyer "
+"account to try a booking end to end."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:284
+msgid "Could not load the PayPal settings."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:341
+msgid "PayPal settings saved."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:359
+msgid "Could not save the PayPal settings."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:449
+msgid "How PayPal payments work here"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:453
+msgid ""
+"You connect your own PayPal business account, so the money goes straight to "
+"you — Aponto never holds it. Customers approve the payment in PayPal’s own "
+"popup without leaving your site, and the slot is held while they do."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:463
+msgid ""
+"Card payments stay with Stripe: when the Stripe module is also switched on, "
+"PayPal’s card buttons are turned off so the customer is offered each method "
+"once. Pay Later, PayPal Credit and saved PayPal accounts are not offered in "
+"this version."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:477
+msgid ""
+"Both credential sets are kept, so you can switch back and forth without "
+"pasting anything again — which matters here, because PayPal shows an app "
+"secret once. Set up in Sandbox, try a real booking, then switch to Live when "
+"you are happy."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:492
+msgid "PayPal mode"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:516
+msgid "Real money moves"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:517
+msgid "No real money moves"
+msgstr ""
+
+#. translators: %d: section number.
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:558
+msgid "%d. Live credentials"
+msgstr ""
+
+#. translators: %d: section number.
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:563
+msgid "%d. Sandbox credentials"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:570
+msgid "1 value not accepted"
+msgstr ""
+
+#. translators: %d: number of rejected fields in this set.
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:573
+msgid "%d values not accepted"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:587
+msgid "Some values here were not accepted on the last save."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:593
+msgid "Fix these values"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:593
+msgid "Show credentials"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:600
+msgid ""
+"Open developer.paypal.com → Apps & Credentials, switch the toggle to LIVE, "
+"and copy the credentials of a Merchant app."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:604
+msgid ""
+"Open developer.paypal.com → Apps & Credentials, switch the toggle to "
+"SANDBOX, and copy the credentials of a Merchant app."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:609
+msgid "Open the PayPal developer dashboard"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:624
+msgid ""
+"From your LIVE app. It is sent to the browser by design — it is part of the "
+"PayPal SDK URL."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:625
+msgid ""
+"From your SANDBOX app. It is sent to the browser by design — it is part of "
+"the PayPal SDK URL."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:638
+msgid ""
+"From the same LIVE app as the Client ID above. Stored encrypted and never "
+"shown again."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:639
+msgid ""
+"From the same SANDBOX app as the Client ID above. Stored encrypted and never "
+"shown again."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:641
+msgid "Secret saved"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:642
+msgid "Secret will be cleared on save"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:665
+msgid ""
+"Paste the ID PayPal shows after you save the webhook in the LIVE app — not "
+"the endpoint URL. Sandbox and Live webhooks have different IDs and are not "
+"interchangeable."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:669
+msgid ""
+"Paste the ID PayPal shows after you save the webhook in the SANDBOX app — "
+"not the endpoint URL. Sandbox and Live webhooks have different IDs and are "
+"not interchangeable."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:691
+msgid "4. Webhook"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:695
+msgid ""
+"PayPal tells this site when a payment settles, is refunded from your PayPal "
+"dashboard, or is reversed. Aponto verifies every event with PayPal before "
+"acting on it, and that check needs the Webhook ID — so this step is "
+"required, not optional, and the gateway is not offered until it is filled in."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:721
+msgid "In your PayPal app, open Webhooks → Add webhook and paste this URL."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:743
+msgid ""
+"The URL is the same in both modes, but the webhook must be created in the "
+"app of the mode you are using — a Sandbox webhook does not verify a Live "
+"payment. Paste each app’s Webhook ID into its own section above. Selecting "
+"more events than listed is harmless: anything else is acknowledged and "
+"ignored."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:757
+msgid ""
+"PayPal only accepts a public https address and cannot reach a site that is "
+"not on the public internet. Expose the site through a tunnel while you test, "
+"register that tunnel’s URL as the webhook, and paste the Webhook ID it "
+"produces into the Sandbox section above — it is a different id from the one "
+"your production endpoint will get."
+msgstr ""
+
+#. translators: %s: the active PayPal mode — Sandbox or Live.
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:775
+msgid ""
+"Asks PayPal for an access token with the saved %s credentials. Nothing is "
+"charged. Save first — it reads what is stored, not what is typed."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:803
+msgid "Brand name"
+msgstr ""
+
+#. translators: %d: maximum number of characters.
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:813
+msgid ""
+"Shown to the customer on PayPal’s approval screen, in both modes. Leave it "
+"empty to use your site title — PayPal otherwise shows the name on your "
+"merchant account, which for a sole trader is often a personal name. Up to %d "
+"characters."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/PayPalPanel.jsx:832
+msgid ""
+"Payment requirement, hold duration and auto-confirm live in Settings → "
+"Booking → Payments — they apply to every payment method, not just PayPal."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:257
+msgid "Live credentials saved · webhook ID saved"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:258
+msgid "Sandbox credentials saved · webhook ID saved"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:266
+msgid ""
+"Live set incomplete — add the 3 fields below. PayPal is not offered until "
+"you do."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:267
+msgid ""
+"Sandbox set incomplete — add the 3 fields below. PayPal is not offered until "
+"you do."
+msgstr ""
+
+#. translators: %s: the mode being switched to — Sandbox or Live.
+#: assets/src/pro/payments_paypal/rest.js:296
+msgid "Switching to %s — save to apply"
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:301
+msgid ""
+"Your Live credentials are saved. Nothing is charged in real money until you "
+"save this change."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:302
+msgid ""
+"Your Sandbox credentials are saved. Real money keeps moving until you save "
+"this change."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:304
+msgid ""
+"The Live set is not complete yet — fill in the 3 fields below, or PayPal "
+"stops being offered when you save."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:305
+msgid ""
+"The Sandbox set is not complete yet — fill in the 3 fields below, or PayPal "
+"stops being offered when you save."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:394
+msgid ""
+"The PayPal module is switched off for this site, so the gateway is not "
+"offered at checkout."
+msgstr ""
+
+#. translators: %s: the site's ISO-4217 currency code, e.g. "VND".
+#: assets/src/pro/payments_paypal/rest.js:403
+msgid ""
+"PayPal does not accept payments in %s, so it is not offered at checkout. "
+"Change the site currency, or take payments with another method."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:409
+msgid ""
+"PayPal does not accept payments in this site’s currency, so it is not "
+"offered at checkout."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:419
+msgid ""
+"PayPal is not offered at checkout until the Client ID, Secret and Webhook ID "
+"of the selected mode are all saved."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:516
+msgid ""
+"PayPal payments are no longer active on this site. Reload the page to "
+"continue."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:519
+#: assets/src/pro/payments_paypal/rest.js:578
+msgid "The PayPal driver is not loaded on this site."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:573
+msgid "PayPal answered. Your credentials work."
+msgstr ""
+
+#: assets/src/pro/payments_paypal/rest.js:579
+msgid ""
+"Aponto could not reach PayPal. Check the site’s outbound connection and try "
+"again."
+msgstr ""
+
+#: assets/src/pro/reminders/RemindersPanel.jsx:188
+msgid "Could not load reminder steps."
+msgstr ""
+
+#: assets/src/pro/reminders/RemindersPanel.jsx:247
+msgid "Reminder steps saved."
+msgstr ""
+
+#: assets/src/pro/reminders/RemindersPanel.jsx:252
+msgid "Could not save reminder steps."
+msgstr ""
+
+#: assets/src/pro/reminders/RemindersPanel.jsx:267
+msgid ""
+"These steps are in addition to the built-in reminder sent 24 hours before an "
+"appointment, which you edit in Settings → Notifications."
+msgstr ""
+
+#: assets/src/pro/reminders/RemindersPanel.jsx:293
+msgid ""
+"No extra reminder steps yet. Add one to send a custom reminder before an "
+"appointment, or a follow-up after it ends."
+msgstr ""
+
+#: assets/src/pro/reminders/RemindersPanel.jsx:324
+msgid "Add reminder step"
+msgstr ""
+
+#. translators: %d: maximum number of reminder steps.
+#: assets/src/pro/reminders/RemindersPanel.jsx:333
+msgid "Maximum of %d steps reached."
+msgstr ""
+
+#: assets/src/pro/reminders/RemindersPanel.jsx:372
+msgid "— Off, this step will not send"
+msgstr ""
+
+#: assets/src/pro/reminders/RemindersPanel.jsx:400
+msgid "When"
+msgstr ""
+
+#: assets/src/pro/reminders/RemindersPanel.jsx:403
+msgid "Before the appointment starts"
+msgstr ""
+
+#: assets/src/pro/reminders/RemindersPanel.jsx:404
+msgid "After the appointment ends"
+msgstr ""
+
+#: assets/src/pro/reminders/RemindersPanel.jsx:415
+msgid "Offset"
+msgstr ""
+
+#: assets/src/pro/reminders/RemindersPanel.jsx:479
+msgid ""
+"Plain text. Line breaks become paragraphs in the email. A line whose only "
+"placeholder is empty is removed."
+msgstr ""
+
+#. translators: %d: step number.
+#: assets/src/pro/reminders/RemindersPanel.jsx:532
+msgid "Step %d"
+msgstr ""
+
+#. translators: %d: number of days.
+#: assets/src/pro/reminders/RemindersPanel.jsx:544
+msgid "%d day after the appointment ends"
+msgid_plural "%d days after the appointment ends"
+msgstr[0] ""
+
+#. translators: %d: number of days.
+#: assets/src/pro/reminders/RemindersPanel.jsx:554
+msgid "%d day before the appointment starts"
+msgid_plural "%d days before the appointment starts"
+msgstr[0] ""
+
+#. translators: %d: number of hours.
+#: assets/src/pro/reminders/RemindersPanel.jsx:566
+msgid "%d hour after the appointment ends"
+msgid_plural "%d hours after the appointment ends"
+msgstr[0] ""
+
+#. translators: %d: number of hours.
+#: assets/src/pro/reminders/RemindersPanel.jsx:576
+msgid "%d hour before the appointment starts"
+msgid_plural "%d hours before the appointment starts"
+msgstr[0] ""
+
+#. translators: %d: number of minutes.
+#: assets/src/pro/reminders/RemindersPanel.jsx:588
+msgid "%d minute after the appointment ends"
+msgid_plural "%d minutes after the appointment ends"
+msgstr[0] ""
+
+#. translators: %d: number of minutes.
+#: assets/src/pro/reminders/RemindersPanel.jsx:598
+msgid "%d minute before the appointment starts"
+msgid_plural "%d minutes before the appointment starts"
+msgstr[0] ""
+
+#: assets/src/wizard/api.js:70
+msgid "The server did not respond in time. Please try again."
+msgstr ""
+
+#: assets/src/wizard/api.js:91
+msgid "Could not reach the server. Please check your connection and try again."
+msgstr ""
+
+#. translators: %d: HTTP status code of the failed request.
+#: assets/src/wizard/api.js:117
+msgid "Something went wrong (HTTP %d). Please try again."
+msgstr "Đã có lỗi xảy ra (HTTP %d). Vui lòng thử lại."
+
+#: assets/src/wizard/Chrome.jsx:53
+msgid "Welcome"
+msgstr "Chào mừng"
+
+#: assets/src/wizard/Chrome.jsx:55
+msgid "Hours"
+msgstr "Giờ làm việc"
+
+#: assets/src/wizard/Chrome.jsx:58
+msgid "Done"
+msgstr "Hoàn tất"
+
+#: assets/src/wizard/Chrome.jsx:155
+msgid "Setup progress"
+msgstr "Tiến trình thiết lập"
+
+#: assets/src/wizard/Chrome.jsx:250
+msgid "Exit setup"
+msgstr "Thoát thiết lập"
+
+#: assets/src/wizard/DoneStep.jsx:98
+msgid "Publish your booking page"
+msgstr "Đăng trang đặt lịch của bạn"
+
+#: assets/src/wizard/DoneStep.jsx:99
+msgid ""
+"Add the Aponto Booking Form block to any page — we can make one for you."
+msgstr ""
+"Thêm khối Aponto Booking Form vào trang bất kỳ — hoặc để chúng tôi tạo giúp "
+"bạn."
+
+#: assets/src/wizard/DoneStep.jsx:121
+msgid "Open booking page"
+msgstr "Mở trang đặt lịch"
+
+#: assets/src/wizard/DoneStep.jsx:130
+msgid "Create booking page"
+msgstr "Tạo trang đặt lịch"
+
+#: assets/src/wizard/DoneStep.jsx:141
+msgid "Finish setup"
+msgstr ""
+
+#: assets/src/wizard/DoneStep.jsx:153
+msgid "Your booking page is published and live."
+msgstr "Trang đặt lịch của bạn đã được xuất bản và hoạt động."
+
+#: assets/src/wizard/DoneStep.jsx:155
+msgid "View page"
+msgstr "Xem trang"
+
+#: assets/src/wizard/DoneStep.jsx:161 assets/src/wizard/DoneStep.jsx:175
+msgid "Edit page"
+msgstr "Sửa trang"
+
+#: assets/src/wizard/DoneStep.jsx:169
+msgid ""
+"Your booking page exists, but WordPress did not return a web address for it "
+"— check your permalink settings, then open the page from the Pages screen."
+msgstr ""
+
+#: assets/src/wizard/index.js:402
+msgid "The booking page could not be created. Please try again."
+msgstr ""
+
+#: assets/src/wizard/index.js:467
+msgid "You’re all set"
+msgstr "Bạn đã hoàn tất"
+
+#: assets/src/wizard/index.js:468
+msgid "You can reopen this setup anytime from Settings → Open setup wizard."
+msgstr ""
+
+#: assets/src/wizard/index.js:480
+msgid "Go to dashboard"
+msgstr ""
+
+#: assets/src/wizard/index.js:492
+msgid "Setup is complete. Aponto is ready in the main menu."
+msgstr ""
+
+#: assets/src/wizard/index.js:496
+msgid ""
+"Setup was skipped. Add a service and a booking page whenever you’re ready."
+msgstr ""
+"Đã bỏ qua thiết lập. Hãy thêm dịch vụ và trang đặt lịch khi bạn sẵn sàng."
+
+#: assets/src/wizard/index.js:528
+msgid "Start over"
+msgstr ""
+
+#: assets/src/wizard/index.js:549
+msgid "Welcome to Aponto"
+msgstr "Chào mừng đến với Aponto"
+
+#: assets/src/wizard/index.js:550
+msgid "Want a hand getting set up? It takes about three minutes."
+msgstr "Bạn cần trợ giúp thiết lập không? Chỉ mất khoảng ba phút."
+
+#: assets/src/wizard/index.js:565
+msgid "I’ll do it myself"
+msgstr "Tôi tự làm"
+
+#: assets/src/wizard/index.js:573
+msgid "Yes, guide me"
+msgstr "Có, hãy hướng dẫn tôi"
+
+#: assets/src/wizard/index.js:580
+msgid ""
+"We’ll confirm your business details, set your hours, add you as staff, and "
+"create your first service and booking page."
+msgstr ""
+"Chúng tôi sẽ xác nhận thông tin cơ sở, thiết lập giờ làm việc, thêm bạn làm "
+"nhân viên, và tạo dịch vụ cùng trang đặt lịch đầu tiên."
+
+#: assets/src/wizard/index.js:591
+msgid "Confirm your business info"
+msgstr "Xác nhận thông tin cơ sở"
+
+#: assets/src/wizard/index.js:592
+msgid "We prefilled this from WordPress — fix anything that’s off."
+msgstr ""
+"Chúng tôi đã điền sẵn từ WordPress — hãy chỉnh lại nếu có gì chưa đúng."
+
+#: assets/src/wizard/index.js:612 assets/src/wizard/index.js:752
+#: assets/src/wizard/index.js:952 assets/src/wizard/index.js:1043
+msgid "Skip"
+msgstr "Bỏ qua"
+
+#: assets/src/wizard/index.js:666
+msgid "Address"
+msgstr "Địa chỉ"
+
+#: assets/src/wizard/index.js:667
+msgid ""
+"Used in confirmation emails and the calendar file. Leave blank if you’re "
+"online-only."
+msgstr ""
+"Dùng trong email xác nhận và tệp lịch. Để trống nếu bạn chỉ hoạt động trực "
+"tuyến."
+
+#: assets/src/wizard/index.js:689
+msgid ""
+"Bookings are shown to each visitor in their own timezone; this is your "
+"studio’s."
+msgstr ""
+"Lịch đặt hiển thị cho từng khách theo múi giờ của họ; đây là múi giờ của cơ "
+"sở bạn."
+
+#: assets/src/wizard/index.js:703
+msgid ""
+"Used for service prices and order totals. You can change it later in "
+"Settings."
+msgstr ""
+"Dùng cho giá dịch vụ và tổng đơn hàng. Bạn có thể đổi lại trong Settings."
+
+#. translators: 1: date format, 2: time format.
+#: assets/src/wizard/index.js:717
+msgid ""
+"Date and time formats (%1$s, %2$s) and week start are confirmed from "
+"WordPress."
+msgstr ""
+"Định dạng ngày giờ (%1$s, %2$s) và ngày bắt đầu tuần được lấy từ WordPress."
+
+#: assets/src/wizard/index.js:731
+msgid "Set your business hours"
+msgstr "Thiết lập giờ làm việc"
+
+#: assets/src/wizard/index.js:732
+msgid "Staff inherit these hours. You can fine-tune later."
+msgstr "Nhân viên kế thừa các giờ này. Bạn có thể tinh chỉnh sau."
+
+#. translators: %s: weekday name, e.g. Monday.
+#: assets/src/wizard/index.js:799
+msgid "Apply %s’s hours to all open days"
+msgstr "Áp dụng giờ của %s cho tất cả ngày mở cửa"
+
+#. translators: %s: weekday name.
+#: assets/src/wizard/index.js:843
+msgid "Open on %s"
+msgstr "Mở vào %s"
+
+#: assets/src/wizard/index.js:902
+msgid "Closed"
+msgstr "Đóng cửa"
+
+#: assets/src/wizard/index.js:924
+msgid "Who takes the bookings?"
+msgstr "Ai sẽ nhận lịch đặt?"
+
+#: assets/src/wizard/index.js:927
+msgid ""
+"We prefilled you. You can add the rest of your team from the Staff screen."
+msgstr ""
+
+#: assets/src/wizard/index.js:931
+msgid "We prefilled you. Add more staff later with Premium."
+msgstr "Chúng tôi đã điền sẵn bạn. Thêm nhân viên khác sau với bản Premium."
+
+#: assets/src/wizard/index.js:1022
+msgid "Add your first service"
+msgstr "Thêm dịch vụ đầu tiên"
+
+#: assets/src/wizard/index.js:1023
+msgid "What can people book? You can add more later."
+msgstr "Khách có thể đặt gì? Bạn có thể thêm sau."
+
+#: assets/src/wizard/index.js:1063
+msgid "Create service"
+msgstr "Tạo dịch vụ"
+
+#: assets/src/wizard/index.js:1073
+msgid "Service name"
+msgstr "Tên dịch vụ"
+
+#: assets/src/wizard/index.js:1074
+msgid "e.g. Haircut"
+msgstr "ví dụ: Cắt tóc"
+
+#: assets/src/wizard/index.js:1083
+msgid "Duration"
+msgstr "Thời lượng"
+
+#. translators: %d: minutes.
+#: assets/src/wizard/index.js:1088
+msgid "%d minutes"
+msgstr "%d phút"
+
+#: assets/src/wizard/index.js:1100
+msgid "Price (optional)"
+msgstr "Giá (không bắt buộc)"
+
+#: assets/src/form/block.json
+msgctxt "block title"
+msgid "Aponto Booking Form"
+msgstr "Aponto Booking Form"
+
+#: assets/src/form/block.json
+msgctxt "block description"
+msgid ""
+"Let visitors book an appointment — choose a service, date and time, and "
+"confirm."
+msgstr "Cho khách đặt lịch hẹn — chọn dịch vụ, ngày giờ, rồi xác nhận."
+
+#: assets/src/form/block.json
+msgctxt "block keyword"
+msgid "booking"
+msgstr "đặt lịch"
+
+#: assets/src/form/block.json
+msgctxt "block keyword"
+msgid "appointment"
+msgstr "lịch hẹn"
+
+#: assets/src/form/block.json
+msgctxt "block keyword"
+msgid "aponto"
+msgstr "aponto"
+
+#: assets/src/form/block.json
+msgctxt "block keyword"
+msgid "calendar"
+msgstr "lịch"
+
+#: assets/src/form/block.json
+msgctxt "block keyword"
+msgid "schedule"
+msgstr "lịch làm việc"
+
+#~ msgid "Take card payments at checkout with Stripe."
+#~ msgstr "Nhận thanh toán bằng thẻ qua Stripe ngay ở bước thanh toán."
+
+#~ msgid "Accept PayPal for bookings and deposits."
+#~ msgstr "Chấp nhận PayPal cho lịch đặt và tiền cọc."
+
+#~ msgid ""
+#~ "Online payments are not built yet — mark the order paid manually for now. "
+#~ "Card payments with Stripe will be free; PayPal, deposits and coupons are "
+#~ "Premium."
+#~ msgstr ""
+#~ "Thanh toán trực tuyến chưa được xây dựng — tạm thời hãy đánh dấu đơn đã "
+#~ "thanh toán thủ công. Thanh toán bằng thẻ qua Stripe sẽ miễn phí; PayPal, "
+#~ "tiền cọc và mã giảm giá thuộc Premium."
+
+#~ msgid ""
+#~ "Hi {customer_name},\n"
+#~ "\n"
+#~ "Your booking for {service_name} on {booking_date} at {booking_time} has "
+#~ "been cancelled.\n"
+#~ "\n"
+#~ "Reference: {order_code}\n"
+#~ "\n"
+#~ "Book again: {booking_page_link}\n"
+#~ "\n"
+#~ "{business_name}"
+#~ msgstr ""
+#~ "Chào {customer_name},\n"
+#~ "\n"
+#~ "Lịch đặt {service_name} vào {booking_date} lúc {booking_time} đã bị hủy.\n"
+#~ "\n"
+#~ "Mã tham chiếu: {order_code}\n"
+#~ "\n"
+#~ "Đặt lại: {booking_page_link}\n"
+#~ "\n"
+#~ "{business_name}"

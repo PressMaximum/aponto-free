@@ -8544,7 +8544,7 @@ module.exports = window["wp"]["i18n"];
   \************************************/
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://schemas.wp.org/trunk/block.json","apiVersion":3,"name":"aponto/booking-form","version":"1.0.2","title":"Aponto Booking Form","category":"widgets","icon":"calendar-alt","description":"Let visitors book an appointment — choose a service, date and time, and confirm.","keywords":["booking","appointment","aponto","calendar","schedule"],"textdomain":"aponto","attributes":{"serviceId":{"type":"integer"},"staffId":{"type":"integer"},"layout":{"type":"string","default":"default"},"accent":{"type":"string","default":""},"radius":{"type":"number"},"colorScheme":{"type":"string","default":"light"},"align":{"type":"string","default":"wide"}},"supports":{"html":false,"customClassName":false,"reusable":true,"multiple":true,"align":["wide","full"]}}');
+module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://schemas.wp.org/trunk/block.json","apiVersion":3,"name":"aponto/booking-form","version":"1.0.3","title":"Aponto Booking Form","category":"widgets","icon":"calendar-alt","description":"Let visitors book an appointment — choose a service, date and time, and confirm.","keywords":["booking","appointment","aponto","calendar","schedule"],"textdomain":"aponto","attributes":{"serviceId":{"type":"integer"},"staffId":{"type":"integer"},"layout":{"type":"string","default":"default"},"accent":{"type":"string","default":""},"radius":{"type":"number"},"colorScheme":{"type":"string","default":"light"},"align":{"type":"string","default":"wide"}},"supports":{"html":false,"customClassName":false,"reusable":true,"multiple":true,"align":["wide","full"]}}');
 
 /***/ }
 

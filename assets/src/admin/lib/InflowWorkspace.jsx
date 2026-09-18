@@ -7,13 +7,11 @@
  * existing `.pd-bookings-workspace` / `.pd-booking-inspector` / `.pd-inflow-resizer`
  * chrome (the mockup's shared inspector), so module-owned inspectors can reuse it without
  * reintroducing a standalone core route or authoring new table/shell CSS.
+ *
+ * The width itself lives in `lib/inspector-width.js`, which the Bookings route shares: the
+ * rendered width answers to the workspace it is actually in, not only to the stored preference.
  */
-import { useState, useRef } from 'react';
-
-const MIN_W = 320;
-const MAX_W = 520;
-const DEFAULT_W = 380;
-const clampW = ( w ) => Math.round( Math.min( MAX_W, Math.max( MIN_W, Number( w ) || DEFAULT_W ) ) );
+import { MIN_W, useInspectorWidth } from './inspector-width.js';
 
 export function InflowWorkspace( {
 	widthKey,
@@ -23,72 +21,34 @@ export function InflowWorkspace( {
 	children,
 	inspector,
 } ) {
-	const [ width, setWidth ] = useState( () => {
-		try {
-			return clampW( window.localStorage.getItem( widthKey ) );
-		} catch ( e ) {
-			return DEFAULT_W;
-		}
-	} );
-	const [ resizing, setResizing ] = useState( false );
-	const widthRef = useRef( width );
-	widthRef.current = width;
-
-	const startResize = ( e ) => {
-		if ( e.button !== 0 ) {
-			return;
-		}
-		e.preventDefault();
-		const startX = e.clientX;
-		const startW = widthRef.current;
-		setResizing( true );
-		const move = ( me ) => setWidth( clampW( startW + ( startX - me.clientX ) ) );
-		const up = () => {
-			window.removeEventListener( 'pointermove', move );
-			window.removeEventListener( 'pointerup', up );
-			setResizing( false );
-			try {
-				window.localStorage.setItem( widthKey, String( widthRef.current ) );
-			} catch ( err ) { /* ignore */ }
-		};
-		window.addEventListener( 'pointermove', move );
-		window.addEventListener( 'pointerup', up );
-	};
-
-	const keyResize = ( e ) => {
-		let next = width;
-		if ( e.key === 'ArrowLeft' ) next = width + 16;
-		else if ( e.key === 'ArrowRight' ) next = width - 16;
-		else if ( e.key === 'Home' ) next = DEFAULT_W;
-		else if ( e.key === 'End' ) next = MAX_W;
-		else return;
-		e.preventDefault();
-		next = clampW( next );
-		setWidth( next );
-		try {
-			window.localStorage.setItem( widthKey, String( next ) );
-		} catch ( err ) { /* ignore */ }
-	};
+	const { width, maxWidth, stacked, resizing, workspaceRef, startResize, keyResize } = useInspectorWidth( widthKey );
 
 	return (
-		<div className="pd-page">
+		<div className="pd-page pd-inflow-page">
 			<div
+				ref={ workspaceRef }
 				className={ `pd-bookings-workspace${ open ? ' is-inspecting' : '' }${ resizing ? ' is-resizing' : '' }` }
 				style={ { '--pd-booking-inspector-width': `${ width }px` } }
 			>
 				<div className="pd-bookings-main">{ children }</div>
+				{ /* Stacked below the breakpoint: the panes are rows, not columns, so there is no
+				     width to drag. SPEC.md says resizing is disabled there, and the stylesheet
+				     already drops the cursor and the px readout — this drops the handlers and the
+				     tab stop with them, so the separator stops advertising a control that does
+				     nothing. */ }
 				<div
 					className="pd-inflow-resizer"
 					role="separator"
-					aria-orientation="vertical"
+					aria-orientation={ stacked ? 'horizontal' : 'vertical' }
 					aria-label={ `Resize ${ label.toLowerCase() }` }
-					aria-valuemin={ MIN_W }
-					aria-valuemax={ MAX_W }
-					aria-valuenow={ width }
-					tabIndex={ open ? 0 : -1 }
+					aria-valuemin={ stacked ? undefined : MIN_W }
+					aria-valuemax={ stacked ? undefined : maxWidth }
+					aria-valuenow={ stacked ? undefined : width }
+					aria-disabled={ stacked ? true : undefined }
+					tabIndex={ open && ! stacked ? 0 : -1 }
 					hidden={ ! open }
-					onPointerDown={ startResize }
-					onKeyDown={ keyResize }
+					onPointerDown={ stacked ? undefined : startResize }
+					onKeyDown={ stacked ? undefined : keyResize }
 				>
 					<span aria-hidden="true">{ width }px</span>
 				</div>

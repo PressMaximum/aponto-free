@@ -587,6 +587,9 @@ export const COMPARE_SECTIONS = [
 			{ id: 'unlimited', label: __( 'Unlimited bookings', 'aponto' ), free: true, pro: true },
 			{ id: 'staff', label: __( 'Staff members', 'aponto' ), free: __( '1', 'aponto' ), pro: __( 'Unlimited', 'aponto' ) },
 			{ id: 'services', label: __( 'Services & categories', 'aponto' ), free: true, pro: true },
+			// D-R43: Free books one business address (General -> Business, `location_id = 0`); named
+			// locations are the Premium `multi_location` module, whose registry `category` is `booking`.
+			{ id: 'locations', label: __( 'Multiple locations', 'aponto' ), free: false, pro: true },
 			{ id: 'group', label: __( 'Group bookings', 'aponto' ), free: false, pro: true },
 			{ id: 'recurring', label: __( 'Recurring appointments', 'aponto' ), free: false, pro: true },
 			{ id: 'waitlist', label: __( 'Waitlist', 'aponto' ), free: false, pro: true },

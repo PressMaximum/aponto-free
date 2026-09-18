@@ -347,9 +347,16 @@ final class AdminPage {
 		$css_file = $base_dir . '/' . $css_name;
 		$base_url = plugins_url( $dist_rel, APONTO_FILE );
 
+		// Never enqueue a URL with no file behind it. A 404 on the SPA bundle is a blank admin page
+		// whose only symptom is a console error; leaving the screen unenqueued at least lets WordPress
+		// render its own chrome, and matches the file_exists guard the two stylesheets already had.
+		if ( ! is_file( $js_file ) ) {
+			return;
+		}
+
 		$asset  = array(
 			'dependencies' => array( 'react', 'react-dom', 'wp-i18n' ),
-			'version'      => file_exists( $js_file ) ? (string) filemtime( $js_file ) : APONTO_VERSION,
+			'version'      => (string) filemtime( $js_file ),
 		);
 		$loaded = AssetManifest::read( 'admin' );
 		if ( null !== $loaded ) {
@@ -367,7 +374,10 @@ final class AdminPage {
 		// wp-scripts extracts the kit's `style.css` import into a separate
 		// `style-admin.css` chunk (its `--pmdk-*` base). Load it first; the main
 		// `admin.css` (aponto tokens + kit→aponto bridge + reproduced `.pd-*`
-		// chrome + calendar) layers on top.
+		// chrome + calendar) layers on top. Each enqueue records its own RTL/`.min`
+		// variant data through {@see Assets::addStyleVariantData()} — one decision,
+		// taken from the file that was actually resolved, shared by every registered
+		// stylesheet in the plugin (the wizard included).
 		$kit_name = Assets::filename( 'style-admin.css' );
 		$kit_css  = $base_dir . '/' . $kit_name;
 		$css_deps = array();
@@ -378,6 +388,7 @@ final class AdminPage {
 				array(),
 				(string) filemtime( $kit_css )
 			);
+			Assets::addStyleVariantData( 'aponto-admin-kit', $kit_name );
 			$css_deps[] = 'aponto-admin-kit';
 		}
 
@@ -396,6 +407,7 @@ final class AdminPage {
 				$css_deps,
 				(string) filemtime( $css_file )
 			);
+			Assets::addStyleVariantData( 'aponto-admin', $css_name );
 		}
 
 		wp_add_inline_script(
@@ -403,15 +415,6 @@ final class AdminPage {
 			'window.apontoAdmin = ' . wp_json_encode( self::bootConfig() ) . ';',
 			'before'
 		);
-
-		// Load the RTL stylesheet variants (wp-scripts emits `*-rtl.css`) for RTL locales.
-		wp_style_add_data( 'aponto-admin-kit', 'rtl', 'replace' );
-		wp_style_add_data( 'aponto-admin', 'rtl', 'replace' );
-		if ( ! Assets::isDebug() ) {
-			// WordPress rewrites `x.min.css` to `x-rtl.min.css` only when it knows the suffix.
-			wp_style_add_data( 'aponto-admin-kit', 'suffix', '.min' );
-			wp_style_add_data( 'aponto-admin', 'suffix', '.min' );
-		}
 
 		\Aponto\Support\Translations::setScriptTranslations( 'aponto-admin' );
 
@@ -450,7 +453,7 @@ final class AdminPage {
 			$entry  = $dir . '/' . $code;
 			$script = Assets::filename( $entry . '.js' );
 			$asset  = AssetManifest::read( $entry );
-			if ( null === $asset ) {
+			if ( null === $asset || ! is_file( Assets::path( $script ) ) ) {
 				continue;
 			}
 

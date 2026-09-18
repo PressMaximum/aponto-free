@@ -1082,6 +1082,14 @@ const COMPARE_SECTIONS = [{
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Services & categories', 'aponto'),
     free: true,
     pro: true
+  },
+  // D-R43: Free books one business address (General -> Business, `location_id = 0`); named
+  // locations are the Premium `multi_location` module, whose registry `category` is `booking`.
+  {
+    id: 'locations',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple locations', 'aponto'),
+    free: false,
+    pro: true
   }, {
     id: 'group',
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Group bookings', 'aponto'),

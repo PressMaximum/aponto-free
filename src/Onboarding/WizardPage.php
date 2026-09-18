@@ -228,8 +228,9 @@ final class WizardPage {
 		// The wizard's own chrome (SPEC-P1 §4): full-screen takeover + the `--ap-*` product
 		// surface. Emitted by the wizard entry, so it exists only where the wizard does, and it
 		// depends on `wp-components` so the overrides land after the core sheet it overrides.
-		// `wp_style_add_data( …, 'rtl', 'replace' )` swaps in the rtlcss-generated `wizard-rtl.css`
-		// on RTL locales — the same mechanism the admin bundle uses (D8).
+		// {@see Assets::addStyleVariantData()} swaps in the rtlcss-generated `wizard-rtl.css` on RTL
+		// locales and records the `.min` suffix when one is being served — the same single decision
+		// the admin bundle uses (D8).
 		$style_name = Assets::filename( 'wizard.css' );
 		$style      = Assets::path( $style_name );
 		if ( is_file( $style ) ) {
@@ -239,10 +240,7 @@ final class WizardPage {
 				array( 'wp-components' ),
 				(string) filemtime( $style )
 			);
-			wp_style_add_data( self::HANDLE, 'rtl', 'replace' );
-			if ( ! Assets::isDebug() ) {
-				wp_style_add_data( self::HANDLE, 'suffix', '.min' );
-			}
+			Assets::addStyleVariantData( self::HANDLE, $style_name );
 		}
 
 		wp_add_inline_script(

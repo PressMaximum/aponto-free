@@ -111,7 +111,6 @@ export function StaffWorkspace( { mode, staff, onClose, onSaved, closeAfterSave 
 							'danger'
 						);
 						onSaved?.();
-						setSaving( false );
 						return;
 					}
 				}
@@ -127,6 +126,12 @@ export function StaffWorkspace( { mode, staff, onClose, onSaved, closeAfterSave 
 			} else {
 				showToast( err.message, 'danger' );
 			}
+		} finally {
+			// EVERY exit path clears the flag. It used to be cleared only on failure, because success
+			// always ended in `onClose()` and the unmount took the state with it. The Free singleton
+			// workspace does not close on save (`closeAfterSave={ false }`), so a SUCCESSFUL save left
+			// the button disabled at "Saving…" forever — the 1.0.2 beta report. A `finally` is the only
+			// form of this that cannot rot again when a new exit path is added.
 			setSaving( false );
 		}
 	};
@@ -157,6 +162,10 @@ export function StaffWorkspace( { mode, staff, onClose, onSaved, closeAfterSave 
 								<label className={ `pd-compact-field${ fieldError.email ? ' has-error' : '' }` }><input className="pd-ltr" type="email" value={ details.email } placeholder=" " required onChange={ set( 'email' ) } /><span className="pd-compact-label">Email</span></label>
 								<label className="pd-compact-field"><input className="pd-ltr" value={ details.phone } placeholder=" " onChange={ set( 'phone' ) } /><span className="pd-compact-label">Phone</span></label>
 							</div>
+							{ /* The email field used to carry a red border and nothing else: a server-side
+							     rejection ("that address is already taken") was a colour change with no
+							     sentence anywhere on the page. Same treatment as the name field above. */ }
+							{ fieldError.email ? <p className="ap-field-error">{ fieldError.email }</p> : null }
 							<label className="pd-compact-field pd-compact-select is-filled">
 								<select value={ details.status } onChange={ set( 'status' ) }>{ STATUS_OPTIONS.map( ( s ) => <option key={ s.value } value={ s.value }>{ s.label }</option> ) }</select>
 								<span className="pd-compact-label">Status</span>

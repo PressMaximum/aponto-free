@@ -4,7 +4,7 @@
  * (no backdrop/body-lock/focus-trap; the list stays interactive). Server data via
  * GET /bookings; status/reschedule/paid/delete/create wired to REST.
  */
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../lib/api.js';
 import { config } from '../lib/config.js';
 import { money, toUtcInstant } from '../lib/format.js';
@@ -16,6 +16,7 @@ import { useConfirmDialog } from '../lib/confirm.jsx';
 import { BookingsTable } from '../bookings/BookingsTable.jsx';
 import { lazySurface } from '../lib/lazy.jsx';
 import { statusToast } from '../lib/notification-outcome.js';
+import { MIN_W, useInspectorWidth } from '../lib/inspector-width.js';
 
 // The inspector is a SECOND paint, always behind a click on a row (or a cross-route
 // "open this booking"), so it is a chunk rather than entry bytes — the list itself is
@@ -43,22 +44,17 @@ const PREMATURE = {
 	},
 };
 
+// The booking editor shares the in-flow inspector's width rules with every other route
+// (lib/inspector-width.js): one stored preference per route, one viewport-aware clamp. This file
+// used to carry its own copy — with a different 344px floor — so a fix to one never reached the other.
 const WIDTH_KEY = 'aponto.admin.booking-inspector-width.v1';
-const MIN_W = 344;
-const MAX_W = 520;
-const clampW = ( w ) => Math.round( Math.min( MAX_W, Math.max( MIN_W, Number( w ) || 380 ) ) );
 
 export function Bookings() {
 	const showToast = useToast();
 	const { confirm, dialog } = useConfirmDialog();
 	const [ state, setState ] = useState( { loading: true, error: null, rows: [], total: 0 } );
 	const [ editor, setEditor ] = useState( null ); // { mode, id, row, action, prefill }
-	const [ width, setWidth ] = useState( () => {
-		try { return clampW( window.localStorage.getItem( WIDTH_KEY ) ); } catch ( e ) { return 380; }
-	} );
-	const [ resizing, setResizing ] = useState( false );
-	const widthRef = useRef( width );
-	widthRef.current = width;
+	const { width, maxWidth, stacked, resizing, workspaceRef, startResize, keyResize } = useInspectorWidth( WIDTH_KEY );
 
 	const load = useCallback( () => {
 		setState( ( s ) => ( { ...s, loading: s.rows.length === 0, error: null } ) );
@@ -195,38 +191,6 @@ export function Bookings() {
 		window.open( `${ base }/export/bookings.csv?${ params.toString() }`, '_blank', 'noopener' );
 	};
 
-	// ---- Inspector resize (pointer + keyboard, persisted) ------------------
-	const startResize = ( e ) => {
-		if ( e.button !== 0 ) {
-			return;
-		}
-		e.preventDefault();
-		const startX = e.clientX;
-		const startW = widthRef.current;
-		setResizing( true );
-		const move = ( me ) => setWidth( clampW( startW + ( startX - me.clientX ) ) );
-		const up = () => {
-			window.removeEventListener( 'pointermove', move );
-			window.removeEventListener( 'pointerup', up );
-			setResizing( false );
-			try { window.localStorage.setItem( WIDTH_KEY, String( widthRef.current ) ); } catch ( err ) { /* ignore */ }
-		};
-		window.addEventListener( 'pointermove', move );
-		window.addEventListener( 'pointerup', up );
-	};
-	const keyResize = ( e ) => {
-		let next = width;
-		if ( e.key === 'ArrowLeft' ) next = width + 16;
-		else if ( e.key === 'ArrowRight' ) next = width - 16;
-		else if ( e.key === 'Home' ) next = 380;
-		else if ( e.key === 'End' ) next = MAX_W;
-		else return;
-		e.preventDefault();
-		next = clampW( next );
-		setWidth( next );
-		try { window.localStorage.setItem( WIDTH_KEY, String( next ) ); } catch ( err ) { /* ignore */ }
-	};
-
 	let content;
 	if ( state.loading ) {
 		content = <RouteLoading label="Loading bookings" />;
@@ -254,6 +218,7 @@ export function Bookings() {
 	return (
 		<div className="pd-page pd-bookings-page">
 			<div
+				ref={ workspaceRef }
 				className={ `pd-bookings-workspace${ editor ? ' is-inspecting' : '' }${ resizing ? ' is-resizing' : '' }` }
 				style={ { '--pd-booking-inspector-width': `${ width }px` } }
 			>
@@ -271,15 +236,16 @@ export function Bookings() {
 				<div
 					className="pd-inflow-resizer"
 					role="separator"
-					aria-orientation="vertical"
+					aria-orientation={ stacked ? 'horizontal' : 'vertical' }
 					aria-label="Resize booking editor"
-					aria-valuemin={ MIN_W }
-					aria-valuemax={ MAX_W }
-					aria-valuenow={ width }
-					tabIndex={ editor ? 0 : -1 }
+					aria-valuemin={ stacked ? undefined : MIN_W }
+					aria-valuemax={ stacked ? undefined : maxWidth }
+					aria-valuenow={ stacked ? undefined : width }
+					aria-disabled={ stacked ? true : undefined }
+					tabIndex={ editor && ! stacked ? 0 : -1 }
 					hidden={ ! editor }
-					onPointerDown={ startResize }
-					onKeyDown={ keyResize }
+					onPointerDown={ stacked ? undefined : startResize }
+					onKeyDown={ stacked ? undefined : keyResize }
 				>
 					<span aria-hidden="true">{ width }px</span>
 				</div>

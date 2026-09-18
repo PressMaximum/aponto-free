@@ -229,6 +229,15 @@ final class Fixtures {
 	public function seed( int $staff_count = 1 ): array {
 		$now = $this->clock->nowSql();
 
+		// BUSINESS hours first (`staff_id = 0`, the wildcard scope every staff member inherits —
+		// SPEC-P1 1.3). Production sets these in the onboarding wizard; `wp aponto seed` skips the
+		// wizard entirely, so without this a seeded demo site had NO business hours at all: Settings
+		// showed the whole week Closed and a staff member with no weekly rows of their own inherited
+		// that same closed week in the staff editor (beta report 2026-09-17). Mon-Fri 09:00-17:00 is
+		// the wizard's own default ({@see \Aponto\Onboarding\WizardService}), so the seeded site now
+		// starts where a wizard-completed site starts.
+		$this->weeklyHours( 0 );
+
 		$hair  = $this->insertCategory( 'Hair', 0 );
 		$nails = $this->insertCategory( 'Nails', 1 );
 
@@ -407,7 +416,11 @@ final class Fixtures {
 	 * Insert weekly hours for a staff member (wildcard service/location). Defaults to the original
 	 * Mon–Fri 09:00–17:00 window, so an unparameterised call behaves exactly as it always did.
 	 *
-	 * @param int            $staff    Staff id.
+	 * Staff id `0` is the BUSINESS-hours scope rather than a staff member, and is written the same
+	 * way: the schedule table keys on `staff_id` and reserves 0 for the wildcard every member
+	 * inherits, so no separate insert path is needed for it.
+	 *
+	 * @param int            $staff    Staff id, or 0 for the inherited business hours.
 	 * @param list<int>|null $weekdays ISO weekdays (1 = Monday); primary window when null.
 	 * @param int|null       $start    Start minute of day; primary window when null.
 	 * @param int|null       $end      End minute of day; primary window when null.

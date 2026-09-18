@@ -1043,6 +1043,14 @@ const COMPARE_SECTIONS = [{
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Services & categories', 'aponto'),
     free: true,
     pro: true
+  },
+  // D-R43: Free books one business address (General -> Business, `location_id = 0`); named
+  // locations are the Premium `multi_location` module, whose registry `category` is `booking`.
+  {
+    id: 'locations',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple locations', 'aponto'),
+    free: false,
+    pro: true
   }, {
     id: 'group',
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Group bookings', 'aponto'),
@@ -1927,7 +1935,6 @@ function StaffWorkspace({
             showToast((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)(/* translators: %s: the reason the work hours could not be saved. */
             (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Staff details saved, but the work hours were not: %s', 'aponto'), hoursError.message), 'danger');
             onSaved?.();
-            setSaving(false);
             return;
           }
         }
@@ -1943,6 +1950,12 @@ function StaffWorkspace({
       } else {
         showToast(err.message, 'danger');
       }
+    } finally {
+      // EVERY exit path clears the flag. It used to be cleared only on failure, because success
+      // always ended in `onClose()` and the unmount took the state with it. The Free singleton
+      // workspace does not close on save (`closeAfterSave={ false }`), so a SUCCESSFUL save left
+      // the button disabled at "Saving…" forever — the 1.0.2 beta report. A `finally` is the only
+      // form of this that cannot rot again when a new exit path is added.
       setSaving(false);
     }
   };
@@ -2045,7 +2058,10 @@ function StaffWorkspace({
                   children: "Phone"
                 })]
               })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("label", {
+            }), fieldError.email ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("p", {
+              className: "ap-field-error",
+              children: fieldError.email
+            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("label", {
               className: "pd-compact-field pd-compact-select is-filled",
               children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("select", {
                 value: details.status,
