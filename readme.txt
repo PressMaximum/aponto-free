@@ -4,7 +4,7 @@ Tags: appointment booking, appointments, booking, scheduling, booking calendar
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -245,6 +245,10 @@ hCaptcha's terms of service: https://www.hcaptcha.com/terms
 
 == Changelog ==
 
+= 1.1.1 =
+
+* Release pipeline fix. No plugin changes since 1.1.0, which was tagged but never published to WordPress.org.
+
 = 1.1.0 =
 
 * Booking form: a new one-page layout for a block pinned to a single service, chosen with the editor's "Booking flow" control, with an optional host line and meeting-method line. A service priced 0 reads "Free".
@@ -295,9 +299,9 @@ hCaptcha's terms of service: https://www.hcaptcha.com/terms
 
 == Upgrade Notice ==
 
-= 1.1.0 =
+= 1.1.1 =
 
-Names are now stored as first and last name. A site that created customers or staff on 1.0.x should start from a fresh install of 1.1.0.
+Names are now stored as first and last name. A site that created customers or staff on 1.0.x should start from a fresh install of 1.1.1.
 
 = 1.0.3 =
 
