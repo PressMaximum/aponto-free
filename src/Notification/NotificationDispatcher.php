@@ -27,6 +27,7 @@ use Aponto\Rest\Support\TimezoneLabel;
 use Aponto\Support\Clock;
 use Aponto\Support\Crypto;
 use Aponto\Support\Logger;
+use Aponto\Support\PersonName;
 use Aponto\Support\Settings;
 
 /**
@@ -309,6 +310,9 @@ final class NotificationDispatcher {
 	 * @param string      $base_policy Base policy (`send`|`suppress`).
 	 */
 	public function queueCreated( Booking $booking, ?string $raw_token, string $base_policy = 'send' ): void {
+		if ( 0 === $booking->customer_id ) {
+			return;
+		}
 		try {
 			// PAY-ONLINE HOLD (D-R38j): a booking whose order is an unpaid hold is not a booking yet.
 			// Telling the customer "we received your booking" and the owner "you have a new booking"
@@ -339,8 +343,7 @@ final class NotificationDispatcher {
 
 			$customer_template = 'confirmed' === $booking->status ? 'booking_confirmed_customer' : 'booking_received_customer';
 			$this->queueJob( 'created', '', $customer_template, $ctx->customerEmail(), $booking, $raw_token, $policy, $ctx );
-			$this->queueJob( 'created', '', 'booking_created_admin', $this->adminEmail(), $booking, $raw_token, $policy, $ctx );
-			$this->queueStaffJob( 'created', '', 'booking_created_staff', $booking, $raw_token, $policy, $ctx );
+			$this->queueStaffAndAdmin( 'created', '', 'booking_created_staff', 'booking_created_admin', $booking, $raw_token, $policy, $ctx );
 		} catch ( \Throwable $failure ) {
 			unset( $failure ); // Outbox is fail-safe — never abort the reservation for a notification.
 		}
@@ -358,22 +361,40 @@ final class NotificationDispatcher {
 	 * the transition already queued `booking_confirmed_customer` and the customer does not need to
 	 * be told twice about one appointment.
 	 *
+	 * ALSO THE RELEASE FOR A PLACED EXTERNAL ORDER (persona QA 2026-10-05, T-022): an order placed
+	 * on an external checkout and waiting for the merchant never expires, so the booking is real
+	 * before any money is — {@see \Aponto\Payments\PaymentService::announceExternalPlacement()}
+	 * calls this at that moment. The dispatch keys are the ones settlement uses, so the payment
+	 * that lands hours later answers `duplicate` for all three and mails nothing twice.
+	 *
 	 * @param Booking $booking          Booking snapshot, re-read after the payment.
 	 * @param bool    $include_customer Whether to queue the customer's `received` copy too.
+	 * @return bool False only when an outcome is UNKNOWN (an exception was swallowed); every
+	 *              definitive answer — queued, duplicate, suppressed, disabled — is true, so a
+	 *              caller keeping its own "announced" marker knows whether re-asking can help.
 	 */
-	public function queueDeferredCreated( Booking $booking, bool $include_customer ): void {
+	public function queueDeferredCreated( Booking $booking, bool $include_customer ): bool {
+		if ( 0 === $booking->customer_id ) {
+			return false;
+		}
 		try {
-			$policy = $this->policy( 'send', 'created', $booking );
-			$ctx    = NotificationContext::forBooking( $booking, $this->wpdb, $this->settings, $this->timezones );
+			$policy   = $this->policy( 'send', 'created', $booking );
+			$ctx      = NotificationContext::forBooking( $booking, $this->wpdb, $this->settings, $this->timezones );
+			$outcomes = array();
 
 			if ( $include_customer ) {
-				$template = 'confirmed' === $booking->status ? 'booking_confirmed_customer' : 'booking_received_customer';
-				$this->queueJob( 'created', '', $template, $ctx->customerEmail(), $booking, null, $policy, $ctx );
+				$template   = 'confirmed' === $booking->status ? 'booking_confirmed_customer' : 'booking_received_customer';
+				$outcomes[] = $this->queueJob( 'created', '', $template, $ctx->customerEmail(), $booking, null, $policy, $ctx );
 			}
-			$this->queueJob( 'created', '', 'booking_created_admin', $this->adminEmail(), $booking, null, $policy, $ctx );
-			$this->queueStaffJob( 'created', '', 'booking_created_staff', $booking, null, $policy, $ctx );
+			$pair       = $this->queueStaffAndAdmin( 'created', '', 'booking_created_staff', 'booking_created_admin', $booking, null, $policy, $ctx );
+			$outcomes[] = $pair['admin'];
+			$outcomes[] = $pair['staff'];
+
+			return ! in_array( self::OUTCOME_FAILED, $outcomes, true );
 		} catch ( \Throwable $failure ) {
 			unset( $failure ); // Fail-safe: a notification never breaks a payment that already settled.
+
+			return false;
 		}
 	}
 
@@ -618,6 +639,10 @@ final class NotificationDispatcher {
 		// confirm email as if it belonged to the restore (found by the P2-2 tests).
 		$this->claimed_delivery_ids[ $booking->id ] = array();
 		unset( $this->status_outcomes[ $booking->id ], $this->status_delivery_ids[ $booking->id ] );
+		if ( 0 === $booking->customer_id ) {
+			$this->recordStatusOutcome( $booking->id, self::OUTCOME_SUPPRESSED );
+			return;
+		}
 
 		try {
 			$policy = $this->policy( $base_policy, 'status_changed', $booking );
@@ -627,7 +652,26 @@ final class NotificationDispatcher {
 				$this->recordStatusOutcome( $booking->id, $this->queueJob( 'status', $to . ':' . $booking->mutation_version, self::CUSTOMER_STATUS_TEMPLATES['confirmed'], $ctx->customerEmail(), $booking, null, $policy, $ctx ) );
 			} elseif ( 'cancelled' === $to ) {
 				$mutation = $to . ':' . $booking->mutation_version;
-				$this->recordStatusOutcome( $booking->id, $this->queueJob( 'status', $mutation, self::CUSTOMER_STATUS_TEMPLATES['cancelled'], $ctx->customerEmail(), $booking, null, $policy, $ctx, $reason ) );
+
+				// A HOLD NOBODY WAS TOLD ABOUT IS NOT CANCELLED AT ANYBODY (D-R72, founder 2026-10-02).
+				// See {@see self::holdExpiryAudience()}: for the system's own release of an expired
+				// pay-online hold, each side is told only if it was ever told the booking existed.
+				// Every other cancellation answers `true` for both and runs exactly as before.
+				$audience = $this->holdExpiryAudience( $booking->id, $reason, $initiated_by );
+
+				// The system's own machine reason is worded for a reader (T-054); anybody else's
+				// reason is quoted exactly as given — including a customer who types that word.
+				if ( 'system' === $initiated_by && self::HOLD_EXPIRED_REASON === $reason ) {
+					$ctx = $ctx->withSystemCancel( $reason );
+				}
+
+				if ( $audience['customer'] ) {
+					$this->recordStatusOutcome( $booking->id, $this->queueJob( 'status', $mutation, self::CUSTOMER_STATUS_TEMPLATES['cancelled'], $ctx->customerEmail(), $booking, null, $policy, $ctx, $reason ) );
+				} else {
+					$this->logUnannouncedHold( $booking->id, self::CUSTOMER_STATUS_TEMPLATES['cancelled'] );
+					$this->recordStatusOutcome( $booking->id, self::OUTCOME_SUPPRESSED );
+				}
+				$with_admin = false;
 				if ( str_starts_with( $initiated_by, 'customer' ) ) {
 					// SPEC-P1 §3.2: booking_cancelled_admin fires for CUSTOMER-initiated (token)
 					// cancellations only — an admin cancelling in wp-admin is not emailed about
@@ -638,15 +682,26 @@ final class NotificationDispatcher {
 					// checkout — and those are routine: mailing the owner about every visitor who
 					// closed the tab is the kind of noise that gets a template switched off, taking
 					// the customer-cancellation notice they DO want with it. The slot is freed, the
-					// staff member is told below, and the booking's own activity trail records
-					// `payment_hold_expired`, so nothing is hidden — it is just not pushed.
-					$this->queueJob( 'status', $mutation, 'booking_cancelled_admin', $this->adminEmail(), $booking, null, $policy, $ctx, $reason );
+					// staff member is told below — when they were ever told about the booking, D-R72 —
+					// and the booking's own activity trail records `payment_hold_expired`, so nothing
+					// is hidden — it is just not pushed.
+					$with_admin = true;
 				}
 				// The staff member is told WHATEVER cancelled the booking, unlike the admin rule
 				// above: the admin exemption exists because the admin performed the action, and an
 				// admin cancelling in wp-admin has not told the assigned staff member anything.
 				// Losing a slot off your own calendar is news to you either way.
-				$this->queueStaffJob( 'status', $mutation, 'booking_cancelled_staff', $booking, null, $policy, $ctx, $reason );
+				if ( $audience['staff'] ) {
+					$this->queueStaffAndAdmin( 'status', $mutation, 'booking_cancelled_staff', $with_admin ? 'booking_cancelled_admin' : '', $booking, null, $policy, $ctx, $reason );
+				} else {
+					if ( $with_admin ) {
+						$this->queueJob( 'status', $mutation, 'booking_cancelled_admin', $this->adminEmail(), $booking, null, $policy, $ctx, $reason );
+					}
+					if ( Plan::instance()->has( 'multi_staff' ) ) {
+						// Same gate as the staff job itself: no trail entry for a mail Free never sends.
+						$this->logUnannouncedHold( $booking->id, 'booking_cancelled_staff' );
+					}
+				}
 			} elseif ( 'completed' === $to ) {
 				$this->recordStatusOutcome( $booking->id, $this->queueJob( 'status', $to . ':' . $booking->mutation_version, self::CUSTOMER_STATUS_TEMPLATES['completed'], $ctx->customerEmail(), $booking, null, $policy, $ctx ) );
 			} elseif ( 'no_show' === $to ) {
@@ -702,6 +757,103 @@ final class NotificationDispatcher {
 	}
 
 	/**
+	 * The reason the payment core records when the TICK releases an unpaid hold (D-R38g) — the one
+	 * system-initiated cancellation there is. Matched by {@see self::holdExpiryAudience()}.
+	 */
+	private const HOLD_EXPIRED_REASON = NotificationContext::HOLD_EXPIRED_REASON;
+
+	/**
+	 * Who is told that an EXPIRED pay-online hold was released (D-R72, founder 2026-10-02).
+	 *
+	 * A hold defers its `created` mail until the payment lands (D-R38j), so an abandoned checkout
+	 * used to produce exactly one message per side: "Your booking was cancelled" — about a booking
+	 * neither the customer nor the staff member had ever been told existed. The rule is therefore
+	 * "a cancellation answers an announcement":
+	 *
+	 * - a `created` delivery row exists for the booking (it was announced before the hold — an
+	 *   on-site booking later moved to pay, or a paid hold whose mail went out) → BOTH sides are
+	 *   told, exactly as before;
+	 * - no `created` row, but the "Complete your payment" reminder was DELIVERED → the CUSTOMER is
+	 *   told, with the ordinary cancellation mail: the reminder said "your slot is held", and
+	 *   leaving that standing after the slot is gone is the surprising outcome. The STAFF member is
+	 *   not told — the reminder never went to them, so to them the booking never existed;
+	 * - neither → nobody is mailed. The activity trail still records `payment_hold_expired`.
+	 *
+	 * The source of truth is the deliveries ledger, for the reason {@see self::hasCreatedDeliveries()}
+	 * gives: a row is the one thing that exists if and only if the outbox accepted the message. A
+	 * suppressed, disabled or flood-capped `created` job claims no row, so "the site chose not to
+	 * announce it" reads the same as "it was never announced" — which is the right reading.
+	 *
+	 * SCOPED TO THE TICK'S RELEASE ONLY: reason {@see self::HOLD_EXPIRED_REASON} from actor `system`.
+	 * A cancellation by the customer or by an admin never reaches the ledger lookups and is unchanged
+	 * — including a customer who types that same string as their own reason.
+	 *
+	 * @param int    $booking_id   Booking id.
+	 * @param string $reason       Cancellation reason carried by the domain event.
+	 * @param string $initiated_by Actor descriptor carried by the domain event.
+	 * @return array{customer: bool, staff: bool}
+	 */
+	private function holdExpiryAudience( int $booking_id, string $reason, string $initiated_by ): array {
+		if ( self::HOLD_EXPIRED_REASON !== $reason || 'system' !== $initiated_by ) {
+			return array(
+				'customer' => true,
+				'staff'    => true,
+			);
+		}
+
+		if ( $this->hasCreatedDeliveries( $booking_id ) ) {
+			return array(
+				'customer' => true,
+				'staff'    => true,
+			);
+		}
+
+		return array(
+			'customer' => $this->paymentReminderDelivered( $booking_id ),
+			'staff'    => false,
+		);
+	}
+
+	/**
+	 * Whether the "Complete your payment" hold reminder actually went out for this booking (D-R72).
+	 *
+	 * `sent`, or `processing` (a sender holds the lease this instant). A `queued` or `failed` row does
+	 * NOT count: its send guard pins `status_in = pending`, so once this cancellation commits it can
+	 * never be delivered — the customer has heard nothing, and is told nothing.
+	 *
+	 * @param int $booking_id Booking id.
+	 */
+	private function paymentReminderDelivered( int $booking_id ): bool {
+		$table = $this->wpdb->prefix . 'aponto_notification_deliveries';
+		$sql   = "SELECT COUNT(*) FROM {$table} WHERE booking_id = %d AND dispatch_key LIKE %s AND status IN ( 'sent', 'processing' )";
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $booking_id, $this->wpdb->esc_like( 'payment_pending:' . $booking_id . ':' ) . '%' ) ) > 0;
+	}
+
+	/**
+	 * Record that a cancellation mail was deliberately not sent for a never-announced hold (D-R72).
+	 *
+	 * The existing `notification_suppressed` action, with a `reason` beside the usual keys, so the
+	 * booking's trail answers "why did nobody get a mail?" without a new action to label.
+	 *
+	 * @param int    $booking_id   Booking id.
+	 * @param string $template_key Template that was not queued.
+	 */
+	private function logUnannouncedHold( int $booking_id, string $template_key ): void {
+		$this->activities->log(
+			'booking',
+			$booking_id,
+			'notification_suppressed',
+			array(
+				'template' => $template_key,
+				'trigger'  => 'status',
+				'reason'   => 'hold_never_announced',
+			),
+			'system'
+		);
+	}
+
+	/**
 	 * The delivery rows the last {@see self::queueStatusChanged()} call claimed for this booking.
 	 *
 	 * The write model's identity-failure compensation deletes exactly these — see
@@ -715,25 +867,121 @@ final class NotificationDispatcher {
 	}
 
 	/**
-	 * Queue the reschedule notification INSIDE the write transaction (V3 outbox). Fail-safe.
+	 * Queue the reschedule notifications INSIDE the write transaction (V3 outbox). Fail-safe.
 	 *
-	 * @param Booking $booking     Booking snapshot (new state, uncommitted).
-	 * @param string  $base_policy Base policy carried by the domain event.
+	 * WHO IS TOLD WHAT (D-R78, founder 2026-10-06 — an admin can now move a booking to another
+	 * staff member from "Edit time"):
+	 *
+	 * - the CUSTOMER gets the existing "rescheduled" mail when the time or the place changed, as
+	 *   before. A STAFF-ONLY change mails them only where customers choose their staff member
+	 *   ({@see self::customerHearsStaffChange()}); where the business assigns staff, "your booking
+	 *   was rescheduled" to the same time would be the noise T-042 removed;
+	 * - when the STAFF MEMBER changed, the previous one gets the existing "Booking cancelled" staff
+	 *   mail rendered from the booking AS IT WAS (their name, the old time — "removed from your
+	 *   calendar"), and the new one gets the existing "New booking for you" mail rendered from the
+	 *   booking as it now is. No new template. Both ride {@see self::queueStaffJob()}, so they are
+	 *   multi-staff only, honour the template switches and the notification policy (an unticked
+	 *   Notify box suppresses them like every other mail of the action), and drop for a staff row
+	 *   with no email;
+	 * - when the previous and the new staff member are reached at the SAME MAILBOX (two staff rows
+	 *   of one person, a shared front-desk address), neither staff mail is sent
+	 *   ({@see self::reassignmentReachesTwoMailboxes()}, Codex review 2026-10-06): "removed from your
+	 *   calendar" and "New booking for you" about one booking, in the same second, is the pair the
+	 *   one-mailbox-one-mail rule exists to prevent, and sending only one of them tells half a story
+	 *   (a lone "New booking" reads as a second booking). For that mailbox the move is a reschedule
+	 *   that keeps its owner — which mails no staff, see below.
+	 *
+	 * A time change that keeps the staff member mails no staff, exactly as before.
+	 *
+	 * @param Booking      $booking     Booking snapshot (new state, uncommitted).
+	 * @param string       $base_policy Base policy carried by the domain event.
+	 * @param Booking|null $previous    The booking before the move, when the caller knows it.
 	 */
-	public function queueRescheduled( Booking $booking, string $base_policy = 'send' ): void {
+	public function queueRescheduled( Booking $booking, string $base_policy = 'send', ?Booking $previous = null ): void {
+		if ( 0 === $booking->customer_id ) {
+			return;
+		}
 		try {
 			// Retire any LEGACY reminder row FIRST, before the notification policy is consulted: a
 			// booking's eligibility for a future reminder must not depend on whether the site chose to
 			// email anyone about this particular reschedule.
 			$this->retireLegacyReminder( $booking->id );
 
-			$policy = $this->policy( $base_policy, 'rescheduled', $booking );
-			$ctx    = NotificationContext::forBooking( $booking, $this->wpdb, $this->settings, $this->timezones );
+			$policy        = $this->policy( $base_policy, 'rescheduled', $booking );
+			$ctx           = NotificationContext::forBooking( $booking, $this->wpdb, $this->settings, $this->timezones );
+			$discriminator = (string) $booking->ics_sequence;
+			$staff_changed = null !== $previous && $previous->staff_id !== $booking->staff_id;
 
-			$this->queueJob( 'rescheduled', (string) $booking->ics_sequence, 'booking_rescheduled_customer', $ctx->customerEmail(), $booking, null, $policy, $ctx );
+			if ( self::customerHearsReschedule( $previous, $booking, $this->customerHearsStaffChange() ) ) {
+				$this->queueJob( 'rescheduled', $discriminator, 'booking_rescheduled_customer', $ctx->customerEmail(), $booking, null, $policy, $ctx );
+			}
+			if ( $staff_changed && self::reassignmentReachesTwoMailboxes( $this->staffEmail( $previous ), $this->staffEmail( $booking ) ) ) {
+				$before = NotificationContext::forBooking( $previous, $this->wpdb, $this->settings, $this->timezones );
+				$this->queueStaffJob( 'rescheduled', $discriminator, 'booking_cancelled_staff', $previous, null, $policy, $before, $this->reassignedReason() );
+				$this->queueStaffJob( 'rescheduled', $discriminator, 'booking_created_staff', $booking, null, $policy, $ctx );
+			}
 		} catch ( \Throwable $failure ) {
 			unset( $failure ); // Outbox is fail-safe.
 		}
+	}
+
+	/**
+	 * The `{cancel_reason}` line of the previous staff member's mail (D-R78), in the MAIL locale —
+	 * the request locale is the acting admin's, which is not the language mail is written in.
+	 */
+	private function reassignedReason(): string {
+		$switched = $this->enterMailLocale();
+		try {
+			\Aponto\Support\Translations::loadCurrentLocale();
+
+			return __( 'Reassigned to another staff member.', 'aponto' );
+		} finally {
+			$this->exitMailLocale( $switched );
+		}
+	}
+
+	/**
+	 * Whether a staff change moves the booking between two DIFFERENT mailboxes — the only case in
+	 * which the previous and the new staff member are mailed ({@see self::queueRescheduled()}).
+	 * Pure, pinned by a unit test. Addresses are compared the way
+	 * {@see self::adminCopyIsDuplicate()} compares them; two EMPTY addresses are "different" on
+	 * purpose, so this rule never decides anything for staff rows without an email (their jobs are
+	 * dropped by `prepareJob()` as before).
+	 *
+	 * @param string $previous_email The previous staff member's address.
+	 * @param string $new_email      The new staff member's address.
+	 */
+	public static function reassignmentReachesTwoMailboxes( string $previous_email, string $new_email ): bool {
+		$previous = strtolower( trim( $previous_email ) );
+
+		return '' === $previous || strtolower( trim( $new_email ) ) !== $previous;
+	}
+
+	/**
+	 * Whether the customer is mailed about this reschedule (D-R78). Pure, pinned by a unit test.
+	 *
+	 * @param Booking|null $previous           The booking before the move; null = unknown, so mail.
+	 * @param Booking      $booking            The booking after the move.
+	 * @param bool         $hears_staff_change Whether a staff-only change is the customer's business.
+	 */
+	public static function customerHearsReschedule( ?Booking $previous, Booking $booking, bool $hears_staff_change ): bool {
+		if ( null === $previous ) {
+			return true;
+		}
+		if ( $previous->start_utc->getTimestamp() !== $booking->start_utc->getTimestamp() || $previous->location_id !== $booking->location_id ) {
+			return true;
+		}
+
+		return $previous->staff_id !== $booking->staff_id && $hears_staff_change;
+	}
+
+	/**
+	 * Whether customers of this site are told WHO serves them (D-R78): the multi-staff module is on
+	 * and `booking.staff_choice` lets the customer pick a staff member (`visitor` / `required`).
+	 * With `any` the business assigns staff and a swap is its own internal matter.
+	 */
+	private function customerHearsStaffChange(): bool {
+		return Plan::instance()->has( 'multi_staff' ) && 'any' !== (string) $this->settings->get( 'booking.staff_choice' );
 	}
 
 	/**
@@ -782,6 +1030,9 @@ final class NotificationDispatcher {
 	 * @param Booking $booking Confirmed booking snapshot.
 	 */
 	public function queueReminder( Booking $booking ): void {
+		if ( 0 === $booking->customer_id ) {
+			return;
+		}
 		try {
 			$ctx = NotificationContext::forBooking( $booking, $this->wpdb, $this->settings, $this->timezones );
 			$this->queueJob( 'reminder', $this->reminderDiscriminator( $booking ), 'booking_reminder_customer', $ctx->customerEmail(), $booking, null, 'send', $ctx );
@@ -846,6 +1097,9 @@ final class NotificationDispatcher {
 	 * @return string One of the `OUTCOME_*` constants.
 	 */
 	public function queueModuleMessage( string $trigger, string $discriminator, array $template, Booking $booking, array $guard, array $extras = array() ): string {
+		if ( 0 === $booking->customer_id ) {
+			return self::OUTCOME_SUPPRESSED;
+		}
 		try {
 			$key     = mb_substr( (string) ( $template['key'] ?? ( 'module_' . $trigger ) ), 0, 64 );
 			$subject = (string) ( $template['subject'] ?? '' );
@@ -1113,13 +1367,80 @@ final class NotificationDispatcher {
 	 * @param string              $policy        Effective policy.
 	 * @param NotificationContext $ctx           Render context.
 	 * @param string              $cancel_reason Cancellation reason for `{cancel_reason}`, else ''.
+	 * @return string One of the `OUTCOME_*` constants.
 	 */
-	private function queueStaffJob( string $trigger, string $discriminator, string $template_key, Booking $booking, ?string $raw_token, string $policy, NotificationContext $ctx, string $cancel_reason = '' ): void {
+	private function queueStaffJob( string $trigger, string $discriminator, string $template_key, Booking $booking, ?string $raw_token, string $policy, NotificationContext $ctx, string $cancel_reason = '' ): string {
 		if ( ! Plan::instance()->has( 'multi_staff' ) ) {
-			return;
+			return self::OUTCOME_DISABLED;
 		}
 
-		$this->queueJob( $trigger, $discriminator, $template_key, $this->staffEmail( $booking ), $booking, $raw_token, $policy, $ctx, $cancel_reason );
+		return $this->queueJob( $trigger, $discriminator, $template_key, $this->staffEmail( $booking ), $booking, $raw_token, $policy, $ctx, $cancel_reason );
+	}
+
+	/**
+	 * Queue the staff copy of an event and, when the event has one, its admin twin — ONE PERSON,
+	 * ONE MAIL (persona QA 2026-10-05, T-060; rule made uniform by the re-test, R3).
+	 *
+	 * An owner who is also the assigned staff member used to get "New booking" and "New booking
+	 * for you" in the same second. The first fix kept the ADMIN copy and skipped the staff one —
+	 * but an admin-initiated cancellation has no admin copy at all (the admin is not mailed about
+	 * their own action), so there the staff copy went out: the same mailbox received the admin
+	 * wording for one event and the staff wording for the next, and a staff template the owner had
+	 * edited (their branch, the wp-admin link) silently never reached them.
+	 *
+	 * The rule is now the same for every pair: when both copies would reach the same address, the
+	 * STAFF copy is the one that is sent. It is the only kind that exists for every event the pair
+	 * covers, and it is the one written to the person the booking is assigned to. The admin copy
+	 * still goes whenever the staff copy was NOT accepted by the outbox (Free, template off,
+	 * suppressed, no staff address, failed) — skipping it then would leave that person with
+	 * nothing — and always when the two addresses differ.
+	 *
+	 * @param string              $trigger        Trigger key.
+	 * @param string              $discriminator  Uniqueness discriminator.
+	 * @param string              $staff_template Staff template key.
+	 * @param string              $admin_template Admin template key, or '' when this event has no admin copy.
+	 * @param Booking             $booking        Booking snapshot.
+	 * @param string|null         $raw_token      Raw token (created only).
+	 * @param string              $policy         Effective policy.
+	 * @param NotificationContext $ctx            Render context.
+	 * @param string              $cancel_reason  Cancellation reason for `{cancel_reason}`, else ''.
+	 * @return array{staff: string, admin: string} `OUTCOME_*` per copy (`disabled` for an admin copy the event does not have).
+	 */
+	private function queueStaffAndAdmin( string $trigger, string $discriminator, string $staff_template, string $admin_template, Booking $booking, ?string $raw_token, string $policy, NotificationContext $ctx, string $cancel_reason = '' ): array {
+		$staff = $this->queueStaffJob( $trigger, $discriminator, $staff_template, $booking, $raw_token, $policy, $ctx, $cancel_reason );
+		if ( '' === $admin_template ) {
+			return array(
+				'staff' => $staff,
+				'admin' => self::OUTCOME_DISABLED,
+			);
+		}
+
+		$admin_email = $this->adminEmail();
+		$admin       = self::adminCopyIsDuplicate( $admin_email, $this->staffEmail( $booking ), $staff )
+			? self::OUTCOME_SUPPRESSED
+			: $this->queueJob( $trigger, $discriminator, $admin_template, $admin_email, $booking, $raw_token, $policy, $ctx, $cancel_reason );
+
+		return array(
+			'staff' => $staff,
+			'admin' => $admin,
+		);
+	}
+
+	/**
+	 * Whether the admin copy would reach a mailbox the staff copy of the same event already
+	 * reaches ({@see self::queueStaffAndAdmin()}). Pure, so the rule is pinned by a unit test.
+	 *
+	 * @param string $admin_email   Owner/admin recipient.
+	 * @param string $staff_email   Assigned staff member's address.
+	 * @param string $staff_outcome Outcome of the staff copy queued just before.
+	 */
+	public static function adminCopyIsDuplicate( string $admin_email, string $staff_email, string $staff_outcome ): bool {
+		if ( ! in_array( $staff_outcome, array( self::OUTCOME_QUEUED, self::OUTCOME_DUPLICATE ), true ) ) {
+			return false;
+		}
+		$staff = strtolower( trim( $staff_email ) );
+
+		return '' !== $staff && strtolower( trim( $admin_email ) ) === $staff;
 	}
 
 	/**
@@ -1212,7 +1533,28 @@ final class NotificationDispatcher {
 				\Aponto\Support\Translations::loadCurrentLocale();
 				$placeholders = $ctx->placeholders( $raw_token, $cancel_reason, $is_customer ? 'customer' : 'admin' );
 				$subject      = Placeholders::renderSubject( $this->localizeTemplate( (string) $template['subject'] ), $placeholders );
-				$body         = Placeholders::renderBody( $this->localizeTemplate( (string) $template['body'] ), $placeholders );
+				$body_copy    = $this->localizeTemplate( (string) $template['body'] );
+
+				// A CANCELLATION'S NOTE ALWAYS REACHES THE READER (persona QA 2026-10-05, T-056 /
+				// T-054). `{cancel_note}` says what the cancellation means for a payment that was
+				// made (core never refunds automatically, D-R71k) or why the system released the
+				// slot. A template that places the placeholder decides where it goes; any other —
+				// every stored template written before the placeholder existed — gets it added, so
+				// the one sentence about the customer's money cannot be missing.
+				//
+				// BEFORE THE SIGN-OFF, NOT UNDER IT (re-test N5 / R7): the note used to be appended
+				// after everything and so sat below the business name the mail is signed with. When
+				// the body ends with a recognisable sign-off the placeholder is put in front of it
+				// ({@see Placeholders::insertBeforeSignature()}); otherwise it stays the last
+				// paragraph, as before.
+				$note   = 'status' === $trigger && ! str_contains( (string) $template['body'], '{cancel_note}' )
+					? (string) ( $placeholders['cancel_note'] ?? '' )
+					: '';
+				$placed = '' !== trim( $note ) ? Placeholders::insertBeforeSignature( $body_copy, '{cancel_note}' ) : null;
+				$body   = Placeholders::renderBody( $placed ?? $body_copy, $placeholders );
+				if ( null === $placed ) {
+					$body = Placeholders::appendParagraph( $body, $note );
+				}
 			} finally {
 				$this->exitMailLocale( $switched );
 			}
@@ -1755,30 +2097,39 @@ final class NotificationDispatcher {
 		$manage = BookingManagePage::manageUrl( 'sample-token' );
 
 		return array(
-			'customer_name'     => 'Alex Sample',
-			'customer_email'    => $email,
-			'customer_phone'    => '+1 555 0100',
-			'service_name'      => 'Sample Service',
-			'staff_name'        => 'Sample Staff',
-			'booking_date'      => (string) wp_date( $date, $ts, $tz ),
+			// Sample names as the stored parts plus the ONE composed form (name split, D-R69).
+			'customer_name'       => PersonName::display( 'Alex', 'Sample' ),
+			'customer_first_name' => 'Alex',
+			'customer_last_name'  => 'Sample',
+			'customer_email'      => $email,
+			'customer_phone'      => '+1 555 0100',
+			'service_name'        => 'Sample Service',
+			'staff_name'          => PersonName::display( 'Sample', 'Staff' ),
+			'staff_first_name'    => 'Sample',
+			'staff_last_name'     => 'Staff',
+			'booking_date'        => (string) wp_date( $date, $ts, $tz ),
 			// The one shared time format path (SPEC-P1 §3.3); the fixture uses a single timezone.
-			'booking_time'      => NotificationContext::formatBookingTime( (string) wp_date( $time, $ts, $tz ), TimezoneLabel::label( $tz, $now ), null ),
-			'booking_end_time'  => (string) wp_date( $time, $ts + HOUR_IN_SECONDS, $tz ),
-			'booking_timezone'  => TimezoneLabel::label( $tz, $now ),
-			'business_name'     => (string) $this->settings->get( 'business.name' ),
-			'business_address'  => (string) $this->settings->get( 'business.address' ),
-			'business_phone'    => (string) $this->settings->get( 'business.phone' ),
-			'site_name'         => Settings::blogName(),
-			'booking_status'    => 'confirmed',
-			'order_code'        => 'AP-SAMPL',
-			'cancel_reason'     => __( 'Schedule conflict', 'aponto' ),
-			'manage_link'       => $manage,
-			'cancel_link'       => $manage,
-			'ics_link'          => rest_url( 'aponto/v1/public/bookings/sample-token/ics' ),
-			'booking_page_link' => NotificationContext::bookingPageUrl(),
+			'booking_time'        => NotificationContext::formatBookingTime( (string) wp_date( $time, $ts, $tz ), TimezoneLabel::label( $tz, $now ), null ),
+			'booking_end_time'    => (string) wp_date( $time, $ts + HOUR_IN_SECONDS, $tz ),
+			'booking_timezone'    => TimezoneLabel::label( $tz, $now ),
+			'business_name'       => (string) $this->settings->get( 'business.name' ),
+			'business_address'    => (string) $this->settings->get( 'business.address' ),
+			'business_phone'      => (string) $this->settings->get( 'business.phone' ),
+			'location_name'       => '',
+			'location_address'    => (string) $this->settings->get( 'business.address' ),
+			'admin_booking_link'  => admin_url( 'admin.php?page=aponto#bookings' ),
+			'cancel_note'         => '',
+			'site_name'           => Settings::blogName(),
+			'booking_status'      => 'confirmed',
+			'order_code'          => 'AP-SAMPL',
+			'cancel_reason'       => __( 'Schedule conflict', 'aponto' ),
+			'manage_link'         => $manage,
+			'cancel_link'         => $manage,
+			'ics_link'            => rest_url( 'aponto/v1/public/bookings/sample-token/ics' ),
+			'booking_page_link'   => NotificationContext::bookingPageUrl(),
 			// Sample preview: the resume link uses the same placeholder token as the manage link, so
 			// a test send shows the shape without minting anything real.
-			'payment_link'      => \Aponto\Frontend\BookingManagePage::resumeUrl( 'sample-token' ),
+			'payment_link'        => \Aponto\Frontend\BookingManagePage::resumeUrl( 'sample-token' ),
 		);
 	}
 }

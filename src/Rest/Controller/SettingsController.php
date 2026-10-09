@@ -19,6 +19,7 @@ use Aponto\Rest\Controller;
 use Aponto\Rest\Errors;
 use Aponto\Rest\Policy;
 use Aponto\Rest\Services;
+use Aponto\Support\BookingPage;
 use Aponto\Support\Settings;
 use WP_Error;
 use WP_REST_Request;
@@ -26,7 +27,8 @@ use WP_REST_Response;
 
 /**
  * Reads and writes the core settings registry. This route is CORE-ONLY: it touches nothing but the
- * `aponto_settings` option through {@see Settings}, never a module option. Settings stores flat,
+ * `aponto_settings` option through {@see Settings} and — since D-R75 — the standalone booking-page
+ * option through {@see BookingPage}, never a module option. Settings stores flat,
  * dotted keys (`business.name`); the REST DTO is the nested object those dots imply, so the
  * controller groups keys by first segment on the way out and walks the dotted path on the way in.
  * `PUT` is a full replacement: any schema key absent from the body resets to that schema entry's
@@ -34,6 +36,12 @@ use WP_REST_Response;
  * Schema entries marked `rest => false` (the notification sender identity — Codex review E item 4)
  * are OUTSIDE this surface entirely: GET omits them and the full-replacement PUT neither writes nor
  * resets them, so omitting the group can never clobber values owned by another route.
+ *
+ * The booking page (rest-contract §2.11 addendum D-R75) rides the same DTO as the read-mostly object
+ * `booking_page`, of which only `id` is writable. It is NOT a schema key and is exempt from the
+ * full-replacement rule on purpose: a body WITHOUT `booking_page` leaves the stored page untouched,
+ * because resetting it by omission would silently unlink every email and payment link of a site
+ * whose page was set by the onboarding wizard.
  *
  * Lightweight optimistic concurrency (rest-contract §2.11 addendum 2026-07-19 C1): the DTO carries
  * a `revision` int; a PUT that sends a stale `revision` is rejected `409 aponto_settings_conflict`
@@ -132,11 +140,23 @@ final class SettingsController implements Controller {
 			}
 		}
 
+		// The booking page (D-R75): validated with everything else, so a 422 never leaves a partial
+		// replacement; absent from the body = unchanged (see the class docblock).
+		$writes_page = $request->has_param( 'booking_page' );
+		$page        = $writes_page ? $request->get_param( 'booking_page' ) : null;
+		$page_id     = is_array( $page ) && array_key_exists( 'id', $page ) ? $page['id'] : null;
+		if ( $writes_page && ! BookingPage::accepts( $page_id ) ) {
+			$fields[ BookingPage::FIELD ] = __( 'Choose a published page, or None.', 'aponto' );
+		}
+
 		if ( array() !== $fields ) {
 			return Errors::validation( $fields );
 		}
 		foreach ( $values as $key => $value ) {
 			$this->settings->update( $key, $value, true );
+		}
+		if ( $writes_page ) {
+			BookingPage::save( (int) $page_id );
 		}
 
 		return new WP_REST_Response( $this->toDto( $this->settings ), 200 );
@@ -197,6 +217,9 @@ final class SettingsController implements Controller {
 			}
 			$dto[ $group ][ $leaf ] = $value;
 		}
+
+		// Not a schema key: the booking page lives in its own option (D-R75).
+		$dto['booking_page'] = BookingPage::dto();
 
 		return $dto;
 	}

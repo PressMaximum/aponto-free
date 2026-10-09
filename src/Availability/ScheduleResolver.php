@@ -94,6 +94,55 @@ final class ScheduleResolver {
 	}
 
 	/**
+	 * The effective WEEKLY grid (ISO weekdays 1..7) for a concrete triple — {@see self::resolve()}
+	 * applied to one representative date per weekday, over the WEEKLY rows only (date overrides are
+	 * per-date exceptions, outside a weekly grid). A weekday with no open period is omitted.
+	 *
+	 * The one definition behind `GET /staff/{id}/schedule?resolved=1` (rest-contract §2.6) and
+	 * `GET /locations/{id}/hours` (§2.17, D-R63 fix round 1), so the two can never disagree.
+	 *
+	 * @param list<ScheduleRow> $rows        Candidate rows (any mix; overrides are ignored).
+	 * @param int               $staff_id    Concrete staff id.
+	 * @param int               $service_id  Service id (0 wildcard).
+	 * @param int               $location_id Location id (0 wildcard).
+	 * @return list<array{weekday:int, periods:list<array{start_minute:int, end_minute:int}>}>
+	 */
+	public function resolveWeek( array $rows, int $staff_id, int $service_id, int $location_id ): array {
+		$weekly_rows = array();
+		foreach ( $rows as $row ) {
+			if ( null === $row->date_override ) {
+				$weekly_rows[] = $row;
+			}
+		}
+
+		// 2024-01-01 is a Monday (ISO weekday 1); +0..+6 days walks Mon..Sun so `resolve()`'s
+		// `date('N')` maps each representative date to the right ISO weekday.
+		$monday = new \DateTimeImmutable( '2024-01-01', new \DateTimeZone( 'UTC' ) );
+
+		$weekly = array();
+		for ( $iso = 1; $iso <= 7; $iso++ ) {
+			$date    = $monday->modify( '+' . ( $iso - 1 ) . ' day' )->format( 'Y-m-d' );
+			$periods = $this->resolve( $weekly_rows, $staff_id, $service_id, $location_id, $date );
+			if ( array() === $periods ) {
+				continue;
+			}
+			$out = array();
+			foreach ( $periods as $period ) {
+				$out[] = array(
+					'start_minute' => $period[0],
+					'end_minute'   => $period[1],
+				);
+			}
+			$weekly[] = array(
+				'weekday' => $iso,
+				'periods' => $out,
+			);
+		}
+
+		return $weekly;
+	}
+
+	/**
 	 * Whether a row's staff/service/location dimensions match the concrete triple (wildcard 0 ok).
 	 *
 	 * @param ScheduleRow $row         Candidate row.

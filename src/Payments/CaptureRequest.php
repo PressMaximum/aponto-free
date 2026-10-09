@@ -61,6 +61,7 @@ final class CaptureRequest {
 	 *                                      branch of `PaymentService::releaseHold()` keeps the
 	 *                                      default, because there the gateway has ALREADY reported
 	 *                                      settled money and the capture is a confirmation of it.
+	 * @param bool   $retrieve_only Observe existing money only; no driver may initiate a new capture.
 	 */
 	public function __construct(
 		public readonly string $module_code,
@@ -68,7 +69,8 @@ final class CaptureRequest {
 		public readonly int $expected_amount_minor,
 		public readonly string $expected_currency,
 		public readonly string $order_code,
-		public readonly bool $hold_open = true
+		public readonly bool $hold_open = true,
+		public readonly bool $retrieve_only = false
 	) {}
 
 	/**
@@ -84,6 +86,7 @@ final class CaptureRequest {
 			'expected_currency'     => $this->expected_currency,
 			'order_code'            => $this->order_code,
 			'hold_open'             => $this->hold_open,
+			'retrieve_only'         => $this->retrieve_only,
 		);
 	}
 }

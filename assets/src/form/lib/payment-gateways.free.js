@@ -21,8 +21,7 @@ export const ctaOwners = [];
  * @return {?Object} Gateway copy, or null when this registry does not own it.
  */
 export function gatewaySpecificCopy( gateway ) {
-	const code =
-		typeof gateway === 'string' ? gateway : ( gateway || {} ).code;
+	const code = typeof gateway === 'string' ? gateway : ( gateway || {} ).code;
 	if ( code !== 'payments_stripe' ) {
 		return null;
 	}
@@ -41,4 +40,9 @@ export function gatewaySpecificCopy( gateway ) {
 		/* translators: 1: formatted amount paid, 2: order code, e.g. "AP-7Q2F4". */
 		paidLine: __( 'Paid %1$s by card · reference %2$s', 'aponto' ),
 	};
+}
+
+/** Free has no checkout that collects booking identity externally. */
+export function directCheckout() {
+	return null;
 }

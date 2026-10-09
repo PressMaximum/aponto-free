@@ -81,10 +81,16 @@ final class AvailabilityEngine implements Engine {
 		}
 
 		// Concrete-staff eligibility (§5.3): the any-staff path already filters candidates by the
-		// `aponto_staff_services` connection; a concrete staff query MUST apply the same guard, or a
-		// staff member not assigned to this service (at this location, or the `0` wildcard) would
-		// still surface availability (Codex engine review).
-		if ( null !== $query->staff_id && ! $this->connections->isConnected( $query->staff_id, $query->service_id, $query->location_id ) ) {
+		// `aponto_staff_services` connection AND by `status = 'active'`; a concrete staff query MUST
+		// apply the SAME guard, or a staff member not assigned to this service (at this location, or
+		// the `0` wildcard) would still surface availability (Codex engine review).
+		//
+		// `isEligible()` rather than `isConnected()` since D-R50 fix round 1: the ACTIVE half was
+		// missing here while `ReservationService::targetsAreBookable()` has always enforced it, so
+		// an ARCHIVED staff member displayed a full calendar and answered `409 aponto_slot_taken`
+		// on every booking attempt — and the widget, which refetches on that 409, got the same
+		// slots back and looped. Subtract-only: a non-active staff member simply has no slots.
+		if ( null !== $query->staff_id && ! $this->connections->isEligible( $query->staff_id, $query->service_id, $query->location_id ) ) {
 			return array();
 		}
 
@@ -92,11 +98,14 @@ final class AvailabilityEngine implements Engine {
 		$dates  = $this->businessDates( $query->from_date, $query->to_date );
 		$window = $this->utcWindow( $query->from_date, $query->to_date, $tz );
 
+		// `exclude_booking_id` (persona QA 2026-10-05, T-043) applies to the CONCRETE-staff path only:
+		// it is the admin's "Edit time" read, which always names the booking's own staff member. The
+		// any-staff union keeps every booking busy, exactly as before.
 		$flat = null === $query->staff_id
 			? $this->generateAnyStaff( $service, $query, $dates, $tz, $window[0], $window[1] )
-			: $this->generateForStaff( $service, $query->staff_id, $query, $dates, $tz, $window[0], $window[1], null );
+			: $this->generateForStaff( $service, $query->staff_id, $query, $dates, $tz, $window[0], $window[1], $query->exclude_booking_id );
 
-		$flat = $this->applyBookableWindow( $flat, $service );
+		$flat = $this->applyBookableWindow( $flat, $service, $query->front_desk ? $tz : null );
 		$flat = $this->applyDisplayFilter( $flat, $query );
 
 		return $this->groupByDate( $flat, $tz );
@@ -160,10 +169,12 @@ final class AvailabilityEngine implements Engine {
 	 * @param string   $from_date   Inclusive customer start date `Y-m-d`.
 	 * @param string   $to_date     Inclusive customer end date `Y-m-d`.
 	 * @param string   $customer_tz Customer IANA timezone.
+	 * @param int|null $exclude_booking_id Booking to leave out of the busy set (T-043; see {@see SlotQuery}).
+	 * @param bool     $front_desk  The admin "New booking" read (D-R77; see {@see SlotQuery}).
 	 * @return list<Slot>
 	 * @throws RangeTooWide When the inclusive range exceeds 62 days (§5.5).
 	 */
-	public function slotsForCustomerRange( int $service_id, ?int $staff_id, int $location_id, string $from_date, string $to_date, string $customer_tz ): array {
+	public function slotsForCustomerRange( int $service_id, ?int $staff_id, int $location_id, string $from_date, string $to_date, string $customer_tz, ?int $exclude_booking_id = null, bool $front_desk = false ): array {
 		$this->assertRange( $from_date, $to_date );
 
 		$cust_zone = $this->safeZone( $customer_tz );
@@ -177,7 +188,7 @@ final class AvailabilityEngine implements Engine {
 		$biz_from = $lo->setTimezone( $biz_zone )->modify( '-1 day' )->format( 'Y-m-d' );
 		$biz_to   = $hi->setTimezone( $biz_zone )->modify( '+1 day' )->format( 'Y-m-d' );
 
-		$query   = new SlotQuery( $service_id, $staff_id, $location_id, $biz_from, $biz_to );
+		$query   = new SlotQuery( $service_id, $staff_id, $location_id, $biz_from, $biz_to, SlotQuery::PURPOSE_DISPLAY, $exclude_booking_id, $front_desk );
 		$grouped = $this->get_slots( $query );
 
 		$out = array();
@@ -274,14 +285,26 @@ final class AvailabilityEngine implements Engine {
 	/**
 	 * Drop slots outside the bookable window `[now + min_lead, now + max_horizon]` (display policy).
 	 *
-	 * @param list<Slot>        $slots   Slots.
-	 * @param ServiceDefinition $service Resolved service.
+	 * The FRONT-DESK read (D-R77, `$front_desk_tz` set) is the admin recording a walk-in or a phone
+	 * booking: the customer lead time and horizon are policies about what a CUSTOMER may ask for, so
+	 * neither applies, and the floor is the start of the business's current day at this location —
+	 * "now" and the earlier starts of today are offered, yesterday is not. Nothing else changes:
+	 * the slots were generated from working hours minus busy time, and the reservation re-checks
+	 * `is_slot_free()` under the lock exactly as for any booking.
+	 *
+	 * @param list<Slot>         $slots         Slots.
+	 * @param ServiceDefinition  $service       Resolved service.
+	 * @param \DateTimeZone|null $front_desk_tz Business timezone of the grid on the front-desk read; null otherwise.
 	 * @return list<Slot>
 	 */
-	private function applyBookableWindow( array $slots, ServiceDefinition $service ): array {
+	private function applyBookableWindow( array $slots, ServiceDefinition $service, ?\DateTimeZone $front_desk_tz = null ): array {
 		$now   = $this->clock->now();
 		$floor = $now->modify( '+' . $service->min_lead_minutes . ' minutes' )->getTimestamp();
 		$ceil  = $now->modify( '+' . $service->max_horizon_days . ' days' )->getTimestamp();
+		if ( null !== $front_desk_tz ) {
+			$floor = ( new \DateTimeImmutable( $now->setTimezone( $front_desk_tz )->format( 'Y-m-d' ) . ' 00:00:00', $front_desk_tz ) )->getTimestamp();
+			$ceil  = PHP_INT_MAX;
+		}
 
 		$out = array();
 		foreach ( $slots as $slot ) {
@@ -402,12 +425,7 @@ final class AvailabilityEngine implements Engine {
 	 * @throws RangeTooWide When too wide.
 	 */
 	private function assertRange( string $from, string $to ): void {
-		$a    = new \DateTimeImmutable( $from . ' 00:00:00', $this->utc );
-		$b    = new \DateTimeImmutable( $to . ' 00:00:00', $this->utc );
-		$days = (int) $a->diff( $b )->format( '%r%a' ) + 1;
-		if ( $days > RangeTooWide::MAX_DAYS ) {
-			throw new RangeTooWide();
-		}
+		RangeTooWide::assertWithin( $from, $to );
 	}
 
 	/**

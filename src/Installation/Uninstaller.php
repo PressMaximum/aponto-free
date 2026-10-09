@@ -63,12 +63,15 @@ final class Uninstaller {
 			return;
 		}
 
+		global $wpdb;
+		\Aponto\Extension\RetainedData::uninstall( $wpdb );
 		$this->uninstallModules();
 		$this->dropTables();
 		// MUST run before deleteOptions(): the log directory name lives in `aponto_logger_state`,
 		// which the `aponto\_%` sweep removes.
 		$this->deleteLogDirectory();
 		$this->deleteOptions();
+		$this->deleteUserOptions();
 		Capabilities::revoke();
 		Cron::clear();
 		\Aponto\Integration\RemoteEventSync::clearSchedule();
@@ -240,6 +243,26 @@ final class Uninstaller {
 
 		foreach ( $names as $name ) {
 			delete_option( (string) $name );
+		}
+	}
+
+	/**
+	 * Delete this site's Aponto user options (the Bookings list column layout,
+	 * {@see \Aponto\Admin\BookingsTablePreferences}) for every user.
+	 *
+	 * User options are user meta keyed `{blog prefix}aponto_*`, so the sweep mirrors
+	 * {@see self::deleteOptions()} scoped to the CURRENT site's prefix: on multisite another site's
+	 * `wp_2_aponto_*` keys are left to that site's own pass of {@see self::uninstall()}.
+	 */
+	private function deleteUserOptions(): void {
+		global $wpdb;
+
+		$like = $wpdb->esc_like( $wpdb->get_blog_prefix() . 'aponto_' ) . '%';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Enumerate this site's Aponto user option keys to delete on opt-in uninstall.
+		$keys = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT meta_key FROM {$wpdb->usermeta} WHERE meta_key LIKE %s", $like ) );
+
+		foreach ( $keys as $key ) {
+			delete_metadata( 'user', 0, (string) $key, '', true );
 		}
 	}
 }

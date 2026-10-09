@@ -1023,26 +1023,25 @@ final class ConnectionStore {
 					return false; // Nothing to record and nothing to clear.
 				}
 
-				// A PLAIN INSERT, deliberately not `add_option()`: that helper upserts
+				// INSERT IGNORE, deliberately not `add_option()`: that helper upserts
 				// (`ON DUPLICATE KEY UPDATE … option_value = VALUES(option_value)`), so a rival that
 				// created the row a microsecond earlier would have its marker overwritten — the very
 				// loss this CAS exists to prevent. A duplicate key here is the honest answer "someone
 				// else got there first", and the loop retries into the UPDATE path.
 				$suppressed = $wpdb->suppress_errors( true );
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Conditional create; a duplicate key is the concurrency signal.
-				$inserted = $wpdb->insert(
-					$wpdb->options,
-					array(
-						'option_name'  => self::PURGE_OPTION,
-						'option_value' => maybe_serialize( $first ),
-						// `yes` is the legacy value every supported WordPress still counts as
-						// autoloaded (6.6 widened the column, it did not retire this one).
-						'autoload'     => 'yes',
+				$inserted = $wpdb->query(
+					$wpdb->prepare(
+						'INSERT IGNORE INTO %i (option_name, option_value, autoload) VALUES (%s, %s, %s)',
+						$wpdb->options,
+						self::PURGE_OPTION,
+						maybe_serialize( $first ),
+						'yes'
 					)
 				);
 				$wpdb->suppress_errors( $suppressed );
 
-				if ( false !== $inserted ) {
+				if ( 1 === $inserted ) {
 					self::flushOptionCaches();
 
 					return true;
@@ -1054,7 +1053,7 @@ final class ConnectionStore {
 				$error = (string) $wpdb->last_error;
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Post-write discriminator; a cache cannot say whether the row exists.
 				$exists = $wpdb->get_var( $wpdb->prepare( "SELECT option_id FROM {$wpdb->options} WHERE option_name = %s", self::PURGE_OPTION ) );
-				if ( null === $exists && '' !== $error ) {
+				if ( false === $inserted || null === $exists ) {
 					throw StorageException::fromSqlError( esc_html( 'integration purge marker' ), esc_html( $error ) );
 				}
 

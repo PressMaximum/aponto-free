@@ -67,6 +67,22 @@ final class PaymentException extends DomainException {
 	}
 
 	/**
+	 * A paid service cannot be booked online right now (D-R79): the site requires online payment,
+	 * no payment method is ready, and the owner chose to refuse rather than take the booking unpaid.
+	 * The same `aponto_payment_unavailable` 409 — nothing a retry can fix until a payment method is
+	 * ready again — carrying copy written for the CUSTOMER, since this one reaches the public form.
+	 */
+	public static function bookingUnavailable(): self {
+		return new self(
+			'aponto_payment_unavailable',
+			409,
+			'Paid booking refused: online payment is required and no payment method is ready.',
+			false,
+			__( 'Online booking for this service is temporarily unavailable. Please contact us.', 'aponto' )
+		);
+	}
+
+	/**
 	 * The order's payment state does not allow this operation.
 	 *
 	 * @param string $public_message Localized copy to send instead of the registry's generic one.

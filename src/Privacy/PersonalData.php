@@ -16,7 +16,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use Aponto\Booking\CustomFieldSchema;
+use Aponto\Rest\Support\Format;
 use Aponto\Support\Crypto;
+use Aponto\Support\PersonName;
 
 /**
  * Registers the WordPress personal-data exporter and eraser. Lookup is by normalized email. The
@@ -78,10 +80,14 @@ final class PersonalData {
 	 */
 	public function export( string $email, int $page = 1 ): array {
 		unset( $page );
-		$customer = $this->customer( $email );
+		// The WordPress account is resolved INDEPENDENTLY of the Aponto customer row (D-R67l): a
+		// coupon can be reserved for an account that has never booked, so "no customer row" is not
+		// "no Aponto data about this person".
+		$coupon_targets = $this->couponTargets()->forUser( $this->wordpressUserId( $email ) );
+		$customer       = $this->customer( $email );
 		if ( null === $customer ) {
 			return array(
-				'data' => array(),
+				'data' => $this->couponTargetItems( $coupon_targets ),
 				'done' => true,
 			);
 		}
@@ -93,9 +99,14 @@ final class PersonalData {
 				'group_label' => __( 'Aponto customer', 'aponto' ),
 				'item_id'     => 'aponto-customer-' . $id,
 				'data'        => array(
+					// The stored name parts, one row each (name split, D-R69).
 					array(
-						'name'  => __( 'Name', 'aponto' ),
-						'value' => (string) $customer['name'],
+						'name'  => __( 'First name', 'aponto' ),
+						'value' => (string) $customer['first_name'],
+					),
+					array(
+						'name'  => __( 'Last name', 'aponto' ),
+						'value' => (string) $customer['last_name'],
 					),
 					array(
 						'name'  => __( 'Email', 'aponto' ),
@@ -124,6 +135,18 @@ final class PersonalData {
 					array(
 						'name'  => __( 'Service', 'aponto' ),
 						'value' => (string) $booking['service_name'],
+					),
+					// WHO and WHERE (persona QA 2026-10-05, T-092): an appointment listed without the
+					// person seen or the branch visited answered half of "what do you hold about my
+					// visits". The staff member's display name is the one the customer was shown on
+					// the booking form and in their confirmation; no staff contact detail is exported.
+					array(
+						'name'  => __( 'Staff', 'aponto' ),
+						'value' => PersonName::display( (string) ( $booking['staff_first_name'] ?? '' ), (string) ( $booking['staff_last_name'] ?? '' ) ),
+					),
+					array(
+						'name'  => __( 'Location', 'aponto' ),
+						'value' => (string) ( $booking['location_name'] ?? '' ),
 					),
 					array(
 						'name'  => __( 'Start (UTC)', 'aponto' ),
@@ -188,6 +211,32 @@ final class PersonalData {
 			);
 		}
 
+		// Billing address an external checkout recorded per booking (D-R71d); the Anonymizer
+		// deletes the same key, keeping export and erasure symmetric.
+		$meta = new \Aponto\Booking\Repository\BookingMetaRepository( $this->wpdb );
+		foreach ( $booking_ids as $booking_id ) {
+			$raw     = $meta->getKey( $booking_id, \Aponto\Booking\Repository\BookingMetaRepository::BILLING_ADDRESS_KEY );
+			$address = null === $raw ? null : json_decode( $raw, true );
+			if ( ! is_array( $address ) || array() === $address ) {
+				continue;
+			}
+			$data[] = array(
+				'group_id'    => 'aponto_booking_billing',
+				'group_label' => __( 'Aponto checkout billing addresses', 'aponto' ),
+				'item_id'     => 'aponto-booking-billing-' . $booking_id,
+				'data'        => array(
+					array(
+						'name'  => __( 'Booking', 'aponto' ),
+						'value' => '#' . $booking_id,
+					),
+					array(
+						'name'  => __( 'Billing address', 'aponto' ),
+						'value' => implode( ', ', array_map( 'strval', array_filter( $address, 'is_scalar' ) ) ),
+					),
+				),
+			);
+		}
+
 		foreach ( $this->orders( $booking_ids ) as $order ) {
 			$data[] = array(
 				'group_id'    => 'aponto_orders',
@@ -198,9 +247,25 @@ final class PersonalData {
 						'name'  => __( 'Order code', 'aponto' ),
 						'value' => (string) $order['code'],
 					),
+					// Amounts as a person reads them — "45.00 USD", not the stored integer 4500
+					// (T-092). The integer stays the only form INSIDE the plugin (§5 invariant 7);
+					// this is the export boundary, formatted by the same `Format::moneyMajor()` the
+					// CSV export uses.
 					array(
-						'name'  => __( 'Total (minor units)', 'aponto' ),
-						'value' => (string) $order['total_minor'],
+						'name'  => __( 'Total', 'aponto' ),
+						'value' => self::amount( (int) $order['total_minor'], (string) $order['currency'] ),
+					),
+					array(
+						'name'  => __( 'Subtotal', 'aponto' ),
+						'value' => self::amount( (int) ( $order['subtotal_minor'] ?? $order['total_minor'] ), (string) $order['currency'] ),
+					),
+					array(
+						'name'  => __( 'Discount', 'aponto' ),
+						'value' => self::amount( (int) ( $order['discount_minor'] ?? 0 ), (string) $order['currency'] ),
+					),
+					array(
+						'name'  => __( 'Coupon code', 'aponto' ),
+						'value' => (string) ( $order['coupon_code'] ?? '' ),
 					),
 					array(
 						'name'  => __( 'Currency', 'aponto' ),
@@ -233,8 +298,8 @@ final class PersonalData {
 						'value' => (string) $transaction['status'],
 					),
 					array(
-						'name'  => __( 'Amount (minor units)', 'aponto' ),
-						'value' => (string) $transaction['amount_minor'],
+						'name'  => __( 'Amount', 'aponto' ),
+						'value' => self::amount( (int) $transaction['amount_minor'], (string) $transaction['currency'] ),
 					),
 					array(
 						'name'  => __( 'Currency', 'aponto' ),
@@ -272,7 +337,7 @@ final class PersonalData {
 					),
 					array(
 						'name'  => __( 'Details', 'aponto' ),
-						'value' => (string) $activity['meta'],
+						'value' => self::flattenDetails( (string) $activity['meta'] ),
 					),
 					array(
 						'name'  => __( 'Initiated by', 'aponto' ),
@@ -286,7 +351,7 @@ final class PersonalData {
 			);
 		}
 
-		foreach ( $this->deliveries( $booking_ids ) as $delivery ) {
+		foreach ( $this->deliveries( $booking_ids, (string) $customer['email'] ) as $delivery ) {
 			$data[] = array(
 				'group_id'    => 'aponto_notifications',
 				'group_label' => __( 'Aponto notifications', 'aponto' ),
@@ -339,9 +404,55 @@ final class PersonalData {
 		}
 
 		return array(
-			'data' => $data,
+			'data' => array_merge( $data, $this->couponTargetItems( $coupon_targets ) ),
 			'done' => true,
 		);
+	}
+
+	/**
+	 * Export items for the coupons a WordPress account is individually targeted by (D-R67l).
+	 *
+	 * @param list<array{coupon_id:int, code:string, name:string}> $targets Allow-list memberships.
+	 * @return list<array<string, mixed>>
+	 */
+	private function couponTargetItems( array $targets ): array {
+		return array_map(
+			static fn ( array $target ): array => array(
+				'group_id'    => 'aponto_coupon_targets',
+				'group_label' => __( 'Aponto coupons reserved for this account', 'aponto' ),
+				'item_id'     => 'aponto-coupon-target-' . $target['coupon_id'],
+				'data'        => array(
+					array(
+						'name'  => __( 'Coupon code', 'aponto' ),
+						'value' => $target['code'],
+					),
+					array(
+						'name'  => __( 'Coupon name', 'aponto' ),
+						'value' => $target['name'],
+					),
+				),
+			),
+			$targets
+		);
+	}
+
+	/**
+	 * The current-site WordPress account for an email, or 0.
+	 *
+	 * @param string $email Email address.
+	 */
+	private function wordpressUserId( string $email ): int {
+		$user = get_user_by( 'email', strtolower( trim( $email ) ) );
+		if ( ! $user instanceof \WP_User ) {
+			return 0;
+		}
+
+		return (int) $user->ID;
+	}
+
+	/** The coupon allow-list privacy helper. */
+	private function couponTargets(): CouponUserTargets {
+		return new CouponUserTargets( $this->wpdb );
 	}
 
 	/**
@@ -353,22 +464,47 @@ final class PersonalData {
 	 */
 	public function erase( string $email, int $page = 1 ): array {
 		unset( $page );
+		// Coupon allow-list memberships go first and independently of the customer row (D-R67l). A
+		// coupon left with no user is fail-closed (applies to nobody), never widened to everyone.
+		$targets_retained = false;
+		try {
+			$targets_removed = $this->couponTargets()->removeUser( $this->wordpressUserId( $email ) ) > 0;
+		} catch ( \Aponto\Database\StorageException $busy ) {
+			// Serialized with coupon saves (D-R67l): a contended lock leaves the rows in place and
+			// says so, instead of failing the whole erasure request.
+			unset( $busy );
+			$targets_removed  = false;
+			$targets_retained = true;
+		}
+		$messages = $targets_removed
+			? array( __( 'Aponto coupon reservations for this account were removed.', 'aponto' ) )
+			: array();
+		if ( $targets_retained ) {
+			$messages[] = __( 'Aponto coupon reservations for this account could not be removed right now. Please run the erasure again.', 'aponto' );
+		}
+
+		// D-R72: previews may contain a person who has no customer row yet.
+		$import_removed = ( new \Aponto\Import\Store( $this->wpdb, new \Aponto\Support\Clock() ) )->purgePreviews() > 0;
+		if ( $import_removed ) {
+			$messages[] = __( 'Temporary CSV import previews and reports were removed.', 'aponto' );
+		}
 		$customer = $this->customer( $email );
 		if ( null === $customer ) {
 			return array(
-				'items_removed'  => false,
-				'items_retained' => false,
-				'messages'       => array(),
+				'items_removed'  => $targets_removed || $import_removed,
+				'items_retained' => $targets_retained,
+				'messages'       => $messages,
 				'done'           => true,
 			);
 		}
 
 		( new Anonymizer( $this->wpdb ) )->anonymizeCustomer( (int) $customer['id'] );
+		$messages[] = __( 'Aponto customer contact data was anonymized; booking audit records were retained.', 'aponto' );
 
 		return array(
 			'items_removed'  => true,
 			'items_retained' => true,
-			'messages'       => array( __( 'Aponto customer contact data was anonymized; booking audit records were retained.', 'aponto' ) ),
+			'messages'       => $messages,
 			'done'           => true,
 		);
 	}
@@ -380,8 +516,13 @@ final class PersonalData {
 	 * @return array<string, mixed>|null
 	 */
 	private function customer( string $email ): ?array {
+		// Only a real address identifies a person here: the private key of a customer stored
+		// without an email (D-R77) is not an address and must never resolve a row.
+		if ( ! is_email( trim( $email ) ) ) {
+			return null;
+		}
 		$table = $this->wpdb->prefix . 'aponto_customers';
-		$sql   = "SELECT id, name, email, phone, note FROM {$table} WHERE email_norm = %s";
+		$sql   = "SELECT id, first_name, last_name, email, phone, note FROM {$table} WHERE email_norm = %s";
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, strtolower( trim( $email ) ) ), ARRAY_A );
 
@@ -400,7 +541,7 @@ final class PersonalData {
 		}
 		$p            = $this->wpdb->prefix;
 		$placeholders = implode( ', ', array_fill( 0, count( $booking_ids ), '%d' ) );
-		$sql          = "SELECT DISTINCT o.id, o.code, o.total_minor, o.currency, o.payment_status FROM {$p}aponto_orders o
+		$sql          = "SELECT DISTINCT o.id, o.code, o.subtotal_minor, o.discount_minor, o.total_minor, o.coupon_code, o.currency, o.payment_status FROM {$p}aponto_orders o
 			INNER JOIN {$p}aponto_order_items oi ON oi.order_id = o.id
 			WHERE oi.booking_id IN ( {$placeholders} ) ORDER BY o.id ASC";
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; ids bound via prepare().
@@ -413,7 +554,7 @@ final class PersonalData {
 			$items   = $this->wpdb->get_results( $this->wpdb->prepare( $items_sql, (int) $order['id'] ), ARRAY_A );
 			$summary = array();
 			foreach ( is_array( $items ) ? $items : array() as $item ) {
-				$summary[] = $item['item_type'] . ': ' . $item['amount_minor'];
+				$summary[] = $item['item_type'] . ': ' . self::amount( (int) $item['amount_minor'], (string) $order['currency'] );
 			}
 			$order['items_summary'] = implode( '; ', $summary );
 		}
@@ -519,10 +660,17 @@ final class PersonalData {
 	 * decrypted to a human-readable subject/recipient (REST-8). No cipher, hash or raw token is
 	 * ever exposed; undecryptable content degrades to a placeholder.
 	 *
-	 * @param list<int> $booking_ids Booking ids.
+	 * ONLY the mail addressed to the person (persona QA 2026-10-05, T-092). A booking also sends
+	 * staff and business alerts, and those rows used to be exported with their `Recipient` — handing
+	 * the customer every staff member's and the owner's email address in a file that exists to give
+	 * people THEIR data. A delivery whose decrypted recipient is a different address is left out;
+	 * one that cannot be decrypted names no address at all, so it stays as an existence record.
+	 *
+	 * @param list<int> $booking_ids    Booking ids.
+	 * @param string    $customer_email The data subject's address.
 	 * @return list<array<string, mixed>>
 	 */
-	private function deliveries( array $booking_ids ): array {
+	private function deliveries( array $booking_ids, string $customer_email ): array {
 		if ( array() === $booking_ids ) {
 			return array();
 		}
@@ -547,6 +695,9 @@ final class PersonalData {
 				if ( is_array( $payload ) ) {
 					$subject   = (string) ( $payload['subject'] ?? $unavailable );
 					$recipient = (string) ( $payload['to'] ?? $unavailable );
+					if ( $recipient !== $unavailable && ! self::sameAddress( $recipient, $customer_email ) ) {
+						continue; // Mail to staff or the business ABOUT this booking is not the customer's.
+					}
 				}
 			}
 			$out[] = array(
@@ -560,6 +711,69 @@ final class PersonalData {
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Whether two mailbox strings are the same address (case-insensitive; a `Name <addr>` form is
+	 * reduced to its address first).
+	 *
+	 * @param string $a One address.
+	 * @param string $b The other.
+	 */
+	public static function sameAddress( string $a, string $b ): bool {
+		$bare = static function ( string $value ): string {
+			if ( 1 === preg_match( '/<([^>]+)>/', $value, $match ) ) {
+				$value = $match[1];
+			}
+
+			return strtolower( trim( $value ) );
+		};
+
+		return '' !== $bare( $a ) && $bare( $a ) === $bare( $b );
+	}
+
+	/**
+	 * A minor-unit amount as an export cell: `45.00 USD`.
+	 *
+	 * @param int    $minor    Amount in minor units.
+	 * @param string $currency ISO currency code.
+	 */
+	public static function amount( int $minor, string $currency ): string {
+		return trim( Format::moneyMajor( $minor, $currency ) . ' ' . strtoupper( $currency ) );
+	}
+
+	/**
+	 * An activity's stored JSON `meta` as readable `key: value` pairs (T-092).
+	 *
+	 * The export printed the raw column — `{"from":"pending","to":"confirmed"}` — to a person who
+	 * asked what happened to their booking. Nested values are flattened with a dotted key; anything
+	 * that is not a JSON object is returned as it is, so nothing is dropped.
+	 *
+	 * @param string $meta Stored meta column.
+	 */
+	public static function flattenDetails( string $meta ): string {
+		$decoded = '' === trim( $meta ) ? null : json_decode( $meta, true );
+		if ( ! is_array( $decoded ) ) {
+			return $meta;
+		}
+
+		$pairs = array();
+		$walk  = static function ( array $node, string $prefix ) use ( &$walk, &$pairs ): void {
+			foreach ( $node as $key => $value ) {
+				$label = '' === $prefix ? (string) $key : $prefix . '.' . $key;
+				if ( is_array( $value ) ) {
+					$walk( $value, $label );
+					continue;
+				}
+				if ( is_bool( $value ) ) {
+					$value = $value ? 'yes' : 'no';
+				}
+				$pairs[] = $label . ': ' . ( null === $value ? '' : (string) $value );
+			}
+		};
+		$walk( $decoded, '' );
+
+		return implode( '; ', $pairs );
 	}
 
 	/**
@@ -589,9 +803,12 @@ final class PersonalData {
 	 */
 	private function bookings( int $customer_id ): array {
 		$p   = $this->wpdb->prefix;
-		$sql = "SELECT b.id, b.start_datetime_utc, b.end_datetime_utc, b.status, b.customer_timezone, b.customer_note, b.consent_at, s.name AS service_name, o.code AS order_code
+		$sql = "SELECT b.id, b.start_datetime_utc, b.end_datetime_utc, b.status, b.customer_timezone, b.customer_note, b.consent_at, s.name AS service_name, o.code AS order_code,
+				st.first_name AS staff_first_name, st.last_name AS staff_last_name, l.name AS location_name
 			FROM {$p}aponto_bookings b
 			LEFT JOIN {$p}aponto_services s ON s.id = b.service_id
+			LEFT JOIN {$p}aponto_staff st ON st.id = b.staff_id
+			LEFT JOIN {$p}aponto_locations l ON l.id = b.location_id
 			LEFT JOIN {$p}aponto_order_items oi ON oi.booking_id = b.id AND oi.item_type = 'booking'
 			LEFT JOIN {$p}aponto_orders o ON o.id = oi.order_id
 			WHERE b.customer_id = %d ORDER BY b.start_datetime_utc ASC";

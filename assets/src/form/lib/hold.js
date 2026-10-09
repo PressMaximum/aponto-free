@@ -33,6 +33,14 @@
  * slips through, and a path that only exists in production is a path that has
  * never been run.
  *
+ * A FOURTH, separate entry exists only while a gateway hands the visitor to a
+ * checkout of its own (D-R71w): the four identity fields they typed, under
+ * {@link CONTACT_KEY}, so a browser Back from that checkout — or a second booking
+ * into the same cart — does not make them type their name again. It is the
+ * visitor's own input in the visitor's own tab; it is never part of a hold entry
+ * (those still carry no name, email or phone), and it holds no token, no note
+ * and no answer to a custom field, which may be health or intake data.
+ *
  * Pure module: reads/writes `sessionStorage` and `location` through injected
  * objects, no Preact. Every storage access is wrapped: a private-mode Safari
  * throws on `sessionStorage` access itself, and losing the panel is not a reason
@@ -73,6 +81,15 @@ const BOOKING_KEYS = [
 	'staff_name',
 	'display_tz',
 ];
+
+/** Storage key of the visitor's own identity fields (D-R71w). One entry per tab. */
+const CONTACT_KEY = 'aponto:contact';
+
+/**
+ * EXACTLY what may be remembered of the Details step, and nothing else: not the
+ * note, not a custom-field answer, not consent — and never a token.
+ */
+const CONTACT_KEYS = [ 'first_name', 'last_name', 'email', 'phone' ];
 
 /**
  * Copy only the listed keys of a plain object.
@@ -210,6 +227,66 @@ export function clearHold( orderCode, storage ) {
 		s.removeItem( PREFIX + orderCode );
 	} catch {
 		// Nothing to do — the entry expires with the tab either way.
+	}
+}
+
+/**
+ * The whitelisted identity fields of a details object, as short trimmed strings.
+ *
+ * @param {*} source Candidate details.
+ * @return {Object} `{first_name, last_name, email, phone}`, each possibly ''.
+ */
+function contactOf( source ) {
+	const out = {};
+	CONTACT_KEYS.forEach( ( key ) => {
+		const value = source && typeof source === 'object' ? source[ key ] : '';
+		out[ key ] = typeof value === 'string' ? value.trim().slice( 0, 200 ) : '';
+	} );
+	return out;
+}
+
+/**
+ * Remember the visitor's identity fields for this tab (D-R71w), whitelisted.
+ *
+ * Reduced to {@link CONTACT_KEYS} HERE, so a caller that hands over the whole
+ * details object still stores no note. All four empty removes the entry.
+ *
+ * @param {Object}  details   Details-step values; unknown keys are dropped.
+ * @param {Storage} [storage] Injected storage (tests).
+ */
+export function storeContact( details, storage ) {
+	const s = store( storage );
+	if ( ! s ) {
+		return;
+	}
+	const safe = contactOf( details );
+	try {
+		if ( CONTACT_KEYS.some( ( key ) => safe[ key ] ) ) {
+			s.setItem( CONTACT_KEY, JSON.stringify( safe ) );
+		} else {
+			s.removeItem( CONTACT_KEY );
+		}
+	} catch {
+		// Quota or private mode — the visitor types their name again, as before.
+	}
+}
+
+/**
+ * The identity fields remembered for this tab, or null when there are none.
+ *
+ * @param {Storage} [storage] Injected storage (tests).
+ * @return {?Object} `{first_name, last_name, email, phone}` or null.
+ */
+export function readContact( storage ) {
+	const s = store( storage );
+	if ( ! s ) {
+		return null;
+	}
+	try {
+		const safe = contactOf( JSON.parse( s.getItem( CONTACT_KEY ) || 'null' ) );
+		return CONTACT_KEYS.some( ( key ) => safe[ key ] ) ? safe : null;
+	} catch {
+		return null;
 	}
 }
 

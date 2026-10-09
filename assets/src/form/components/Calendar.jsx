@@ -1,16 +1,17 @@
 /** @jsxImportSource preact */
 /**
- * Month calendar — bare numbers with 1-letter weekdays, per-day availability bars
- * (accent fill ∝ open slots), a today dot and a solid selected day (design §3).
- * Month and year are native selects the same height as Prev/Next so distant dates
- * don't need repeated arrow clicks. No auto-select.
+ * Month calendar — bare numbers (open days in full text colour, closed days soft),
+ * a today dot and a solid selected day (design §3). No per-day availability marker
+ * (D-R86: the "few left" bar stacked an unexplained second mark under a low-availability
+ * today); a day is open or it is not, which the button's disabled state already says.
+ * The period is a plain "October 2026" label between Prev/Next — the booking
+ * horizon is weeks, not years, so month/year selects were chrome. No auto-select.
  *
  * Days are addressed by their `YYYY-MM-DD` key IN THE DISPLAY TIMEZONE — the
  * availability index is grouped the same way (SPEC-P1 §2.2), so at a month
  * boundary a far-ahead visitor sees the studio's slots on the correct local day.
  * Weekday/among-month math is done in UTC so it never drifts with the runtime zone.
  */
-import { __ } from '@wordpress/i18n';
 import { IconChevronLeft, IconChevronRight } from './icons.jsx';
 import { COPY } from '../lib/copy.js';
 
@@ -22,10 +23,17 @@ function monthNames( locale ) {
 	const fmt = new Intl.DateTimeFormat( locale || undefined, { month: 'long', timeZone: 'UTC' } );
 	return Array.from( { length: 12 }, ( _, m ) => fmt.format( Date.UTC( 2021, m, 15 ) ) );
 }
-function weekdayInitials( locale ) {
+function weekdayNames( locale, weekday ) {
 	// 2021-03-01 is a Monday; the grid is Monday-first.
-	const fmt = new Intl.DateTimeFormat( locale || undefined, { weekday: 'narrow', timeZone: 'UTC' } );
+	const fmt = new Intl.DateTimeFormat( locale || undefined, { weekday, timeZone: 'UTC' } );
 	return Array.from( { length: 7 }, ( _, i ) => fmt.format( Date.UTC( 2021, 2, 1 + i ) ) );
+}
+function periodLabel( locale, year, month ) {
+	return new Intl.DateTimeFormat( locale || undefined, {
+		month: 'long',
+		year: 'numeric',
+		timeZone: 'UTC',
+	} ).format( Date.UTC( year, month, 15 ) );
 }
 
 function pad2( n ) {
@@ -43,16 +51,17 @@ export function Calendar( {
 	todayKey,
 	availabilityIndex,
 	selectedDayKey,
-	maxSlots,
 	years,
 	onSelectDay,
 	onMonth,
 } ) {
 	const months = monthNames( locale );
-	const dow = weekdayInitials( locale );
+	// Both forms are rendered; the container query shows "Mon" on a wide card and
+	// "M" on a narrow one, where "T T" / "S S" is the only thing that fits.
+	const dowShort = weekdayNames( locale, 'short' );
+	const dowNarrow = weekdayNames( locale, 'narrow' );
 	const firstDow = ( new Date( Date.UTC( year, month, 1 ) ).getUTCDay() + 6 ) % 7;
 	const daysInMonth = new Date( Date.UTC( year, month + 1, 0 ) ).getUTCDate();
-	const density = Math.max( 1, maxSlots || 1 );
 
 	const cells = [];
 	for ( let i = 0; i < firstDow; i++ ) {
@@ -64,7 +73,6 @@ export function Calendar( {
 		const past = key < todayKey;
 		const disabled = past || count === 0;
 		const selected = key === selectedDayKey;
-		const barWidth = Math.min( 100, Math.round( ( count / density ) * 100 ) );
 		const classes =
 			'ap-day' +
 			( selected ? ' sel' : '' ) +
@@ -80,11 +88,6 @@ export function Calendar( {
 				onClick={ () => onSelectDay( key ) }
 			>
 				<span class="n">{ d }</span>
-				<span class="bar">
-					{ count > 0 && (
-						<i style={ { width: Math.max( 12, barWidth ) + '%' } } />
-					) }
-				</span>
 			</button>
 		);
 	}
@@ -100,32 +103,13 @@ export function Calendar( {
 	return (
 		<div>
 			<div class="ap-cal-head">
-				<div class="ap-cal-period">
-					<select
-						class="ap-cal-select month"
-						value={ month }
-						aria-label={ __( 'Month', 'aponto' ) }
-						onChange={ ( e ) => onMonth( year, Number( e.target.value ) ) }
-					>
-						{ months.map( ( m, i ) => (
-							<option value={ i } key={ i }>
-								{ m }
-							</option>
-						) ) }
-					</select>
-					<select
-						class="ap-cal-select year"
-						value={ year }
-						aria-label={ __( 'Year', 'aponto' ) }
-						onChange={ ( e ) => onMonth( Number( e.target.value ), month ) }
-					>
-						{ years.map( ( y ) => (
-							<option value={ y } key={ y }>
-								{ y }
-							</option>
-						) ) }
-					</select>
-				</div>
+				<p
+					class="ap-cal-period"
+					aria-live="polite"
+					data-month={ firstAllowed }
+				>
+					{ periodLabel( locale, year, month ) }
+				</p>
 				<div class="ap-cal-nav">
 					<button
 						type="button"
@@ -156,8 +140,11 @@ export function Calendar( {
 				</div>
 			</div>
 			<div class="ap-dow" aria-hidden="true">
-				{ dow.map( ( d, i ) => (
-					<span key={ i }>{ d }</span>
+				{ dowShort.map( ( d, i ) => (
+					<span key={ i }>
+						<span class="w">{ d }</span>
+						<span class="i">{ dowNarrow[ i ] }</span>
+					</span>
 				) ) }
 			</div>
 			<div class="ap-cal">{ cells }</div>

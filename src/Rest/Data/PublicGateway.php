@@ -36,7 +36,6 @@ final class PublicGateway {
 	private const NAME_COLUMNS = array(
 		'aponto_services'           => array( 'name' ),
 		'aponto_service_categories' => array( 'name' ),
-		'aponto_staff'              => array( 'name' ),
 		'aponto_locations'          => array( 'name' ),
 	);
 

@@ -122,11 +122,29 @@ final class PaymentCron {
 		if ( ! isset( $schedules[ self::SCHEDULE ] ) ) {
 			$schedules[ self::SCHEDULE ] = array(
 				'interval' => self::INTERVAL,
-				'display'  => __( 'Every five minutes (Aponto)', 'aponto' ),
+				'display'  => self::scheduleLabel(),
 			);
 		}
 
 		return $schedules;
+	}
+
+	/**
+	 * The schedule's display name — translated only once WordPress can load translations.
+	 *
+	 * `cron_schedules` is filtered whenever anything calls `wp_get_schedules()`, and a plugin
+	 * installer may do that BEFORE `init` (WooCommerce's does, on activation). Translating there
+	 * makes WordPress 6.7+ load the `aponto` text domain "just in time" and log
+	 * `_load_textdomain_just_in_time was called incorrectly` (persona QA 2026-10-05, T-090 — seen
+	 * by all three testers). The label is display-only (Tools → Cron screens), so before `init`
+	 * the English source string is returned as it is; every later read is translated.
+	 */
+	private static function scheduleLabel(): string {
+		if ( ! did_action( 'init' ) && ! doing_action( 'init' ) ) {
+			return 'Every five minutes (Aponto)';
+		}
+
+		return __( 'Every five minutes (Aponto)', 'aponto' );
 	}
 
 	/**

@@ -42,7 +42,10 @@ final class TimezoneLabel {
 		$gmt    = 'GMT' . $sign . $hours . ( 0 !== $mins ? ':' . sprintf( '%02d', $mins ) : '' );
 
 		$name = $tz->getName();
-		if ( 1 === preg_match( '/^[+-]\d{1,2}(:\d{2})?$/', $name ) ) {
+		// A fixed offset has no city — nor does an `Etc/GMT∓N` stand-in, which is what an admin-made
+		// booking on a manual-offset site carries since D-R63 fix round 1 (`Support\SiteTimezone`):
+		// "GMT-7 (GMT+7)" would read backwards, so both collapse to the bare `GMT±N`.
+		if ( 1 === preg_match( '/^[+-]\d{1,2}(:\d{2})?$/', $name ) || str_starts_with( $name, 'Etc/' ) ) {
 			return $gmt;
 		}
 

@@ -70,6 +70,71 @@ const TEMPLATE_LABELS = {
 };
 
 /**
+ * What sends each template, in words (persona QA 2026-10-05, T-061). The row used to print the raw
+ * `trigger_event` key ("To: customer · no_show", "payment_pending"); a key added later than this
+ * map falls back to itself with the underscores opened up, never to a blank.
+ */
+const TRIGGER_LABELS = {
+	created: __( 'when a booking is made', 'aponto' ),
+	confirmed: __( 'when a booking is confirmed', 'aponto' ),
+	rescheduled: __( 'when a booking is moved', 'aponto' ),
+	cancelled: __( 'when a booking is cancelled', 'aponto' ),
+	completed: __( 'when a booking is completed', 'aponto' ),
+	no_show: __( 'when a booking is marked as a no-show', 'aponto' ),
+	reminder: __( 'before the appointment', 'aponto' ),
+	payment_pending: __( 'when a payment is still due', 'aponto' ),
+	refund: __( 'when a refund is issued', 'aponto' ),
+};
+
+export const triggerLabel = ( trigger ) => TRIGGER_LABELS[ trigger ] || String( trigger || '' ).replace( /_/g, ' ' );
+
+/**
+ * One line per placeholder: what it prints (T-061). Shown as the chip's tooltip and, for the chip
+ * last used, under the chips. `{booking_time}` is the one that bites: it already carries the
+ * timezone — and the other clock when the customer's and the business's differ — so a template
+ * that adds `({booking_timezone})` after it prints the zone twice.
+ */
+const PLACEHOLDER_HELP = {
+	customer_name: __( 'The customer’s full name.', 'aponto' ),
+	customer_first_name: __( 'The customer’s first name.', 'aponto' ),
+	customer_last_name: __( 'The customer’s last name.', 'aponto' ),
+	customer_email: __( 'The customer’s email address.', 'aponto' ),
+	customer_phone: __( 'The customer’s phone number.', 'aponto' ),
+	service_name: __( 'The booked service.', 'aponto' ),
+	staff_name: __( 'The staff member’s full name.', 'aponto' ),
+	staff_first_name: __( 'The staff member’s first name.', 'aponto' ),
+	staff_last_name: __( 'The staff member’s last name.', 'aponto' ),
+	booking_date: __( 'The appointment date, in your date format.', 'aponto' ),
+	booking_time: __( 'The start time. Already includes the timezone — and the other clock when the customer’s timezone differs from yours — so do not add {booking_timezone} after it.', 'aponto' ),
+	booking_end_time: __( 'The end time (time only).', 'aponto' ),
+	booking_timezone: __( 'The timezone name on its own, e.g. “London (GMT+1)”. {booking_time} already includes it.', 'aponto' ),
+	business_name: __( 'Your business name.', 'aponto' ),
+	business_address: __( 'The address of the booking’s location, or your business address.', 'aponto' ),
+	business_phone: __( 'Your business phone number.', 'aponto' ),
+	site_name: __( 'Your site title.', 'aponto' ),
+	booking_status: __( 'The booking’s status.', 'aponto' ),
+	order_code: __( 'The booking reference, e.g. AP-7Q2F4.', 'aponto' ),
+	cancel_reason: __( 'Why the booking was cancelled. Empty for other emails.', 'aponto' ),
+	manage_link: __( 'Link to the customer’s page for this booking.', 'aponto' ),
+	cancel_link: __( 'Link the customer can cancel with.', 'aponto' ),
+	ics_link: __( 'Link to the calendar file (.ics).', 'aponto' ),
+	booking_page_link: __( 'Link to your booking page. The line is left out when no page is set.', 'aponto' ),
+	payment_status: __( 'Whether the booking is paid, in words.', 'aponto' ),
+	amount_paid: __( 'What the customer has paid, with the currency.', 'aponto' ),
+	amount_due: __( 'What is still to pay, with the currency.', 'aponto' ),
+	refund_amount: __( 'The amount refunded (refund email only).', 'aponto' ),
+	payment_deadline: __( 'When an unpaid slot is released, in the customer’s time.', 'aponto' ),
+	payment_link: __( 'Link the customer can pay with. The line is left out when it cannot be built.', 'aponto' ),
+	// Re-test 2026-10-05: the four newest placeholders were offered as chips with no explanation.
+	location_name: __( 'The name of the booking’s location. The line is left out when the booking has none.', 'aponto' ),
+	location_address: __( 'The address of the booking’s location, or your business address.', 'aponto' ),
+	admin_booking_link: __( 'Link that opens the booking in wp-admin. Admin and staff emails only — empty in customer emails.', 'aponto' ),
+	cancel_note: __( 'On a cancellation: what happens to a payment, or why the slot was released. Added before your sign-off when you leave it out.', 'aponto' ),
+};
+
+export const placeholderHelp = ( token ) => PLACEHOLDER_HELP[ token ] || '';
+
+/**
  * Which group a template belongs to, in display order. Grouping by RECIPIENT is what makes the
  * list readable once three audiences share the same event names.
  */
@@ -622,7 +687,7 @@ function TemplateRow( { template, active, onSelect, onToggle } ) {
 			>
 				<span style={ { display: 'block', fontWeight: 600 } }>{ label }</span>
 				<span style={ { display: 'block', fontSize: 12, color: 'var(--ap-color-text-muted, #646970)' } }>
-					{ recipientLabel( template.recipient ) } · { template.trigger_event }
+					{ recipientLabel( template.recipient ) } · { triggerLabel( template.trigger_event ) }
 				</span>
 			</button>
 			{ /* The row title beside the toggle is the visible label, so the control
@@ -663,6 +728,10 @@ function Editor( {
 } ) {
 	const captureCaret = ( e ) =>
 		onCaret( { start: e.target.selectionStart, end: e.target.selectionEnd } );
+	// The placeholder whose one-line description shows under the chips (T-061): the one last
+	// pointed at or focused. `booking_time` first, because it is the one people get wrong.
+	const [ helpFor, setHelpFor ] = useState( 'booking_time' );
+	const helpToken = placeholders.includes( helpFor ) ? helpFor : '';
 
 	return (
 		<Card>
@@ -687,7 +756,9 @@ function Editor( {
 							key={ token }
 							type="button"
 							onClick={ () => onInsert( token ) }
-							title={ __( 'Insert into body', 'aponto' ) }
+							title={ placeholderHelp( token ) || __( 'Insert into body', 'aponto' ) }
+							onMouseEnter={ () => setHelpFor( token ) }
+							onFocus={ () => setHelpFor( token ) }
 							style={ {
 								fontSize: 12,
 								fontFamily: 'monospace',
@@ -704,6 +775,9 @@ function Editor( {
 						</button>
 					) ) }
 				</div>
+				{ helpToken && placeholderHelp( helpToken ) ? (
+					<p className="description" aria-live="polite"><code>{ `{${ helpToken }}` }</code> — { placeholderHelp( helpToken ) }</p>
+				) : null }
 
 				<TextareaControl
 					__nextHasNoMarginBottom

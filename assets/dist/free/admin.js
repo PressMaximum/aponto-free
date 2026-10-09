@@ -5300,19 +5300,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _lib_router_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./lib/router.js */ "./assets/src/admin/lib/router.js");
-/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
-/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./lib/config.js */ "./assets/src/admin/lib/config.js");
-/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
-/* harmony import */ var _lib_theme_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./lib/theme.js */ "./assets/src/admin/lib/theme.js");
-/* harmony import */ var _settings_ia_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./settings/ia.js */ "./assets/src/admin/settings/ia.js");
-/* harmony import */ var _lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./lib/lazy.jsx */ "./assets/src/admin/lib/lazy.jsx");
-/* harmony import */ var _routes_Dashboard_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./routes/Dashboard.jsx */ "./assets/src/admin/routes/Dashboard.jsx");
-/* harmony import */ var _routes_Bookings_jsx__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./routes/Bookings.jsx */ "./assets/src/admin/routes/Bookings.jsx");
-/* harmony import */ var _routes_Calendar_jsx__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./routes/Calendar.jsx */ "./assets/src/admin/routes/Calendar.jsx");
-/* harmony import */ var _routes_Customers_jsx__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./routes/Customers.jsx */ "./assets/src/admin/routes/Customers.jsx");
-/* harmony import */ var _routes_Placeholder_jsx__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./routes/Placeholder.jsx */ "./assets/src/admin/routes/Placeholder.jsx");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__);
+/* harmony import */ var _lib_page_title_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./lib/page-title.js */ "./assets/src/admin/lib/page-title.js");
+/* harmony import */ var _lib_admin_routes_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./lib/admin-routes.js */ "./assets/src/admin/lib/admin-routes.js");
+/* harmony import */ var _modules_catalog_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./modules/catalog.js */ "./assets/src/admin/modules/catalog.js");
+/* harmony import */ var _modules_module_state_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./modules/module-state.js */ "./assets/src/admin/modules/module-state.js");
+/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
+/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./lib/config.js */ "./assets/src/admin/lib/config.js");
+/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
+/* harmony import */ var _lib_theme_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./lib/theme.js */ "./assets/src/admin/lib/theme.js");
+/* harmony import */ var _settings_ia_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./settings/ia.js */ "./assets/src/admin/settings/ia.js");
+/* harmony import */ var _lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./lib/lazy.jsx */ "./assets/src/admin/lib/lazy.jsx");
+/* harmony import */ var _routes_Dashboard_jsx__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./routes/Dashboard.jsx */ "./assets/src/admin/routes/Dashboard.jsx");
+/* harmony import */ var _routes_Bookings_jsx__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./routes/Bookings.jsx */ "./assets/src/admin/routes/Bookings.jsx");
+/* harmony import */ var _routes_Calendar_jsx__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./routes/Calendar.jsx */ "./assets/src/admin/routes/Calendar.jsx");
+/* harmony import */ var _routes_Customers_jsx__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./routes/Customers.jsx */ "./assets/src/admin/routes/Customers.jsx");
+/* harmony import */ var _routes_Placeholder_jsx__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./routes/Placeholder.jsx */ "./assets/src/admin/routes/Placeholder.jsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__);
 /**
  * Aponto admin shell (SPEC-P1 §1.0). App-in-content-area + non-sticky top menu:
  * Dashboard · Bookings · Calendar · Customers | Offerings ▾ · Resources ▾ |
@@ -5343,6 +5347,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+
+
 // ---- Lazy routes (admin bundle budget, AGENTS §6) ---------------------------
 //
 // The four DAILY routes above (Dashboard · Bookings · Calendar · Customers) stay in the
@@ -5351,22 +5359,26 @@ __webpack_require__.r(__webpack_exports__);
 // heaviest imports in the app (the settings/module screens are the only consumers of the
 // dashboard-kit main entry), so each is its own chunk. See lib/lazy.jsx.
 
-const Services = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_8__.lazySurface)(() => __webpack_require__.e(/*! import() | admin-chunk-services */ "admin-chunk-services").then(__webpack_require__.bind(__webpack_require__, /*! ./routes/Services.jsx */ "./assets/src/admin/routes/Services.jsx")), {
+const CsvImport = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_12__.lazySurface)(() => __webpack_require__.e(/*! import() | admin-chunk-import */ "admin-chunk-import").then(__webpack_require__.bind(__webpack_require__, /*! ./routes/CsvImport.jsx */ "./assets/src/admin/routes/CsvImport.jsx")), {
+  pick: 'CsvImport',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Loading import…', 'aponto')
+});
+const Services = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_12__.lazySurface)(() => __webpack_require__.e(/*! import() | admin-chunk-services */ "admin-chunk-services").then(__webpack_require__.bind(__webpack_require__, /*! ./routes/Services.jsx */ "./assets/src/admin/routes/Services.jsx")), {
   pick: 'Services',
   label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Loading services…', 'aponto')
 });
-const Staff = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_8__.lazySurface)(() => __webpack_require__.e(/*! import() | admin-chunk-staff */ "admin-chunk-staff").then(__webpack_require__.bind(__webpack_require__, /*! ./routes/Staff.jsx */ "./assets/src/admin/routes/Staff.jsx")), {
+const Staff = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_12__.lazySurface)(() => __webpack_require__.e(/*! import() | admin-chunk-staff */ "admin-chunk-staff").then(__webpack_require__.bind(__webpack_require__, /*! ./routes/Staff.jsx */ "./assets/src/admin/routes/Staff.jsx")), {
   pick: 'Staff',
   label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Loading staff…', 'aponto')
 });
-const SettingsRoute = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_8__.lazySurface)(() => Promise.all(/*! import() | admin-chunk-settings */[__webpack_require__.e("admin-chunk-vendor"), __webpack_require__.e("admin-chunk-settings")]).then(__webpack_require__.bind(__webpack_require__, /*! ./routes/SettingsRoute.jsx */ "./assets/src/admin/routes/SettingsRoute.jsx")), {
+const SettingsRoute = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_12__.lazySurface)(() => Promise.all(/*! import() | admin-chunk-settings */[__webpack_require__.e("admin-chunk-vendor"), __webpack_require__.e("admin-chunk-settings")]).then(__webpack_require__.bind(__webpack_require__, /*! ./routes/SettingsRoute.jsx */ "./assets/src/admin/routes/SettingsRoute.jsx")), {
   pick: 'SettingsRoute',
   label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Loading settings…', 'aponto')
 });
-const ModulesApp = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_8__.lazySurface)(() => Promise.all(/*! import() | admin-chunk-modules */[__webpack_require__.e("admin-chunk-vendor"), __webpack_require__.e("admin-chunk-modules")]).then(__webpack_require__.bind(__webpack_require__, /*! ./modules/ModulesApp.jsx */ "./assets/src/admin/modules/ModulesApp.jsx")), {
+const ModulesApp = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_12__.lazySurface)(() => Promise.all(/*! import() | admin-chunk-modules */[__webpack_require__.e("admin-chunk-vendor"), __webpack_require__.e("admin-chunk-modules")]).then(__webpack_require__.bind(__webpack_require__, /*! ./modules/ModulesApp.jsx */ "./assets/src/admin/modules/ModulesApp.jsx")), {
   label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Loading modules…', 'aponto')
 });
-const ModuleSettingsRoute = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_8__.lazySurface)(() => Promise.all(/*! import() | admin-chunk-modules */[__webpack_require__.e("admin-chunk-vendor"), __webpack_require__.e("admin-chunk-modules")]).then(__webpack_require__.bind(__webpack_require__, /*! ./modules/ModuleSettingsRoute.jsx */ "./assets/src/admin/modules/ModuleSettingsRoute.jsx")), {
+const ModuleSettingsRoute = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_12__.lazySurface)(() => Promise.all(/*! import() | admin-chunk-modules */[__webpack_require__.e("admin-chunk-vendor"), __webpack_require__.e("admin-chunk-modules")]).then(__webpack_require__.bind(__webpack_require__, /*! ./modules/ModuleSettingsRoute.jsx */ "./assets/src/admin/modules/ModuleSettingsRoute.jsx")), {
   pick: 'ModuleSettingsRoute',
   label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Loading module settings…', 'aponto')
 });
@@ -5383,6 +5395,10 @@ const DAILY = [{
   id: 'customers',
   label: 'Customers'
 }];
+// The STATIC core entries of the two section menus. A module-owned screen is NOT listed here:
+// it registers itself (`lib/admin-routes.js`, D-R56) and is appended below, because hard-coding
+// an edition-owned nav item into this free-shipped file would ship a paid control in the wp.org
+// archive (D-R41).
 const OFFERINGS = [{
   id: 'services',
   label: 'Services',
@@ -5403,18 +5419,6 @@ const RESOURCES = [{
   description: 'Rooms & equipment',
   badge: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Premium', 'aponto')
 }];
-const TITLES = {
-  dashboard: 'Dashboard',
-  bookings: 'Bookings',
-  calendar: 'Calendar',
-  customers: 'Customers',
-  services: 'Services',
-  events: 'Events',
-  staff: 'Staff',
-  'shared-assets': 'Shared assets',
-  modules: 'Modules',
-  settings: 'Settings'
-};
 
 /** Appearance menu copy, in the mockup's order (index.html:114-116). */
 const THEME_LABELS = {
@@ -5424,31 +5428,31 @@ const THEME_LABELS = {
 };
 
 /** Where the Settings ▾ trigger and a bare `#settings` both land. */
-const defaultSettingsPath = (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_7__.settingsPath)(_settings_ia_js__WEBPACK_IMPORTED_MODULE_7__.SETTINGS_TREE[0].id, (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_7__.defaultSettingsChild)(_settings_ia_js__WEBPACK_IMPORTED_MODULE_7__.SETTINGS_TREE[0].id));
+const defaultSettingsPath = (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_11__.settingsPath)(_settings_ia_js__WEBPACK_IMPORTED_MODULE_11__.SETTINGS_TREE[0].id, (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_11__.defaultSettingsChild)(_settings_ia_js__WEBPACK_IMPORTED_MODULE_11__.SETTINGS_TREE[0].id));
 
 // Real brand mark (logo icon + wordmark), inlined so it costs no extra request
 // and inherits no host recolor. Source: docs/mockups/v4/assets/img/aponto-logo.svg.
 // `focusable`/`aria-hidden` keep it decorative — the button owns the label.
 function BrandLogo() {
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("svg", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("svg", {
     className: "pd-brand-logo",
     viewBox: "0 0 918 208",
     fill: "none",
     xmlns: "http://www.w3.org/2000/svg",
     "aria-hidden": "true",
     focusable: "false",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("path", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("path", {
       d: "M386.272 165H348.64C347.8 160.8 345.28 151.56 342.088 139.968C332.68 139.8 323.272 139.8 316.048 139.8C309.328 139.8 299.584 139.8 290.344 139.968C286.984 150.888 284.464 160.128 283.288 165H248.512C260.608 133.584 285.64 57.144 291.52 39H342.256C348.304 57.312 373.168 132.912 386.272 165ZM297.4 116.28C304.12 116.28 310.84 116.28 316.048 116.28C321.256 116.28 328.312 116.28 335.2 116.112C331.504 103.344 327.472 89.904 323.944 78.984C320.248 68.736 318.064 60.672 316.384 54.96C314.536 60.672 312.016 68.568 308.488 79.32C305.296 90.408 301.264 103.512 297.4 116.28ZM419.612 188.352H387.692C388.196 171.384 388.196 137.952 388.196 111.744C388.196 92.592 388.196 77.472 387.86 63.192H419.444C419.444 66.216 419.276 68.736 419.276 71.256C419.276 73.608 419.108 75.96 418.94 78.312L420.284 78.816C426.164 68.232 437.42 61.512 454.388 61.512C480.428 61.512 492.86 79.992 492.86 113.76C492.86 147.696 477.74 166.68 453.884 166.68C436.412 166.68 425.492 159.96 419.78 151.56L419.108 151.728C419.276 156.096 419.276 160.128 419.276 165C419.276 165.168 419.276 165.336 419.276 165.672C419.276 173.232 419.444 180.456 419.612 188.352ZM462.62 113.928C462.62 93.096 455.732 85.704 442.796 85.704C429.188 85.704 418.772 92.592 418.772 110.232V136.608C424.316 140.136 431.54 141.984 441.116 141.984C455.9 141.984 462.62 134.592 462.62 113.928ZM605.288 112.416C605.288 146.016 585.128 167.184 551.36 167.184C517.76 167.184 498.104 146.016 498.104 112.416C498.104 78.648 519.272 60.84 551.36 60.84C583.448 60.84 605.288 78.648 605.288 112.416ZM575.048 113.424C575.048 94.944 565.976 87.384 551.36 87.384C536.912 87.384 527.672 94.44 527.672 113.424C527.672 132.24 536.744 140.808 551.36 140.808C566.312 140.808 575.048 131.904 575.048 113.424ZM717.821 165H686.069C686.405 150.72 686.573 130.56 686.573 106.536C686.573 92.592 682.037 87.216 669.269 87.216C656.501 87.216 646.757 93.936 646.757 111.24C646.757 143.664 646.925 154.92 647.093 165H615.509C616.013 150.72 616.013 138.288 616.013 114.936C616.013 92.928 615.845 77.136 615.509 63.192H647.261C647.093 69.408 646.925 73.776 646.589 79.488L647.597 79.656C653.813 67.056 665.573 61.68 682.373 61.68C705.053 61.68 717.653 72.264 717.653 99.648C717.653 114.096 717.317 121.32 717.317 130.392C717.317 143.16 717.317 153.912 717.821 165ZM766.725 63.696C776.805 63.528 788.229 63.528 798.477 63.192C798.141 71.088 797.805 82.008 797.973 90.072C790.581 89.904 778.653 89.568 766.389 89.4C766.221 100.824 766.221 113.088 766.221 126.528C766.221 135.768 770.085 138.96 779.997 138.96C786.381 138.96 792.429 137.616 797.301 135.6C797.805 144.504 799.653 155.424 800.661 162.816C791.589 164.832 786.045 166.344 775.125 166.344C745.725 166.344 735.813 151.392 735.813 130.392C735.813 119.304 736.149 102.672 736.317 89.064C732.621 88.896 729.261 88.896 726.573 88.896C726.573 88.392 726.573 87.888 726.573 87.384C726.573 81.336 726.573 72.768 726.405 67.392C737.157 64.368 755.301 52.776 766.389 41.52H767.397C767.061 48.576 766.893 55.968 766.725 63.696ZM911.166 112.416C911.166 146.016 891.006 167.184 857.238 167.184C823.638 167.184 803.982 146.016 803.982 112.416C803.982 78.648 825.15 60.84 857.238 60.84C889.326 60.84 911.166 78.648 911.166 112.416ZM880.926 113.424C880.926 94.944 871.854 87.384 857.238 87.384C842.79 87.384 833.55 94.44 833.55 113.424C833.55 132.24 842.622 140.808 857.238 140.808C872.19 140.808 880.926 131.904 880.926 113.424Z",
       fill: "#282828"
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("circle", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("circle", {
       cx: "104",
       cy: "104",
       r: "104",
       fill: "#1C1C1C"
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("path", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("path", {
       d: "M85.8135 55.2393C93.8964 41.2393 114.104 41.2393 122.187 55.2393L161.685 123.652C169.768 137.652 159.664 155.152 143.498 155.152H64.5018C48.336 155.152 38.2323 137.652 46.3152 123.652L85.8135 55.2393Z",
       fill: "white"
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("circle", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("circle", {
       cx: "144.413",
       cy: "87.8912",
       r: "29.2609",
@@ -5463,14 +5467,14 @@ function NavButton({
   route,
   onNavigate
 }) {
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("button", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("button", {
     className: "pd-nav-button",
     type: "button",
     "aria-current": route === item.id ? 'page' : undefined,
     onClick: () => onNavigate(item.id),
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
       children: item.label
-    }), item.badge ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("small", {
+    }), item.badge ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("small", {
       className: "pd-nav-phase is-later",
       children: item.badge
     }) : null]
@@ -5502,7 +5506,7 @@ function NavDropdown({
 }) {
   const isOpen = openMenu === id;
   const triggerClass = 'pd-nav-button pd-nav-menu-trigger';
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
     className: `pd-nav-menu-wrap${alignEnd ? ' is-settings' : ''}`,
     "data-nav-menu-wrap": id,
     onMouseEnter: () => setOpenMenu(id),
@@ -5511,28 +5515,28 @@ function NavDropdown({
     onBlur: e => {
       if (!e.currentTarget.contains(e.relatedTarget)) setOpenMenu(cur => cur === id ? null : cur);
     },
-    children: [href ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("a", {
+    children: [href ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("a", {
       className: triggerClass,
       href: href,
       "aria-haspopup": "menu",
       "aria-expanded": isOpen,
       "aria-current": active ? 'page' : undefined,
       onClick: () => setOpenMenu(null),
-      children: [label, (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_3__.renderIcon)('chevronDown')]
-    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("button", {
+      children: [label, (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_7__.renderIcon)('chevronDown')]
+    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("button", {
       className: triggerClass,
       type: "button",
       "aria-haspopup": "menu",
       "aria-expanded": isOpen,
       "aria-current": active ? 'page' : undefined,
       onClick: () => setOpenMenu(isOpen ? null : id),
-      children: [label, (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_3__.renderIcon)('chevronDown')]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
+      children: [label, (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_7__.renderIcon)('chevronDown')]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
       className: "pd-nav-dropdown",
       role: "menu",
       hidden: !isOpen,
-      onKeyDown: _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_5__.menuRovingKeydown,
-      children: items.map(item => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("button", {
+      onKeyDown: _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.menuRovingKeydown,
+      children: items.map(item => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("button", {
         type: "button",
         role: "menuitem",
         "aria-current": item.current ? 'page' : undefined,
@@ -5540,13 +5544,13 @@ function NavDropdown({
           item.activate();
           setOpenMenu(null);
         },
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("span", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("strong", {
-            children: [item.label, item.badge ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("small", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("strong", {
+            children: [item.label, item.badge ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("small", {
               className: "is-later",
               children: item.badge
             }) : null]
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("em", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("em", {
             children: item.description
           })]
         })
@@ -5572,6 +5576,21 @@ function App() {
     segments,
     navigate
   } = (0,_lib_router_js__WEBPACK_IMPORTED_MODULE_2__.useRoute)();
+  // Module-owned routes (D-R56). Listed only while the owning module is `available` AND the
+  // registry granted it this slug — one predicate, `adminRouteIsOpen()`, shared with the hash
+  // router so the menu, the URL and the rendered screen cannot disagree. The module records come
+  // from the session store, the same source `modules/ModuleSettingsRoute.jsx` reads, so a module
+  // switched off in this session leaves the menu at once. Display only: REST re-checks every
+  // write (§5 invariant 3).
+  const adminRoutes = (0,_lib_admin_routes_js__WEBPACK_IMPORTED_MODULE_4__.useAdminRoutes)();
+  const modules = (0,_modules_module_state_js__WEBPACK_IMPORTED_MODULE_6__.useModules)();
+  const moduleRoutes = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => adminRoutes.filter(entry => (0,_lib_admin_routes_js__WEBPACK_IMPORTED_MODULE_4__.adminRouteIsOpen)(entry, modules)), [adminRoutes, modules]);
+  // `orderAdminRouteItems` honours each descriptor's `after`, so the dropdown and the WordPress
+  // submenu agree: Locations sits directly behind Staff in both, not behind the Premium
+  // "Shared assets" placeholder at the end of the menu (browser QA, 2026-09-21).
+  const offerings = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => (0,_lib_admin_routes_js__WEBPACK_IMPORTED_MODULE_4__.orderAdminRouteItems)(OFFERINGS, moduleRoutes.filter(entry => entry.group === 'offerings')), [moduleRoutes]);
+  const resources = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => (0,_lib_admin_routes_js__WEBPACK_IMPORTED_MODULE_4__.orderAdminRouteItems)(RESOURCES, moduleRoutes.filter(entry => entry.group === 'resources')), [moduleRoutes]);
+  const moduleRoute = moduleRoutes.find(entry => entry.id === route) || null;
   const [openMenu, setOpenMenu] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const [helpOpen, setHelpOpen] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [workspaceOpen, setWorkspaceOpen] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
@@ -5579,8 +5598,8 @@ function App() {
   // Appearance: the stored mode (light|dark|system) plus the live OS preference
   // System resolves against. PHP already stamped the stored scheme on the token
   // scope before first paint, so mounting only has to keep them in sync.
-  const [themeMode, setThemeMode] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(_lib_theme_js__WEBPACK_IMPORTED_MODULE_6__.readThemeMode);
-  const [prefersDark, setPrefersDark] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(_lib_theme_js__WEBPACK_IMPORTED_MODULE_6__.prefersDarkNow);
+  const [themeMode, setThemeMode] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(_lib_theme_js__WEBPACK_IMPORTED_MODULE_10__.readThemeMode);
+  const [prefersDark, setPrefersDark] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(_lib_theme_js__WEBPACK_IMPORTED_MODULE_10__.prefersDarkNow);
   const helpRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const workspaceRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const helpTriggerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
@@ -5601,11 +5620,31 @@ function App() {
 
   // Keep the WordPress submenu highlight in sync with the active route.
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    (0,_lib_router_js__WEBPACK_IMPORTED_MODULE_2__.syncWpMenu)(route);
+    (0,_lib_router_js__WEBPACK_IMPORTED_MODULE_2__.syncWpMenu)(route, segments);
     setOpenMenu(null);
     setHelpOpen(false);
     setWorkspaceOpen(false);
+  }, [route, segments]);
+
+  // Keep the CURRENT section in view when the header row scrolls (≤1100px of app width — see
+  // "Narrow-shell nav guard" in admin-extra.css). On a phone the row opened on "Dashboard Boo…"
+  // whatever route was on screen, so the operator could not see where they were (T-084).
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const current = document.querySelector('.ap-admin .pd-navigation [aria-current="page"]');
+    if (current && typeof current.scrollIntoView === 'function') {
+      current.scrollIntoView({
+        block: 'nearest',
+        inline: 'nearest'
+      });
+    }
   }, [route]);
+
+  // The browser tab names the screen (first-run QA D26; persona QA T-076): WordPress printed
+  // "Dashboard ‹ …" once for the SPA's single menu page. Editors and module panels prepend their
+  // own name on top of this through `usePageTitle()`.
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    (0,_lib_page_title_js__WEBPACK_IMPORTED_MODULE_3__.setRouteTitle)((0,_lib_page_title_js__WEBPACK_IMPORTED_MODULE_3__.routeTitleParts)(route, segments, moduleRoute));
+  }, [route, segments, moduleRoute]);
 
   // Fullscreen (ca trực): the app root goes fixed inset-0 and the WP menu folds.
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
@@ -5620,16 +5659,16 @@ function App() {
   }, [focused]);
 
   // System mode follows the OS live (mockup: `systemTheme.addEventListener('change', …)`).
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => (0,_lib_theme_js__WEBPACK_IMPORTED_MODULE_6__.watchSystemScheme)(setPrefersDark), []);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => (0,_lib_theme_js__WEBPACK_IMPORTED_MODULE_10__.watchSystemScheme)(setPrefersDark), []);
 
   // One writer for `data-ap-color-scheme`: mode × OS preference → light|dark.
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    (0,_lib_theme_js__WEBPACK_IMPORTED_MODULE_6__.applyColorScheme)((0,_lib_theme_js__WEBPACK_IMPORTED_MODULE_6__.resolveColorScheme)(themeMode, prefersDark));
+    (0,_lib_theme_js__WEBPACK_IMPORTED_MODULE_10__.applyColorScheme)((0,_lib_theme_js__WEBPACK_IMPORTED_MODULE_10__.resolveColorScheme)(themeMode, prefersDark));
   }, [themeMode, prefersDark]);
 
   // A second Aponto tab changing the preference keeps this one in step
   // (subscription contract + normalization live in lib/theme.js).
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => (0,_lib_theme_js__WEBPACK_IMPORTED_MODULE_6__.watchStoredScheme)(setThemeMode), []);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => (0,_lib_theme_js__WEBPACK_IMPORTED_MODULE_10__.watchStoredScheme)(setThemeMode), []);
 
   // Keyboard-opened popovers move focus to their first command; closing returns focus
   // to the trigger (SPEC §11: "Popovers … restore focus to their trigger after close").
@@ -5688,69 +5727,69 @@ function App() {
   }, []);
   const onNavigate = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(next => navigate(next), [navigate]);
   const chooseTheme = mode => {
-    setThemeMode((0,_lib_theme_js__WEBPACK_IMPORTED_MODULE_6__.writeThemeMode)(mode));
+    setThemeMode((0,_lib_theme_js__WEBPACK_IMPORTED_MODULE_10__.writeThemeMode)(mode));
     setWorkspaceOpen(false);
     workspaceTriggerRef.current?.focus();
   };
 
   // Which settings parent the current hash points at, so the Settings ▾ menu can
   // mark it `aria-current="page"` exactly like the mockup does.
-  const settingsParent = route === 'settings' ? (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_7__.resolveSettingsRoute)(segments).parent : '';
-  const settingsItems = _settings_ia_js__WEBPACK_IMPORTED_MODULE_7__.SETTINGS_TREE.map(node => ({
+  const settingsParent = route === 'settings' ? (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_11__.resolveSettingsRoute)(segments).parent : '';
+  const settingsItems = _settings_ia_js__WEBPACK_IMPORTED_MODULE_11__.SETTINGS_TREE.map(node => ({
     key: node.id,
     label: node.label,
-    description: (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_7__.settingsMenuSubline)(node),
+    description: (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_11__.settingsMenuSubline)(node),
     current: settingsParent === node.id,
     activate: () => {
-      window.location.hash = (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_7__.settingsPath)(node.id, (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_7__.defaultSettingsChild)(node.id));
+      window.location.hash = (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_11__.settingsPath)(node.id, (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_11__.defaultSettingsChild)(node.id));
     }
   }));
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.Fragment, {
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("header", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("header", {
       className: "pd-shell-header",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
         className: "pd-shell-start",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("button", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("button", {
           className: "pd-brand",
           type: "button",
           "aria-label": "Aponto dashboard",
           onClick: () => onNavigate('dashboard'),
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(BrandLogo, {})
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(BrandLogo, {})
         })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("nav", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("nav", {
         className: `pd-navigation${openMenu ? ' has-open-menu' : ''}`,
         "aria-label": "Aponto sections",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
           className: "pd-nav-daily",
-          children: [DAILY.map(item => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(NavButton, {
+          children: [DAILY.map(item => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(NavButton, {
             item: item,
             route: route,
             onNavigate: onNavigate
-          }, item.id)), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(NavDropdown, {
+          }, item.id)), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(NavDropdown, {
             id: "offerings",
             label: "Offerings",
-            items: routeMenuItems(OFFERINGS, route, onNavigate),
-            active: OFFERINGS.some(item => item.id === route),
+            items: routeMenuItems(offerings, route, onNavigate),
+            active: offerings.some(item => item.id === route),
             openMenu: openMenu,
             setOpenMenu: setOpenMenu
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(NavDropdown, {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(NavDropdown, {
             id: "resources",
             label: "Resources",
-            items: routeMenuItems(RESOURCES, route, onNavigate),
-            active: RESOURCES.some(item => item.id === route),
+            items: routeMenuItems(resources, route, onNavigate),
+            active: resources.some(item => item.id === route),
             openMenu: openMenu,
             setOpenMenu: setOpenMenu
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
           className: "pd-nav-tools",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(NavButton, {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(NavButton, {
             item: {
               id: 'modules',
               label: 'Modules'
             },
             route: route,
             onNavigate: onNavigate
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(NavDropdown, {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(NavDropdown, {
             id: "settings",
             label: "Settings",
             items: settingsItems,
@@ -5761,12 +5800,12 @@ function App() {
             setOpenMenu: setOpenMenu
           })]
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
         className: "pd-shell-actions",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
           className: "pd-help-wrap",
           ref: helpRef,
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("button", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("button", {
             className: "pd-icon-button pd-shell-utility",
             type: "button",
             ref: helpTriggerRef,
@@ -5778,38 +5817,38 @@ function App() {
               setWorkspaceOpen(false);
               setHelpOpen(v => !v);
             },
-            children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_3__.renderIcon)('help')
-          }), helpOpen ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("div", {
+            children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_7__.renderIcon)('help')
+          }), helpOpen ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
             className: "pd-popover",
             ref: helpPopoverRef,
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("p", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("p", {
               className: "pd-popover-label",
               children: "Support & resources"
-            }), _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.wizardUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("a", {
-              href: _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.wizardUrl,
-              children: ["Setup wizard", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
+            }), _lib_config_js__WEBPACK_IMPORTED_MODULE_8__.config.wizardUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("a", {
+              href: _lib_config_js__WEBPACK_IMPORTED_MODULE_8__.config.wizardUrl,
+              children: ["Setup wizard", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
                 children: "Re-run"
               })]
-            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("a", {
+            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("a", {
               href: "https://pressmaximum.com/aponto/docs",
               target: "_blank",
               rel: "noreferrer noopener",
-              children: ["Documentation", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
+              children: ["Documentation", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
                 children: "\u2197"
               })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("a", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("a", {
               href: "https://pressmaximum.com/support",
               target: "_blank",
               rel: "noreferrer noopener",
-              children: ["Contact support", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
+              children: ["Contact support", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
                 children: "\u2197"
               })]
             })]
           }) : null]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
           className: "pd-workspace-wrap",
           ref: workspaceRef,
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("button", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("button", {
             className: "pd-icon-button pd-shell-utility",
             type: "button",
             ref: workspaceTriggerRef,
@@ -5822,14 +5861,14 @@ function App() {
               setHelpOpen(false);
               setWorkspaceOpen(v => !v);
             },
-            children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_3__.renderIcon)('moreVertical')
-          }), workspaceOpen ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("div", {
+            children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_7__.renderIcon)('moreVertical')
+          }), workspaceOpen ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
             className: "pd-popover pd-workspace-popover",
             role: "menu",
             "aria-label": "Workspace options",
             ref: workspacePopoverRef,
-            onKeyDown: _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_5__.menuRovingKeydown,
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("button", {
+            onKeyDown: _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.menuRovingKeydown,
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("button", {
               id: "fullscreenButton",
               type: "button",
               role: "menuitem",
@@ -5839,43 +5878,45 @@ function App() {
                 setWorkspaceOpen(false);
                 workspaceTriggerRef.current?.focus();
               },
-              children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_3__.renderIcon)(focused ? 'collapse' : 'expand'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
+              children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_7__.renderIcon)(focused ? 'collapse' : 'expand'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
                 children: focused ? 'Exit full screen' : 'Enter full screen'
               })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
               className: "pd-popover-separator"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("p", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("p", {
               className: "pd-popover-label",
               id: "ap-appearance-label",
               children: "Appearance"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
               role: "group",
               "aria-labelledby": "ap-appearance-label",
-              children: _lib_theme_js__WEBPACK_IMPORTED_MODULE_6__.THEME_MODES.map(mode => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("button", {
+              children: _lib_theme_js__WEBPACK_IMPORTED_MODULE_10__.THEME_MODES.map(mode => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("button", {
                 type: "button",
                 role: "menuitemradio",
                 "data-app-theme": mode,
                 "aria-checked": themeMode === mode,
                 onClick: () => chooseTheme(mode),
-                children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_3__.renderIcon)((0,_lib_theme_js__WEBPACK_IMPORTED_MODULE_6__.themeModeIcon)(mode), 'pd-theme-icon'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
+                children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_7__.renderIcon)((0,_lib_theme_js__WEBPACK_IMPORTED_MODULE_10__.themeModeIcon)(mode), 'pd-theme-icon'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
                   children: THEME_LABELS[mode]
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
                   className: "pd-theme-check",
-                  children: themeMode === mode ? (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_3__.renderIcon)('check') : null
+                  children: themeMode === mode ? (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_7__.renderIcon)('check') : null
                 })]
               }, mode))
             })]
           }) : null]
         })]
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("main", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("main", {
       className: `pd-main${route === 'settings' ? ' is-settings' : ''}`,
       id: "aponto-view",
       tabIndex: "-1",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(Route, {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(Route, {
         route: route,
         segments: segments,
-        onNavigate: onNavigate
+        onNavigate: onNavigate,
+        moduleRoute: moduleRoute,
+        modules: modules
       })
     })]
   });
@@ -5883,32 +5924,40 @@ function App() {
 function Route({
   route,
   segments,
-  onNavigate
+  onNavigate,
+  moduleRoute = null,
+  modules = []
 }) {
   switch (route) {
     case 'dashboard':
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_routes_Dashboard_jsx__WEBPACK_IMPORTED_MODULE_9__.Dashboard, {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_routes_Dashboard_jsx__WEBPACK_IMPORTED_MODULE_13__.Dashboard, {
         onNavigate: onNavigate
       });
     case 'bookings':
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_routes_Bookings_jsx__WEBPACK_IMPORTED_MODULE_10__.Bookings, {});
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_routes_Bookings_jsx__WEBPACK_IMPORTED_MODULE_14__.Bookings, {
+        segments: segments
+      });
     case 'calendar':
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_routes_Calendar_jsx__WEBPACK_IMPORTED_MODULE_11__.Calendar, {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_routes_Calendar_jsx__WEBPACK_IMPORTED_MODULE_15__.Calendar, {
         onNavigate: onNavigate
       });
     case 'customers':
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_routes_Customers_jsx__WEBPACK_IMPORTED_MODULE_12__.Customers, {});
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_routes_Customers_jsx__WEBPACK_IMPORTED_MODULE_16__.Customers, {});
+    case 'import-csv':
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(CsvImport, {
+        segments: segments
+      }, segments.join('/'));
     case 'services':
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(Services, {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(Services, {
         segments: segments,
         onNavigate: onNavigate
       });
     case 'staff':
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(Staff, {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(Staff, {
         segments: segments
       });
     case 'settings':
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(SettingsRoute, {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(SettingsRoute, {
         segments: segments
       });
     case 'modules':
@@ -5917,17 +5966,33 @@ function Route({
         // surface (D-R27). One route entry, because the second is a deep link into
         // the first — exactly how `#settings/{parent}/{child}` already works.
         const code = (0,_lib_router_js__WEBPACK_IMPORTED_MODULE_2__.moduleRouteCode)(segments);
-        return code ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(ModuleSettingsRoute, {
+        return code ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(ModuleSettingsRoute, {
           code: code,
+          segments: segments,
           onNavigate: onNavigate
-        }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(ModulesApp, {});
+        }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(ModulesApp, {});
       }
     default:
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_routes_Placeholder_jsx__WEBPACK_IMPORTED_MODULE_13__.Placeholder, {
-        route: route,
-        title: TITLES[route] || 'Page',
-        onNavigate: onNavigate
-      });
+      {
+        // A module-owned screen (D-R56). The component is the module bundle's own NAMED lazy
+        // chunk, so it costs the first paint nothing; `module` is its boot-data record, the
+        // same prop the settings-panel registry hands a panel.
+        if (moduleRoute) {
+          const Screen = moduleRoute.component;
+          return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(Screen, {
+            segments: segments,
+            onNavigate: onNavigate,
+            module: (0,_modules_catalog_js__WEBPACK_IMPORTED_MODULE_5__.findModuleRecord)({
+              modules
+            }, moduleRoute.moduleCode)
+          });
+        }
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_routes_Placeholder_jsx__WEBPACK_IMPORTED_MODULE_17__.Placeholder, {
+          route: route,
+          title: _lib_page_title_js__WEBPACK_IMPORTED_MODULE_3__.ROUTE_TITLES[route] || 'Page',
+          onNavigate: onNavigate
+        });
+      }
   }
 }
 
@@ -5943,7 +6008,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   BookingsTable: () => (/* binding */ BookingsTable),
 /* harmony export */   bookingsTableDefaults: () => (/* binding */ bookingsTableDefaults),
-/* harmony export */   canMarkNoShow: () => (/* binding */ canMarkNoShow)
+/* harmony export */   canMarkNoShow: () => (/* binding */ canMarkNoShow),
+/* harmony export */   deepLinkFilters: () => (/* binding */ deepLinkFilters),
+/* harmony export */   floatingMenuPosition: () => (/* binding */ floatingMenuPosition),
+/* harmony export */   isDefaultColumnLayout: () => (/* binding */ isDefaultColumnLayout)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
@@ -5957,11 +6025,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__);
 /* harmony import */ var _lib_schedule_cell_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/schedule-cell.js */ "./assets/src/admin/lib/schedule-cell.js");
-/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
-/* harmony import */ var _lib_facet_options_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/facet-options.js */ "./assets/src/admin/lib/facet-options.js");
-/* harmony import */ var _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../lib/payment-status.js */ "./assets/src/admin/lib/payment-status.js");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__);
+/* harmony import */ var _lib_ToolbarSelect_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/ToolbarSelect.jsx */ "./assets/src/admin/lib/ToolbarSelect.jsx");
+/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
+/* harmony import */ var _lib_facet_options_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../lib/facet-options.js */ "./assets/src/admin/lib/facet-options.js");
+/* harmony import */ var _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../lib/payment-status.js */ "./assets/src/admin/lib/payment-status.js");
+/* harmony import */ var _dashboard_stats_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./dashboard-stats.js */ "./assets/src/admin/bookings/dashboard-stats.js");
+/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__);
+
+
+
 
 
 
@@ -6091,9 +6165,9 @@ const DATE_RANGES = computeDateRanges();
 // Facet identity per axis (lib/facet-options.js): catalog columns are RECORD-keyed via
 // the row's id, so two same-named services/staff stay two options that filter to
 // disjoint row sets. `status` is a genuine enum — its value IS the identity. `location`
-// stays value-keyed because the `GET /bookings` list item carries no location id
-// (rest-contract §2.8 exposes only `service.id`/`staff.id`); it becomes record-keyed the
-// day the payload does, by adding `idKey` here.
+// is record-keyed on `locationId` since the list item carries `location_id` (D-R63,
+// rest-contract §2.8 addendum); `0` is a real group ("No location"). Its rows carry a name only
+// when the site has locations (routes/Bookings.jsx), so with none it still offers nothing.
 const FILTER_DEFINITIONS = [{
   columnId: 'status',
   label: 'Status',
@@ -6108,7 +6182,7 @@ const FILTER_DEFINITIONS = [{
 {
   columnId: 'payment',
   label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Payment', 'aponto'),
-  options: _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_11__.PAYMENT_FILTER_OPTIONS
+  options: _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_12__.PAYMENT_FILTER_OPTIONS
 }, {
   columnId: 'staff',
   label: 'Staff',
@@ -6119,16 +6193,22 @@ const FILTER_DEFINITIONS = [{
   idKey: 'serviceId'
 }, {
   columnId: 'location',
-  label: 'Location'
+  label: 'Location',
+  idKey: 'locationId'
 }];
-const SERVICE_FACET_FILTER = (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_10__.recordFacetFilter)('serviceId', 'service');
-const STAFF_FACET_FILTER = (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_10__.recordFacetFilter)('staffId', 'staff');
+const SERVICE_FACET_FILTER = (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_11__.recordFacetFilter)('serviceId', 'service');
+const STAFF_FACET_FILTER = (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_11__.recordFacetFilter)('staffId', 'staff');
+const LOCATION_FACET_FILTER = (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_11__.recordFacetFilter)('locationId', 'location');
+// Newest booking first (D-R74), matching the `order_by=created` order the Bookings route asks
+// `GET /bookings` for: a booking that just came in sits on top whatever date it is for. Clearing
+// every header sort falls back to that same order, because the rows arrive in it.
 const DEFAULT_SORTING = [{
-  id: 'schedule',
-  desc: false
+  id: 'created',
+  desc: true
 }];
-const DEFAULT_COLUMN_ORDER = ['select', 'id', 'schedule', 'customer', 'service', 'staff', 'status', 'total', 'payment', 'location', 'email', 'date', 'action'];
+const DEFAULT_COLUMN_ORDER = ['select', 'id', 'created', 'schedule', 'customer', 'service', 'staff', 'status', 'total', 'payment', 'location', 'email', 'date', 'action'];
 const DEFAULT_COLUMN_VISIBILITY = {
+  created: false,
   date: false,
   location: false,
   email: false,
@@ -6144,12 +6224,24 @@ function normalizeColumnOrder(preferredOrder) {
   const ordered = [...requested, ...DEFAULT_COLUMN_ORDER].filter((id, index, ids) => allowed.has(id) && ids.indexOf(id) === index);
   return ['select', 'id', ...ordered.filter(id => !['select', 'id', 'action'].includes(id)), 'action'];
 }
+
+/**
+ * Created-at order: the RFC3339 UTC strings compare correctly as text, and the id breaks ties
+ * between same-second inserts the way the server's `b.id DESC` does.
+ */
+function createdSort(rowA, rowB) {
+  return String(rowA.original.created || '').localeCompare(String(rowB.original.created || '')) || Number(rowA.original.id) - Number(rowB.original.id);
+}
 const columnHelper = (0,_tanstack_react_table__WEBPACK_IMPORTED_MODULE_6__.createColumnHelper)();
-function timeInMinutes(value) {
-  const match = String(value).match(/^(\d+):(\d+)\s(AM|PM)$/);
-  if (!match) return 0;
-  const hour = Number(match[1]) % 12 + (match[3] === 'PM' ? 12 : 0);
-  return hour * 60 + Number(match[2]);
+
+/**
+ * Schedule order: business date, then the start INSTANT. The time used to be parsed back out of
+ * the "9:00 AM" label, which stopped matching — every row sorted as midnight — once the label
+ * followed the site's 24-hour setting (persona QA 2026-10-05, T-071). RFC3339 UTC strings
+ * compare correctly as text.
+ */
+function scheduleSort(rowA, rowB) {
+  return rowA.original.date.localeCompare(rowB.original.date) || String(rowA.original.startUtc || '').localeCompare(String(rowB.original.startUtc || ''));
 }
 function dateMatchesRange(date, range) {
   if (range === 'all' || !range) {
@@ -6165,7 +6257,31 @@ function bookingGlobalFilter(row, _columnId, value) {
   const query = String(value || '').trim().toLowerCase();
   if (!query) return true;
   const booking = row.original;
-  return `${booking.customer} ${booking.email} ${booking.service} ${booking.order}`.toLowerCase().includes(query);
+  // The display name already holds both name parts ("Jane Doe" matches); the parts are added so a
+  // row whose composed name differs from them (a legacy DTO) is still found by either one.
+  return [booking.customer, booking.customerFirstName, booking.customerLastName, booking.email, booking.service, booking.order].filter(Boolean).join(' ').toLowerCase().includes(query);
+}
+
+/**
+ * Where a floating menu goes: under its trigger, or above it when the viewport has no room below
+ * (or the caller prefers up), always kept inside the viewport (T-050).
+ *
+ * @param {{top: number, bottom: number, left: number}} rect     Trigger rect (viewport coordinates).
+ * @param {{width: number, height: number, preferUp: boolean}} menu Estimated menu size + preference.
+ * @param {{width: number, height: number}} viewport            Viewport size.
+ * @return {{left: number, top: number}} Fixed position.
+ */
+function floatingMenuPosition(rect, menu, viewport) {
+  const inset = 8;
+  const fitsBelow = viewport.height - rect.bottom >= menu.height + inset + 5;
+  const fitsAbove = rect.top >= menu.height + inset + 5;
+  const above = menu.preferUp && fitsAbove || !fitsBelow && fitsAbove;
+  const top = above ? rect.top - menu.height - 5 : Math.max(inset, Math.min(viewport.height - menu.height - inset, rect.bottom + 5));
+  const left = Math.max(inset, Math.min(viewport.width - menu.width - inset, rect.left));
+  return {
+    left,
+    top
+  };
 }
 function statusMenuOpensUp(rowIndex, rowCount) {
   return rowCount > 1 && rowIndex === rowCount - 1 || rowCount > 4 && rowIndex >= rowCount - 2;
@@ -6178,7 +6294,7 @@ function IndeterminateCheckbox({
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (ref.current) ref.current.indeterminate = Boolean(indeterminate);
   }, [indeterminate]);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("input", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("input", {
     ref: ref,
     className: "pd-table-checkbox",
     type: "checkbox",
@@ -6196,6 +6312,10 @@ function StatusControl({
   const triggerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const menuRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const openedByKeyboard = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  // The menu FLOATS (persona QA 2026-10-05, T-050), like the row-action menu below: positioned in
+  // the viewport and portaled out of the table, whose scroll container clipped it whenever the
+  // table had only a row or two — there is no direction to open in that fits inside two rows.
+  const [menuPosition, setMenuPosition] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   // The inline picker is a ONE-CLICK control, so it only offers moves that need no
   // confirmation: `no_show` drops out until the appointment has started (D-R33), where
   // the server would answer a forceable 422 anyway. Forcing it earlier stays possible,
@@ -6207,13 +6327,75 @@ function StatusControl({
     if (status !== booking.status) onStatusChange(booking, status);
     onOpenChange(null);
   };
+  const estimatedMenuHeight = statusOptions.length * 38 + 18;
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (isOpen && openedByKeyboard.current) {
+    if (isOpen && menuPosition && openedByKeyboard.current) {
       window.requestAnimationFrame(() => menuRef.current?.querySelector('[role="menuitemradio"]')?.focus());
     }
     if (!isOpen) openedByKeyboard.current = false;
-  }, [isOpen]);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+  }, [isOpen, menuPosition]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useLayoutEffect)(() => {
+    if (!isOpen) {
+      setMenuPosition(null);
+      return undefined;
+    }
+    const updatePosition = () => {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setMenuPosition(floatingMenuPosition(rect, {
+        width: 180,
+        height: estimatedMenuHeight,
+        preferUp: opensUp
+      }, {
+        width: window.innerWidth,
+        height: window.innerHeight
+      }));
+    };
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [estimatedMenuHeight, isOpen, opensUp]);
+  const portalRoot = typeof document === 'undefined' ? null : document.querySelector('.ap-admin');
+  // `data-tanstack-status-picker` rides on the portaled menu too: the table's outside-click
+  // handler closes the picker for any pointerdown that is not inside an element carrying it.
+  const menu = isOpen && menuPosition ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
+    className: "pd-status-menu is-floating",
+    "data-tanstack-status-picker": true,
+    role: "menu",
+    "aria-label": "Set booking status",
+    style: {
+      position: 'fixed',
+      zIndex: 120,
+      ...menuPosition
+    },
+    ref: menuRef,
+    onKeyDown: _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_10__.menuRovingKeydown,
+    children: statusOptions.map(status => {
+      const restore = booking.status === 'cancelled' && status === 'pending';
+      const undoNoShow = booking.status === 'no_show' && status === 'confirmed';
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
+        className: `pd-status-option ${status}`,
+        type: "button",
+        role: "menuitemradio",
+        "aria-checked": booking.status === status,
+        onClick: event => chooseStatus(event, status),
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
+          className: "pd-status-option-icon",
+          children: renderIcon(STATUS_ICONS[status])
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
+          children: restore ? 'Pending (restore)' : undoNoShow ? 'Confirmed (undo no-show)' : STATUS_LABELS[status]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
+          className: "pd-status-option-check",
+          children: booking.status === status ? renderIcon('check') : null
+        })]
+      }, status);
+    })
+  }) : null;
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
     className: `pd-status-picker${isOpen ? ' is-open' : ''}${opensUp ? ' opens-up' : ''}`,
     "data-tanstack-status-picker": true,
     onKeyDown: event => {
@@ -6223,7 +6405,7 @@ function StatusControl({
       onOpenChange(null);
       window.requestAnimationFrame(() => document.querySelector(`[data-status-trigger="${booking.id}"]`)?.focus());
     },
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
       className: `pd-status pd-status-trigger ${booking.status}`,
       ref: triggerRef,
       "data-status-trigger": booking.id,
@@ -6237,41 +6419,14 @@ function StatusControl({
         event.stopPropagation();
         onOpenChange(isOpen ? null : booking.id);
       },
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
         className: "pd-status-icon",
         children: renderIcon(STATUS_ICONS[booking.status])
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
         className: "pd-status-label",
         children: STATUS_LABELS[booking.status]
       }), renderIcon('chevronDown')]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
-      className: "pd-status-menu",
-      role: "menu",
-      "aria-label": "Set booking status",
-      hidden: !isOpen,
-      ref: menuRef,
-      onKeyDown: _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.menuRovingKeydown,
-      children: statusOptions.map(status => {
-        const restore = booking.status === 'cancelled' && status === 'pending';
-        const undoNoShow = booking.status === 'no_show' && status === 'confirmed';
-        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
-          className: `pd-status-option ${status}`,
-          type: "button",
-          role: "menuitemradio",
-          "aria-checked": booking.status === status,
-          onClick: event => chooseStatus(event, status),
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
-            className: "pd-status-option-icon",
-            children: renderIcon(STATUS_ICONS[status])
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
-            children: restore ? 'Pending (restore)' : undoNoShow ? 'Confirmed (undo no-show)' : STATUS_LABELS[status]
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
-            className: "pd-status-option-check",
-            children: booking.status === status ? renderIcon('check') : null
-          })]
-        }, status);
-      })
-    })]
+    }), portalRoot && menu ? (0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)(menu, portalRoot) : menu]
   });
 }
 function BookingRowActions({
@@ -6338,77 +6493,77 @@ function BookingRowActions({
     onAction(booking, action);
   };
   const portalRoot = typeof document === 'undefined' ? null : document.querySelector('.ap-admin');
-  const menu = isOpen && menuPosition ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+  const menu = isOpen && menuPosition ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
     className: "pd-row-action-menu is-floating",
     "data-booking-row-actions": true,
     role: "menu",
     "aria-label": `Actions for ${booking.customer}`,
     style: menuPosition,
     ref: menuRef,
-    onKeyDown: _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.menuRovingKeydown,
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+    onKeyDown: _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_10__.menuRovingKeydown,
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
       type: "button",
       role: "menuitem",
       onClick: event => runAction(event, 'view'),
-      children: [renderIcon('list'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      children: [renderIcon('list'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
         children: "View details"
       })]
-    }), canReschedule ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+    }), canReschedule ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
       type: "button",
       role: "menuitem",
       onClick: event => runAction(event, 'reschedule'),
-      children: [renderIcon('calendar'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      children: [renderIcon('calendar'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
         children: "Reschedule"
       })]
-    }) : null, booking.status === 'pending' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+    }) : null, booking.status === 'pending' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
       type: "button",
       role: "menuitem",
       onClick: event => runAction(event, 'confirm'),
-      children: [renderIcon('check'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      children: [renderIcon('check'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
         children: "Confirm booking"
       })]
-    }) : null, booking.status === 'confirmed' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+    }) : null, booking.status === 'confirmed' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
       type: "button",
       role: "menuitem",
       onClick: event => runAction(event, 'complete'),
-      children: [renderIcon('calendar-check'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      children: [renderIcon('calendar-check'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
         children: "Complete booking"
       })]
-    }) : null, canNoShow ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+    }) : null, canNoShow ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
       type: "button",
       role: "menuitem",
       onClick: event => runAction(event, 'no-show'),
-      children: [renderIcon('hourglass'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      children: [renderIcon('hourglass'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
         children: "Mark as no-show"
       })]
-    }) : null, canUndoNoShow ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+    }) : null, canUndoNoShow ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
       type: "button",
       role: "menuitem",
       onClick: event => runAction(event, 'undo-no-show'),
-      children: [renderIcon('check'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      children: [renderIcon('check'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
         children: "Undo no-show"
       })]
-    }) : null, canRestore ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+    }) : null, canRestore ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
       type: "button",
       role: "menuitem",
       onClick: event => runAction(event, 'restore'),
-      children: [renderIcon('arrows'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      children: [renderIcon('arrows'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
         children: "Restore booking"
       })]
-    }) : null, canCancel ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
+    }) : null, canCancel ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
       className: "pd-row-action-separator",
       role: "separator"
-    }) : null, canCancel ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+    }) : null, canCancel ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
       className: "is-danger",
       type: "button",
       role: "menuitem",
       onClick: event => runAction(event, 'cancel'),
-      children: [renderIcon('prohibit'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      children: [renderIcon('prohibit'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
         children: "Cancel booking"
       })]
     }) : null]
   }) : null;
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
     className: `pd-booking-row-actions${isOpen ? ' is-open' : ''}${opensUp ? ' opens-up' : ''}`,
     "data-booking-row-actions": true,
     onKeyDown: event => {
@@ -6418,7 +6573,7 @@ function BookingRowActions({
       onOpenChange(null);
       window.requestAnimationFrame(() => document.querySelector(`[data-booking-action-trigger="${booking.id}"]`)?.focus());
     },
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
       className: "pd-row-action pd-row-action-icon",
       ref: triggerRef,
       type: "button",
@@ -6452,34 +6607,34 @@ function SortableColumnOption({
   } = (0,_dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_3__.useSortable)({
     id: column.id
   });
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
     className: `pd-column-option${isDragging ? ' is-dragging' : ''}${canHide ? '' : ' is-required'}`,
     ref: setNodeRef,
     style: {
       transform: _dnd_kit_utilities__WEBPACK_IMPORTED_MODULE_4__.CSS.Transform.toString(transform),
       transition
     },
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
       className: "pd-column-drag-handle",
       type: "button",
       "aria-label": `Drag to reorder ${label} column`,
       ...attributes,
       ...listeners,
       children: renderIcon('moreVertical')
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("label", {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("input", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("label", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("input", {
         type: "checkbox",
         checked: column.getIsVisible(),
         disabled: !canHide,
         onChange: column.getToggleVisibilityHandler()
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
         className: "pd-filter-checkbox",
         children: renderIcon('check')
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("span", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("span", {
         className: "pd-column-option-label",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
           children: label
-        }), canHide ? null : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("small", {
+        }), canHide ? null : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("small", {
           children: "Required"
         })]
       })]
@@ -6528,8 +6683,8 @@ function utcAtTzMidnight(ymd, tz, addDays = 0) {
  *  - status/service/staff facets are multi-select client-side but the route
  *    takes one value — threaded only when exactly ONE is selected, else the
  *    export stays unfiltered on that axis;
- *  - the route has NO `location` param (Free is single-location); the location
- *    facet is also the one axis with no id in the list payload;
+ *  - the location facet threads `location_id` under the same exactly-one rule
+ *    (D-R63; `0` = "No location" is a real value, not "unfiltered");
  *  - the client "order" search haystack uses the `AP #<id>` display form while
  *    the server matches real `AP-*` order codes.
  *
@@ -6556,16 +6711,23 @@ function exportFiltersFromTable(table, businessTimezone) {
   // lookup is exactly what made two same-named services export the wrong one.
   const services = facet('service');
   if (services.length === 1) {
-    const serviceId = (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_10__.facetRecordId)(services[0]);
+    const serviceId = (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_11__.facetRecordId)(services[0]);
     if (serviceId) {
       filters.service_id = serviceId;
     }
   }
   const staffs = facet('staff');
   if (staffs.length === 1) {
-    const staffId = (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_10__.facetRecordId)(staffs[0]);
+    const staffId = (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_11__.facetRecordId)(staffs[0]);
     if (staffId) {
       filters.staff_id = staffId;
+    }
+  }
+  const locations = facet('location');
+  if (locations.length === 1) {
+    const locationId = (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_11__.facetRecordId)(locations[0]);
+    if (null !== locationId) {
+      filters.location_id = locationId;
     }
   }
 
@@ -6585,6 +6747,8 @@ function BookingActionsMenu({
   businessTimezone
 }) {
   const [panel, setPanel] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const locationFilter = table.getState().columnFilters.find(entry => 'location' === entry.id)?.value;
+  const exportBlocked = Array.isArray(locationFilter) && locationFilter.length > 1;
   const managerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const menuRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const openedByKeyboard = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
@@ -6595,7 +6759,10 @@ function BookingActionsMenu({
     }
     if (panel === null) openedByKeyboard.current = false;
   }, [panel]);
-  const columns = table.getState().columnOrder.filter(id => !['select', 'action'].includes(id)).map(id => table.getColumn(id)).filter(column => column && !column.columnDef.meta?.filterOnly);
+  // Only columns this table DEFINES — the Location column exists only on a site with locations
+  // (D-R63 fix round 1), while a stored column order may still name it.
+  const known = new Set(table.getAllLeafColumns().map(column => column.id));
+  const columns = table.getState().columnOrder.filter(id => known.has(id) && !['select', 'action'].includes(id)).map(id => table.getColumn(id)).filter(column => column && !column.columnDef.meta?.filterOnly);
   const sensors = (0,_dnd_kit_core__WEBPACK_IMPORTED_MODULE_2__.useSensors)((0,_dnd_kit_core__WEBPACK_IMPORTED_MODULE_2__.useSensor)(_dnd_kit_core__WEBPACK_IMPORTED_MODULE_2__.PointerSensor, {
     activationConstraint: {
       distance: 5
@@ -6639,10 +6806,10 @@ function BookingActionsMenu({
     let managedIndex = 0;
     table.setColumnOrder(table.getState().columnOrder.map(id => ids.includes(id) ? reordered[managedIndex++] : id));
   };
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
     className: "pd-column-manager",
     ref: managerRef,
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
       className: "pd-toolbar-export pd-column-trigger pd-table-options-trigger",
       type: "button",
       "aria-haspopup": "menu",
@@ -6654,53 +6821,57 @@ function BookingActionsMenu({
         setPanel(current => current ? null : 'menu');
       },
       children: renderIcon('moreVertical')
-    }), panel === 'menu' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+    }), panel === 'menu' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
       className: "pd-table-actions-popover",
       role: "menu",
       "aria-label": "More booking actions",
       ref: menuRef,
-      onKeyDown: _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.menuRovingKeydown,
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+      onKeyDown: _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_10__.menuRovingKeydown,
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
         type: "button",
         role: "menuitem",
         onClick: () => setPanel('columns'),
-        children: [renderIcon('list'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("strong", {
+        children: [renderIcon('list'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("strong", {
             children: "Columns"
           })
         }), renderIcon('chevron')]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
         className: "pd-table-actions-separator",
         role: "separator"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
         type: "button",
         role: "menuitem",
+        "aria-disabled": exportBlocked || undefined,
         onClick: () => {
+          if (exportBlocked) return;
           onExport?.(exportFiltersFromTable(table, businessTimezone));
           setPanel(null);
         },
-        children: [renderIcon('csv'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("strong", {
-            children: "Export current view"
-          })
+        children: [renderIcon('csv'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("strong", {
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Export filtered', 'aponto')
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("small", {
+            children: exportBlocked ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Export one location at a time', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Uses the status, service, staff, date and location filters', 'aponto')
+          })]
         })]
       })]
-    }) : null, panel === 'columns' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+    }) : null, panel === 'columns' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
       className: "pd-column-popover",
       role: "dialog",
       "aria-label": "Booking columns",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("header", {
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("header", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
           className: "pd-column-back",
           type: "button",
           "aria-label": "Back to booking actions",
           onClick: () => setPanel('menu'),
           children: renderIcon('chevronLeft')
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("strong", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("strong", {
             children: "Columns"
           })
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
           type: "button",
           onClick: () => {
             table.setColumnVisibility(DEFAULT_COLUMN_VISIBILITY);
@@ -6708,16 +6879,16 @@ function BookingActionsMenu({
           },
           children: "Reset"
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_dnd_kit_core__WEBPACK_IMPORTED_MODULE_2__.DndContext, {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_dnd_kit_core__WEBPACK_IMPORTED_MODULE_2__.DndContext, {
         collisionDetection: _dnd_kit_core__WEBPACK_IMPORTED_MODULE_2__.closestCenter,
         sensors: sensors,
         onDragEnd: reorderColumns,
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_3__.SortableContext, {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_3__.SortableContext, {
           items: columns.map(column => column.id),
           strategy: _dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_3__.verticalListSortingStrategy,
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
             className: "pd-column-list",
-            children: columns.map(column => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(SortableColumnOption, {
+            children: columns.map(column => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(SortableColumnOption, {
               column: column,
               renderIcon: renderIcon
             }, column.id))
@@ -6741,10 +6912,10 @@ function FilterFacet({
   const selected = Array.isArray(column.getFilterValue()) ? column.getFilterValue() : [];
   // One option per distinct RECORD (or enum value) — see FILTER_DEFINITIONS. Two
   // same-named services are two options with the same label and different identities.
-  const options = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_10__.facetOptions)(definition, data), [data, definition]);
+  const options = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_11__.facetOptions)(definition, data), [data, definition]);
   const visibleOptions = options.filter(option => option.label.toLowerCase().includes(query.trim().toLowerCase()));
   const showSearch = options.length > 5;
-  const summary = (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_10__.facetSummary)(options, selected);
+  const summary = (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_11__.facetSummary)(options, selected);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (!isOpen) return undefined;
     const close = event => {
@@ -6773,10 +6944,10 @@ function FilterFacet({
   const toggleDraft = value => {
     setDraft(current => current.includes(value) ? current.filter(item => item !== value) : [...current, value]);
   };
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
     className: `pd-toolbar-popover-wrap pd-filter-facet pd-filter-facet-${definition.columnId}`,
     ref: facetRef,
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
       className: `pd-filter-facet-trigger${selected.length ? ' is-active' : ''}`,
       type: "button",
       "aria-haspopup": "dialog",
@@ -6786,18 +6957,18 @@ function FilterFacet({
         setQuery('');
         setIsOpen(open => !open);
       },
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
         children: definition.label
-      }), summary ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("strong", {
+      }), summary ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("strong", {
         children: summary
       }) : null, renderIcon('chevronDown')]
-    }), isOpen ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+    }), isOpen ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
       className: "pd-toolbar-popover pd-filter-popover pd-facet-popover",
       role: "dialog",
       "aria-label": `Filter bookings by ${definition.label}`,
-      children: [showSearch ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("label", {
+      children: [showSearch ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("label", {
         className: "pd-filter-option-search",
-        children: [renderIcon('search'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("input", {
+        children: [renderIcon('search'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("input", {
           ref: searchRef,
           type: "search",
           value: query,
@@ -6805,32 +6976,32 @@ function FilterFacet({
           "aria-label": `Search ${definition.label.toLowerCase()}`,
           onChange: event => setQuery(event.target.value)
         })]
-      }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+      }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
         className: "pd-filter-option-list",
-        children: [visibleOptions.map(option => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("label", {
+        children: [visibleOptions.map(option => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("label", {
           className: "pd-filter-option",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("input", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("input", {
             type: "checkbox",
             checked: draft.includes(option.value),
             onChange: () => toggleDraft(option.value)
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
             className: "pd-filter-checkbox",
             children: renderIcon('check')
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
             children: option.label
           })]
-        }, option.value)), !visibleOptions.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("p", {
+        }, option.value)), !visibleOptions.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("p", {
           className: "pd-filter-no-results",
           children: "No matching options"
         }) : null]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("footer", {
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("footer", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
           className: "pd-filter-popover-clear",
           type: "button",
           disabled: !draft.length,
           onClick: () => setDraft([]),
           children: "Clear"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
           className: "pd-button primary sm",
           type: "button",
           onClick: () => {
@@ -6843,8 +7014,24 @@ function FilterFacet({
     }) : null]
   });
 }
+
+/**
+ * Facet filters named by the hash: `#bookings/payment/{status}` opens the list on that payment
+ * facet (a module panel links its open-checkout count here). Anything else starts unfiltered.
+ *
+ * @param {string} hash Location hash.
+ * @return {Array} TanStack `columnFilters` initial state.
+ */
+function deepLinkFilters(hash = typeof window === 'undefined' ? '' : window.location.hash) {
+  const [route, facet, value] = String(hash).replace(/^#/, '').split('/');
+  return route === 'bookings' && facet === 'payment' && _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_12__.PAYMENT_STATUSES.includes(value) ? [{
+    id: 'payment',
+    value: [value]
+  }] : [];
+}
 function BookingsToolbar({
   data,
+  definitions,
   globalFilter,
   onExport,
   onNewBooking,
@@ -6853,14 +7040,16 @@ function BookingsToolbar({
   table,
   businessTimezone
 }) {
-  const [filtersOpen, setFiltersOpen] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [dateOpen, setDateOpen] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const dateRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  // A deep link that arrives with a facet already set opens the builder so the filter is visible.
+  const [filtersOpen, setFiltersOpen] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => definitions.some(definition => {
+    const value = table.getColumn(definition.columnId)?.getFilterValue();
+    return Array.isArray(value) && value.length > 0;
+  }));
   const filterButtonRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const dateColumn = table.getColumn('date');
   const dateRange = dateColumn.getFilterValue() || 'all';
   const selectedDateRange = DATE_RANGES[dateRange] || DATE_RANGES.all;
-  const activeFilters = FILTER_DEFINITIONS.filter(definition => {
+  const activeFilters = definitions.filter(definition => {
     const value = table.getColumn(definition.columnId)?.getFilterValue();
     return Array.isArray(value) && value.length;
   });
@@ -6868,28 +7057,8 @@ function BookingsToolbar({
   // still spells out the record's name.
   const filterSummary = definition => {
     const values = table.getColumn(definition.columnId)?.getFilterValue() || [];
-    return (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_10__.facetChipSummary)((0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_10__.facetOptions)(definition, data), values);
+    return (0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_11__.facetChipSummary)((0,_lib_facet_options_js__WEBPACK_IMPORTED_MODULE_11__.facetOptions)(definition, data), values);
   };
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (!dateOpen) return undefined;
-    const close = event => {
-      if (!dateRef.current?.contains(event.target)) setDateOpen(false);
-    };
-    document.addEventListener('pointerdown', close);
-    return () => document.removeEventListener('pointerdown', close);
-  }, [dateOpen]);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (!dateOpen) return undefined;
-    const closeOnEscape = event => {
-      if (event.key !== 'Escape') return;
-      event.preventDefault();
-      event.stopPropagation();
-      setDateOpen(false);
-      dateRef.current?.querySelector('.pd-toolbar-control')?.focus();
-    };
-    document.addEventListener('keydown', closeOnEscape, true);
-    return () => document.removeEventListener('keydown', closeOnEscape, true);
-  }, [dateOpen]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const showPending = () => {
       table.getColumn('status')?.setFilterValue(['pending']);
@@ -6909,90 +7078,69 @@ function BookingsToolbar({
     document.addEventListener('keydown', closeOnEscape);
     return () => document.removeEventListener('keydown', closeOnEscape);
   }, [filtersOpen]);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
     className: "pd-toolbar",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
       className: "pd-toolbar-main",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
         className: "pd-toolbar-query",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("label", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("label", {
           className: "pd-search",
-          children: [renderIcon('search'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("input", {
+          children: [renderIcon('search'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("input", {
             type: "search",
             value: globalFilter ?? '',
             placeholder: "Search customer, email or order\u2026",
             "aria-label": "Search bookings",
             onChange: event => setGlobalFilter(event.target.value)
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
           className: "pd-toolbar-filter-controls",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
-            className: "pd-toolbar-control-group pd-toolbar-date-control",
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
-              className: "pd-toolbar-popover-wrap",
-              ref: dateRef,
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
-                className: "pd-toolbar-control",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_lib_ToolbarSelect_jsx__WEBPACK_IMPORTED_MODULE_9__.ToolbarSelect, {
+            label: `Date range: ${selectedDateRange.start ? `${selectedDateRange.start} to ${selectedDateRange.end}` : selectedDateRange.fullLabel}`,
+            menuLabel: "Date range",
+            value: dateRange,
+            options: Object.entries(DATE_RANGES).map(([id, range]) => ({
+              value: id,
+              label: range.title,
+              detail: range.detail
+            })),
+            onChange: id => dateColumn.setFilterValue(id === 'all' ? undefined : id),
+            renderIcon: renderIcon,
+            icon: "calendar",
+            selectedContent: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.Fragment, {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
+                className: "pd-date-range-full",
+                children: selectedDateRange.start ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.Fragment, {
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
+                    children: selectedDateRange.start
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
+                    className: "pd-date-range-arrow",
+                    children: renderIcon('arrowRight')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
+                    children: selectedDateRange.end
+                  })]
+                }) : selectedDateRange.fullLabel
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
+                className: "pd-date-range-compact",
+                children: selectedDateRange.label
+              })]
+            }),
+            menuFooter: ({
+              close
+            }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.Fragment, {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
+                className: "pd-toolbar-popover-separator"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
                 type: "button",
-                "aria-haspopup": "menu",
-                "aria-expanded": dateOpen,
-                "aria-label": `Date range: ${selectedDateRange.start ? `${selectedDateRange.start} to ${selectedDateRange.end}` : selectedDateRange.fullLabel}`,
-                onClick: () => setDateOpen(open => !open),
-                children: [renderIcon('calendar'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("span", {
-                  className: "pd-date-range-value",
-                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
-                    className: "pd-date-range-full",
-                    children: selectedDateRange.start ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.Fragment, {
-                      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
-                        children: selectedDateRange.start
-                      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
-                        className: "pd-date-range-arrow",
-                        children: renderIcon('arrowRight')
-                      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
-                        children: selectedDateRange.end
-                      })]
-                    }) : selectedDateRange.fullLabel
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
-                    className: "pd-date-range-compact",
-                    children: selectedDateRange.label
-                  })]
-                }), renderIcon('chevronDown')]
-              }), dateOpen ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
-                className: "pd-toolbar-popover pd-date-popover",
-                role: "menu",
-                "aria-label": "Date range",
-                children: [Object.entries(DATE_RANGES).map(([id, range]) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
-                  type: "button",
-                  role: "menuitemradio",
-                  "aria-checked": dateRange === id,
-                  onClick: () => {
-                    dateColumn.setFilterValue(id === 'all' ? undefined : id);
-                    setDateOpen(false);
-                  },
-                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("span", {
-                    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("strong", {
-                      children: range.title
-                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("small", {
-                      children: range.detail
-                    })]
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
-                    className: "pd-toolbar-menu-check",
-                    children: dateRange === id ? renderIcon('check') : null
-                  })]
-                }, id)), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
-                  className: "pd-toolbar-popover-separator"
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
-                  type: "button",
-                  onClick: () => setDateOpen(false),
-                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
-                    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("strong", {
-                      children: "Custom range"
-                    })
-                  }), renderIcon('calendar')]
-                })]
-              }) : null]
+                onClick: close,
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
+                  children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("strong", {
+                    children: "Custom range"
+                  })
+                }), renderIcon('calendar')]
+              })]
             })
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
             className: "pd-toolbar-export pd-toolbar-filter-button",
             ref: filterButtonRef,
             type: "button",
@@ -7001,63 +7149,63 @@ function BookingsToolbar({
             "aria-controls": "bookingFilterBuilder",
             "aria-expanded": filtersOpen,
             onClick: () => setFiltersOpen(open => !open),
-            children: [renderIcon('sliders'), activeFilters.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+            children: [renderIcon('sliders'), activeFilters.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
               className: "pd-filter-count",
               children: activeFilters.length
             }) : null]
           })]
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
         className: "pd-toolbar-actions",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(BookingActionsMenu, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(BookingActionsMenu, {
           table: table,
           renderIcon: renderIcon,
           onExport: onExport,
           businessTimezone: businessTimezone
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
           className: "pd-button primary sm pd-toolbar-new-booking",
           type: "button",
           onClick: () => onNewBooking?.(),
-          children: [renderIcon('plus'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+          children: [renderIcon('plus'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
             children: "New booking"
           })]
         })]
       })]
-    }), activeFilters.length && !filtersOpen ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+    }), activeFilters.length && !filtersOpen ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
       className: "pd-active-filters",
       "aria-label": "Active booking filters",
-      children: [activeFilters.map(definition => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+      children: [activeFilters.map(definition => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
         className: "pd-filter-chip",
         type: "button",
         "aria-label": `Remove ${definition.label} filter`,
         onClick: () => table.getColumn(definition.columnId)?.setFilterValue(undefined),
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
           children: definition.label
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("strong", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("strong", {
           children: filterSummary(definition)
         }), renderIcon('close')]
-      }, definition.columnId)), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+      }, definition.columnId)), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
         className: "pd-clear-filters",
         type: "button",
-        onClick: () => FILTER_DEFINITIONS.forEach(definition => table.getColumn(definition.columnId)?.setFilterValue(undefined)),
+        onClick: () => definitions.forEach(definition => table.getColumn(definition.columnId)?.setFilterValue(undefined)),
         children: "Clear all"
       })]
-    }) : null, filtersOpen ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+    }) : null, filtersOpen ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
       className: "pd-filter-builder",
       id: "bookingFilterBuilder",
       "aria-label": "Booking filter options",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
         className: "pd-filter-facets",
-        children: FILTER_DEFINITIONS.map(definition => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(FilterFacet, {
+        children: definitions.map(definition => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(FilterFacet, {
           column: table.getColumn(definition.columnId),
           data: data,
           definition: definition,
           renderIcon: renderIcon
         }, definition.columnId))
-      }), activeFilters.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+      }), activeFilters.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
         className: "pd-clear-filters",
         type: "button",
-        onClick: () => FILTER_DEFINITIONS.forEach(definition => table.getColumn(definition.columnId)?.setFilterValue(undefined)),
+        onClick: () => definitions.forEach(definition => table.getColumn(definition.columnId)?.setFilterValue(undefined)),
         children: "Clear all"
       }) : null]
     }) : null]
@@ -7078,6 +7226,7 @@ function BookingsTable({
   renderIcon,
   formatMoney,
   businessTimezone = 'America/Los_Angeles',
+  hasLocations = false,
   totalCount = data.length,
   pageIndex = 0,
   pageSize = 25
@@ -7086,13 +7235,14 @@ function BookingsTable({
   const [columnVisibility, setColumnVisibility] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => ({
     ...DEFAULT_COLUMN_VISIBILITY,
     ...initialPreferences.columnVisibility,
+    created: false,
     date: false,
     schedule: true,
     customer: true
   }));
   const [columnOrder, setColumnOrder] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => normalizeColumnOrder(initialPreferences.columnOrder));
   const [globalFilter, setGlobalFilter] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
-  const [columnFilters, setColumnFilters] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [columnFilters, setColumnFilters] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => deepLinkFilters());
   const [rowSelection, setRowSelection] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({});
   const [bulkConfirm, setBulkConfirm] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [openStatusId, setOpenStatusId] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
@@ -7141,7 +7291,7 @@ function BookingsTable({
     enableSorting: false,
     header: ({
       table
-    }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(IndeterminateCheckbox, {
+    }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(IndeterminateCheckbox, {
       "aria-label": "Select all visible bookings",
       checked: table.getIsAllPageRowsSelected(),
       indeterminate: table.getIsSomePageRowsSelected(),
@@ -7149,7 +7299,7 @@ function BookingsTable({
     }),
     cell: ({
       row
-    }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(IndeterminateCheckbox, {
+    }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(IndeterminateCheckbox, {
       "aria-label": `Select booking ${row.original.order}`,
       checked: row.getIsSelected(),
       disabled: !row.getCanSelect(),
@@ -7157,6 +7307,17 @@ function BookingsTable({
       onClick: event => event.stopPropagation(),
       onChange: row.getToggleSelectedHandler()
     })
+  }),
+  // Sort key only (like `date` below is filter-only): never rendered, never in the Columns picker.
+  columnHelper.accessor('created', {
+    id: 'created',
+    header: 'Created',
+    enableHiding: false,
+    meta: {
+      label: 'Created',
+      filterOnly: true
+    },
+    sortingFn: createdSort
   }), columnHelper.accessor('id', {
     header: 'ID',
     size: 58,
@@ -7164,7 +7325,7 @@ function BookingsTable({
     meta: {
       label: 'ID'
     },
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
       className: "pd-cell-value pd-booking-id",
       children: info.getValue()
     })
@@ -7176,21 +7337,24 @@ function BookingsTable({
     meta: {
       label: 'Schedule'
     },
-    sortingFn: (rowA, rowB) => rowA.original.date.localeCompare(rowB.original.date) || timeInMinutes(rowA.original.start) - timeInMinutes(rowB.original.start),
+    sortingFn: scheduleSort,
     cell: info => {
       const booking = info.row.original;
-      const tzLine = (0,_lib_schedule_cell_js__WEBPACK_IMPORTED_MODULE_8__.customerTimezoneLine)(booking, businessTimezone);
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("span", {
+      // T-049: the caption prints the customer's OWN clock, so it cannot be read as a label
+      // for the business time above it. The full line is the tooltip — the column is narrow.
+      const tzLine = (0,_lib_schedule_cell_js__WEBPACK_IMPORTED_MODULE_8__.customerTimezoneLine)(booking, businessTimezone, _lib_format_js__WEBPACK_IMPORTED_MODULE_14__.timeLabel);
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("span", {
         className: "pd-schedule-cell",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
           className: "pd-cell-value pd-time",
           children: info.getValue()
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("small", {
-          title: tzLine ? `Customer time · ${booking.timezone}` : undefined,
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("small", {
+          title: tzLine || undefined,
           children: booking.dateLabel
-        }), tzLine ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("small", {
+        }), tzLine ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("small", {
           className: "pd-schedule-tz",
-          children: [renderIcon('clock'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+          title: tzLine,
+          children: [renderIcon('clock'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
             children: tzLine
           })]
         }) : null]
@@ -7207,18 +7371,23 @@ function BookingsTable({
       filterOnly: true
     },
     filterFn: (row, id, range) => dateMatchesRange(row.getValue(id), range),
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
       className: "pd-cell-value",
       children: info.row.original.dateLabel
     })
-  }), columnHelper.accessor('customer', {
+  }),
+  // An unfinished checkout has no customer yet (T-038 / T-048): say so instead of an empty cell.
+  columnHelper.accessor('customer', {
     header: 'Customer',
     size: 140,
     enableHiding: false,
     meta: {
       label: 'Customer'
     },
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+    cell: info => !info.getValue() && (0,_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_13__.isCheckoutHold)(info.row.original) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
+      className: "pd-cell-value pd-cell-muted",
+      children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Checkout not finished', 'aponto')
+    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
       className: "pd-cell-value",
       children: info.getValue()
     })
@@ -7232,29 +7401,32 @@ function BookingsTable({
       label: 'Service'
     },
     filterFn: SERVICE_FACET_FILTER,
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
       className: "pd-cell-value",
       children: info.getValue()
     })
-  }), columnHelper.accessor('location', {
+  }),
+  // D-R63 fix round 1: the Location column (and its facet) exist only on a site WITH locations —
+  // on Free, or Premium with none, it would be a control over nothing.
+  ...(hasLocations ? [columnHelper.accessor('location', {
     header: 'Location',
     size: 155,
     meta: {
       label: 'Location'
     },
-    filterFn: _lib_facet_options_js__WEBPACK_IMPORTED_MODULE_10__.inArrayFilter,
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+    filterFn: LOCATION_FACET_FILTER,
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
       className: "pd-cell-value pd-cell-muted",
       children: info.getValue()
     })
-  }), columnHelper.accessor('staff', {
+  })] : []), columnHelper.accessor('staff', {
     header: 'Staff',
     size: 105,
     meta: {
       label: 'Staff'
     },
     filterFn: STAFF_FACET_FILTER,
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
       className: "pd-cell-value",
       children: info.getValue()
     })
@@ -7264,11 +7436,11 @@ function BookingsTable({
     meta: {
       label: 'Status'
     },
-    filterFn: _lib_facet_options_js__WEBPACK_IMPORTED_MODULE_10__.inArrayFilter,
+    filterFn: _lib_facet_options_js__WEBPACK_IMPORTED_MODULE_11__.inArrayFilter,
     cell: info => {
       const displayedRows = info.table.getRowModel().rows;
       const displayedIndex = displayedRows.findIndex(row => row.id === info.row.id);
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(StatusControl, {
+      const control = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(StatusControl, {
         booking: info.row.original,
         isOpen: openStatusId === info.row.original.id,
         opensUp: statusMenuOpensUp(displayedIndex, displayedRows.length),
@@ -7282,6 +7454,15 @@ function BookingsTable({
         },
         renderIcon: renderIcon
       });
+      // T-056: a cancelled booking whose order is still paid says so in the list, whether
+      // or not the optional Payment column is shown — cancelling never refunds (D-R71k).
+      return (0,_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_13__.needsRefundReview)(info.row.original) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("span", {
+        className: "pd-schedule-cell",
+        children: [control, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("small", {
+          title: _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_12__.REFUND_REVIEW_LABEL,
+          children: _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_12__.REFUND_REVIEW_LABEL
+        })]
+      }) : control;
     }
   }), columnHelper.accessor('total', {
     header: 'Total',
@@ -7289,15 +7470,17 @@ function BookingsTable({
     meta: {
       label: 'Total'
     },
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
       className: "pd-cell-value",
       children: formatMoney(info.getValue(), info.row.original)
     })
   }),
   // The SAME badge the booking editor's Order section renders (`lib/payment-status.js`), minus
   // the hold deadline: the list item carries no `hold_expires_at` (rest-contract §2.8), and a
-  // badge that invented one would be a promise the row cannot keep.
-  columnHelper.accessor('paymentStatus', {
+  // badge that invented one would be a promise the row cannot keep. Two row-level facts refine
+  // it (T-048 / T-056, `listPaymentBadge`): an unfinished checkout, and a cancelled booking
+  // that is still paid. The facet value is the D-R71 reason (deposit vs refund).
+  columnHelper.accessor(row => row.paymentReason || row.paymentStatus, {
     id: 'payment',
     header: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Payment', 'aponto'),
     size: 118,
@@ -7307,10 +7490,10 @@ function BookingsTable({
     meta: {
       label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Payment', 'aponto')
     },
-    filterFn: _lib_facet_options_js__WEBPACK_IMPORTED_MODULE_10__.inArrayFilter,
+    filterFn: _lib_facet_options_js__WEBPACK_IMPORTED_MODULE_11__.inArrayFilter,
     cell: info => {
-      const badge = (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_11__.paymentBadge)(info.getValue());
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      const badge = (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_12__.listPaymentBadge)(info.row.original);
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
         className: `pd-status ap-pay-${badge.tone}`,
         title: badge.title,
         children: badge.label
@@ -7322,7 +7505,7 @@ function BookingsTable({
     meta: {
       label: 'Email'
     },
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
       className: "pd-cell-value pd-cell-muted",
       children: info.getValue()
     })
@@ -7335,7 +7518,7 @@ function BookingsTable({
     cell: info => {
       const displayedRows = info.table.getRowModel().rows;
       const displayedIndex = displayedRows.findIndex(row => row.id === info.row.id);
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(BookingRowActions, {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(BookingRowActions, {
         booking: info.row.original,
         isOpen: openActionId === info.row.original.id,
         opensUp: statusMenuOpensUp(displayedIndex, displayedRows.length),
@@ -7352,7 +7535,7 @@ function BookingsTable({
         renderIcon: renderIcon
       });
     }
-  })], [businessTimezone, formatMoney, onBookingAction, onOpenBooking, onStatusChange, openActionId, openStatusId, pageIndex, currentPageSize, renderIcon, revision]);
+  })], [hasLocations, businessTimezone, formatMoney, onBookingAction, onOpenBooking, onStatusChange, openActionId, openStatusId, pageIndex, currentPageSize, renderIcon, revision]);
   const table = (0,_tanstack_react_table__WEBPACK_IMPORTED_MODULE_5__.useReactTable)({
     data: tableData,
     columns,
@@ -7402,9 +7585,10 @@ function BookingsTable({
       preventScroll: true
     }));
   };
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.Fragment, {
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(BookingsToolbar, {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(BookingsToolbar, {
       data: tableData,
+      definitions: hasLocations ? FILTER_DEFINITIONS : FILTER_DEFINITIONS.filter(definition => 'location' !== definition.columnId),
       globalFilter: globalFilter,
       onExport: onExport,
       onNewBooking: onNewBooking,
@@ -7412,64 +7596,64 @@ function BookingsTable({
       setGlobalFilter: setGlobalFilter,
       table: table,
       businessTimezone: businessTimezone
-    }), rows.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.Fragment, {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
+    }), rows.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.Fragment, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
         className: "pd-table-wrap",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("table", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("table", {
           className: "pd-table",
           style: {
             minWidth: table.getTotalSize()
           },
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("colgroup", {
-            children: visibleColumns.map(column => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("col", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("colgroup", {
+            children: visibleColumns.map(column => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("col", {
               style: {
                 width: column.getSize()
               }
             }, column.id))
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("thead", {
-            children: selectedRows.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("tr", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("thead", {
+            children: selectedRows.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("tr", {
               className: "pd-bulk-row",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("th", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("th", {
                 className: "pd-col-select",
                 scope: "col",
                 "data-column": "select",
-                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(IndeterminateCheckbox, {
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(IndeterminateCheckbox, {
                   "aria-label": table.getIsAllPageRowsSelected() ? 'Unselect all visible bookings' : 'Select all visible bookings',
                   checked: table.getIsAllPageRowsSelected(),
                   indeterminate: table.getIsSomePageRowsSelected(),
                   onChange: toggleBulkSelection
                 })
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("th", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("th", {
                 className: "pd-bulk-bar-cell",
                 colSpan: Math.max(1, visibleColumns.length - 1),
-                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
                   className: "pd-bulk-bar",
                   role: "toolbar",
                   "aria-label": "Bulk booking actions",
-                  children: [bulkConfirm ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.Fragment, {
-                    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("strong", {
+                  children: [bulkConfirm ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.Fragment, {
+                    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("strong", {
                       children: ["Delete ", selectedRows.length, " booking", selectedRows.length === 1 ? '' : 's', "?"]
-                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
                       children: "Orders are removed; an activity record is kept."
-                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
                       className: "pd-bulk-actions",
-                      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+                      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
                         type: "button",
                         onClick: () => setBulkConfirm(false),
                         children: "Keep"
-                      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+                      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
                         className: "is-danger",
                         type: "button",
                         onClick: applyBulkDelete,
                         children: "Delete bookings"
                       })]
                     })]
-                  }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.Fragment, {
-                    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("strong", {
+                  }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.Fragment, {
+                    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("strong", {
                       children: [selectedRows.length, " selected"]
-                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
                       className: "pd-bulk-actions",
-                      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+                      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
                         className: "is-danger",
                         type: "button",
                         "aria-label": "Delete selected bookings",
@@ -7477,7 +7661,7 @@ function BookingsTable({
                         children: "Delete bookings"
                       })
                     })]
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
                     className: "pd-bulk-clear",
                     type: "button",
                     "aria-label": "Clear selection",
@@ -7489,27 +7673,27 @@ function BookingsTable({
                   })]
                 })
               })]
-            }) : table.getHeaderGroups().map(headerGroup => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("tr", {
+            }) : table.getHeaderGroups().map(headerGroup => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("tr", {
               children: headerGroup.headers.map(header => {
                 const sorted = header.column.getIsSorted();
-                return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("th", {
+                return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("th", {
                   className: header.column.id === 'select' ? 'pd-col-select' : header.column.id === 'action' ? 'pd-col-action' : undefined,
                   scope: "col",
                   "data-column": header.column.id,
                   "aria-sort": sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : undefined,
-                  children: header.isPlaceholder ? null : header.column.getCanSort() ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+                  children: header.isPlaceholder ? null : header.column.getCanSort() ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
                     className: `pd-sort-button${sorted ? ` is-active is-${sorted}` : ''}`,
                     type: "button",
                     onClick: header.column.getToggleSortingHandler(),
-                    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+                    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
                       children: (0,_tanstack_react_table__WEBPACK_IMPORTED_MODULE_5__.flexRender)(header.column.columnDef.header, header.getContext())
                     }), renderIcon('chevronDown')]
                   }) : (0,_tanstack_react_table__WEBPACK_IMPORTED_MODULE_5__.flexRender)(header.column.columnDef.header, header.getContext())
                 }, header.id);
               })
             }, headerGroup.id))
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("tbody", {
-            children: rows.map(row => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("tr", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("tbody", {
+            children: rows.map(row => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("tr", {
               className: row.getIsSelected() ? 'is-selected' : undefined,
               "data-booking-id": row.original.id,
               tabIndex: "0",
@@ -7525,7 +7709,7 @@ function BookingsTable({
                   onOpenBooking?.(row.original.id);
                 }
               },
-              children: row.getVisibleCells().map(cell => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("td", {
+              children: row.getVisibleCells().map(cell => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("td", {
                 className: cell.column.id === 'select' ? 'pd-col-select' : cell.column.id === 'action' ? 'pd-col-action' : cell.column.id === 'total' ? 'pd-amount' : undefined,
                 "data-column": cell.column.id,
                 children: (0,_tanstack_react_table__WEBPACK_IMPORTED_MODULE_5__.flexRender)(cell.column.columnDef.cell, cell.getContext())
@@ -7533,33 +7717,33 @@ function BookingsTable({
             }, row.id))
           })]
         })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
         className: "pd-mobile-list",
         children: rows.map(row => {
           const booking = row.original;
-          return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+          return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
             className: "pd-mobile-booking",
             type: "button",
             "data-booking-id": booking.id,
             onClick: () => onOpenBooking?.(booking.id),
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("span", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("span", {
               className: "pd-mobile-booking-time",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("strong", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("strong", {
                 children: booking.start
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
                 children: booking.dateLabel
               })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("span", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("span", {
               className: "pd-mobile-booking-copy",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
                 className: "pd-primary",
                 children: booking.customer
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
                 className: "pd-secondary",
                 children: booking.service
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("span", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("span", {
                 className: `pd-status ${booking.status}`,
-                children: [renderIcon(STATUS_ICONS[booking.status]), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+                children: [renderIcon(STATUS_ICONS[booking.status]), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
                   children: STATUS_LABELS[booking.status]
                 })]
               })]
@@ -7571,13 +7755,13 @@ function BookingsTable({
     /*#__PURE__*/
     // Filters/search active and nothing matched (fleet-r1 U2 FB9): say WHY the list
     // is empty and offer one-click recovery instead of a dead "no bookings" state.
-    (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+    (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
       className: "pd-empty",
-      children: [renderIcon('search'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("h2", {
+      children: [renderIcon('search'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("h2", {
         children: "No results match your filters"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("p", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("p", {
         children: "Clear the search and filters to see all bookings."
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
         className: "pmdk-button sm",
         type: "button",
         onClick: () => {
@@ -7586,22 +7770,22 @@ function BookingsTable({
         },
         children: "Clear filters"
       })]
-    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
       className: "pd-empty",
-      children: [renderIcon('search'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("h2", {
+      children: [renderIcon('search'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("h2", {
         children: "No bookings found"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("p", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("p", {
         children: "Try a different customer, service or status."
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("footer", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("footer", {
       className: "pd-pagination",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("span", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("span", {
         children: ["Showing ", firstVisible, "\u2013", lastVisible, " of ", filteredCount, " bookings"]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
         className: "pd-pagination-tools",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("label", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("label", {
           className: "pd-pagination-size",
-          children: ["Rows per page ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("select", {
+          children: ["Rows per page ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("select", {
             value: currentPageSize,
             "aria-label": "Booking rows per page",
             onChange: event => {
@@ -7609,20 +7793,20 @@ function BookingsTable({
               table.setPageSize(nextPageSize);
               onPageSizeChange?.(nextPageSize);
             },
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("option", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("option", {
               value: "25",
               children: "25"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("option", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("option", {
               value: "50",
               children: "50"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("option", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("option", {
               value: "100",
               children: "100"
             })]
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
           className: "pd-page-controls",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
             type: "button",
             disabled: !table.getCanPreviousPage(),
             "aria-label": "Previous page",
@@ -7631,7 +7815,7 @@ function BookingsTable({
               onRequestPage?.(table.getState().pagination.pageIndex);
             },
             children: renderIcon('chevronLeft')
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("button", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("button", {
             type: "button",
             disabled: !table.getCanNextPage(),
             "aria-label": "Next page",
@@ -7648,8 +7832,259 @@ function BookingsTable({
 }
 const bookingsTableDefaults = {
   columnOrder: DEFAULT_COLUMN_ORDER,
+  columnVisibility: DEFAULT_COLUMN_VISIBILITY,
   sorting: DEFAULT_SORTING
 };
+
+/**
+ * Whether a column layout shows exactly what the defaults show, in the default order — the test
+ * for "nothing worth saving". It compares what the operator SEES rather than the raw state, because
+ * the same screen has several spellings: the mount state carries forced keys (`schedule: true`)
+ * that the Columns "Reset" never writes, and a column absent from the map is visible.
+ *
+ * @param {Object} layout                  `{ columnVisibility, columnOrder }`.
+ * @param {Object} layout.columnVisibility Column id → visible.
+ * @param {Array}  layout.columnOrder      Column ids.
+ * @return {boolean} True for the default layout.
+ */
+function isDefaultColumnLayout({
+  columnVisibility = {},
+  columnOrder = []
+} = {}) {
+  const visible = (map, id) => map[id] !== false;
+  const order = normalizeColumnOrder(columnOrder);
+  return DEFAULT_COLUMN_ORDER.every(id => visible(columnVisibility, id) === visible(DEFAULT_COLUMN_VISIBILITY, id)) && order.every((id, index) => id === DEFAULT_COLUMN_ORDER[index]);
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/bookings/dashboard-stats.js"
+/*!******************************************************!*\
+  !*** ./assets/src/admin/bookings/dashboard-stats.js ***!
+  \******************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   dashboardStats: () => (/* binding */ dashboardStats),
+/* harmony export */   dayPart: () => (/* binding */ dayPart),
+/* harmony export */   hourIn: () => (/* binding */ hourIn),
+/* harmony export */   isCheckoutHold: () => (/* binding */ isCheckoutHold),
+/* harmony export */   needsRefundReview: () => (/* binding */ needsRefundReview),
+/* harmony export */   paidBookingsRefused: () => (/* binding */ paidBookingsRefused),
+/* harmony export */   paymentFixTarget: () => (/* binding */ paymentFixTarget),
+/* harmony export */   paymentNotReady: () => (/* binding */ paymentNotReady),
+/* harmony export */   serviceNotBookable: () => (/* binding */ serviceNotBookable)
+/* harmony export */ });
+/**
+ * Pure Dashboard aggregates (persona QA 2026-10-05, T-037 / T-038 / T-056).
+ *
+ * Import-free on purpose: the Dashboard computes everything client-side from `GET /bookings`
+ * (SPEC-P1 §1.0.1), and the rules below decide what an owner is told needs their attention — so
+ * they are unit-tested directly in the framework-free node jest env.
+ */
+
+// Booked value counts only bookings that still represent money for today. `no_show` stays OUT,
+// exactly like `cancelled` (SPEC-P1 §1.0.1 + D-R33) — the chair was empty either way.
+const BLOCKING = new Set(['pending', 'confirmed', 'completed']);
+
+/**
+ * Whether a row is an unfinished checkout rather than a booking request (T-038).
+ *
+ * A checkout that hands off to an external platform reserves the slot BEFORE the customer has
+ * given their details: the booking is `pending`, its order is `pending` payment, and it has no
+ * customer yet (`customer.id` 0 — the list printed it as "?"). That is a slot hold the payment
+ * flow releases by itself, not a request the owner has to confirm, a new customer, or booked
+ * value. A pending payment that HAS a customer (a bank transfer awaiting the owner's check, say)
+ * stays a real request.
+ *
+ * Re-test 2026-10-05: a checkout that collects the customer's details FIRST has a customer and is
+ * still not placed. The list item now says so itself — `paymentStateReason` is `checkout_pending`
+ * while the checkout deadline still governs the hold (rest-contract §2.8) — so that reason marks
+ * a hold whether or not a customer is on it. A placed order awaiting verification answers another
+ * reason and stays a request the owner must act on.
+ *
+ * @param {Object} row Adapted booking row (`lib/booking-adapter.js`).
+ * @return {boolean} Whether the row is a checkout hold.
+ */
+function isCheckoutHold(row) {
+  return row?.status === 'pending' && row?.paymentStatus === 'pending' && (!row?.customerId || row?.paymentStateReason === 'checkout_pending');
+}
+
+/**
+ * Whether a cancelled booking still holds the customer's money (T-056).
+ *
+ * Cancelling never refunds automatically (D-R71k), so a `cancelled` booking whose order is still
+ * `paid` is the one case where the owner has something to decide. `partial` / `refunded` mean the
+ * refund was already looked at — EXCEPT a paid deposit (D-R71): it is stored as `partial` too, and
+ * only the ledger reason `deposit_paid` tells it apart from a partial refund. Nothing was refunded,
+ * so the deposit is money still held, exactly like a `paid` order.
+ *
+ * @param {Object} row Adapted booking row, or the editor's `{ status, order: { paymentStatus, paymentReason } }`.
+ * @return {boolean} Whether a refund is waiting to be reviewed.
+ */
+function needsRefundReview(row) {
+  const payment = row?.paymentStatus ?? row?.order?.paymentStatus;
+  const reason = row?.paymentReason ?? row?.order?.paymentReason;
+  return row?.status === 'cancelled' && (payment === 'paid' || reason === 'deposit_paid');
+}
+const byStart = (a, b) => String(a.startUtc).localeCompare(String(b.startUtc));
+
+/**
+ * Everything the Dashboard shows, from one window of bookings.
+ *
+ * @param {Array}    rows   Adapted booking rows.
+ * @param {string}   today  Business-local `Y-m-d`.
+ * @param {Function} dateOf `( utcInstant ) => 'Y-m-d'` in business time (for `created`).
+ * @return {{todays: Array, pending: Array, holds: Array, refunds: Array, bookedValue: number, newCustomers: number}} Aggregates.
+ */
+function dashboardStats(rows, today, dateOf) {
+  const list = Array.isArray(rows) ? rows : [];
+  const holds = list.filter(isCheckoutHold).sort(byStart);
+  // A cancelled row that was only ever an unplaced checkout (`checkoutAbandoned`) is no more a
+  // booking than the live hold it used to be: its customer record exists because somebody typed
+  // their details, not because anybody booked.
+  const real = list.filter(b => !isCheckoutHold(b) && !b.checkoutAbandoned);
+  const todays = real.filter(b => b.date === today && b.status !== 'cancelled').sort(byStart);
+  const pending = real.filter(b => b.status === 'pending').sort(byStart);
+  const bookedValue = todays.filter(b => BLOCKING.has(b.status)).reduce((sum, b) => sum + (b.total || 0), 0);
+  // Keyed on the customer RECORD first: two customers can share a display name, and a hold
+  // without one is not a customer at all.
+  const newCustomers = new Set(real.filter(b => b.created && dateOf(b.created) === today && (b.customerId || b.email || b.customer)).map(b => b.customerId ? `id:${b.customerId}` : String(b.email || b.customer).toLowerCase())).size;
+  const refunds = list.filter(needsRefundReview).sort(byStart);
+  return {
+    todays,
+    pending,
+    holds,
+    refunds,
+    bookedValue,
+    newCustomers
+  };
+}
+
+/**
+ * Whether customers can book an ACTIVE service (persona QA 2026-10-05, re-test R11).
+ *
+ * The public catalogue lists a service only when an ACTIVE staff member is assigned to it
+ * (T-073), so an active service with none is invisible to customers — while the admin list read
+ * "0 staff · Active" and the Dashboard counted it. `active_staff_count` is additive
+ * (rest-contract §2.3); a DTO older than the field falls back to `staff_count`.
+ *
+ * @param {Object} service Service list DTO.
+ * @return {boolean} Whether the service is active and nobody can perform it.
+ */
+function serviceNotBookable(service) {
+  if (service?.status !== 'active') {
+    return false;
+  }
+  const count = service.active_staff_count ?? service.staff_count;
+  return Number.isFinite(Number(count)) && Number(count) < 1;
+}
+
+/**
+ * Where the Dashboard's "no payment method is ready" action leads (re-test N3).
+ *
+ * `paymentNotReady()` named the FIRST enabled module that is not ready, so a site with two
+ * payment modules switched on was sent to one it had never set up. A module that answered the
+ * readiness seam with an explicit `false` has something to say about why; one that did not answer
+ * (`null`) has not. With exactly one such module the action opens it; with one enabled module it
+ * opens that; otherwise it opens the catalog on the Payments tab rather than guessing.
+ *
+ * @param {Array}  modules Boot module catalog.
+ * @param {string} mode    Stored `payments.mode`.
+ * @return {?{path: string, category: string}} Hash path, plus the catalog tab to open ('' for a module page); null when nothing is broken.
+ */
+function paymentFixTarget(modules, mode) {
+  if (!paymentNotReady(modules, mode)) {
+    return null;
+  }
+  const enabled = modules.filter(mod => mod && 'payments' === mod.category && true === mod.available && true === mod.enabled && mod.code);
+  const blocked = enabled.filter(mod => false === mod.ready);
+  const pick = 1 === blocked.length ? blocked[0] : 1 === enabled.length ? enabled[0] : null;
+  return pick ? {
+    path: `modules/${pick.code}`,
+    category: ''
+  } : {
+    path: 'modules',
+    category: 'payments'
+  };
+}
+
+/**
+ * The payment module the owner switched on that cannot take a payment right now, or null (T-037).
+ *
+ * Generic over the module catalog on the boot data — core names no gateway. Online payment is
+ * "on but not working" when the stored mode is not `off`, at least one payment module is enabled
+ * on this site, and NONE of the enabled ones reports ready through the module status seam
+ * (`ready === true`). In that state the booking form drops the payment step and paid services are
+ * booked unpaid (D-R38a(1): a booking is never refused because no gateway is ready) — which is
+ * correct, and is exactly what the owner must be told. A site with no payment module enabled is
+ * not in this state: it never asked for online payment.
+ *
+ * @param {Array}  modules Boot module catalog (`config.modules`).
+ * @param {string} mode    Stored `payments.mode` (`off|optional|required`), or '' when unknown.
+ * @return {?string} The first enabled-but-not-ready payment module code, or null.
+ */
+function paymentNotReady(modules, mode) {
+  if (!mode || 'off' === mode) {
+    return null;
+  }
+  const enabled = (Array.isArray(modules) ? modules : []).filter(mod => mod && 'payments' === mod.category && true === mod.available && true === mod.enabled);
+  if (!enabled.length || enabled.some(mod => true === mod.ready)) {
+    return null;
+  }
+  return String(enabled[0].code || '') || null;
+}
+
+/**
+ * Whether the public form is REFUSING paid services right now (D-R79) — the client mirror of
+ * `PaymentRegistry::requiredButUnavailable()` + the opt-in `payments.when_unavailable = refuse`,
+ * so the Dashboard line says what is actually happening: "cannot be booked" instead of "booked
+ * without payment". Display only; the server decides.
+ *
+ * @param {Array}   modules         Boot module catalog.
+ * @param {string}  mode            Stored `payments.mode`.
+ * @param {string}  whenUnavailable Stored `payments.when_unavailable` (`accept` | `refuse`).
+ * @param {boolean} exclusive       An enabled payment module is the site's exclusive checkout.
+ * @return {boolean} Whether paid services are refused.
+ */
+function paidBookingsRefused(modules, mode, whenUnavailable, exclusive) {
+  return 'refuse' === whenUnavailable && null !== paymentNotReady(modules, mode) && ('required' === mode || true === exclusive);
+}
+
+/**
+ * Part of the day for an hour of the BUSINESS clock (T-038: the browser's clock greeted a London
+ * clinic "Good morning" at 20:19).
+ *
+ * @param {number} hour 0–23.
+ * @return {string} `morning` | `afternoon` | `evening`.
+ */
+function dayPart(hour) {
+  if (hour < 12) {
+    return 'morning';
+  }
+  return hour < 18 ? 'afternoon' : 'evening';
+}
+
+/**
+ * The current hour (0–23) in a timezone; falls back to the browser's hour for an unusable zone.
+ *
+ * @param {string} tz  IANA timezone.
+ * @param {Date}   now Instant.
+ * @return {number} Hour.
+ */
+function hourIn(tz, now = new Date()) {
+  try {
+    const hour = Number(new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      hourCycle: 'h23',
+      timeZone: tz
+    }).format(now));
+    return Number.isInteger(hour) ? hour % 24 : now.getHours();
+  } catch (e) {
+    return now.getHours();
+  }
+}
 
 /***/ },
 
@@ -7661,7 +8096,9 @@ const bookingsTableDefaults = {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   ApontoCalendar: () => (/* binding */ ApontoCalendar)
+/* harmony export */   ApontoCalendar: () => (/* binding */ ApontoCalendar),
+/* harmony export */   PHONE_MAX_WIDTH: () => (/* binding */ PHONE_MAX_WIDTH),
+/* harmony export */   phoneViewport: () => (/* binding */ phoneViewport)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
@@ -7672,9 +8109,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _window_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./window.js */ "./assets/src/admin/calendar/window.js");
 /* harmony import */ var _slot_select_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./slot-select.js */ "./assets/src/admin/calendar/slot-select.js");
 /* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
-/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__);
+/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
+/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__);
 /**
  * React wrapper around the EC adapter (Q10). Owns the custom toolbar (EC's own
  * header is off), the now-indicator overlay and the lifecycle. Ported from the
@@ -7690,6 +8128,21 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+/** The widest viewport still treated as a phone — the admin stylesheet's own narrow breakpoint. */
+
+const PHONE_MAX_WIDTH = 700;
+
+/**
+ * Whether the calendar is opening on a phone-sized viewport.
+ *
+ * @param {Window} [win] Window (injectable for tests).
+ * @return {boolean} True at or below {@link PHONE_MAX_WIDTH}.
+ */
+function phoneViewport(win = typeof window === 'undefined' ? null : window) {
+  const width = Number(win?.innerWidth) || 0;
+  return width > 0 && width <= PHONE_MAX_WIDTH;
+}
 function ApontoCalendar({
   events,
   slotWindow = _window_js__WEBPACK_IMPORTED_MODULE_5__.DEFAULT_SLOT_WINDOW,
@@ -7705,7 +8158,10 @@ function ApontoCalendar({
   const adapterRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const dateInputRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const [title, setTitle] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
-  const [view, setView] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('timeGridWeek');
+  // A phone opens on the DAY (persona QA 2026-10-05, S2-82): seven ~36px columns cannot show an
+  // event. Decided once at mount — the Day/Week switch stays the operator's from then on.
+  const initialView = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(phoneViewport() ? 'timeGridDay' : 'timeGridWeek').current;
+  const [view, setView] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialView);
 
   // The EC instance is created ONCE (an option change re-creates it — that risk is the whole
   // point of the adapter), so the handlers passed into `createAdapter` freeze the props of the
@@ -7742,7 +8198,9 @@ function ApontoCalendar({
   const appliedWindowRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(slotWindow);
   const redrawNow = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     // setTimeout(0) (not rAF): runs after Svelte's flush AND in a backgrounded tab.
-    setTimeout(() => (0,_now_indicator_js__WEBPACK_IMPORTED_MODULE_2__.renderNowIndicator)(hostRef.current, (0,_constants_js__WEBPACK_IMPORTED_MODULE_4__.businessNowMinutes)(_constants_js__WEBPACK_IMPORTED_MODULE_4__.TZ), windowRef.current.minMinutes, windowRef.current.maxMinutes), 0);
+    setTimeout(() => (0,_now_indicator_js__WEBPACK_IMPORTED_MODULE_2__.renderNowIndicator)(hostRef.current, (0,_constants_js__WEBPACK_IMPORTED_MODULE_4__.businessNowMinutes)(_constants_js__WEBPACK_IMPORTED_MODULE_4__.TZ), windowRef.current.minMinutes, windowRef.current.maxMinutes,
+    // Only on the range that contains today (T-052) — read at draw time, after EC's flush.
+    (0,_now_indicator_js__WEBPACK_IMPORTED_MODULE_2__.viewContainsNow)(adapterRef.current?.getView(), (0,_constants_js__WEBPACK_IMPORTED_MODULE_4__.toBusinessLocalDate)(Date.now(), _constants_js__WEBPACK_IMPORTED_MODULE_4__.TZ))), 0);
   }, []);
   const refreshToolbar = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     // EC v5 updates getView().title asynchronously (gotcha #1) — defer the read.
@@ -7761,7 +8219,7 @@ function ApontoCalendar({
   // Mount once.
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useLayoutEffect)(() => {
     const adapter = (0,_ec_adapter_js__WEBPACK_IMPORTED_MODULE_1__.createAdapter)(hostRef.current, {
-      view: 'timeGridWeek',
+      view: initialView,
       date: (0,_constants_js__WEBPACK_IMPORTED_MODULE_4__.toBusinessLocalDate)(Date.now(), _constants_js__WEBPACK_IMPORTED_MODULE_4__.TZ),
       headerToolbar: {
         start: '',
@@ -7806,8 +8264,15 @@ function ApontoCalendar({
         weekday: 'short',
         day: 'numeric'
       },
+      // The axis and the event cards follow the site's 12/24-hour setting (persona QA
+      // 2026-10-05, T-071) — the grid printed "8:00 AM" on a site set to 14:30. Both take
+      // `Intl.DateTimeFormat` options; the locale stays the browser's.
       slotLabelFormat: {
-        hour: 'numeric',
+        ...(0,_lib_format_js__WEBPACK_IMPORTED_MODULE_8__.clockOptions)(),
+        minute: '2-digit'
+      },
+      eventTimeFormat: {
+        ...(0,_lib_format_js__WEBPACK_IMPORTED_MODULE_8__.clockOptions)(),
         minute: '2-digit'
       },
       events: events || [],
@@ -7984,33 +8449,41 @@ function ApontoCalendar({
     const v = adapterRef.current?.getView();
     onPrint?.(v && v.currentStart ? new Date(v.currentStart) : new Date());
   };
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+
+  // "+ Add" reports the day being VIEWED (T-052): the first day on screen when the grid is on a
+  // range that does not contain today, nothing (= today) when it does.
+  const addBooking = () => {
+    const v = adapterRef.current?.getView();
+    const viewed = v?.currentStart && !(0,_now_indicator_js__WEBPACK_IMPORTED_MODULE_2__.viewContainsNow)(v, (0,_constants_js__WEBPACK_IMPORTED_MODULE_4__.toBusinessLocalDate)(Date.now(), _constants_js__WEBPACK_IMPORTED_MODULE_4__.TZ)) ? new Date(v.currentStart) : null;
+    onAdd?.(viewed);
+  };
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
     className: `ap-cal${isBlocking ? ' is-blocking' : ''}`,
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
       className: "ap-cal-toolbar",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
         className: "ap-cal-tb-left",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
           className: "ap-cal-icon-btn",
           type: "button",
           "aria-label": "Previous",
           onClick: () => go(() => adapterRef.current?.prev()),
-          children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('chevronLeft')
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+          children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('chevronLeft')
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
           className: "ap-cal-btn ap-cal-btn--ghost",
           type: "button",
           onClick: () => go(() => adapterRef.current?.gotoDate((0,_constants_js__WEBPACK_IMPORTED_MODULE_4__.toBusinessLocalDate)(Date.now(), _constants_js__WEBPACK_IMPORTED_MODULE_4__.TZ))),
           children: "Today"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
           className: "ap-cal-icon-btn",
           type: "button",
           "aria-label": "Next",
           onClick: () => go(() => adapterRef.current?.next()),
-          children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('chevron')
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("span", {
+          children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('chevron')
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
           className: "ap-cal-title",
           children: title
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("input", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("input", {
           ref: dateInputRef,
           type: "date",
           "aria-label": "Jump to date",
@@ -8026,7 +8499,7 @@ function ApontoCalendar({
               go(() => adapterRef.current?.gotoDate(new Date(`${e.target.value}T00:00:00`)));
             }
           }
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
           className: "ap-cal-icon-btn",
           type: "button",
           "aria-label": "Pick date",
@@ -8034,43 +8507,43 @@ function ApontoCalendar({
             const el = dateInputRef.current;
             if (el?.showPicker) el.showPicker();else el?.focus();
           },
-          children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('calendar')
+          children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('calendar')
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
         className: "ap-cal-tb-right",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("span", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
           className: "ap-cal-tz",
-          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('clock'), "Business time"]
-        }), toolbarExtra || null, view === 'timeGridDay' && onPrint ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("button", {
+          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('clock'), "Business time"]
+        }), toolbarExtra || null, view === 'timeGridDay' && onPrint ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("button", {
           className: "ap-cal-btn ap-cal-btn--ghost ap-cal-print",
           type: "button",
           onClick: printDay,
-          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('print'), "Print"]
-        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('print'), "Print"]
+        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
           className: "ap-cal-seg",
           role: "group",
           "aria-label": "View",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
             className: "ap-cal-seg-btn",
             type: "button",
             "aria-pressed": view === 'timeGridDay',
             onClick: () => go(() => adapterRef.current?.setView('timeGridDay')),
             children: "Day"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
             className: "ap-cal-seg-btn",
             type: "button",
             "aria-pressed": view === 'timeGridWeek',
             onClick: () => go(() => adapterRef.current?.setView('timeGridWeek')),
             children: "Week"
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("button", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("button", {
           className: "ap-cal-btn ap-cal-btn--primary",
           type: "button",
-          onClick: () => onAdd?.(),
-          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('plus'), "Add"]
+          onClick: addBooking,
+          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('plus'), "Add"]
         })]
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("div", {
       className: "ap-cal-host",
       ref: hostRef
     })]
@@ -8324,6 +8797,13 @@ __webpack_require__.r(__webpack_exports__);
  * (non-working) events return nothing so EC keeps its plain rect (stripe from CSS).
  * Bookings render a compact 3-line card: time · customer · service. Colour is
  * carried by `ap-ev--{status}` already on the event.
+ *
+ * In the All-staff scope (D-R64) the booking carries `staff` and the TIME line LEADS with
+ * "<member> · ": the time line is the one a 30-minute event never hides (the service line
+ * drops out below 34px), so the name survives on the shortest card. It leads rather than
+ * trails (persona QA 2026-10-05, T-052): in a week column the line is cut after
+ * "9:00 – 10:0…", so a trailing name was never on screen — and the event's position on the
+ * grid already says when it is. The whole card also carries the full text as its tooltip.
  */
 function eventContent(info) {
   const {
@@ -8353,13 +8833,21 @@ function eventContent(info) {
   root.className = 'ap-ev-card';
   const time = document.createElement('span');
   time.className = 'ap-ev-time';
-  time.textContent = timeText;
+  if (event.extendedProps.staff) {
+    const staff = document.createElement('span');
+    staff.className = 'ap-ev-staff';
+    staff.textContent = `${event.extendedProps.staff} · `;
+    time.append(staff, timeText);
+  } else {
+    time.textContent = timeText;
+  }
   const name = document.createElement('span');
   name.className = 'ap-ev-name';
   name.textContent = event.extendedProps.customer || '';
   const svc = document.createElement('span');
   svc.className = 'ap-ev-svc';
   svc.textContent = event.extendedProps.service || '';
+  root.title = [timeText, event.extendedProps.staff, event.extendedProps.customer, event.extendedProps.service].filter(Boolean).join(' · ');
   root.append(time, name, svc);
   return {
     domNodes: [root]
@@ -8376,9 +8864,11 @@ function eventContent(info) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   renderNowIndicator: () => (/* binding */ renderNowIndicator)
+/* harmony export */   renderNowIndicator: () => (/* binding */ renderNowIndicator),
+/* harmony export */   viewContainsNow: () => (/* binding */ viewContainsNow)
 /* harmony export */ });
 /* harmony import */ var _window_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./window.js */ "./assets/src/admin/calendar/window.js");
+/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
 /**
  * Now-indicator overlay (Q10 criterion b) — ported from the spike. EC's native
  * indicator is a bare line; Fresha shows a line + a time bubble on the axis. We
@@ -8391,13 +8881,8 @@ __webpack_require__.r(__webpack_exports__);
  * line positioned against a stale 07:00–21:00 would drift by exactly the amount the window grew.
  */
 
-function fmt(min) {
-  let h = Math.floor(min / 60);
-  const m = min % 60;
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  return `${h}:${String(m).padStart(2, '0')} ${ampm}`;
-}
+// The bubble follows the site's 12/24-hour setting, like the axis beside it (T-071).
+
 function ensure(parent, cls, make) {
   let el = parent.querySelector(`:scope > .${cls}`);
   if (!el) {
@@ -8408,14 +8893,33 @@ function ensure(parent, cls, make) {
 }
 
 /**
+ * Whether "now" is on the grid being shown (persona QA 2026-10-05, T-052): the line was drawn
+ * across a FUTURE week, at the current time of day, as if that week were this one.
+ *
+ * @param {?{currentStart: Date, currentEnd: Date}} view EC view (`getView()`), business-local dates.
+ * @param {Date}                                    now  Business-local "now" (`toBusinessLocalDate`).
+ * @return {boolean} True when the view's range contains now — or the range is unknown.
+ */
+function viewContainsNow(view, now) {
+  const start = view?.currentStart instanceof Date ? view.currentStart.getTime() : NaN;
+  const end = view?.currentEnd instanceof Date ? view.currentEnd.getTime() : NaN;
+  if (Number.isNaN(start) || Number.isNaN(end)) {
+    return true;
+  }
+  const at = now.getTime();
+  return at >= start && at < end;
+}
+
+/**
  * Draw (or hide) the now line + time bubble.
  *
  * @param {?Element} root       Calendar host element.
  * @param {number}   nowMinutes Business-time minutes from midnight.
  * @param {number}   [minMinutes] Visible window start (minutes) — the grid's derived `slotMinTime`.
  * @param {number}   [maxMinutes] Visible window end (minutes) — the grid's derived `slotMaxTime`.
+ * @param {boolean}  [onGrid]     Whether today is in the range on screen ({@link viewContainsNow}).
  */
-function renderNowIndicator(root, nowMinutes, minMinutes = _window_js__WEBPACK_IMPORTED_MODULE_0__.DEFAULT_SLOT_MIN_MINUTES, maxMinutes = _window_js__WEBPACK_IMPORTED_MODULE_0__.DEFAULT_SLOT_MAX_MINUTES) {
+function renderNowIndicator(root, nowMinutes, minMinutes = _window_js__WEBPACK_IMPORTED_MODULE_0__.DEFAULT_SLOT_MIN_MINUTES, maxMinutes = _window_js__WEBPACK_IMPORTED_MODULE_0__.DEFAULT_SLOT_MAX_MINUTES, onGrid = true) {
   if (!root) {
     return;
   }
@@ -8440,7 +8944,7 @@ function renderNowIndicator(root, nowMinutes, minMinutes = _window_js__WEBPACK_I
     el.className = 'ap-now-bubble';
     return el;
   });
-  if (min < minMinutes || min > maxMinutes) {
+  if (!onGrid || min < minMinutes || min > maxMinutes) {
     line.style.display = 'none';
     bubble.style.display = 'none';
     return;
@@ -8460,7 +8964,7 @@ function renderNowIndicator(root, nowMinutes, minMinutes = _window_js__WEBPACK_I
   bubble.style.display = 'block';
   bubble.style.top = `${y}px`;
   bubble.style.width = `${sidebarW}px`;
-  bubble.textContent = fmt(min);
+  bubble.textContent = (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_1__.minutesLabel)(min);
 }
 
 /***/ },
@@ -8566,13 +9070,16 @@ function planSlotSelection(info, {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ALL_STAFF: () => (/* binding */ ALL_STAFF),
 /* harmony export */   bookingBelongsToStaff: () => (/* binding */ bookingBelongsToStaff),
 /* harmony export */   bookingQueryForStaff: () => (/* binding */ bookingQueryForStaff),
+/* harmony export */   isAllStaff: () => (/* binding */ isAllStaff),
 /* harmony export */   resolveSelectedStaff: () => (/* binding */ resolveSelectedStaff),
 /* harmony export */   scopesToOneStaff: () => (/* binding */ scopesToOneStaff),
 /* harmony export */   slotBookingPrefill: () => (/* binding */ slotBookingPrefill),
 /* harmony export */   staffSelectorOptions: () => (/* binding */ staffSelectorOptions)
 /* harmony export */ });
+/* harmony import */ var _shared_person_name_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/person-name.js */ "./assets/src/shared/person-name.js");
 /**
  * Which staff member the calendar is describing (SPEC-P1 §1.4 · D-R28 · R2).
  *
@@ -8596,7 +9103,32 @@ __webpack_require__.r(__webpack_exports__);
  * The rules live in this pure module rather than inside the route's render closure for the same
  * reason `slot-select.js` does: they are the part worth pinning with a test, and a closure is
  * exactly where a stale copy of them hides.
+ *
+ * "ALL STAFF" IS AN EXPLICIT SCOPE, NOT THE ABSENCE OF ONE (D-R64). The founder asked for every
+ * member's bookings on one grid. It is offered WITHOUT reopening the bleed above, because every
+ * per-staff layer changes meaning with it instead of silently staying on one member: the bookings
+ * are read without `staff_id` (each event names its member), the shading is the BUSINESS hours —
+ * the wildcard `(0,0,0)` rows — and the route says so, no one's blocked periods are painted, Block
+ * time is refused (a block belongs to a person) and a free-slot click preselects nobody. It is a
+ * CHOICE: the default stays the first / remembered member, so nobody's calendar changes on load.
+ * The scope is the literal {@see ALL_STAFF}; `null` keeps its old meaning ("no selection yet").
+ * With a single staff row there is no selector, so `'all'` can never arise and every answer below
+ * is byte-identical to before.
  */
+
+
+/** The "All staff" scope value (D-R64) — a string, so it can never collide with a staff id. */
+const ALL_STAFF = 'all';
+
+/**
+ * Whether a scope value is the explicit All-staff scope.
+ *
+ * @param {?(number|string)} staffId Selected scope.
+ * @return {boolean} All staff.
+ */
+function isAllStaff(staffId) {
+  return ALL_STAFF === staffId;
+}
 
 /**
  * Whether the view scopes itself to ONE staff member.
@@ -8619,18 +9151,29 @@ function scopesToOneStaff(staffCount) {
  * hiding them from the picker would make those appointments unreachable, which is the other half
  * of the bleed fix. The suffix is what stops the list reading as "these people take bookings".
  *
- * @param {Array} roster `GET /staff?status=all` items.
- * @return {Array} `[{ id, label, archived }]` in roster order.
+ * With more than one staff row the list opens with "All staff" (D-R64) — the selector only
+ * renders then, and a single-row roster gets exactly the list it always got.
+ *
+ * @param {Array}  roster     `GET /staff?status=all` items.
+ * @param {string} [allLabel] Translated "All staff".
+ * @return {Array} `[{ id, label, archived }]` — All staff first (when offered), then roster order.
  */
-function staffSelectorOptions(roster) {
-  return (Array.isArray(roster) ? roster : []).map(item => {
+function staffSelectorOptions(roster, allLabel = 'All staff') {
+  const items = Array.isArray(roster) ? roster : [];
+  const members = items.map(item => {
     const archived = item?.status === 'archived';
     return {
       id: item?.id,
-      label: archived ? `${item?.name} (archived)` : `${item?.name}`,
+      // The server-composed display name (name split, 2026-10-01: parts as the fallback).
+      label: archived ? `${(0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_0__.displayNameOf)(item)} (archived)` : (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_0__.displayNameOf)(item),
       archived
     };
   });
+  return scopesToOneStaff(items.length) ? [{
+    id: ALL_STAFF,
+    label: allLabel,
+    archived: false
+  }, ...members] : members;
 }
 
 /**
@@ -8643,21 +9186,29 @@ function staffSelectorOptions(roster) {
  * the admin can override it; this only sets the honest default.
  *
  * `staffId` is omitted entirely when there is no selection, so a single-staff site sends exactly
- * the prefill it always sent.
+ * the prefill it always sent — and in the All-staff scope (D-R64): that grid showed nobody's hours
+ * in particular, so the editor's own staff choice (and any-staff availability) decides.
  *
- * @param {Date}    start    Business-local slot start.
- * @param {string}  startUtc The same instant as a UTC ISO string.
- * @param {?number} staffId  Selected staff id, or null.
+ * `locationId` (D-R63 fix round 1) is the branch the calendar was scoped to: a slot clicked against
+ * Uptown's hours books at Uptown. Omitted unless a concrete branch is selected.
+ *
+ * @param {Date}    start        Business-local slot start.
+ * @param {string}  startUtc     The same instant as a UTC ISO string.
+ * @param {?(number|string)} staffId Selected staff id, {@see ALL_STAFF}, or null.
+ * @param {?number} [locationId] Selected branch id, or null/0.
  * @return {Object} Prefill for `BookingEditor`.
  */
-function slotBookingPrefill(start, startUtc, staffId) {
+function slotBookingPrefill(start, startUtc, staffId, locationId) {
   const pad = n => String(n).padStart(2, '0');
   const prefill = {
     date: `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`,
     startUtc
   };
-  if (staffId) {
+  if (staffId && !isAllStaff(staffId)) {
     prefill.staffId = Number(staffId);
+  }
+  if (Number(locationId) > 0) {
+    prefill.locationId = Number(locationId);
   }
   return prefill;
 }
@@ -8668,15 +9219,17 @@ function slotBookingPrefill(start, startUtc, staffId) {
  * The filter is applied SERVER-side once there is more than one staff member because the window
  * caps at 100 rows: spending that budget on other people's appointments is how the selected
  * member's later bookings would silently fall off the grid. With one staff member the query is
- * byte-identical to what it always was.
+ * byte-identical to what it always was. All staff (D-R64) sends NO `staff_id` — every member's
+ * bookings in the window, which is also where the 100-row cap is likeliest to bite (the route says
+ * so when the answer is truncated).
  *
- * @param {Object}  base       Base query (status/from/to/per_page).
- * @param {?number} staffId    Selected staff id.
- * @param {number}  staffCount Active staff members.
+ * @param {Object}           base       Base query (status/from/to/per_page).
+ * @param {?(number|string)} staffId    Selected staff id or {@see ALL_STAFF}.
+ * @param {number}           staffCount Active staff members.
  * @return {Object} Query to send.
  */
 function bookingQueryForStaff(base, staffId, staffCount) {
-  if (!scopesToOneStaff(staffCount) || !staffId) {
+  if (!scopesToOneStaff(staffCount) || !staffId || isAllStaff(staffId)) {
     return {
       ...base
     };
@@ -8693,15 +9246,16 @@ function bookingQueryForStaff(base, staffId, staffCount) {
  * Applied in addition to the query filter, so a response that arrives AFTER the selector moved can
  * never paint an appointment belonging to someone other than the member whose hours are shaded.
  * A booking with no resolvable staff is KEPT: dropping it would hide real work over a missing
- * field, and the DTO always carries `staff.id` today.
+ * field, and the DTO always carries `staff.id` today. Every booking belongs in the All-staff
+ * scope (D-R64).
  *
- * @param {Object}  booking    Booking DTO.
- * @param {?number} staffId    Selected staff id.
- * @param {number}  staffCount Active staff members.
+ * @param {Object}           booking    Booking DTO.
+ * @param {?(number|string)} staffId    Selected staff id or {@see ALL_STAFF}.
+ * @param {number}           staffCount Active staff members.
  * @return {boolean} Whether to render it.
  */
 function bookingBelongsToStaff(booking, staffId, staffCount) {
-  if (!scopesToOneStaff(staffCount) || !staffId) {
+  if (!scopesToOneStaff(staffCount) || !staffId || isAllStaff(staffId)) {
     return true;
   }
   const owner = booking?.staff?.id;
@@ -8721,13 +9275,20 @@ function bookingBelongsToStaff(booking, staffId, staffCount) {
  * every member is archived, and to `null` for an empty roster — the "add a staff member first"
  * state the Block-time mode already handles.
  *
- * @param {Array}   roster   Staff items, active AND archived.
- * @param {?number} selected Currently selected id.
- * @return {?number} Id to use.
+ * A remembered All-staff scope (D-R64) is kept while the roster still offers it (more than one
+ * row); on a roster that shrank to one it falls back like any stale selection. It is never the
+ * DEFAULT: `null` still resolves to a member.
+ *
+ * @param {Array}            roster   Staff items, active AND archived.
+ * @param {?(number|string)} selected Currently selected id or {@see ALL_STAFF}.
+ * @return {?(number|string)} Id (or {@see ALL_STAFF}) to use.
  */
 function resolveSelectedStaff(roster, selected) {
   const items = Array.isArray(roster) ? roster : [];
-  if (selected && items.some(item => Number(item?.id) === Number(selected))) {
+  if (isAllStaff(selected) && scopesToOneStaff(items.length)) {
+    return ALL_STAFF;
+  }
+  if (selected && !isAllStaff(selected) && items.some(item => Number(item?.id) === Number(selected))) {
     return Number(selected);
   }
   const active = items.find(item => item?.status !== 'archived');
@@ -9425,11 +9986,14 @@ if (document.readyState === 'loading') {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   InflowPageHost: () => (/* binding */ InflowPageHost),
 /* harmony export */   InflowWorkspace: () => (/* binding */ InflowWorkspace)
 /* harmony export */ });
-/* harmony import */ var _inspector_width_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./inspector-width.js */ "./assets/src/admin/lib/inspector-width.js");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _inspector_width_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./inspector-width.js */ "./assets/src/admin/lib/inspector-width.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
 /**
  * Shared in-flow inspector workspace (mockup §6.7). A two-column push layout:
  * the list stays interactive (no backdrop / body-lock / focus-trap / inert) while
@@ -9445,13 +10009,84 @@ __webpack_require__.r(__webpack_exports__);
  */
 
 
+
+/**
+ * PAGE-HEAD HOSTING. A page shell that renders its own heading above a panel (the
+ * `#modules/{code}` route: breadcrumb `h1`, description, module subnav) pushes an inspector
+ * workspace down the page: the inspector then starts mid-page instead of under the shell
+ * header, and its footer lands at or below the fold. Bookings has no such head — its title
+ * lives INSIDE the main pane — which is why its inspector runs from the shell header to the
+ * viewport bottom.
+ *
+ * `InflowPageHost` lets such a shell offer its head to whatever workspace it contains. A
+ * workspace inside it CLAIMS the head: it renders the head at the top of its own main pane
+ * (above the panel's own `head`, e.g. tabs) while the panes are side by side, and above the
+ * grid when they stack. The shell stops rendering the head and wears `is-inflow-host`, which
+ * drops the `.pd-main` gutter and the `.pd-page` max-width exactly like the Bookings page
+ * (admin-extra.css), so the workspace starts at the shell header and the inspector gets the
+ * Bookings geometry. Without a workspace (a disabled-module card, a settings form) nothing
+ * claims the head and the shell renders it as before.
+ *
+ * `head` is the node to host; `onHostedChange( hosted )` tells the shell whether a workspace
+ * currently holds it.
+ *
+ * ONE CONTEXT OBJECT FOR EVERY BUNDLE. The host is the SPA's route (admin entry) and the
+ * workspace usually a module panel (`assets/src/pro/{code}` entry), which webpack compiles its
+ * own copy of this file into — with its own `createContext()` result, which a provider from the
+ * admin copy would never reach (the same trap `lib/toast.jsx` documents). Both copies therefore
+ * take the context from the shared `window.apontoAdmin` namespace; whichever copy evaluates
+ * first creates it. React itself is the WordPress-provided external, so one context object is
+ * all the two copies need to meet.
+ */
+
+function sharedHostContext() {
+  const scope = typeof window !== 'undefined' ? window : globalThis;
+  if (!scope) {
+    return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createContext)(null);
+  }
+  if (!scope.apontoAdmin || typeof scope.apontoAdmin !== 'object') {
+    scope.apontoAdmin = {};
+  }
+  if (!scope.apontoAdmin.inflowHostContext) {
+    scope.apontoAdmin.inflowHostContext = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createContext)(null);
+  }
+  return scope.apontoAdmin.inflowHostContext;
+}
+const InflowHostContext = sharedHostContext();
+function InflowPageHost({
+  head,
+  onHostedChange,
+  children
+}) {
+  const [claims, setClaims] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const claim = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    setClaims(count => count + 1);
+    return () => setClaims(count => count - 1);
+  }, []);
+  const hosted = claims > 0;
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useLayoutEffect)(() => {
+    onHostedChange?.(hosted);
+  }, [hosted, onHostedChange]);
+  const value = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => ({
+    head,
+    hosted,
+    claim
+  }), [head, hosted, claim]);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(InflowHostContext.Provider, {
+    value: value,
+    children: children
+  });
+}
 function InflowWorkspace({
   widthKey,
   open,
   label = 'Inspector',
   inspectorLabelledBy,
   children,
-  inspector
+  inspector,
+  fitViewport = false,
+  flushMain = false,
+  head = null
 }) {
   const {
     width,
@@ -9461,24 +10096,108 @@ function InflowWorkspace({
     workspaceRef,
     startResize,
     keyResize
-  } = (0,_inspector_width_js__WEBPACK_IMPORTED_MODULE_0__.useInspectorWidth)(widthKey);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
-    className: "pd-page pd-inflow-page",
-    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+  } = (0,_inspector_width_js__WEBPACK_IMPORTED_MODULE_1__.useInspectorWidth)(widthKey);
+
+  // Claim a surrounding page shell's head (see `InflowPageHost`). The claim is made in a
+  // layout effect, so the head moves into this workspace before the first paint.
+  const host = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useContext)(InflowHostContext);
+  const hostClaim = host?.claim;
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useLayoutEffect)(() => hostClaim ? hostClaim() : undefined, [hostClaim]);
+  const hosted = Boolean(host?.hosted);
+  const pageHead = hosted ? host.head : null;
+  // A hosted workspace owns the page gutter again (the shell dropped `.pd-main`'s), so a
+  // panel's `flushMain` only applies to an unhosted placement.
+  const flush = flushMain && !hosted;
+
+  // Side by side, a HOSTED workspace starts directly under the shell header — the Bookings
+  // position — so the stylesheet's own inspector height (the Bookings geometry) is right and
+  // nothing is measured. Measuring is for an inspector that does not start there: an
+  // unhosted `fitViewport` placement below other page content, and every STACKED hosted
+  // workspace, whose inspector row follows the page head and its tabs.
+  const fit = stacked ? fitViewport || hosted : fitViewport && !hosted;
+  const inspectorRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [viewportHeight, setViewportHeight] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  // Module settings may begin much lower than the normal route header. Measure the
+  // actual sticky inspector position instead of assuming the global 144px offset.
+  const measureHeight = () => {
+    if (!fit || !open || !inspectorRef.current) return;
+    const visual = window.visualViewport;
+    const viewportTop = visual?.offsetTop || 0;
+    const viewportBottom = viewportTop + (visual?.height || window.innerHeight);
+    const top = Math.max(viewportTop, inspectorRef.current.getBoundingClientRect().top);
+    const height = Math.max(stacked ? 320 : 1, Math.floor(viewportBottom - top));
+    setViewportHeight(previous => previous === height ? previous : height);
+  };
+  // Every React layout commit can move the module (notices, header changes, tab changes).
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useLayoutEffect)(measureHeight);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useLayoutEffect)(() => {
+    if (!fit || !open) return undefined;
+    window.addEventListener('resize', measureHeight);
+    window.addEventListener('scroll', measureHeight, true);
+    window.visualViewport?.addEventListener('resize', measureHeight);
+    window.visualViewport?.addEventListener('scroll', measureHeight);
+    const observer = typeof window.ResizeObserver === 'function' ? new window.ResizeObserver(measureHeight) : null;
+    // Ancestors cover shell/module-page layout changes without a window resize.
+    let node = workspaceRef.current;
+    while (node) {
+      observer?.observe(node);
+      node = node.parentElement;
+    }
+    return () => {
+      window.removeEventListener('resize', measureHeight);
+      window.removeEventListener('scroll', measureHeight, true);
+      window.visualViewport?.removeEventListener('resize', measureHeight);
+      window.visualViewport?.removeEventListener('scroll', measureHeight);
+      observer?.disconnect();
+    };
+  }, [fit, open, stacked]);
+
+  // `head` (a module's tabs) sits at the top of the MAIN pane beside a full-height inspector
+  // while the panes are side by side. Once the workspace STACKS (≤840px container), the
+  // inspector is row 1, so a head inside the main pane would be pushed a whole
+  // inspector-height down (webhooks W-UI-12).
+  // Stacked, it is rendered ABOVE the grid instead: head → inspector → list. The wrapper reuses
+  // the main pane's own padding (none under `flushMain`, so the head stays aligned with a module
+  // page's breadcrumb); only its bottom is dropped, the inspector row follows at once.
+  // A hosted page head (breadcrumb, subnav) always leads, before the panel's own head.
+  const mainHead = pageHead || head ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
+    children: [pageHead, head]
+  }) : null;
+  const headAbove = mainHead && stacked;
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+    className: `pd-page pd-inflow-page${hosted ? ' is-page-host' : ''}`,
+    children: [headAbove ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      className: "pd-bookings-main pd-inflow-head",
+      style: flush ? {
+        padding: 0
+      } : {
+        paddingBottom: 0
+      },
+      children: mainHead
+    }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
       ref: workspaceRef,
       className: `pd-bookings-workspace${open ? ' is-inspecting' : ''}${resizing ? ' is-resizing' : ''}`,
       style: {
-        '--pd-booking-inspector-width': `${width}px`
+        '--pd-booking-inspector-width': `${width}px`,
+        ...(fit && viewportHeight !== null ? {
+          '--pd-booking-inspector-height': `${viewportHeight}px`
+        } : {})
       },
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
         className: "pd-bookings-main",
-        children: children
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+        style: flush ? {
+          padding: 0,
+          ...(open && !stacked ? {
+            paddingInlineEnd: 'var(--pd-content-gutter)'
+          } : {})
+        } : undefined,
+        children: [mainHead && !headAbove ? mainHead : null, children]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
         className: "pd-inflow-resizer",
         role: "separator",
         "aria-orientation": stacked ? 'horizontal' : 'vertical',
         "aria-label": `Resize ${label.toLowerCase()}`,
-        "aria-valuemin": stacked ? undefined : _inspector_width_js__WEBPACK_IMPORTED_MODULE_0__.MIN_W,
+        "aria-valuemin": stacked ? undefined : _inspector_width_js__WEBPACK_IMPORTED_MODULE_1__.MIN_W,
         "aria-valuemax": stacked ? undefined : maxWidth,
         "aria-valuenow": stacked ? undefined : width,
         "aria-disabled": stacked ? true : undefined,
@@ -9486,18 +10205,19 @@ function InflowWorkspace({
         hidden: !open,
         onPointerDown: stacked ? undefined : startResize,
         onKeyDown: stacked ? undefined : keyResize,
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("span", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("span", {
           "aria-hidden": "true",
           children: [width, "px"]
         })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("aside", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("aside", {
+        ref: inspectorRef,
         className: "pd-booking-inspector",
         "aria-label": inspectorLabelledBy ? undefined : label,
         "aria-labelledby": inspectorLabelledBy,
         hidden: !open,
         children: open ? inspector : null
       })]
-    })
+    })]
   });
 }
 
@@ -9527,7 +10247,12 @@ __webpack_require__.r(__webpack_exports__);
  * item list + handlers. This is the B4b consumer of `createMenu` (the same
  * behavior BookingsTable hand-rolls, now shared).
  *
- * items: [{ action, label, hint?, icon?, danger?, separatorBefore? }]
+ * items: [{ action, label, hint?, icon?, danger?, disabled?, separatorBefore? }]
+ *
+ * `disabled` (D-R56 fix round 2) renders a natively disabled `<button role="menuitem">`: it fires
+ * no click, so the kit's `onSelect` cannot reach a handler, and assistive tech is told the same
+ * thing the pointer is. Used while a row-scoped mutation is in flight, so a second Archive cannot
+ * be issued on top of the first.
  */
 
 
@@ -9585,6 +10310,8 @@ function RowMenu({
           type: "button",
           role: "menuitem",
           "data-action": item.action,
+          disabled: item.disabled || undefined,
+          "aria-disabled": item.disabled ? 'true' : undefined,
           children: [item.icon ? renderIcon(item.icon) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("span", {
             children: [item.label, item.hint ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("small", {
               children: item.hint
@@ -9596,6 +10323,510 @@ function RowMenu({
     })]
   });
 }
+
+/***/ },
+
+/***/ "./assets/src/admin/lib/ToolbarSelect.jsx"
+/*!************************************************!*\
+  !*** ./assets/src/admin/lib/ToolbarSelect.jsx ***!
+  \************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ToolbarSelect: () => (/* binding */ ToolbarSelect)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _ui_jsx__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ui.jsx */ "./assets/src/admin/lib/ui.jsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+/** The Bookings toolbar select, shared by list filters without alternate styling. */
+
+function ToolbarSelect({
+  label,
+  menuLabel = label,
+  value,
+  options,
+  onChange,
+  renderIcon,
+  icon,
+  selectedContent,
+  menuFooter,
+  disabled = false
+}) {
+  const [open, setOpen] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const root = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const trigger = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const close = () => {
+    setOpen(false);
+    trigger.current?.focus();
+  };
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!open) return undefined;
+    root.current?.querySelector('[role="menuitemradio"][aria-checked="true"]')?.focus();
+    const dismiss = event => {
+      if (event.type === 'pointerdown') {
+        if (!root.current?.contains(event.target)) setOpen(false);
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+      }
+    };
+    document.addEventListener('pointerdown', dismiss);
+    document.addEventListener('keydown', dismiss, true);
+    return () => {
+      document.removeEventListener('pointerdown', dismiss);
+      document.removeEventListener('keydown', dismiss, true);
+    };
+  }, [open]);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+    className: "pd-toolbar-control-group pd-toolbar-date-control",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      className: "pd-toolbar-popover-wrap",
+      ref: root,
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("button", {
+        className: "pd-toolbar-control",
+        type: "button",
+        ref: trigger,
+        "aria-label": label,
+        "aria-haspopup": "menu",
+        "aria-expanded": open,
+        disabled: disabled,
+        onClick: () => setOpen(previous => !previous),
+        children: [icon ? renderIcon(icon) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+          className: "pd-date-range-value",
+          children: selectedContent ?? options.find(option => option.value === value)?.label
+        }), renderIcon('chevronDown')]
+      }), open ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        className: "pd-toolbar-popover pd-date-popover",
+        role: "menu",
+        "aria-label": menuLabel,
+        onKeyDown: _ui_jsx__WEBPACK_IMPORTED_MODULE_1__.menuRovingKeydown,
+        children: [options.map(option => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("button", {
+          type: "button",
+          role: "menuitemradio",
+          "aria-checked": value === option.value,
+          disabled: disabled || option.disabled,
+          onClick: () => {
+            onChange(option.value);
+            close();
+          },
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("span", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("strong", {
+              children: option.label
+            }), option.detail ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("small", {
+              children: option.detail
+            }) : null]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+            className: "pd-toolbar-menu-check",
+            children: value === option.value ? renderIcon('check') : null
+          })]
+        }, option.value)), menuFooter ? menuFooter({
+          close
+        }) : null]
+      }) : null]
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/lib/admin-routes.js"
+/*!**********************************************!*\
+  !*** ./assets/src/admin/lib/admin-routes.js ***!
+  \**********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CORE_ROUTES: () => (/* binding */ CORE_ROUTES),
+/* harmony export */   adminRouteIsOpen: () => (/* binding */ adminRouteIsOpen),
+/* harmony export */   getAdminRoute: () => (/* binding */ getAdminRoute),
+/* harmony export */   listAdminRoutes: () => (/* binding */ listAdminRoutes),
+/* harmony export */   orderAdminRouteItems: () => (/* binding */ orderAdminRouteItems),
+/* harmony export */   registerAdminRoute: () => (/* binding */ registerAdminRoute),
+/* harmony export */   resetAdminRoutes: () => (/* binding */ resetAdminRoutes),
+/* harmony export */   subscribeAdminRoutes: () => (/* binding */ subscribeAdminRoutes),
+/* harmony export */   useAdminRoutes: () => (/* binding */ useAdminRoutes)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _modules_catalog_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../modules/catalog.js */ "./assets/src/admin/modules/catalog.js");
+/**
+ * Admin ROUTE registry — the admin SPA's extension point for a module that owns a whole
+ * screen rather than a settings panel (D-R56, extension-surface §3.3).
+ *
+ * The sibling of `lib/module-panels.js`, and deliberately its twin: a separately enqueued
+ * module bundle (`assets/src/{pro,modules}/{code}/index.js`) cannot `import` from the SPA
+ * entry, so the two meet on a stable global — core publishes the registration function,
+ * the bundle calls it.
+ *
+ * WHY A REGISTRY RATHER THAN A NAV ARRAY. Hard-coding a premium screen into the three
+ * free-shipped nav lists (`App.jsx`, `router.js`, `AdminPage::registerMenu()`) would put an
+ * edition-owned control inside the wp.org archive, which D-R41 forbids. Core therefore ships
+ * the registry and the separately distributed bundle ships the ENTRY. On Free the registry is
+ * empty, so there is no menu item, no route and no fake control — nothing to gate, because
+ * nothing is there.
+ *
+ * This file is FREE-SHIPPED and generic: it names no module, no edition and no entitlement.
+ * It is a keyed store of route descriptors. WHICH of them may be shown is decided by
+ * `App.jsx` from the boot-data `available` flag the server computed with `Plan::has()`, and
+ * enforcement itself lives in REST (§5 invariant 3, UI gating is display-only).
+ *
+ * CONTRACT for a module bundle:
+ *
+ *     window.apontoAdmin.registerAdminRoute( {
+ *         id: 'locations',            // hash route, `[a-z0-9-]+`, never a core route
+ *         group: 'resources',         // which header dropdown lists it
+ *         label: 'Locations',
+ *         description: '…',           // the dropdown subline
+ *         moduleCode: 'multi_location',
+ *         after: 'staff',             // item to follow inside the group; '' appends
+ *         component: LazyScreen,      // <component segments onNavigate module />
+ *     } );
+ *
+ * `component` must use the SAME React instance as the SPA, which the shared `wp.element`
+ * webpack externals guarantee for every entry.
+ *
+ * LOAD ORDER is tolerated in both directions, exactly as the panel registry tolerates it:
+ * `publish()` is idempotent and a descriptor dropped into `window.apontoAdmin.adminRoutes`
+ * before the SPA evaluated is adopted rather than lost.
+ *
+ * SUBSCRIBABLE, which the panel registry is not, and that difference is the point. A module
+ * bundle is a SECOND script tag: it evaluates after the SPA has already parsed the landing
+ * hash and rendered once. Landing directly on `#locations` therefore has to survive a route
+ * that did not exist at first paint — so the registry notifies, `useRoute()` re-parses and the
+ * nav menus re-render instead of quietly leaving the operator on the dashboard.
+ */
+
+
+
+/** Stable global namespace, the object `AdminPage::bootConfig()` already injects. */
+const GLOBAL_KEY = 'apontoAdmin';
+
+/** Property on that object holding the plain-object route mirror (also the pre-boot drop box). */
+const ROUTES_KEY = 'adminRoutes';
+
+/**
+ * The CORE routes of the admin shell, in menu order — the one list `router.js` resolves a
+ * hash against and the denominator of the collision rule below.
+ *
+ * It lives HERE rather than in `router.js` so the registry can refuse an id that would
+ * shadow a core screen without importing the router (which imports this file). One list, no
+ * cycle.
+ *
+ * @type {string[]}
+ */
+const CORE_ROUTES = ['dashboard', 'bookings', 'calendar', 'customers', 'services', 'events', 'staff', 'shared-assets', 'modules', 'settings', 'import-csv'];
+
+/** The two header dropdowns a contributed route may join (`App.jsx`). */
+const GROUPS = ['offerings', 'resources'];
+
+/**
+ * Authoritative store, keyed by route id. A module-scoped Map rather than the global itself,
+ * so a later reassignment of `window.apontoAdmin` — which the boot-data inline script does on
+ * every page load — cannot silently empty the registry the running SPA reads from.
+ *
+ * @type {Map<string, Object>}
+ */
+const routes = new Map();
+
+/** @type {Set<Function>} */
+const listeners = new Set();
+
+/**
+ * Cached list of the registered descriptors, in registration order.
+ *
+ * Recomputed ONLY when the store changes, because `useSyncExternalStore` compares snapshots
+ * by identity: a fresh array on every read is an infinite render loop, not a re-render.
+ *
+ * @type {Object[]}
+ */
+let snapshot = [];
+
+/** The global object to publish onto, or null when there is none (SSR / node tests). */
+function host() {
+  if (typeof window !== 'undefined') {
+    return window;
+  }
+  return typeof globalThis !== 'undefined' ? globalThis : null;
+}
+
+/** A route id is the hash shape the router accepts — hyphens, never underscores. */
+function isRouteId(id) {
+  return typeof id === 'string' && /^[a-z0-9-]+$/.test(id);
+}
+
+/** A module code is the registry's own shape, the same one `module-panels.js` accepts. */
+function isCode(code) {
+  return typeof code === 'string' && /^[a-z0-9_]+$/.test(code);
+}
+
+/**
+ * Validate one descriptor, or null when it may not be registered.
+ *
+ * Five refusals, all of them about a claim the registry cannot honour rather than about
+ * entitlement: a malformed id would not route, a core id would shadow a shipped screen, an
+ * unknown group has no menu to appear in, a non-function cannot be rendered, and a malformed
+ * module code can never match a boot-data record so the route could never be shown.
+ *
+ * `label` and `description` are COERCED instead: presentation copy that is missing or of the
+ * wrong type degrades to the id and an empty subline, which is a readable menu — refusing the
+ * whole screen over a missing string would not be.
+ *
+ * @param {Object} entry Raw descriptor from the module bundle.
+ * @return {Object|null} Normalized descriptor, or null when refused.
+ */
+function normalize(entry) {
+  if (!entry || typeof entry !== 'object') {
+    return null;
+  }
+  const {
+    id,
+    group,
+    moduleCode,
+    component
+  } = entry;
+  if (!isRouteId(id) || CORE_ROUTES.includes(id)) {
+    return null;
+  }
+  if (!GROUPS.includes(group) || typeof component !== 'function' || !isCode(moduleCode)) {
+    return null;
+  }
+  return {
+    id,
+    group,
+    label: typeof entry.label === 'string' && entry.label ? entry.label : id,
+    description: typeof entry.description === 'string' ? entry.description : '',
+    moduleCode,
+    // Placement inside the group, mirroring `ModuleMenuItem::after` on the PHP side so the
+    // header dropdown and the WordPress submenu put the item in the SAME place. Anything that
+    // is not an id-shaped string degrades to '' (append), never to a refusal: a screen is worth
+    // more than its position.
+    after: isRouteId(entry.after) ? entry.after : '',
+    component
+  };
+}
+
+/**
+ * Place registered routes among a group's static core items (D-R56).
+ *
+ * Pure and exported so `App.jsx` and the tests share one answer. Without it the registered item
+ * simply landed at the end of the dropdown — after the "Shared assets" Premium PLACEHOLDER — while
+ * the WordPress submenu correctly put it straight after Staff, so the same product showed the
+ * operator two different information architectures (browser QA, 2026-09-21).
+ *
+ * An entry follows the item its `after` names, which may be a core id OR an already-placed
+ * registered one; an unknown or empty anchor appends. Two entries naming the SAME anchor keep
+ * registration order rather than reversing it, which is why the insertion point skips past
+ * siblings already placed against that anchor.
+ *
+ * @param {Object[]} core    Static group items (`{ id, label, description, badge }`).
+ * @param {Object[]} entries Registered descriptors of this group, in registration order.
+ * @return {Object[]} One ordered list.
+ */
+function orderAdminRouteItems(core, entries) {
+  const merged = Array.isArray(core) ? core.slice() : [];
+  if (!Array.isArray(entries)) {
+    return merged;
+  }
+  entries.forEach(entry => {
+    const anchor = merged.findIndex(item => item.id === entry.after);
+    if (anchor < 0) {
+      merged.push(entry);
+      return;
+    }
+    let at = anchor + 1;
+    while (at < merged.length && merged[at].after === entry.after) {
+      at += 1;
+    }
+    merged.splice(at, 0, entry);
+  });
+  return merged;
+}
+
+/** Recompute the stable snapshot and notify every subscriber. */
+function refresh() {
+  snapshot = Array.from(routes.values());
+  listeners.forEach(listener => listener(snapshot));
+}
+
+/**
+ * Publish the registration API onto the global, adopting anything a bundle already dropped
+ * there. Idempotent: safe to call on every import and after any load order.
+ *
+ * @return {Object|null} The global namespace object, or null when there is no global.
+ */
+function publish() {
+  const scope = host();
+  if (!scope) {
+    return null;
+  }
+  if (!scope[GLOBAL_KEY] || typeof scope[GLOBAL_KEY] !== 'object') {
+    scope[GLOBAL_KEY] = {};
+  }
+  const namespace = scope[GLOBAL_KEY];
+
+  // Adopt a pre-boot drop box: a bundle that ran before this module was evaluated can only
+  // have written the plain object, never called the (not yet published) function.
+  const mirror = namespace[ROUTES_KEY];
+  if (mirror && typeof mirror === 'object') {
+    let adopted = false;
+    Object.keys(mirror).forEach(id => {
+      if (routes.has(id)) {
+        return;
+      }
+      const descriptor = normalize(mirror[id]);
+      if (descriptor && descriptor.id === id) {
+        routes.set(id, descriptor);
+        adopted = true;
+      }
+    });
+    if (adopted) {
+      refresh();
+    }
+  } else {
+    namespace[ROUTES_KEY] = {};
+  }
+  namespace.registerAdminRoute = registerAdminRoute;
+  namespace.getAdminRoute = getAdminRoute;
+  namespace.listAdminRoutes = listAdminRoutes;
+  return namespace;
+}
+
+/**
+ * Register a module-owned admin route.
+ *
+ * A later registration for the same id REPLACES the earlier one: a page carries at most one
+ * bundle per module, so a second call means a reload, not a second screen.
+ *
+ * @param {Object}   entry             Route descriptor.
+ * @param {string}   entry.id          Hash route (`[a-z0-9-]+`), not a core route.
+ * @param {string}   entry.group       `offerings` or `resources`.
+ * @param {string}   [entry.label]     Menu label (defaults to the id).
+ * @param {string}   [entry.description] Menu subline.
+ * @param {string}   entry.moduleCode  Owning module's registry code.
+ * @param {Function} entry.component   Component rendered as `<component segments onNavigate module />`.
+ * @return {boolean} Whether the route was accepted.
+ */
+function registerAdminRoute(entry) {
+  const descriptor = normalize(entry);
+  if (!descriptor) {
+    return false;
+  }
+  routes.set(descriptor.id, descriptor);
+  const namespace = publish();
+  if (namespace && namespace[ROUTES_KEY] && typeof namespace[ROUTES_KEY] === 'object') {
+    namespace[ROUTES_KEY][descriptor.id] = descriptor;
+  }
+  refresh();
+  return true;
+}
+
+/**
+ * The descriptor registered for a route id, or null when none is loaded.
+ *
+ * `null` is a NORMAL answer: on Free — and on any build whose module bundle is absent — every
+ * id answers null, which is exactly what makes the hash fall back instead of rendering a
+ * screen that is not there.
+ *
+ * @param {string} id Route id.
+ * @return {Object|null} Route descriptor.
+ */
+function getAdminRoute(id) {
+  return isRouteId(id) && routes.get(id) || null;
+}
+
+/**
+ * Every registered route, optionally narrowed to one group.
+ *
+ * @param {string} [group] `offerings` or `resources`.
+ * @return {Object[]} Route descriptors, in registration order.
+ */
+function listAdminRoutes(group) {
+  if (undefined === group) {
+    return snapshot;
+  }
+  return snapshot.filter(entry => entry.group === group);
+}
+
+/**
+ * Whether a registered route may actually be entered on this site — THE one predicate every
+ * surface asks, so the header menus, the hash router and the rendered screen cannot disagree.
+ *
+ * Two terms, and the second is the JS half of the PHP allow-list (D-R56):
+ *
+ *   1. `available` — the boot-data flag the server computed with `Plan::has()`. Free, a
+ *      downgraded site and a module switched off all answer false.
+ *   2. `menu` — the registry slug that module is GRANTED, published in the same boot record.
+ *      `AdminPage::mergeMenuItems()` already refuses a contributed WordPress submenu whose slug
+ *      is not the registry's; without this term the SPA was laxer than the server, and any
+ *      available module could have claimed any route id. Now both halves read one allow-list.
+ *
+ * Boot data older than this bundle carries no `menu` at all, so the comparison fails and the
+ * route stays closed. That is the conservative answer and the same posture `lib/config.js` takes
+ * on `available`: a half-rebuilt dev tree shows no screen rather than a broken one.
+ *
+ * Display only — REST re-checks every read and write (§5 invariant 3).
+ *
+ * @param {Object} entry   Route descriptor from this registry.
+ * @param {Array}  modules Module records (boot data or the session store).
+ * @return {boolean} Whether the route may be listed and entered.
+ */
+function adminRouteIsOpen(entry, modules) {
+  if (!entry) {
+    return false;
+  }
+  const record = (0,_modules_catalog_js__WEBPACK_IMPORTED_MODULE_1__.findModuleRecord)({
+    modules
+  }, entry.moduleCode);
+  return record?.available === true && record.menu === entry.id;
+}
+
+/**
+ * Subscribe to registry changes.
+ *
+ * @param {Function} listener Called with the new descriptor list.
+ * @return {Function} Unsubscribe.
+ */
+function subscribeAdminRoutes(listener) {
+  if (typeof listener !== 'function') {
+    return () => {};
+  }
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+/**
+ * The registered routes, re-rendering the caller when a bundle registers one.
+ *
+ * `useSyncExternalStore` rather than the `useState` + `useEffect( subscribe )` idiom of
+ * `modules/module-state.js`: a module bundle can register in the window BETWEEN this render
+ * and the effect that would subscribe, and the effect idiom loses exactly that registration —
+ * which is the one case this registry exists for.
+ *
+ * @return {Object[]} Route descriptors.
+ */
+function useAdminRoutes() {
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.useSyncExternalStore)(subscribeAdminRoutes, listAdminRoutes, listAdminRoutes);
+}
+
+/** Drop every registered route. Test seam only. */
+function resetAdminRoutes() {
+  routes.clear();
+  listeners.clear();
+  snapshot = [];
+  const scope = host();
+  if (scope?.[GLOBAL_KEY] && typeof scope[GLOBAL_KEY] === 'object') {
+    scope[GLOBAL_KEY][ROUTES_KEY] = {};
+  }
+}
+publish();
 
 /***/ },
 
@@ -9656,9 +10887,11 @@ class ApiError extends Error {
 }
 async function request(method, path, {
   query,
-  body
+  body,
+  extraHeaders
 } = {}) {
   const headers = {
+    ...extraHeaders,
     'X-WP-Nonce': _config_js__WEBPACK_IMPORTED_MODULE_0__.config.nonce
   };
   const init = {
@@ -9697,8 +10930,9 @@ const api = {
   get: (path, query) => request('GET', path, {
     query
   }),
-  post: (path, body) => request('POST', path, {
-    body
+  post: (path, body, extraHeaders) => request('POST', path, {
+    body,
+    extraHeaders
   }),
   patch: (path, body) => request('PATCH', path, {
     body
@@ -9706,7 +10940,10 @@ const api = {
   put: (path, body) => request('PUT', path, {
     body
   }),
-  del: path => request('DELETE', path)
+  del: (path, query, body) => request('DELETE', path, {
+    query,
+    body
+  })
 };
 
 /***/ },
@@ -9721,10 +10958,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   bookingDetailToEditor: () => (/* binding */ bookingDetailToEditor),
 /* harmony export */   bookingRowFromListItem: () => (/* binding */ bookingRowFromListItem),
+/* harmony export */   externalAction: () => (/* binding */ externalAction),
 /* harmony export */   refundableMinor: () => (/* binding */ refundableMinor)
 /* harmony export */ });
 /* harmony import */ var _config_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./config.js */ "./assets/src/admin/lib/config.js");
 /* harmony import */ var _format_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./format.js */ "./assets/src/admin/lib/format.js");
+/* harmony import */ var _shared_person_name_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/person-name.js */ "./assets/src/shared/person-name.js");
 /**
  * Domain adapter — maps the REST booking DTOs (rest-contract §2.8/§2.9) onto the
  * row/editor shapes the reused BookingsTable + in-flow editor consume. Keeping
@@ -9733,7 +10972,22 @@ __webpack_require__.r(__webpack_exports__);
  */
 
 
+
 const TZ = _config_js__WEBPACK_IMPORTED_MODULE_0__.config.business.timezone;
+
+/**
+ * The D-R71 badge/facet reason of an order: `pending` for every pending payment (its finer
+ * gateway reason travels separately as `paymentStateReason`), the ledger reason otherwise.
+ *
+ * @param {Object} order Order block of a list item or detail DTO.
+ * @return {string} One of `PAYMENT_REASONS`, or a stored status.
+ */
+function paymentReasonOf(order) {
+  if (order.payment_status === 'pending') {
+    return 'pending';
+  }
+  return order.payment_state_reason || order.payment_status || 'none';
+}
 
 /** GET /bookings item → BookingsTable row. */
 function bookingRowFromListItem(item) {
@@ -9754,15 +11008,24 @@ function bookingRowFromListItem(item) {
     dateLabel: (0,_format_js__WEBPACK_IMPORTED_MODULE_1__.dateLabel)(start, TZ),
     start: (0,_format_js__WEBPACK_IMPORTED_MODULE_1__.timeLabel)(start, TZ),
     end: (0,_format_js__WEBPACK_IMPORTED_MODULE_1__.timeLabel)(end, TZ),
-    customer: customer.name || '',
+    // `name` is the server-composed display name (name split, 2026-10-01); the parts ride along
+    // for the surfaces that edit or search them.
+    customer: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_2__.displayNameOf)(customer),
+    customerFirstName: customer.first_name || '',
+    customerLastName: customer.last_name || '',
     email: customer.email || '',
     phone: customer.phone || '',
     customerId: customer.id || null,
     service: service.name || '',
     serviceId: service.id || null,
-    staff: staff.name || '',
+    staff: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_2__.displayNameOf)(staff),
+    staffFirstName: staff.first_name || '',
+    staffLastName: staff.last_name || '',
     staffId: staff.id || null,
     location: item.location?.name || '',
+    // D-R63: the list item's `location_id` (rest-contract §2.8 addendum); the NAME is resolved by
+    // the route from the location catalog, because the payload carries only the id.
+    locationId: Number(item.location_id) || 0,
     status_total_minor: order.total_minor || 0,
     total: order.total_minor || 0,
     currency: order.currency || _config_js__WEBPACK_IMPORTED_MODULE_0__.config.currency,
@@ -9772,10 +11035,22 @@ function bookingRowFromListItem(item) {
     currencyExponent: Number.isInteger(order.currency_exponent) ? order.currency_exponent : null,
     paid: order.payment_status === 'paid',
     paymentStatus: order.payment_status || 'none',
+    // One server field, two readings: a PENDING payment carries the derived gateway reason
+    // (`checkout_pending`, `cash_on_delivery`, …), any other order the D-R71 ledger reason
+    // (`deposit_paid`, …). The badge/facet value keeps `pending` for the former.
+    paymentReason: paymentReasonOf(order),
+    payableNowMinor: order.payable_now_minor ?? order.total_minor ?? 0,
+    netCollectedMinor: order.net_collected_minor ?? 0,
+    balanceDueMinor: order.balance_due_minor ?? 0,
+    // Additive list fields (persona QA 2026-10-05, rest-contract §2.8): the derived reason of a
+    // PENDING payment (`checkout_pending` = the customer has not finished checkout), and the
+    // mark of a cancelled booking that was only ever a checkout nobody placed.
+    paymentStateReason: order.payment_status === 'pending' ? order.payment_state_reason || '' : '',
+    checkoutAbandoned: item.checkout_abandoned === true,
     attendees: item.attendees || 1,
     customerTimezone: customerTz,
     timezone: (0,_format_js__WEBPACK_IMPORTED_MODULE_1__.tzLabel)(customerTz, start),
-    initials: (0,_format_js__WEBPACK_IMPORTED_MODULE_1__.initials)(customer.name),
+    initials: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_2__.initialsOf)(customer) || '?',
     note: '',
     created: item.created_at || '',
     source: 'Admin'
@@ -9812,6 +11087,9 @@ function bookingDetailToEditor(detail) {
     // Read-only here: they are what the customer told the business, and the
     // booking editor is not the place to rewrite that.
     customFields: Array.isArray(b.custom_fields) ? b.custom_fields : [],
+    billingAddress: typeof b.billing_address === 'string' ? b.billing_address : '',
+    // When the customer ticked the consent box, or '' (persona QA 2026-10-05, T-046).
+    consentAt: b.consent_at || '',
     icsSequence: b.ics_sequence || 0,
     order: orderFromDetail(order, items),
     activities: activities.map(a => ({
@@ -9835,9 +11113,34 @@ function bookingDetailToEditor(detail) {
  * @param {Array}  items Order line items.
  * @return {Object} Editor order view model.
  */
+/**
+ * The one action a gateway may attach to its external order record, or null.
+ *
+ * Only a REST path under that same gateway's module is accepted, so the button can never be
+ * pointed anywhere else whatever the response carried.
+ *
+ * @param {*}      action  `external_order.action` from the detail DTO.
+ * @param {string} gateway The order's gateway module code.
+ * @return {?{label: string, confirm: string, path: string}} Action, or null.
+ */
+function externalAction(action, gateway) {
+  if (!action || typeof action.label !== 'string' || !action.label || typeof action.path !== 'string' || !gateway) {
+    return null;
+  }
+  const prefix = `/modules/${gateway}/`;
+  if (!action.path.startsWith(prefix) || !/^[a-z0-9_/-]{1,160}$/.test(action.path.slice(prefix.length)) || action.path.includes('//')) {
+    return null;
+  }
+  return {
+    label: action.label,
+    confirm: typeof action.confirm === 'string' ? action.confirm : '',
+    path: action.path
+  };
+}
 function orderFromDetail(order, items) {
   const transactions = (Array.isArray(order.transactions) ? order.transactions : []).map(t => ({
     id: t.id,
+    parentId: t.parent_id ?? null,
     kind: t.kind || '',
     status: t.status || '',
     amountMinor: t.amount_minor || 0,
@@ -9851,16 +11154,59 @@ function orderFromDetail(order, items) {
   return {
     id: order.id,
     code: order.code || '',
-    totalMinor: order.total_minor || 0,
+    // D-R67b: coupon editing needs all three immutable pricing figures. Nullish checks keep a
+    // legitimate zero-total (100% coupon) instead of falling through to a pre-coupon amount.
+    subtotalMinor: order.subtotal_minor ?? order.total_minor ?? 0,
+    discountMinor: order.discount_minor ?? 0,
+    totalMinor: order.total_minor ?? 0,
+    couponCode: order.coupon_code || '',
     currency: order.currency || _config_js__WEBPACK_IMPORTED_MODULE_0__.config.currency,
     // See the list row above: the order's OWN exponent, not the store's.
     currencyExponent: Number.isInteger(order.currency_exponent) ? order.currency_exponent : null,
     paymentStatus: order.payment_status || 'none',
+    paymentReason: paymentReasonOf(order),
+    payableNowMinor: order.payable_now_minor ?? order.total_minor ?? 0,
+    netCollectedMinor: order.net_collected_minor ?? 0,
+    balanceDueMinor: order.balance_due_minor ?? 0,
     gateway: order.gateway || '',
     transactionRef: order.transaction_ref || '',
+    refundManagement: order.refund_management && typeof order.refund_management.url === 'string' && typeof order.refund_management.label === 'string' ? {
+      url: order.refund_management.url,
+      label: order.refund_management.label
+    } : null,
+    // Display-only record of a checkout platform's own order (e.g. WooCommerce #34) and the
+    // payment method the customer chose there. Never settlement input.
+    externalOrder: order.external_order && typeof order.external_order.reference === 'string' ? {
+      reference: order.external_order.reference,
+      status: typeof order.external_order.status === 'string' ? order.external_order.status : '',
+      paymentMethod: typeof order.external_order.payment_method === 'string' ? order.external_order.payment_method : '',
+      url: typeof order.external_order.url === 'string' ? order.external_order.url : '',
+      ...(order.external_order.freshness ? {
+        freshness: order.external_order.freshness
+      } : {}),
+      ...(order.external_order.sync ? {
+        sync: order.external_order.sync
+      } : {}),
+      // Something about the external order needs the operator (server-computed words),
+      // optionally with one action: a POST to a route of the order's own gateway module.
+      ...(typeof order.external_order.notice === 'string' && order.external_order.notice ? {
+        notice: order.external_order.notice
+      } : {}),
+      ...(externalAction(order.external_order.action, order.gateway) ? {
+        action: externalAction(order.external_order.action, order.gateway)
+      } : {})
+    } : null,
     holdExpiresAt: order.hold_expires_at || '',
+    holdDeadlineApplies: order.hold_deadline_applies === true,
+    paymentStateReason: order.payment_status === 'pending' ? order.payment_state_reason || '' : '',
     transactions,
-    refundableMinor: refundableMinor(transactions),
+    refundableMinor: Array.isArray(order.refundable_charges) ? order.refundable_charges.reduce((total, charge) => total + charge.refundable_minor, 0) : refundableMinor(transactions),
+    refundableCharges: order.refundable_charges ?? null,
+    onsiteRefundableMinor: order.onsite_refundable_minor ?? 0,
+    canRecordOnsiteRefund: order.can_record_onsite_refund === true,
+    balancePending: order.balance_pending === true,
+    canRecordOnsiteBalance: order.can_record_onsite_balance,
+    canReverseOnsiteBalance: order.can_reverse_onsite_balance,
     // A refund the gateway has accepted but not settled RESERVES its amount server-side
     // (`TransactionRepository::refundedMinor`), and a second refund attempt while one is in
     // flight is answered `409 aponto_payment_state`. Surfacing it lets the button say why it is
@@ -9903,6 +11249,158 @@ function refundableMinor(transactions) {
   const paid = charges.reduce((best, t) => t.id > best.id ? t : best, charges[0]).amountMinor || 0;
   const refunded = rows.filter(t => 'refund' === t.kind && ('succeeded' === t.status || 'pending' === t.status)).reduce((sum, t) => sum + (t.amountMinor || 0), 0);
   return Math.max(0, paid - refunded);
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/lib/branches.js"
+/*!******************************************!*\
+  !*** ./assets/src/admin/lib/branches.js ***!
+  \******************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   MAX_LOCATION_PAGES: () => (/* binding */ MAX_LOCATION_PAGES),
+/* harmony export */   NO_LOCATION: () => (/* binding */ NO_LOCATION),
+/* harmony export */   activeLocations: () => (/* binding */ activeLocations),
+/* harmony export */   bookingLocationId: () => (/* binding */ bookingLocationId),
+/* harmony export */   fetchLocations: () => (/* binding */ fetchLocations),
+/* harmony export */   locationLabel: () => (/* binding */ locationLabel),
+/* harmony export */   matchesLocationFilter: () => (/* binding */ matchesLocationFilter)
+/* harmony export */ });
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./api.js */ "./assets/src/admin/lib/api.js");
+/**
+ * Named locations ("branches") for the admin authoring surfaces (D-R63).
+ *
+ * PRESENCE is the only signal: a surface grows its location control when the site HAS a location
+ * row, and is byte-identical to today when it has none. Free has no named-location CRUD, so it has
+ * none; Premium with zero locations is the same fresh-install state (§5 invariant 11). Nothing here
+ * reads the edition or a module flag (§5 invariant 3) — enforcement stays server-side.
+ *
+ * `0` is a VALUE, not "none": it is the business / no-location scope every booking, schedule row and
+ * eligibility pair has carried since P0 ("All locations" on a schedule or an assignment, "No
+ * location" on a booking).
+ *
+ * No module-level state on purpose: the Location editor's module chunk imports this file too, and a
+ * module entry compiles its own copy of every admin lib it touches (handoff 2026-09-21 §2).
+ */
+
+
+
+/** The wildcard / business scope. */
+const NO_LOCATION = 0;
+
+/** The most catalog pages one read walks (100 locations each) before it stops and says so. */
+const MAX_LOCATION_PAGES = 10;
+
+/**
+ * Read the WHOLE location catalog, every status — ONE read per surface (D-R63 fix round 2): active
+ * choices AND names of archived branches derive from the same list ({@see activeLocations()}).
+ *
+ * It walks every page of `GET /locations` — by `total_pages` when the envelope has it, otherwise
+ * for as long as a page comes back FULL — up to {@see MAX_LOCATION_PAGES}.
+ *
+ * The answer says whether it is the WHOLE catalog (fix round 3): `complete: false` when a page
+ * failed (the pages read before it are kept) or the ceiling stopped the walk. An incomplete catalog
+ * must never pass for an empty one — a surface that WRITES a location (the booking editor's
+ * select, the Service editor's branch picker) disables that write and says why; read-only surfaces
+ * simply show what they have.
+ *
+ * @return {Promise<{items: Array<{id: number, name: string, status: string}>, complete: boolean}>}
+ */
+async function fetchLocations() {
+  const raw = [];
+  let complete = true;
+  try {
+    let page = 1;
+    for (;;) {
+      const res = await _api_js__WEBPACK_IMPORTED_MODULE_1__.api.get('/locations', {
+        status: 'all',
+        per_page: 100,
+        page
+      }); // eslint-disable-line no-await-in-loop
+      const items = Array.isArray(res?.items) ? res.items : [];
+      raw.push(...items);
+      const pages = Number(res?.total_pages);
+      const more = pages ? page < pages : 100 === items.length;
+      if (!more) {
+        break;
+      }
+      if (page >= MAX_LOCATION_PAGES) {
+        complete = false;
+        // eslint-disable-next-line no-console
+        console.warn(`Aponto: only the first ${MAX_LOCATION_PAGES * 100} locations are listed.`);
+        break;
+      }
+      page += 1;
+    }
+  } catch {
+    complete = false;
+  }
+  return {
+    items: raw.map(item => ({
+      id: Number(item.id),
+      name: String(item.name || ''),
+      status: String(item.status || 'active')
+    })).filter(item => item.id > 0),
+    complete
+  };
+}
+
+/**
+ * The ACTIVE branches of a catalog — the places that can take a new booking, hours or assignment.
+ *
+ * @param {Array} locations Catalog items from {@see fetchLocations()}.
+ * @return {Array} Active locations, catalog order.
+ */
+function activeLocations(locations) {
+  return (locations || []).filter(location => 'active' === location.status);
+}
+
+/**
+ * A booking's (or list row's) location id — `0` when it has none or predates the field.
+ *
+ * @param {Object} item REST list item (`location_id`) or adapted row (`locationId`).
+ * @return {number} Location id.
+ */
+function bookingLocationId(item) {
+  return Number(item?.location_id ?? item?.locationId) || NO_LOCATION;
+}
+
+/**
+ * Whether a booking passes a location filter. `'all'` (or empty) keeps everything; any other value
+ * is a location id, `0` included ("No location").
+ *
+ * @param {Object}        item   Booking.
+ * @param {string|number} filter `'all'` or a location id.
+ * @return {boolean} Kept.
+ */
+function matchesLocationFilter(item, filter) {
+  if (filter === 'all' || filter === '' || filter === null || filter === undefined) {
+    return true;
+  }
+  return bookingLocationId(item) === Number(filter);
+}
+
+/**
+ * Display name of a location id against a catalog; `0` reads "No location", an id the catalog does
+ * not carry reads "Location #N" rather than vanishing.
+ *
+ * @param {Array}  locations Catalog.
+ * @param {number} id        Location id.
+ * @return {string} Label.
+ */
+function locationLabel(locations, id) {
+  const numeric = Number(id) || NO_LOCATION;
+  if (NO_LOCATION === numeric) {
+    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('No location', 'aponto');
+  }
+  const match = (locations || []).find(location => location.id === numeric);
+  return match?.name || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %d: the numeric id of a location that could not be resolved to a name. */
+  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Location #%d', 'aponto'), numeric);
 }
 
 /***/ },
@@ -9963,15 +11461,23 @@ const config = {
     timeFormat: raw.settings?.timeFormat || 'g:i a',
     phoneField: raw.settings?.phoneField || 'optional'
   },
+  // The CURRENT user's saved workspace layouts (D-R74, rest-contract §2.23). `null` = nothing saved, so
+  // the defaults apply; `lib/table-preferences.js` owns reading and writing it.
+  preferences: {
+    bookingsTable: raw.preferences?.bookingsTable && typeof raw.preferences.bookingsTable === 'object' ? raw.preferences.bookingsTable : null
+  },
   caps: {
     bookings: raw.caps?.bookings !== false,
     services: Boolean(raw.caps?.services),
     staff: Boolean(raw.caps?.staff),
-    settings: Boolean(raw.caps?.settings)
+    settings: Boolean(raw.caps?.settings),
+    media: Boolean(raw.caps?.media)
   },
   // Business-hours weekly rows (staff_id=0 scope) — boot data because no REST
   // route reads the business scope yet (see AdminPage::businessWeekly()).
   businessHours: Array.isArray(raw.businessHours) ? raw.businessHours : [],
+  // D-R79: an enabled payment module is the site's exclusive checkout (ready or not).
+  paymentExclusive: Boolean(raw.paymentExclusive),
   // Booking page the wizard created (readiness card), or null.
   bookingPage: raw.bookingPage && typeof raw.bookingPage === 'object' ? raw.bookingPage : null,
   wizardUrl: raw.wizardUrl || '',
@@ -10165,6 +11671,33 @@ async function fetchAllDayBookings(api, fromIso, toIso) {
     page += 1;
   } while (page <= totalPages && page <= MAX_PAGES);
   return items.sort((a, b) => String(a.start_utc).localeCompare(String(b.start_utc)));
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/lib/external-order-sync.js"
+/*!*****************************************************!*\
+  !*** ./assets/src/admin/lib/external-order-sync.js ***!
+  \*****************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   externalSyncNotice: () => (/* binding */ externalSyncNotice)
+/* harmony export */ });
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/** A saved booking does not imply that the linked order was synchronized. */
+function externalSyncNotice(external) {
+  if (external?.sync === 'review') {
+    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking saved. External order synchronization needs review.', 'aponto');
+  }
+  if (external?.sync === 'pending') {
+    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking saved. External order synchronization is pending.', 'aponto');
+  }
+  return '';
 }
 
 /***/ },
@@ -10691,6 +12224,128 @@ function hasValue(value) {
 
 /***/ },
 
+/***/ "./assets/src/admin/lib/field-error.jsx"
+/*!**********************************************!*\
+  !*** ./assets/src/admin/lib/field-error.jsx ***!
+  \**********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   FieldErrors: () => (/* binding */ FieldErrors),
+/* harmony export */   fieldAria: () => (/* binding */ fieldAria),
+/* harmony export */   fieldClass: () => (/* binding */ fieldClass),
+/* harmony export */   fieldErrorId: () => (/* binding */ fieldErrorId)
+/* harmony export */ });
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
+
+/**
+ * Field-level validation plumbing for the full-page record editors (founder QA 2026-09-21,
+ * round 2 — adversarial review finding P2).
+ *
+ * TWO DEFECTS, ONE CAUSE. Each editor wired `fieldError` into its controls BY HAND, one field
+ * at a time, so the wiring was only as complete as whoever last added a field remembered to
+ * make it:
+ *
+ *  1. **Server keys with no inline home.** `ServicesController::validateBody()` can reject
+ *     twelve field keys; the Service editor rendered `.has-error` for five. A `422` naming
+ *     `buffer_before` therefore lit nothing, which since the round-1 change means
+ *     `focusFirstError()` finds nothing to go to and the operator is left with the generic
+ *     "The submitted data is invalid" and no idea which control it means. The Staff editor had
+ *     the same hole for `phone`, `status`, `avatar_id` and `is_public`.
+ *  2. **No accessible association.** `.pd-compact-field.has-error input` carried neither
+ *     `aria-invalid` nor `aria-describedby`, so the red border and the sentence under it were
+ *     invisible to a screen reader — the error existed only as a colour.
+ *
+ * So the plumbing becomes three tiny functions plus one component, and a field is wired by
+ * naming its key once. The remaining discipline is a list — {@see FieldErrors} renders every
+ * key an editor knows about — which a test can compare against the controller's own key set.
+ */
+
+/**
+ * The DOM id of the paragraph that carries one field's message.
+ *
+ * Namespaced per editor so the two can coexist (the booking inspector can host one while a
+ * record editor is mounted) and so an id collision cannot point `aria-describedby` at the wrong
+ * sentence.
+ *
+ * @param {string} prefix Editor namespace, e.g. `service`.
+ * @param {string} key    Server field key.
+ * @return {string} Element id.
+ */
+function fieldErrorId(prefix, key) {
+  return `${prefix}-${key}-error`;
+}
+
+/**
+ * Add `has-error` to a field wrapper's class list when that key was rejected.
+ *
+ * @param {string} base       Base class list.
+ * @param {Object} fieldError Errors by server key.
+ * @param {...string} keys    Keys this control answers for (aliases included).
+ * @return {string} Class list.
+ */
+function fieldClass(base, fieldError, ...keys) {
+  return keys.some(key => fieldError?.[key]) ? `${base} has-error` : base;
+}
+
+/**
+ * The ARIA a control needs while it is rejected.
+ *
+ * Spread onto the input/select/textarea itself, never onto the wrapper: `aria-invalid` belongs
+ * to the thing that is invalid, and `aria-describedby` has to be on the control for the message
+ * to be announced when focus lands there — which, since the round-1 change, is exactly what
+ * happens on a failed save.
+ *
+ * @param {string} prefix     Editor namespace.
+ * @param {Object} fieldError Errors by server key.
+ * @param {...string} keys    Keys this control answers for.
+ * @return {Object} Props to spread, or an empty object.
+ */
+function fieldAria(prefix, fieldError, ...keys) {
+  const hit = keys.find(key => fieldError?.[key]);
+  return hit ? {
+    'aria-invalid': 'true',
+    'aria-describedby': fieldErrorId(prefix, hit)
+  } : {};
+}
+
+/**
+ * The message(s) for one or more keys, as the paragraph `aria-describedby` points at.
+ *
+ * `role="alert"` is deliberately NOT set: on a failed save the operator is moved to the control
+ * and the description is announced with it, so an alert would say the same sentence twice. The
+ * paragraph is an ordinary description, which is what it is.
+ *
+ * @param {Object} props            Props.
+ * @param {string} props.prefix     Editor namespace.
+ * @param {Object} props.fieldError Errors by server key.
+ * @param {Array}  props.keys       Keys to render, in order.
+ * @param {string} [props.className] Extra class — the grid sections span the full row.
+ * @return {JSX.Element|null} The messages, or nothing.
+ */
+function FieldErrors({
+  prefix,
+  fieldError,
+  keys,
+  className
+}) {
+  const present = keys.filter(key => fieldError?.[key]);
+  if (!present.length) {
+    return null;
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+    children: present.map(key => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("p", {
+      id: fieldErrorId(prefix, key),
+      className: className ? `ap-field-error ${className}` : 'ap-field-error',
+      children: fieldError[key]
+    }, key))
+  });
+}
+
+/***/ },
+
 /***/ "./assets/src/admin/lib/format.js"
 /*!****************************************!*\
   !*** ./assets/src/admin/lib/format.js ***!
@@ -10705,14 +12360,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   MAX_PRICE_MINOR: () => (/* binding */ MAX_PRICE_MINOR),
 /* harmony export */   MAX_SMALLINT_UNSIGNED: () => (/* binding */ MAX_SMALLINT_UNSIGNED),
 /* harmony export */   authoritativeDecimals: () => (/* binding */ authoritativeDecimals),
+/* harmony export */   businessTimeLineAt: () => (/* binding */ businessTimeLineAt),
+/* harmony export */   clockOptions: () => (/* binding */ clockOptions),
 /* harmony export */   dateLabel: () => (/* binding */ dateLabel),
 /* harmony export */   dateTimeLabel: () => (/* binding */ dateTimeLabel),
-/* harmony export */   initials: () => (/* binding */ initials),
 /* harmony export */   isoDate: () => (/* binding */ isoDate),
 /* harmony export */   longDate: () => (/* binding */ longDate),
 /* harmony export */   majorToMinor: () => (/* binding */ majorToMinor),
 /* harmony export */   maxPriceMajor: () => (/* binding */ maxPriceMajor),
 /* harmony export */   minorToMajor: () => (/* binding */ minorToMajor),
+/* harmony export */   minutesLabel: () => (/* binding */ minutesLabel),
 /* harmony export */   money: () => (/* binding */ money),
 /* harmony export */   moneyDecimals: () => (/* binding */ moneyDecimals),
 /* harmony export */   timeLabel: () => (/* binding */ timeLabel),
@@ -10873,14 +12530,71 @@ function money(minor, currency = _config_js__WEBPACK_IMPORTED_MODULE_0__.config.
 }
 const TZ = _config_js__WEBPACK_IMPORTED_MODULE_0__.config.business.timezone;
 
-/** "9:00 AM" style time label for a UTC instant in the given timezone. */
+/**
+ * The site's clock convention as `Intl` hour options (persona QA 2026-10-05, T-071).
+ *
+ * `timeLabel()` forced a 12-hour clock, so a site whose owner set the time format to `H:i` read
+ * "5:30 PM" on every admin screen and "17:30" in its mails, its booking form and its manage page.
+ * The rule is the booking form's own (`assets/src/form/lib/tz.js` `setTimeFormat`): in the
+ * WordPress `time_format` (a PHP `date()` pattern) `H` / `G` is a 24-hour clock — `H` with a
+ * leading zero — and anything else keeps the 12-hour clock the admin has always printed. Escaped
+ * characters (`\H`) are literals, not hours.
+ *
+ * @param {string} [timeFormat] PHP time format; defaults to the site's (boot config).
+ * @return {{hour: string, hourCycle?: string, hour12?: boolean}} Options to spread into `Intl.DateTimeFormat`.
+ */
+function clockOptions(timeFormat = _config_js__WEBPACK_IMPORTED_MODULE_0__.config.settings.timeFormat) {
+  const format = String(timeFormat || '').replace(/\\./g, '');
+  if (/[HG]/.test(format)) {
+    return {
+      hour: format.includes('H') ? '2-digit' : 'numeric',
+      hourCycle: 'h23'
+    };
+  }
+  return {
+    hour: 'numeric',
+    hour12: true
+  };
+}
+
+/** "9:00 AM" / "09:00" time label for a UTC instant in the given timezone, on the site's clock. */
 function timeLabel(utc, tz = TZ) {
   return new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
+    ...clockOptions(),
     minute: '2-digit',
-    hour12: true,
     timeZone: tz
   }).format(new Date(utc));
+}
+
+/**
+ * A minute of the day (0–1440) on the site's clock: `570` → "9:30 AM" / "09:30".
+ *
+ * @param {number} minutes Minutes after midnight.
+ * @return {string} Clock label.
+ */
+function minutesLabel(minutes) {
+  return timeLabel(Date.UTC(2026, 0, 1, 0, Number(minutes) || 0), 'UTC');
+}
+
+/**
+ * The "Business time · City (offset)" line AT AN INSTANT (persona QA 2026-10-05).
+ *
+ * `businessTimeLine` (lib/config.js) carries the offset the business zone has NOW, which is the
+ * right caption for today's schedule and wrong under a booking on the other side of a clock
+ * change: the drawer of a 29 October appointment read "London (GMT+1)" while the appointment's
+ * own lines, everywhere else, said GMT+0. A site on a manual offset has no city and no clock
+ * change, so it keeps the server's line.
+ *
+ * @param {string|number|Date} [instant] The moment the line is about; none = now.
+ * @return {string} Caption.
+ */
+function businessTimeLineAt(instant) {
+  const at = instant ? new Date(instant) : null;
+  if (!at || Number.isNaN(at.getTime()) || !TZ.includes('/') || TZ.startsWith('Etc/')) {
+    return _config_js__WEBPACK_IMPORTED_MODULE_0__.businessTimeLine;
+  }
+  // "GMT+0", the server's spelling (`Rest\Support\TimezoneLabel`), where a browser says a bare "GMT".
+  return `Business time · ${tzLabel(TZ, at).replace(/\(GMT\)$/, '(GMT+0)')}`;
 }
 
 /** "Mon, Aug 1" style date label for a UTC instant in the given timezone. */
@@ -10936,15 +12650,6 @@ function toUtcInstant(date) {
   return new Date(date).toISOString().replace(/\.\d{3}Z$/, 'Z');
 }
 
-/** Two uppercase initials from a display name. */
-function initials(name) {
-  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) {
-    return '?';
-  }
-  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
-}
-
 /** Friendly "City (GMT±N)" label for an IANA timezone at a given instant. */
 function tzLabel(tz, instant = Date.now()) {
   if (!tz) {
@@ -10964,7 +12669,10 @@ function tzLabel(tz, instant = Date.now()) {
   } catch (e) {
     offset = 'GMT';
   }
-  return `${city} (${offset})`;
+  // An `Etc/GMT∓N` stand-in (a manual-offset site, D-R63 fix round 1) or a bare `±HH:MM` offset has
+  // no city — and "GMT-7 (GMT+7)" would read backwards — so it is the offset alone, the rule
+  // `Rest\Support\TimezoneLabel` applies server-side.
+  return tz.startsWith('Etc/') || /^[+-]\d/.test(tz) ? offset : `${city} (${offset})`;
 }
 
 /***/ },
@@ -11579,13 +13287,198 @@ __webpack_require__.r(__webpack_exports__);
  * registering form): it receives `(proceed, cancel)` and calls exactly one of
  * them after the user decides.
  *
+ * TWO WEBPACK ENTRIES MEAN TWO MODULE INSTANCES (D-R56 fix round 1). The slot used to be a
+ * module-level `let guard`, which is correct only while every reader and every writer is compiled
+ * into the SAME bundle. A module entry (`assets/src/pro/{code}`, `assets/src/modules/{code}`)
+ * cannot import from the admin entry, so webpack gives it its OWN copy of this file and its own
+ * `guard` variable: the Locations editor called `setNavGuard()` on the module's copy while
+ * `router.js` in `admin.js` kept reading its own — `hasNavGuard()` was permanently false, and the
+ * header nav left a dirty editor without asking (browser-confirmed three times). It is the exact
+ * failure `lib/toast.jsx` hit for the exact same reason.
+ *
+ * The fix is the same one `toast.jsx`, `lib/module-panels.js` and `lib/admin-routes.js` use: the
+ * two bundles meet on the ONE thing they genuinely share, the `window.apontoAdmin` global. Every
+ * copy of this module reads and writes THAT slot, so there is only ever one guard in the
+ * application no matter how many copies of the code exist. Without a global (node tests, SSR) a
+ * module-local slot takes over, which is byte-for-byte the previous behaviour.
+ *
+ * The public API is unchanged — `setNavGuard`, `clearNavGuard`, `hasNavGuard`, `requestNav`, and
+ * the clear-only-if-still-mine rule that stops a stale unmount removing a newer guard.
+ *
  * Deliberately a single-slot registry: only one guarded form exists at a time
- * in the admin (the Settings schema form). Framework-free so the contract is
- * unit-testable (tests/js/nav-guard.test.js). Browser reload/close is the kit
- * `useDirtyState` beforeunload's job — this module covers IN-APP navigation.
+ * in the admin. Framework-free so the contract is unit-testable
+ * (tests/js/nav-guard.test.js).
+ *
+ * FULL-DOCUMENT NAVIGATION IS COVERED HERE TOO (D-R58 fix round, Codex review). The header used to
+ * say browser reload/close was "the kit `useDirtyState` beforeunload's job" — it is not: nothing in
+ * `assets/src` installs a `beforeunload` listener at all, on any screen. So a reload, a closed tab,
+ * or ANY other WordPress admin menu item (a real link, not a hash) discarded a dirty Settings,
+ * Locations, Staff or Service editor in silence, while the identical in-app navigation asked first.
+ * A guard registered here now also raises the browser's own leave-page prompt, which covers all
+ * four screens at once precisely because they all register through this one module.
+ *
+ * The listener is installed WITH the guard and removed when the slot clears, never kept
+ * permanently: a `beforeunload` listener that is always present disables the back/forward cache in
+ * some browsers, so a clean page must carry none. It reads the SHARED slot rather than a
+ * module-local variable, and it is installed through a shared flag, so N compiled copies of this
+ * file add exactly ONE listener and any copy's guard arms it.
  */
 
-let guard = null;
+/** Stable global namespace, the object `AdminPage::bootConfig()` already injects. */
+const GLOBAL_KEY = 'apontoAdmin';
+
+/**
+ * Property the single guard slot lives on.
+ *
+ * Underscored because it is machinery, not boot data: nothing outside this module may read it, and
+ * the name says so to anyone inspecting `window.apontoAdmin` in a console.
+ */
+const GUARD_KEY = '__navGuard';
+
+/**
+ * Property holding the ONE installed `beforeunload` listener, so every compiled copy of this file
+ * can see that the listener already exists — and can remove the exact function reference that was
+ * added, which is the only thing `removeEventListener` accepts. Same underscored, private-machinery
+ * naming as {@link GUARD_KEY}.
+ */
+const UNLOAD_KEY = '__navGuardUnload';
+
+/** Fallback slot for an environment with no global (node tests, SSR). */
+let localGuard = null;
+
+/** Fallback listener slot for an environment with no global. */
+let localUnload = null;
+
+/** The global object to publish onto, or null when there is none. */
+function host() {
+  if (typeof window !== 'undefined') {
+    return window;
+  }
+  return typeof globalThis !== 'undefined' ? globalThis : null;
+}
+
+/** The shared namespace object, created on demand, or null when there is no global. */
+function namespaceObject() {
+  const scope = host();
+  if (!scope) {
+    return null;
+  }
+  if (!scope[GLOBAL_KEY] || typeof scope[GLOBAL_KEY] !== 'object') {
+    scope[GLOBAL_KEY] = {};
+  }
+  return scope[GLOBAL_KEY];
+}
+
+/** The currently registered handler, from whichever slot this environment has. */
+function currentGuard() {
+  const namespace = namespaceObject();
+  const guard = namespace ? namespace[GUARD_KEY] : localGuard;
+  return typeof guard === 'function' ? guard : null;
+}
+
+/** The installed `beforeunload` listener, from whichever slot this environment has. */
+function currentUnload() {
+  const namespace = namespaceObject();
+  const installed = namespace ? namespace[UNLOAD_KEY] : localUnload;
+  return typeof installed === 'function' ? installed : null;
+}
+
+/**
+ * Write the shared listener slot.
+ *
+ * @param {Function|null} listener Listener or null.
+ */
+function storeUnload(listener) {
+  const namespace = namespaceObject();
+  if (!namespace) {
+    localUnload = listener;
+    return;
+  }
+  if (null === listener) {
+    delete namespace[UNLOAD_KEY];
+    return;
+  }
+  namespace[UNLOAD_KEY] = listener;
+}
+
+/**
+ * Ask the browser to confirm a full-document navigation while a form is dirty.
+ *
+ * Reads the SHARED slot, never a module-local variable: the copy of this file that happened to
+ * install the listener is not necessarily the copy a module chunk registers its guard on, and a
+ * listener that consulted its own `localGuard` would be permanently blind to the other one — the
+ * exact split D-R56 fixed for the in-app half.
+ *
+ * Both signals, because engines disagree about which one they honour for a listener added with
+ * `addEventListener`: Chromium reads `preventDefault()`, Firefox and Safari read a set
+ * `returnValue`. The string is never shown — every current browser uses its own wording — so it is
+ * deliberately empty rather than a message nobody will read. The listener returns nothing: a
+ * returned string only counts for `window.onbeforeunload =`, which this module does not use,
+ * because assigning that property would silently replace any other plugin's handler.
+ *
+ * @param {BeforeUnloadEvent} event The event.
+ */
+function onBeforeUnload(event) {
+  if (!currentGuard()) {
+    return;
+  }
+  event.preventDefault();
+  event.returnValue = '';
+}
+
+/** Install the ONE listener, unless some copy of this module already did. */
+function installUnloadListener() {
+  const scope = host();
+  if (!scope || typeof scope.addEventListener !== 'function' || currentUnload()) {
+    return;
+  }
+  scope.addEventListener('beforeunload', onBeforeUnload);
+  storeUnload(onBeforeUnload);
+}
+
+/**
+ * Remove the installed listener, whichever copy of this module installed it.
+ *
+ * The reference comes from the shared slot, so a guard registered by the Locations module chunk and
+ * cleared by the admin entry (or the reverse) still takes the listener down with it — and a clean
+ * page is left with no `beforeunload` listener at all, which is what keeps the back/forward cache
+ * available.
+ */
+function removeUnloadListener() {
+  const installed = currentUnload();
+  if (!installed) {
+    return;
+  }
+  const scope = host();
+  if (scope && typeof scope.removeEventListener === 'function') {
+    scope.removeEventListener('beforeunload', installed);
+  }
+  storeUnload(null);
+}
+
+/**
+ * Write the shared slot, and keep the `beforeunload` listener's lifetime equal to the guard's.
+ *
+ * Both halves move together HERE rather than in the two exported functions, so there is no way to
+ * add a write path that arms one and not the other.
+ *
+ * @param {Function|null} handler Handler or null.
+ */
+function storeGuard(handler) {
+  const namespace = namespaceObject();
+  if (!namespace) {
+    localGuard = handler;
+  } else if (null === handler) {
+    delete namespace[GUARD_KEY];
+  } else {
+    namespace[GUARD_KEY] = handler;
+  }
+  if (null === handler) {
+    removeUnloadListener();
+    return;
+  }
+  installUnloadListener();
+}
 
 /**
  * Register the active guard handler. Replaces any previous handler.
@@ -11593,7 +13486,7 @@ let guard = null;
  * @param {(proceed: () => void, cancel?: () => void) => void} handler Guard.
  */
 function setNavGuard(handler) {
-  guard = typeof handler === 'function' ? handler : null;
+  storeGuard(typeof handler === 'function' ? handler : null);
 }
 
 /**
@@ -11603,14 +13496,14 @@ function setNavGuard(handler) {
  * @param {Function} handler The handler passed to setNavGuard.
  */
 function clearNavGuard(handler) {
-  if (guard === handler) {
-    guard = null;
+  if (currentGuard() === handler) {
+    storeGuard(null);
   }
 }
 
 /** Whether a guard is currently registered (i.e. some form is dirty). */
 function hasNavGuard() {
-  return null !== guard;
+  return null !== currentGuard();
 }
 
 /**
@@ -11622,6 +13515,7 @@ function hasNavGuard() {
  * @param {() => void} [cancel] Roll the navigation back (optional).
  */
 function requestNav(proceed, cancel) {
+  const guard = currentGuard();
   if (!guard) {
     proceed();
     return;
@@ -11641,7 +13535,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   STATUS_WORD: () => (/* binding */ STATUS_WORD),
 /* harmony export */   notifiedSuffix: () => (/* binding */ notifiedSuffix),
-/* harmony export */   statusToast: () => (/* binding */ statusToast)
+/* harmony export */   statusToast: () => (/* binding */ statusToast),
+/* harmony export */   statusTone: () => (/* binding */ statusTone)
 /* harmony export */ });
 /**
  * Turning `PATCH /bookings/{id}`'s `notification` outcome into copy an admin can trust
@@ -11702,6 +13597,18 @@ function notifiedSuffix(notification) {
 }
 
 /**
+ * The toast tone of a status change (D-R64): `success` when the booking moved to a state the
+ * operator asked to REACH — confirmed, completed, or back to pending (Restore) — and the neutral
+ * `default` when it was stopped or did not happen (cancelled, no-show).
+ *
+ * @param {string} next Target status (wire value).
+ * @return {string} `success` or `default`.
+ */
+function statusTone(next) {
+  return 'confirmed' === next || 'completed' === next || 'pending' === next ? 'success' : 'default';
+}
+
+/**
  * The whole toast for a status change made from the list.
  *
  * @param {string} customer     Customer name.
@@ -11715,6 +13622,181 @@ function statusToast(customer, next, notification) {
 
 /***/ },
 
+/***/ "./assets/src/admin/lib/page-title.js"
+/*!********************************************!*\
+  !*** ./assets/src/admin/lib/page-title.js ***!
+  \********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ROUTE_TITLES: () => (/* binding */ ROUTE_TITLES),
+/* harmony export */   adminTitleSuffix: () => (/* binding */ adminTitleSuffix),
+/* harmony export */   composeTitle: () => (/* binding */ composeTitle),
+/* harmony export */   resetPageTitleForTests: () => (/* binding */ resetPageTitleForTests),
+/* harmony export */   routeTitleParts: () => (/* binding */ routeTitleParts),
+/* harmony export */   setRouteTitle: () => (/* binding */ setRouteTitle),
+/* harmony export */   usePageTitle: () => (/* binding */ usePageTitle)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _settings_ia_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../settings/ia.js */ "./assets/src/admin/settings/ia.js");
+/**
+ * The browser tab title for the admin SPA (first-run QA D26).
+ *
+ * WordPress prints the title once, server-side, from the menu page — so every Aponto screen read
+ * "Dashboard ‹ Site — WordPress" whatever was on it. The SPA now owns the PAGE part and keeps
+ * WordPress's own "‹ Site — WordPress" tail exactly as the server rendered it (translated
+ * separator included).
+ *
+ * Two layers, the same house idiom as `nav-guard.js` (a module-level singleton, no context):
+ *
+ *   - the ROUTE title, set by `App.jsx` on every route change (`setRouteTitle`);
+ *   - an optional OVERRIDE pushed by whatever full-page surface is on top — an editor or a module
+ *     panel — through `usePageTitle()`. Its parts are PREPENDED to the route title
+ *     ("Ana Silva ‹ Staff"), and it is popped when that surface unmounts, so closing an editor
+ *     puts the route title back without the route having to know an editor was ever open.
+ */
+
+
+
+
+/** Titles of the core routes (`CORE_ROUTES`). */
+const ROUTE_TITLES = {
+  'import-csv': (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('CSV import', 'aponto'),
+  dashboard: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Dashboard', 'aponto'),
+  bookings: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Bookings', 'aponto'),
+  calendar: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Calendar', 'aponto'),
+  customers: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Customers', 'aponto'),
+  services: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Services', 'aponto'),
+  events: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Events', 'aponto'),
+  staff: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Staff', 'aponto'),
+  'shared-assets': (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Shared assets', 'aponto'),
+  modules: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Modules', 'aponto'),
+  settings: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Settings', 'aponto')
+};
+
+/**
+ * The route layer's parts for a resolved route, most specific first.
+ *
+ * Settings names its section ("Business ‹ General ‹ Settings"); a module-owned route (D-R56)
+ * uses the label it registered; anything else falls back to its core title.
+ *
+ * @param {string}   route       Resolved route id.
+ * @param {string[]} segments    Hash segments.
+ * @param {?Object}  moduleRoute The registered route entry owning `route`, if any.
+ * @return {string[]} Parts.
+ */
+function routeTitleParts(route, segments = [], moduleRoute = null) {
+  if (moduleRoute && moduleRoute.label) {
+    return [moduleRoute.label];
+  }
+  if ('settings' === route) {
+    const {
+      parent,
+      child
+    } = (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_2__.resolveSettingsRoute)(segments);
+    const section = (0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_2__.settingsSection)(parent, child);
+    return [section.child?.label, section.parent.label, ROUTE_TITLES.settings];
+  }
+  return [ROUTE_TITLES[route] || ROUTE_TITLES.dashboard];
+}
+
+/** WordPress's admin-title separator (`&lsaquo;`). */
+const SEPARATOR = ' ‹ ';
+let suffix = null;
+let routeParts = [];
+/** @type {Array<{parts: string[]}>} */
+const overrides = [];
+
+/**
+ * The "‹ Site — WordPress" tail of a server-rendered admin title.
+ *
+ * When the separator is not found (a locale that translated the whole pattern), the entire
+ * server title is kept as the tail, so the site name is never lost.
+ *
+ * @param {string} title Server-rendered `document.title`.
+ * @return {string} Tail, starting with its separator; '' for an empty title.
+ */
+function adminTitleSuffix(title) {
+  const text = String(title || '').trim();
+  // The bare glyph, not ` ‹ `: a menu page that prints NO page title renders "‹ Site — WordPress"
+  // with nothing before the separator.
+  const at = text.indexOf(SEPARATOR.trim());
+  if (at >= 0) {
+    return ' ' + text.slice(at);
+  }
+  return text ? SEPARATOR + text : '';
+}
+
+/**
+ * Compose a full title from page parts, most specific first.
+ *
+ * @param {string[]} parts Page parts.
+ * @param {string}   tail  `adminTitleSuffix()` result.
+ * @return {string} Title.
+ */
+function composeTitle(parts, tail) {
+  const page = parts.map(part => String(part || '').trim()).filter(Boolean).join(SEPARATOR);
+  return page ? page + tail : tail.replace(SEPARATOR, '');
+}
+function apply() {
+  if ('undefined' === typeof document) {
+    return;
+  }
+  if (null === suffix) {
+    // Captured ONCE, from the title WordPress printed, before the SPA ever wrote one.
+    suffix = adminTitleSuffix(document.title);
+  }
+  const top = overrides.length ? overrides[overrides.length - 1].parts : [];
+  document.title = composeTitle([...top, ...routeParts], suffix);
+}
+
+/**
+ * Set the route layer.
+ *
+ * @param {string[]} parts Route title parts, most specific first.
+ */
+function setRouteTitle(parts) {
+  routeParts = Array.isArray(parts) ? parts : [parts];
+  apply();
+}
+
+/**
+ * Push a title for the full-page surface this component renders, for as long as it is mounted.
+ *
+ * @param {string|string[]} parts Parts to prepend to the route title, most specific first.
+ */
+function usePageTitle(parts) {
+  const list = (Array.isArray(parts) ? parts : [parts]).filter(Boolean);
+  const key = list.join('\u0000');
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const entry = {
+      parts: key ? key.split('\u0000') : []
+    };
+    overrides.push(entry);
+    apply();
+    return () => {
+      const at = overrides.indexOf(entry);
+      if (at >= 0) {
+        overrides.splice(at, 1);
+      }
+      apply();
+    };
+  }, [key]);
+}
+
+/** Test-only: forget the captured tail and every layer. */
+function resetPageTitleForTests() {
+  suffix = null;
+  routeParts = [];
+  overrides.length = 0;
+}
+
+/***/ },
+
 /***/ "./assets/src/admin/lib/payment-status.js"
 /*!************************************************!*\
   !*** ./assets/src/admin/lib/payment-status.js ***!
@@ -11724,18 +13806,23 @@ function statusToast(customer, next, notification) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   PAYMENT_FILTER_OPTIONS: () => (/* binding */ PAYMENT_FILTER_OPTIONS),
+/* harmony export */   PAYMENT_REASONS: () => (/* binding */ PAYMENT_REASONS),
 /* harmony export */   PAYMENT_STATUSES: () => (/* binding */ PAYMENT_STATUSES),
+/* harmony export */   REFUND_REVIEW_LABEL: () => (/* binding */ REFUND_REVIEW_LABEL),
 /* harmony export */   TRANSACTION_KIND_LABELS: () => (/* binding */ TRANSACTION_KIND_LABELS),
 /* harmony export */   TRANSACTION_STATUS_LABELS: () => (/* binding */ TRANSACTION_STATUS_LABELS),
 /* harmony export */   gatewayLabel: () => (/* binding */ gatewayLabel),
+/* harmony export */   listPaymentBadge: () => (/* binding */ listPaymentBadge),
 /* harmony export */   parseRefundAmount: () => (/* binding */ parseRefundAmount),
 /* harmony export */   paymentBadge: () => (/* binding */ paymentBadge),
 /* harmony export */   refundAmountError: () => (/* binding */ refundAmountError),
-/* harmony export */   shortRef: () => (/* binding */ shortRef)
+/* harmony export */   shortRef: () => (/* binding */ shortRef),
+/* harmony export */   transactionRef: () => (/* binding */ transactionRef)
 /* harmony export */ });
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _format_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./format.js */ "./assets/src/admin/lib/format.js");
+/* harmony import */ var _bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../bookings/dashboard-stats.js */ "./assets/src/admin/bookings/dashboard-stats.js");
 /**
  * Payment presentation for the admin — one source for the badge, the gateway name and the money
  * parsing the refund dialog needs (D-R38 / D-R39).
@@ -11752,8 +13839,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 /** The order `payment_status` enum, in the server's own order (`BookingsController::index` args). */
 const PAYMENT_STATUSES = ['none', 'pending', 'paid', 'partial', 'refunded'];
+
+/** Derived reasons distinguish deposit balances from refunded full payments (D-R71). */
+const PAYMENT_REASONS = ['none', 'pending', 'paid', 'deposit_paid', 'deposit_partially_refunded', 'partially_refunded', 'refunded'];
 
 /**
  * Badge copy + tone for an order's payment status.
@@ -11761,8 +13852,8 @@ const PAYMENT_STATUSES = ['none', 'pending', 'paid', 'partial', 'refunded'];
  * TONES, and why each is what it is:
  *   - `none` is NEUTRAL, not a warning. Most sites take no online payment at all, and painting
  *     every one of their bookings amber would make the normal state look broken.
- *   - `pending` is AMBER and carries a DEADLINE, because it is the only state with a clock on it:
- *     the slot is held and will be released if nobody pays (D-R38a/g).
+ *   - `pending` is AMBER. Only an unfinished, eligible checkout carries a deadline;
+ *     accepted appointments and uncertain payments retain their own contextual labels.
  *   - `partial` is amber for the same reason a half-finished refund is not a finished one.
  *   - `refunded` is neutral: the money is settled, just in the other direction. Green would
  *     celebrate it and red would read as a failure; it is neither.
@@ -11771,19 +13862,58 @@ const PAYMENT_STATUSES = ['none', 'pending', 'paid', 'partial', 'refunded'];
  * @param {Object}   [options] Presentation options.
  * @param {string}   [options.holdExpiresAt] UTC instant the hold lapses, for the pending deadline.
  * @param {Function} [options.formatTime]    `( utc ) => string` in business time.
+ * @param {boolean}  [options.holdDeadlineApplies] Whether the deadline currently governs checkout.
+ * @param {string}   [options.paymentStateReason] Server-derived payment context.
  * @return {{tone: string, label: string, title: string}} Badge descriptor.
  */
 function paymentBadge(status, {
   holdExpiresAt = '',
-  formatTime = null
+  formatTime = null,
+  holdDeadlineApplies = false,
+  paymentStateReason = ''
 } = {}) {
   switch (status) {
     case 'pending':
+      if (paymentStateReason === 'completed_unpaid') {
+        return {
+          tone: 'pending',
+          label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Unpaid · Appointment completed', 'aponto'),
+          title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('The appointment is completed, but payment has not been recorded.', 'aponto')
+        };
+      }
+      if (paymentStateReason === 'cash_on_delivery') {
+        // The title names no booking status (re-test N2): this reason also reaches a PENDING
+        // booking, and "The appointment is confirmed" was untrue there.
+        return {
+          tone: 'pending',
+          label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Awaiting payment · Cash on delivery', 'aponto'),
+          title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('The customer pays at the appointment. Payment has not been recorded.', 'aponto')
+        };
+      }
+      if (paymentStateReason === 'awaiting_offline_payment') {
+        // Placed, and the CUSTOMER still has to pay outside the site (a bank transfer, a
+        // cheque) — not something being verified (re-test N7).
+        return {
+          tone: 'pending',
+          label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Awaiting offline payment', 'aponto'),
+          title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('The order is placed and the customer still has to pay it outside this site, for example by bank transfer or cheque. The checkout deadline alone cannot release this slot.', 'aponto')
+        };
+      }
+      if (paymentStateReason === 'verifying_payment') {
+        // "Verifying payment" read as if something automatic were running (persona QA
+        // 2026-10-05, T-047): for a bank transfer on hold nothing is — somebody has to
+        // confirm the money arrived.
+        return {
+          tone: 'pending',
+          label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Awaiting payment confirmation', 'aponto'),
+          title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('The order is placed and its payment has not been confirmed yet. The checkout deadline alone cannot release this slot.', 'aponto')
+        };
+      }
       return {
         tone: 'pending',
-        label: holdExpiresAt && formatTime ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %s: local time the payment hold expires, e.g. "3:48 PM". */
+        label: holdDeadlineApplies && holdExpiresAt && formatTime ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %s: local time the payment hold expires, e.g. "3:48 PM". */
         (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Hold until %s', 'aponto'), formatTime(holdExpiresAt)) : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Awaiting payment', 'aponto'),
-        title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('The slot is held while the customer pays. It is released automatically if they do not.', 'aponto')
+        title: holdDeadlineApplies ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('The slot is held while the customer pays. Expiry requires verified nonpayment.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payment has not been recorded. The checkout hold deadline does not apply.', 'aponto')
       };
     case 'paid':
       return {
@@ -11791,6 +13921,19 @@ function paymentBadge(status, {
         label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Paid', 'aponto'),
         title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Paid in full.', 'aponto')
       };
+    case 'deposit_paid':
+      return {
+        tone: 'partial',
+        label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Deposit paid', 'aponto'),
+        title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('The balance is due on site.', 'aponto')
+      };
+    case 'deposit_partially_refunded':
+      return {
+        tone: 'partial',
+        label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Deposit partly refunded', 'aponto'),
+        title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Some or all of the deposit has been refunded; a balance remains.', 'aponto')
+      };
+    case 'partially_refunded':
     case 'partial':
       return {
         tone: 'partial',
@@ -11812,8 +13955,40 @@ function paymentBadge(status, {
   }
 }
 
+/** The cue a cancelled-but-still-paid booking carries wherever it is shown (T-056, D-R71k). */
+const REFUND_REVIEW_LABEL = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Paid — review refund', 'aponto');
+
+/**
+ * The payment badge of one BOOKINGS-LIST row (persona QA 2026-10-05, T-048 / T-056).
+ *
+ * The list item carries only `order.payment_status`, so two different situations used to read the
+ * same "Awaiting payment": a checkout the customer has not finished (a slot hold with no customer
+ * on it yet) and an order waiting for its payment to be confirmed. And a cancelled booking whose
+ * order is still paid read plainly "Paid", with nothing to say a refund is waiting.
+ *
+ * @param {Object} row Adapted booking row.
+ * @return {{tone: string, label: string, title: string}} Badge descriptor.
+ */
+function listPaymentBadge(row) {
+  if ((0,_bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_2__.isCheckoutHold)(row)) {
+    return {
+      tone: 'pending',
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Checkout not finished', 'aponto'),
+      title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('The slot is held while the customer pays. It is released automatically if they do not.', 'aponto')
+    };
+  }
+  if ((0,_bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_2__.needsRefundReview)(row)) {
+    return {
+      tone: 'pending',
+      label: REFUND_REVIEW_LABEL,
+      title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('This booking was cancelled but its payment was not refunded. Cancelling never refunds automatically.', 'aponto')
+    };
+  }
+  return paymentBadge(row?.paymentReason || row?.paymentStatus);
+}
+
 /** Facet/filter option labels — the badge words, so the facet and the badge cannot disagree. */
-const PAYMENT_FILTER_OPTIONS = PAYMENT_STATUSES.map(value => ({
+const PAYMENT_FILTER_OPTIONS = PAYMENT_REASONS.map(value => ({
   value,
   label: paymentBadge(value).label
 }));
@@ -11833,17 +14008,22 @@ function gatewayLabel(gateway) {
   // dashboards the operator will open next.
   const names = {
     payments_stripe: 'Stripe',
-    payments_paypal: 'PayPal'
+    payments_paypal: 'PayPal',
+    payments_woocommerce: 'WooCommerce'
   };
   return names[gateway] || '—';
 }
 
 /** Transaction row labels — `kind` and `status` are both server enums. */
 const TRANSACTION_KIND_LABELS = {
+  balance: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Balance payment', 'aponto'),
+  onsite_refund: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('On-site refund', 'aponto'),
+  onsite: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('On-site balance', 'aponto'),
   charge: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payment', 'aponto'),
   refund: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Refund', 'aponto')
 };
 const TRANSACTION_STATUS_LABELS = {
+  reversed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Reversed', 'aponto'),
   pending: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Pending', 'aponto'),
   succeeded: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Succeeded', 'aponto'),
   failed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Failed', 'aponto'),
@@ -11851,8 +14031,42 @@ const TRANSACTION_STATUS_LABELS = {
   // (D-R38a(2)); it is short-lived but it CAN be on screen, and an unlabelled status would
   // render as a raw enum.
   voiding: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Cancelling', 'aponto'),
+  // `capturing` is the claim a charge carries while its payment is being taken (D-R40c). For a
+  // checkout platform it lasts until the platform's order is paid, so it is routinely on screen.
+  // "Awaiting confirmation", not "Processing" (T-047): nothing is being processed while a bank
+  // transfer is on hold — the row waits for the payment to be confirmed.
+  capturing: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Awaiting confirmation', 'aponto'),
   cancelled: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Cancelled', 'aponto')
 };
+
+/**
+ * The reference worth showing for one ledger row (QA run 2 BUG-5).
+ *
+ * A CHARGE is best identified by what the gateway calls the payment; a REFUND by the refund's own
+ * id, which since D-R40d lives in `gateway_ref` (rest-contract §2.21). Falling back the other way
+ * keeps rows written before that change readable, where the refund id sat in `payment_ref`.
+ *
+ * A charge that has no payment reference yet falls back to `gateway_ref` — except on an order
+ * settled through an external checkout platform. There `gateway_ref` is Aponto's own internal
+ * checkout reference (a 64-character hash nobody can look up anywhere), and the order is already
+ * identified by the "External order" row above the ledger, so the cell stays empty.
+ *
+ * The same holds BEFORE that order exists (a held booking whose customer has not placed the
+ * external order yet): the only reference is still the internal one. It is recognised by its
+ * shape — 64 lowercase hex characters, which no payment provider uses for an id a person looks
+ * up — and the cell stays empty rather than printing a truncated hash (F18).
+ *
+ * @param {Object}  t                Transaction DTO (adapter shape).
+ * @param {boolean} hasExternalOrder Whether the order carries an external order record.
+ * @return {string} Reference to display.
+ */
+function transactionRef(t, hasExternalOrder = false) {
+  if (t.kind === 'refund') {
+    return t.gatewayRef || t.paymentRef || '';
+  }
+  const internal = hasExternalOrder || /^[a-f0-9]{64}$/.test(t.gatewayRef || '');
+  return t.paymentRef || (internal ? '' : t.gatewayRef || '');
+}
 
 /**
  * A gateway reference, shortened for a table cell.
@@ -11957,16 +14171,22 @@ function refundAmountError(typed, refundable, currency, exponent = null) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   RESELECT_EVENT: () => (/* binding */ RESELECT_EVENT),
 /* harmony export */   ROUTES: () => (/* binding */ ROUTES),
+/* harmony export */   bookingRouteId: () => (/* binding */ bookingRouteId),
 /* harmony export */   moduleRouteCode: () => (/* binding */ moduleRouteCode),
 /* harmony export */   navTarget: () => (/* binding */ navTarget),
 /* harmony export */   parseHash: () => (/* binding */ parseHash),
 /* harmony export */   syncWpMenu: () => (/* binding */ syncWpMenu),
-/* harmony export */   useRoute: () => (/* binding */ useRoute)
+/* harmony export */   useRoute: () => (/* binding */ useRoute),
+/* harmony export */   useRouteReselect: () => (/* binding */ useRouteReselect),
+/* harmony export */   wpMenuClickRoute: () => (/* binding */ wpMenuClickRoute)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _nav_guard_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./nav-guard.js */ "./assets/src/admin/lib/nav-guard.js");
+/* harmony import */ var _admin_routes_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./admin-routes.js */ "./assets/src/admin/lib/admin-routes.js");
+/* harmony import */ var _modules_module_state_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../modules/module-state.js */ "./assets/src/admin/modules/module-state.js");
 /**
  * Hash router. WP submenu items deep-link to `admin.php?page=aponto#route`; the
  * app owns the hash and keeps the WP submenu highlight in sync (SPEC-P1 §1.0).
@@ -11980,10 +14200,29 @@ __webpack_require__.r(__webpack_exports__);
  */
 
 
-const ROUTES = ['dashboard', 'bookings', 'calendar', 'customers', 'services', 'events', 'staff', 'shared-assets', 'modules', 'settings'];
+
+
+const ROUTES = _admin_routes_js__WEBPACK_IMPORTED_MODULE_2__.CORE_ROUTES;
 const LEGACY = {
   offerings: 'services',
   resources: 'staff'
+};
+
+/**
+ * Fallbacks for a first segment that names no route at all — the module surface a REMOVED
+ * standalone route used to live on, so an old bookmark still lands somewhere truthful.
+ *
+ * Reached only AFTER the core list and the module-owned registry have both declined, which is
+ * what D-R56 inverted: `#locations` resolves to the registered Locations route whenever the
+ * Premium bundle contributed one, and falls back to `#modules/multi_location` — the honest
+ * locked state — on Free and while the module is switched off (D-R43 was the other way round).
+ * The module code here is shared code's ONE unavoidable mention of it: a legacy hash cannot be
+ * translated by the registry that no longer holds it.
+ *
+ * @type {Object<string, string[]>}
+ */
+const LEGACY_FALLBACK = {
+  locations: ['modules', 'multi_location']
 };
 
 /**
@@ -11998,23 +14237,42 @@ const LEGACY = {
  * @type {string[]}
  */
 const DETAIL_PAGE_ROUTES = ['modules'];
+
+/**
+ * Whether a module-owned route owns this id right now (D-R56).
+ *
+ * The rules live in ONE place, {@link adminRouteIsOpen}, shared with the header menus so they
+ * cannot disagree. Read through the SESSION store rather than the boot snapshot, so a module
+ * switched off a moment ago stops resolving without a reload — the same source
+ * `modules/ModuleSettingsRoute.jsx` reads.
+ *
+ * @param {string} id Route id.
+ * @return {boolean} Whether a registered, usable route owns this id.
+ */
+function registeredRouteIsOpen(id) {
+  return (0,_admin_routes_js__WEBPACK_IMPORTED_MODULE_2__.adminRouteIsOpen)((0,_admin_routes_js__WEBPACK_IMPORTED_MODULE_2__.getAdminRoute)(id), (0,_modules_module_state_js__WEBPACK_IMPORTED_MODULE_3__.getModules)());
+}
 function parseHash(hash = window.location.hash) {
   const segments = String(hash).replace(/^#/, '').split('/').filter(Boolean);
-  // D-R43 removes the standalone Locations surface. Preserve old bookmarks by landing on the
-  // separately distributed module's detail page, where Free gets the honest locked state.
-  if (segments[0] === 'locations') {
-    return {
-      route: 'modules',
-      segments: ['modules', 'multi_location']
-    };
-  }
   let route = segments[0] || 'dashboard';
   route = LEGACY[route] || route;
-  if (!ROUTES.includes(route)) {
-    route = 'dashboard';
+  // A module-owned route (D-R56) is a route: core ships the registry, the module ships the
+  // entry, and this is where the hash router honours it.
+  if (ROUTES.includes(route) || registeredRouteIsOpen(route)) {
+    return {
+      route,
+      segments
+    };
+  }
+  const fallback = LEGACY_FALLBACK[route];
+  if (fallback) {
+    return {
+      route: fallback[0],
+      segments: fallback.slice()
+    };
   }
   return {
-    route,
+    route: 'dashboard',
     segments
   };
 }
@@ -12075,32 +14333,202 @@ function moduleRouteCode(segments) {
   const code = String(segments[1] || '');
   return /^[a-z0-9_]+$/.test(code) ? code : '';
 }
+
+/**
+ * The booking id of a `#bookings/{id}` deep link, or 0 (persona QA 2026-10-05).
+ *
+ * `{admin_booking_link}` in the staff mails and the "Booking: AP-…" link on an external order both
+ * point at `admin.php?page=aponto#bookings/{id}`, which landed on the list with nothing open. Only
+ * a bare positive integer in the second segment is a booking: `#bookings/payment/pending` keeps
+ * its own meaning (the payment facet, `bookings/BookingsTable.jsx` `deepLinkFilters`), and
+ * anything else is the plain list.
+ *
+ * @param {string[]} segments Hash segments from {@link parseHash}.
+ * @return {number} Booking id, or 0 when the hash names none.
+ */
+function bookingRouteId(segments) {
+  if (!Array.isArray(segments) || segments[0] !== 'bookings' || segments.length !== 2) {
+    return 0;
+  }
+  const raw = String(segments[1]);
+  return /^[1-9]\d{0,17}$/.test(raw) ? Number(raw) : 0;
+}
+
+/**
+ * "The operator pressed the nav item of the route that is already on screen" (persona QA
+ * 2026-10-05, T-076).
+ *
+ * {@link navTarget} answers `null` for that press, and for a list screen that is right: there is
+ * nowhere to go. But Services and Staff open their full-page editors from LOCAL STATE without
+ * moving the hash, so with an editor open the hash still reads `#services` — and pressing
+ * "Services", in the header or in the WordPress sidebar, did nothing at all. Three testers read
+ * that as a dead menu; the only ways out were Cancel and a reload.
+ *
+ * The router cannot close an editor it does not own, so it ANNOUNCES the press and the owning
+ * route decides ({@link useRouteReselect}): it runs its own Cancel path, discard question
+ * included. A DOM event rather than a module-level callback list, for the reason
+ * `lib/editor-guards.js` gives — a module bundle compiles its own copy of this file.
+ */
+const RESELECT_EVENT = 'aponto-admin-route-reselect';
+
+/**
+ * @param {string} route Bare route id that was re-selected.
+ */
+function announceReselect(route) {
+  if (typeof window === 'undefined' || typeof window.CustomEvent !== 'function') {
+    return;
+  }
+  window.dispatchEvent(new window.CustomEvent(RESELECT_EVENT, {
+    detail: {
+      route
+    }
+  }));
+}
+
+/**
+ * The bare route a click on one of OUR WordPress submenu links points at, or '' when the click is
+ * not one (another plugin's link, a modified click that opens a new tab, a deep link).
+ *
+ * @param {Event} event Click event.
+ * @return {string} Bare route id, or ''.
+ */
+function wpMenuClickRoute(event) {
+  if (!event || event.defaultPrevented || event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+    return '';
+  }
+  const link = event.target?.closest?.('#adminmenu a[href*="page=aponto"]');
+  if (!link) {
+    return '';
+  }
+  const href = link.getAttribute('href') || '';
+  const hash = href.includes('#') ? href.split('#')[1] : 'dashboard';
+  return hash.includes('/') ? '' : LEGACY[hash] || hash;
+}
+
+/**
+ * Run `handler` when the operator re-selects `route` while it is already on screen.
+ *
+ * @param {string}   route   Bare route id this component owns.
+ * @param {Function} handler Called with no arguments; read through a ref, so its identity may
+ *                           change on every render without re-subscribing.
+ */
+function useRouteReselect(route, handler) {
+  const handlerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(handler);
+  handlerRef.current = handler;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const onReselect = event => {
+      if (event?.detail?.route === route) {
+        handlerRef.current?.();
+      }
+    };
+    window.addEventListener(RESELECT_EVENT, onReselect);
+    return () => window.removeEventListener(RESELECT_EVENT, onReselect);
+  }, [route]);
+}
 function useRoute() {
   const [state, setState] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => parseHash());
+  // The route on screen, readable from the listeners below without re-subscribing on every
+  // navigation. Assigned during render, the same idiom `App.jsx` uses for its menu-open mirrors.
+  const routeRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(state.route);
+  routeRef.current = state.route;
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const onHash = event => {
+    /**
+     * Whether the FIRST reconcile is behind us. The landing hash is deliberately never
+     * rewritten: a module bundle is a second script tag and may not have registered yet, so
+     * canonicalizing `#locations` to its fallback on mount would destroy the hash the operator
+     * actually asked for microseconds before the bundle got its chance — and direct landing on
+     * `#locations` is precisely what the registry exists to make work. The trade-off is that on
+     * Free the address bar keeps saying `#locations` while the module page renders, which is
+     * exactly the behaviour D-R43 already shipped.
+     */
+    let mounted = false;
+
+    /**
+     * THE single route transition, for every reason the resolved route can change (D-R56).
+     *
+     * Three of them now: a hash change, a module bundle REGISTERING its route after the SPA
+     * parsed the landing hash, and a module being switched off under an open screen. They all
+     * come through here because the dirty-form guard and the URL/menu reconciliation below must
+     * apply to all three — a store-driven transition that skipped the guard would unmount a
+     * dirty Settings form without asking, which is the whole reason the guard exists.
+     *
+     * @param {string} [restoreHash] Hash to restore while the guard decides. Present only for a
+     *                               hash change: the store paths moved no hash, so there is
+     *                               nothing to put back.
+     */
+    const settle = restoreHash => {
       const next = parseHash();
-      const oldHash = event && event.oldURL && event.oldURL.includes('#') ? '#' + event.oldURL.split('#').slice(1).join('#') : '';
-      if ((0,_nav_guard_js__WEBPACK_IMPORTED_MODULE_1__.hasNavGuard)() && parseHash(oldHash).route !== next.route) {
-        // A dirty form is on screen: restore the previous hash (replaceState
-        // fires no hashchange) and let the guard confirm. On confirm the
-        // guard has cleared itself, so re-applying the target hash passes.
+      if ((0,_nav_guard_js__WEBPACK_IMPORTED_MODULE_1__.hasNavGuard)() && next.route !== routeRef.current) {
+        // A dirty form is on screen. For a hash change, restore the previous hash first
+        // (replaceState fires no hashchange) so the URL matches the screen while the guard
+        // decides; on confirm the guard has cleared itself, so re-applying the target hash
+        // passes. A store-driven change moved no hash, so it just re-resolves on confirm.
         const target = window.location.hash;
-        window.history.replaceState(null, '', oldHash || '#');
+        if (undefined !== restoreHash) {
+          window.history.replaceState(null, '', restoreHash || '#');
+        }
         (0,_nav_guard_js__WEBPACK_IMPORTED_MODULE_1__.requestNav)(() => {
+          if (undefined === restoreHash) {
+            settle();
+            return;
+          }
           window.location.hash = target.replace(/^#/, '');
         });
         return;
       }
-      setState(next);
+
+      // The hash no longer names what it resolves to — a legacy fallback (`#locations` with
+      // no registered route), or a module switched off while its screen was open. Move the
+      // URL so the address bar, `syncWpMenu()`'s highlight and the rendered route agree
+      // instead of leaving a hash that points at a screen nobody is on. `replaceState` fires
+      // no hashchange and adds no history entry, so Back still leaves for wherever the
+      // operator came from rather than bouncing off this hash again. Never on the first
+      // reconcile — see `mounted` above.
+      const path = next.segments.join('/');
+      if (mounted && path !== window.location.hash.replace(/^#/, '')) {
+        window.history.replaceState(null, '', '#' + path);
+      }
+      setState(current => current.route === next.route && current.segments.join('/') === next.segments.join('/') ? current : next);
     };
+    const onHash = event => {
+      const oldHash = event && event.oldURL && event.oldURL.includes('#') ? '#' + event.oldURL.split('#').slice(1).join('#') : '';
+      settle(oldHash);
+    };
+
+    // A WordPress submenu link for the route ALREADY on screen. Its hash is usually the hash
+    // already in the address bar, so the browser fires no `hashchange` and the click was a
+    // no-op; announce it like the header nav's own re-select (T-076). Never prevents the
+    // default: when the hash does differ (`#services/12` → `#services`) the navigation runs
+    // as before.
+    const onMenuClick = event => {
+      const target = wpMenuClickRoute(event);
+      if ('' !== target && target === routeRef.current) {
+        announceReselect(target);
+      }
+    };
+    document.addEventListener('click', onMenuClick);
     window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    const offRoutes = (0,_admin_routes_js__WEBPACK_IMPORTED_MODULE_2__.subscribeAdminRoutes)(() => settle());
+    const offModules = (0,_modules_module_state_js__WEBPACK_IMPORTED_MODULE_3__.subscribeModules)(() => settle());
+    // Reconcile once on mount too: a module bundle can register between the initial parse
+    // (render) and this subscription (effect), and that window is the race the registry
+    // exists for.
+    settle();
+    mounted = true;
+    return () => {
+      window.removeEventListener('hashchange', onHash);
+      document.removeEventListener('click', onMenuClick);
+      offRoutes();
+      offModules();
+    };
   }, []);
   const navigate = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(path => {
     const target = navTarget(window.location.hash, path);
     if (null === target) {
-      // Already on screen — still scroll to top for parity with the mockup.
+      // Already on screen. Say so, so a route with a full-page editor open over its list can
+      // return to the list (T-076)…
+      announceReselect(String(path).replace(/^#/, ''));
+      // …and still scroll to top for parity with the mockup.
       window.scrollTo({
         top: 0,
         behavior: 'instant'
@@ -12119,7 +14547,9 @@ function useRoute() {
  * Keep the WordPress submenu highlight in sync with the active hash route.
  * Only touches our own `#adminmenu` items (never the rest of the WP chrome).
  */
-function syncWpMenu(route) {
+function syncWpMenu(route, segments = []) {
+  // A booking deep link is still the Bookings screen: keep its submenu item highlighted.
+  const path = segments.length && !bookingRouteId(segments) ? segments.join('/') : route;
   const links = document.querySelectorAll('#adminmenu a[href*="page=aponto"]');
   links.forEach(link => {
     const li = link.closest('li');
@@ -12128,7 +14558,7 @@ function syncWpMenu(route) {
     }
     const href = link.getAttribute('href') || '';
     const hash = href.includes('#') ? href.split('#')[1] : 'dashboard';
-    const isMatch = hash === route;
+    const isMatch = hash === path;
     li.classList.toggle('current', isMatch);
     if (isMatch) {
       link.setAttribute('aria-current', 'page');
@@ -12156,9 +14586,10 @@ __webpack_require__.r(__webpack_exports__);
  * customer-timezone labelling is unit-testable in the framework-free node jest env.
  *
  * The primary time shown in the Schedule cell is ALWAYS business/studio time. The secondary
- * line names the CUSTOMER's timezone only when it differs, and is prefixed with
- * "Customer time ·" so it can never be misread as the displayed time being in the customer's
- * zone — matching the booking editor's "Business time · … · Customer time …" note.
+ * line names the CUSTOMER's timezone only when it differs — with the customer's own clock when the
+ * caller can format one (T-049) — and is prefixed so it can never be misread as the displayed time
+ * being in the customer's zone, matching the booking editor's "Business time · … · Customer time …"
+ * note.
  */
 
 /**
@@ -12179,13 +14610,32 @@ function customerTimezoneLabel(booking, businessTimezone) {
  * Secondary Schedule-cell line naming the customer timezone, prefixed so it never reads as the
  * displayed (business) time. '' when the customer zone matches business time or is unknown.
  *
- * @param {Object} booking          Adapted booking row.
- * @param {string} businessTimezone IANA business timezone.
- * @return {string} `Customer time · {label}`, or '' when the zones match.
+ * With a `formatTime` the line prints the customer's OWN clock — "Customer: 4:00 PM · Ho Chi Minh
+ * (GMT+7)" (persona QA 2026-10-05, T-049): a bare "Customer time · {zone}" under the business time
+ * still read as if that time were the customer's. Without one (or when the zone cannot be
+ * formatted) it stays the plain zone caption.
+ *
+ * @param {Object}   booking          Adapted booking row.
+ * @param {string}   businessTimezone IANA business timezone.
+ * @param {Function} [formatTime]     `( utcInstant, timezone ) => string`, e.g. `timeLabel`.
+ * @return {string} The caption, or '' when the zones match.
  */
-function customerTimezoneLine(booking, businessTimezone) {
+function customerTimezoneLine(booking, businessTimezone, formatTime = null) {
   const label = customerTimezoneLabel(booking, businessTimezone);
-  return label ? `Customer time · ${label}` : '';
+  if (!label) {
+    return '';
+  }
+  if (formatTime && booking.startUtc) {
+    try {
+      const time = formatTime(booking.startUtc, booking.customerTimezone);
+      if (time) {
+        return `Customer: ${time} · ${label}`;
+      }
+    } catch (e) {
+      // A zone this browser cannot format: fall through to the caption.
+    }
+  }
+  return `Customer time · ${label}`;
 }
 
 /***/ },
@@ -12258,6 +14708,108 @@ function closedIntervals(periods, minMinute, maxMinute) {
     closed.push([cursor, maxMinute]);
   }
   return closed;
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/lib/table-preferences.js"
+/*!***************************************************!*\
+  !*** ./assets/src/admin/lib/table-preferences.js ***!
+  \***************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   bookingsTableLayout: () => (/* binding */ bookingsTableLayout),
+/* harmony export */   flushBookingsTableLayout: () => (/* binding */ flushBookingsTableLayout),
+/* harmony export */   saveBookingsTableLayout: () => (/* binding */ saveBookingsTableLayout)
+/* harmony export */ });
+/* harmony import */ var _api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./api.js */ "./assets/src/admin/lib/api.js");
+/* harmony import */ var _config_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./config.js */ "./assets/src/admin/lib/config.js");
+/**
+ * The operator's saved Bookings list column layout (D-R74, rest-contract §2.23).
+ *
+ * Stored per USER in WordPress (a user option), not in `localStorage`: the founder wants the
+ * Columns choices to follow the person to another browser or machine. The page boots with the
+ * stored layout (`config.preferences.bookingsTable`), so the first paint already has it; this module
+ * keeps the in-session copy current, because that boot snapshot is read once per page load while
+ * the Bookings route remounts on every visit.
+ *
+ * Writes are debounced — a few checkbox clicks in a row are one save — and a layout that shows the
+ * defaults is a DELETE, not a PUT: "no saved layout" is what makes a later change to the defaults
+ * reach this operator too. Writes also go out ONE AT A TIME, in the order they were made: a slow
+ * PUT that landed after the DELETE that followed it would bring back the layout just reset.
+ */
+
+
+const SAVE_DELAY_MS = 400;
+let current = _config_js__WEBPACK_IMPORTED_MODULE_1__.config.preferences.bookingsTable;
+let timer = null;
+let pendingWrite = null;
+// The tail of the write queue; it never rejects (each write swallows its own failure).
+let lastWrite = Promise.resolve();
+
+/**
+ * The layout to start the Bookings list with, in `BookingsTable`'s `initialPreferences` shape.
+ *
+ * @return {Object} `{ columnVisibility, columnOrder }`, or `{}` for the defaults.
+ */
+function bookingsTableLayout() {
+  if (!current) {
+    return {};
+  }
+  return {
+    columnVisibility: current.columnVisibility && typeof current.columnVisibility === 'object' ? current.columnVisibility : {},
+    columnOrder: Array.isArray(current.columnOrder) ? current.columnOrder : []
+  };
+}
+
+/**
+ * Send the queued write now, if there is one.
+ *
+ * @return {Promise} Settles (never rejects) once every write made so far has been answered.
+ */
+function flushBookingsTableLayout() {
+  if (timer) {
+    clearTimeout(timer);
+    timer = null;
+  }
+  const write = pendingWrite;
+  pendingWrite = null;
+  if (write) {
+    lastWrite = lastWrite.then(write);
+  }
+  return lastWrite;
+}
+
+/**
+ * Remember a layout for this operator.
+ *
+ * @param {Object}   layout                  `{ columnVisibility, columnOrder }`.
+ * @param {boolean}  isDefault               True when it shows exactly the defaults (forget it).
+ * @param {Function} [onError]               Called with the error when the save fails.
+ */
+function saveBookingsTableLayout(layout, isDefault, onError) {
+  const columnVisibility = {
+    ...(layout.columnVisibility || {})
+  };
+  const columnOrder = [...(layout.columnOrder || [])];
+  // The in-session copy moves NOW, so a remount inside the debounce window starts from what the
+  // operator just picked rather than the boot snapshot.
+  current = isDefault ? null : {
+    columnVisibility,
+    columnOrder
+  };
+  pendingWrite = () => (isDefault ? _api_js__WEBPACK_IMPORTED_MODULE_0__.api.del('/preferences/bookings-table') : _api_js__WEBPACK_IMPORTED_MODULE_0__.api.put('/preferences/bookings-table', {
+    column_visibility: columnVisibility,
+    column_order: columnOrder
+  })).then(() => undefined, err => {
+    onError?.(err);
+  });
+  if (timer) {
+    clearTimeout(timer);
+  }
+  timer = setTimeout(flushBookingsTableLayout, SAVE_DELAY_MS);
 }
 
 /***/ },
@@ -12501,15 +15053,75 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _icon_jsx__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./icon.jsx */ "./assets/src/admin/lib/icon.jsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
 /**
  * Lightweight toast. The mockup toasts often mark a REST boundary or the result
  * of a write (sent/suppressed notify, deleted, saved). One live toast at a time.
+ *
+ * TWO WEBPACK ENTRIES MEAN TWO MODULE INSTANCES, so React context alone is not enough here
+ * (found reviewing D-R56). A module bundle (`assets/src/pro/{code}`, `assets/src/modules/{code}`)
+ * cannot import from the admin entry, so webpack compiles it its OWN copy of this file — with
+ * its own `ToastContext` object. A component from that copy rendered inside the SPA's tree reads
+ * ITS context, never the one `ToastProvider` populated, so it silently fell back to the default.
+ * That is exactly the failure the Locations screen would have shipped: every save, delete and
+ * error message from the module's own components disappearing with no console trace.
+ *
+ * The fix is the same one `lib/module-panels.js` and `lib/admin-routes.js` use for the same
+ * reason: the two bundles meet on the ONE thing they genuinely share, the `window.apontoAdmin`
+ * global. The mounted provider publishes its `showToast` there, and the context DEFAULT is a
+ * stable bridge that forwards to it. So:
+ *
+ *   - a component under the real provider gets the provider's own function, exactly as before —
+ *     no global lookup, no behaviour change;
+ *   - a component from a second bundle's copy gets the bridge, which reaches the one mounted
+ *     toast region;
+ *   - with no provider mounted at all (tests, SSR) the bridge is a no-op, which is what the
+ *     previous default was.
+ *
+ * THREE TONES (D-R64): `default` (neutral), `danger` (the copy turns the danger colour) and
+ * `success` — the copy is unchanged and a green check (`aria-hidden`, the message is the whole
+ * announcement) is painted before it. `success` marks a state the operator asked for and now has
+ * (a module enabled); it is not "a write that worked" in general, so a module DISABLED stays
+ * neutral. The bridge forwards the tone verbatim, so a second bundle's copy can raise any of the
+ * three.
  */
 
 
-const ToastContext = (0,react__WEBPACK_IMPORTED_MODULE_0__.createContext)(() => {});
+
+/** Stable global namespace, the object `AdminPage::bootConfig()` already injects. */
+
+const GLOBAL_KEY = 'apontoAdmin';
+
+/** Property the mounted provider publishes its writer on. */
+const TOAST_KEY = 'showToast';
+
+/** The global object to publish onto, or null when there is none (SSR / node tests). */
+function host() {
+  if (typeof window !== 'undefined') {
+    return window;
+  }
+  return typeof globalThis !== 'undefined' ? globalThis : null;
+}
+
+/**
+ * The context default: forward to whichever provider is mounted, through the shared global.
+ *
+ * A module constant, so it is referentially stable and a consumer never re-renders because the
+ * default changed. Silently does nothing when no provider is mounted — a toast is feedback, and
+ * failing to show one must never break the write it was reporting on.
+ *
+ * @param {string} message Toast copy.
+ * @param {string} [tone]  `default`, `danger` or `success` (D-R64).
+ */
+function bridgeToast(message, tone) {
+  const writer = host()?.[GLOBAL_KEY]?.[TOAST_KEY];
+  if (typeof writer === 'function') {
+    writer(message, tone);
+  }
+}
+const ToastContext = (0,react__WEBPACK_IMPORTED_MODULE_0__.createContext)(bridgeToast);
 function useToast() {
   return (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(ToastContext);
 }
@@ -12531,16 +15143,35 @@ function ToastProvider({
     }
     timer.current = setTimeout(() => setToast(null), 3200);
   }, []);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)(ToastContext.Provider, {
+
+  // Publish the writer for consumers that live in another bundle's copy of this module.
+  // Cleared on unmount ONLY when it is still ours, so a remount racing this teardown never
+  // removes the newer provider's writer (the same rule `lib/nav-guard.js` applies).
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const scope = host();
+    if (!scope) {
+      return undefined;
+    }
+    if (!scope[GLOBAL_KEY] || typeof scope[GLOBAL_KEY] !== 'object') {
+      scope[GLOBAL_KEY] = {};
+    }
+    scope[GLOBAL_KEY][TOAST_KEY] = showToast;
+    return () => {
+      if (scope[GLOBAL_KEY] && scope[GLOBAL_KEY][TOAST_KEY] === showToast) {
+        delete scope[GLOBAL_KEY][TOAST_KEY];
+      }
+    };
+  }, [showToast]);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)(ToastContext.Provider, {
     value: showToast,
-    children: [children, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+    children: [children, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
       className: `ap-toast${toast ? ' is-visible' : ''}`,
       role: "status",
       "aria-live": "polite",
-      children: toast ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
+      children: [toast && toast.tone === 'success' ? (0,_icon_jsx__WEBPACK_IMPORTED_MODULE_1__.renderIcon)('check') : null, toast ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
         className: toast.tone === 'danger' ? 'ap-toast-danger' : undefined,
         children: toast.message
-      }) : null
+      }) : null]
     })]
   });
 }
@@ -12698,6 +15329,1221 @@ function RouteEmpty({
 
 /***/ },
 
+/***/ "./assets/src/admin/modules/catalog.js"
+/*!*********************************************!*\
+  !*** ./assets/src/admin/modules/catalog.js ***!
+  \*********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CATEGORY_META: () => (/* binding */ CATEGORY_META),
+/* harmony export */   CATEGORY_TABS: () => (/* binding */ CATEGORY_TABS),
+/* harmony export */   COMPARE_SECTIONS: () => (/* binding */ COMPARE_SECTIONS),
+/* harmony export */   INCLUDED_CARD_ROUTES: () => (/* binding */ INCLUDED_CARD_ROUTES),
+/* harmony export */   INDUSTRY_LABELS: () => (/* binding */ INDUSTRY_LABELS),
+/* harmony export */   INDUSTRY_OPTIONS: () => (/* binding */ INDUSTRY_OPTIONS),
+/* harmony export */   MODULE_META: () => (/* binding */ MODULE_META),
+/* harmony export */   enablingNeedsReload: () => (/* binding */ enablingNeedsReload),
+/* harmony export */   findModuleRecord: () => (/* binding */ findModuleRecord),
+/* harmony export */   integrationStateLabel: () => (/* binding */ integrationStateLabel),
+/* harmony export */   kindLabel: () => (/* binding */ kindLabel),
+/* harmony export */   moduleAvailability: () => (/* binding */ moduleAvailability),
+/* harmony export */   moduleAvailable: () => (/* binding */ moduleAvailable),
+/* harmony export */   moduleCardState: () => (/* binding */ moduleCardState),
+/* harmony export */   moduleOpenHref: () => (/* binding */ moduleOpenHref),
+/* harmony export */   moduleSearchText: () => (/* binding */ moduleSearchText),
+/* harmony export */   moduleStateLabel: () => (/* binding */ moduleStateLabel),
+/* harmony export */   moduleToggleAllowed: () => (/* binding */ moduleToggleAllowed),
+/* harmony export */   paymentStateLabel: () => (/* binding */ paymentStateLabel),
+/* harmony export */   upgradeUrl: () => (/* binding */ upgradeUrl)
+/* harmony export */ });
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _filters_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./filters.js */ "./assets/src/admin/modules/filters.js");
+/**
+ * Presentation catalog + upsell data for the Modules surface (SPEC-P1 §6).
+ *
+ * The registry (SPEC-P0 §3.2, shipped as `config.modules`) owns the entitlement
+ * metadata — category, kind, edition, phase — plus the additive presentation flags
+ * `status` (D-R22), `available` (D-R27) and `enabled`/`toggleable` (D-R31). This file
+ * owns the display copy (label, one-line description, icon), the card-state mapping and
+ * the free-vs-premium comparison matrix.
+ *
+ * Cards + comparison + per-placement UTM links on the Premium cards only; no license
+ * field and no fake controls (§6 + Guideline 5/11). The surface stopped being read-only
+ * with D-R31: a shipped, toggleable module carries a REAL enable/disable switch, which is
+ * the ONE control here and is backed by `PUT /modules/{code}`. Roadmap `phase` stays
+ * code/registry-side only — never rendered on production cards
+ * (plugin-dashboard-divergence.md §2.7), except the premium-build roadmap label below.
+ *
+ * COPY STATUS (C1 review fix 3): every user-facing string in this file — module
+ * labels/descriptions, comparison rows, upsell wording — is DRAFT copy pending
+ * founder approval before GA, and must stay honest: modules ship across the
+ * premium roadmap, so no "unlock now" phrasing for not-yet-shipped modules.
+ * The UTM base URL below also needs founder confirmation.
+ */
+
+
+
+/** Category tabs, in order (SPEC-P1 §6). `all` is the default landing view. */
+const CATEGORY_TABS = [{
+  id: 'all',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('All', 'aponto')
+}, {
+  id: 'booking',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking', 'aponto')
+}, {
+  id: 'payments',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payments', 'aponto')
+}, {
+  id: 'connections',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Connections', 'aponto')
+}, {
+  id: 'site_tools',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Site & Tools', 'aponto')
+}];
+
+/**
+ * Industry filter options, in display order (D-R21, founder-approved 2026-07-25).
+ * The ids are the registry `industries` vocabulary; `all` is the sentinel that
+ * both the select's default option and a universal module carry.
+ */
+const INDUSTRY_OPTIONS = [{
+  id: _filters_js__WEBPACK_IMPORTED_MODULE_1__.INDUSTRY_ALL,
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('All businesses', 'aponto')
+}, {
+  id: 'beauty',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Beauty & wellness', 'aponto')
+}, {
+  id: 'coaching',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coaching & consulting', 'aponto')
+}, {
+  id: 'fitness',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Fitness & classes', 'aponto')
+}, {
+  id: 'healthcare',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Healthcare', 'aponto')
+}, {
+  id: 'events',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Events & experiences', 'aponto')
+}, {
+  id: 'venues',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Venues & rentals', 'aponto')
+}, {
+  id: 'agencies',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Agencies & web', 'aponto')
+}, {
+  id: 'field_services',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Field services', 'aponto')
+}];
+
+/** Industry id → display label, for the select and the search haystack. */
+const INDUSTRY_LABELS = Object.fromEntries(INDUSTRY_OPTIONS.map(option => [option.id, option.label]));
+
+/** Category display label + fallback icon, keyed by the registry `category`. */
+const CATEGORY_META = {
+  booking: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking', 'aponto'),
+    icon: 'calendar'
+  },
+  payments: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payments', 'aponto'),
+    icon: 'card'
+  },
+  connections: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Connections', 'aponto'),
+    icon: 'plug'
+  },
+  site_tools: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Site & Tools', 'aponto'),
+    icon: 'wrench'
+  }
+};
+
+/** Per-module display copy + icon, keyed by registry code. */
+const MODULE_META = {
+  multi_staff: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple staff', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let several team members take bookings on their own schedules.', 'aponto'),
+    icon: 'users'
+  },
+  calendar_google: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Google Calendar', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Two-way sync so bookings land on staff Google calendars.', 'aponto'),
+    icon: 'calendar'
+  },
+  // A5 / D-R22: Free already ships one fixed 24h email reminder (SPEC-P1 §3.2 addendum
+  // 2026-07-20), so this Premium module means *advanced* reminders — custom offsets,
+  // multi-step sequences, follow-ups. SMS delivery is the separate `sms` module; this copy
+  // must claim neither the basic reminder nor SMS.
+  reminders: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Reminders', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Custom reminder schedules and follow-ups, on top of the built-in 24-hour email.', 'aponto'),
+    icon: 'bell'
+  },
+  calendar_outlook: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Outlook Calendar', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Two-way sync with Outlook and Microsoft 365 calendars.', 'aponto'),
+    icon: 'calendar'
+  },
+  video_links: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Video meeting links', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Auto-create Zoom or Google Meet links for online bookings.', 'aponto'),
+    icon: 'video'
+  },
+  custom_fields: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Custom fields', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Collect extra details on the booking form.', 'aponto'),
+    icon: 'sliders'
+  },
+  csv_import: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV import', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Import booking data from CSV files with column mapping and a preview.', 'aponto'),
+    icon: 'import'
+  },
+  // `deposits` is a separate Premium module (D-R22) — Stripe copy must not promise it. The
+  // sentence names the two facts that decide whether an owner clicks: the customer never leaves
+  // the booking form (D-R38c, inline — not a hosted redirect), and the money lands in the owner's
+  // OWN Stripe account. "Free" is stated because this is the one payment card in the catalog that
+  // is not an upsell.
+  payments_stripe: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Stripe payments', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Take card payments inside the booking form with your own Stripe account. Free.', 'aponto'),
+    icon: 'card'
+  },
+  // Same rule as Stripe above: `deposits` is a separate Premium module, so this copy must not
+  // promise it. Cards are Stripe's — PayPal's card funding is switched off in the widget when
+  // Stripe is present — so the promise here is the PayPal account itself (D-R40).
+  payments_paypal: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('PayPal payments', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let customers pay with their PayPal account at checkout.', 'aponto'),
+    icon: 'card'
+  },
+  deposits: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Deposits', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Require a partial payment to confirm a booking.', 'aponto'),
+    icon: 'coins'
+  },
+  coupons: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coupons', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Offer discount codes at checkout.', 'aponto'),
+    icon: 'tag'
+  },
+  group_capacity: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Group bookings', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Allow several attendees in a single time slot.', 'aponto'),
+    icon: 'people'
+  },
+  resources: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Shared assets', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Book rooms and equipment alongside services.', 'aponto'),
+    icon: 'cube'
+  },
+  recurring: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Recurring bookings', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let customers book repeating appointments.', 'aponto'),
+    icon: 'arrows'
+  },
+  multi_location: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple locations', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Run bookings across several business locations.', 'aponto'),
+    icon: 'pin'
+  },
+  waitlist: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Waitlist', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let customers join a waitlist when slots are full.', 'aponto'),
+    icon: 'hourglass'
+  },
+  sms: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('SMS notifications', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Send confirmations and reminders by text message.', 'aponto'),
+    icon: 'chat'
+  },
+  webhooks: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Webhooks', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Send booking events to external services in real time.', 'aponto'),
+    icon: 'plug'
+  },
+  payments_woocommerce: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('WooCommerce', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Use WooCommerce as the checkout and payment gateway.', 'aponto'),
+    icon: 'box'
+  },
+  service_catalog: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Service catalog', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Public service pages with descriptions and galleries.', 'aponto'),
+    icon: 'browser'
+  },
+  roles: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Team roles', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Fine-grained permissions for staff and managers.', 'aponto'),
+    icon: 'shield'
+  },
+  white_label: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('White label', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Replace Aponto branding with your own.', 'aponto'),
+    icon: 'palette'
+  },
+  // Free core capability cards (D-R22, 2026-07-27) — P1 capabilities that already ship as
+  // core code. Display entries only; they carry no gate (see the Plan registry docblock).
+  booking_form: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking form', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Gutenberg block and shortcode with styling controls — identical in Free and Premium.', 'aponto'),
+    icon: 'browser'
+  },
+  availability_engine: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Availability engine', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Weekly hours, date overrides, buffers, lead time and timezone-correct slots.', 'aponto'),
+    icon: 'clock'
+  },
+  // The due rule is SPEC-P1 §3.2: confirmed bookings only, and only those still at least
+  // 24h away when the reminder is scheduled — the copy must not promise "every booking".
+  booking_reminder: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('24-hour reminder', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('One automatic email reminder about 24 hours before confirmed bookings.', 'aponto'),
+    icon: 'bell'
+  },
+  email_notifications: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Email notifications', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Event-triggered emails with editable templates and placeholders.', 'aponto'),
+    icon: 'mail'
+  },
+  ics_export: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Calendar links', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('ICS downloads and add-to-Google links on every confirmation.', 'aponto'),
+    icon: 'calendar'
+  },
+  csv_export: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV export', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Download CSV files compatible with CSV import.', 'aponto'),
+    icon: 'csv'
+  }
+};
+
+/**
+ * Searchable display strings for one module — the `resolveText` seam of
+ * `filters.js` (D-R21). Mirrors the mockup haystack: title, description,
+ * category label and every industry label.
+ *
+ * @param {{code?: string, category?: string, industries?: string[]}} mod Module record.
+ * @return {string[]} Searchable strings.
+ */
+function moduleSearchText(mod) {
+  const meta = MODULE_META[mod?.code] || {};
+  const category = CATEGORY_META[mod?.category] || {};
+  const industries = Array.isArray(mod?.industries) ? mod.industries : [];
+  return [meta.label, meta.description, category.label, ...industries.map(id => INDUSTRY_LABELS[id])].filter(Boolean);
+}
+
+/** Human label for the module `kind`: integrations vs first-party modules. */
+function kindLabel(kind) {
+  return kind === 'integration' ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Integration', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Module', 'aponto');
+}
+
+/**
+ * The integration 4-state, condensed into the card's meta line (extension-surface §4, D-R35).
+ *
+ * The catalog has to answer "what is the NEXT thing to do", and for an integration that is a
+ * sequence: paste credentials → connect a staff member → it is serving services. A card that showed
+ * only "Integration" made every step of that look identical, so an operator who had saved
+ * credentials but connected nobody had no way to tell that from working.
+ *
+ * `configured` and `connected` stay SEPARATE phrases here for the same reason the server keeps them
+ * separate fields (extension-surface §4): "add your credentials" and "now connect someone" are two
+ * different instructions, and collapsing them produces one unexplained failure instead of two
+ * actionable states.
+ *
+ * Returns '' for anything that is not an available integration — a locked or unshipped card has
+ * nothing true to say about connections, and the boot fields are zeroed for it anyway.
+ *
+ * NOT FOR PAYMENT MODULES. A gateway is registered `kind: 'integration'` too, but it holds no
+ * per-staff connections, so every phrase below would be a lie about it — see `paymentStateLabel()`,
+ * and call `moduleStateLabel()` rather than either of them directly.
+ *
+ * @param {Object} mod Module boot record.
+ * @return {string} A meta suffix, or '' when there is nothing to add.
+ */
+function integrationStateLabel(mod) {
+  if ('integration' !== mod?.kind || true !== mod?.available) {
+    return '';
+  }
+  if (!mod.configured) {
+    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Setup needed', 'aponto');
+  }
+  const connected = Number(mod.connected_count) || 0;
+  if (connected < 1) {
+    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Configured · no staff connected', 'aponto');
+  }
+  const used = Number(mod.used_count) || 0;
+  const staff = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %d: number of staff members connected to an integration. */
+  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__._n)('%d staff connected', '%d staff connected', connected, 'aponto'), connected);
+  if (used < 1) {
+    return staff;
+  }
+  return staff + ' · ' + (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %d: number of services an integration acts for. */
+  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__._n)('%d service', '%d services', used, 'aponto'), used);
+}
+
+/**
+ * The card meta suffix for a PAYMENT module (D-R39).
+ *
+ * A gateway is registered as `kind: 'integration'` — it is somebody else's service reached over
+ * HTTP — but it has NO per-staff connections, so the connection phrases above are nonsense for it:
+ * "0 staff connected" on a working Stripe account describes a state that cannot exist. The two
+ * facts that actually matter are whether the credentials are in place (`configured`) and which
+ * Stripe account they point at, and the second one is the reason this exists at all: a site owner
+ * who leaves test keys in place sees bookings arrive and no money, and the catalog is the first
+ * place that can tell them.
+ *
+ * `payment_mode` is DERIVED server-side from the key prefix and never stored (D-R39), and it is an
+ * ADDITIVE boot field: boot data older than this bundle simply has no such key, which reads as ''
+ * and degrades to a bare "Ready" rather than claiming a mode nobody confirmed.
+ *
+ * `ready` is the second additive field, and it OVERRIDES `configured` (Codex r1 #14). Credentials
+ * being present is not the same fact as the gateway being offered: a site whose currency PayPal
+ * does not accept, or whose saved webhook id belongs to the other environment, has every field
+ * filled in and takes no payments at all. The server computes the whole predicate — the card only
+ * reports it — and `null`/absent means "the server did not say", which falls back to the older
+ * ladder rather than to a guess in either direction.
+ *
+ * @param {Object} mod Module boot record.
+ * @return {string} A meta suffix, or '' when there is nothing to add.
+ */
+function paymentStateLabel(mod) {
+  if (true !== mod?.available) {
+    return '';
+  }
+  if (!mod.configured || false === mod.ready) {
+    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Setup needed', 'aponto');
+  }
+  const mode = typeof mod.payment_mode === 'string' ? mod.payment_mode : '';
+  if ('test' === mode) {
+    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Ready · Test mode', 'aponto');
+  }
+  if ('live' === mode) {
+    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Ready · Live', 'aponto');
+  }
+  return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Ready', 'aponto');
+}
+
+/**
+ * The card's next-step phrase, whichever kind of module it is.
+ *
+ * ONE entry point for the meta line so the cards cannot disagree about what a state means, and so
+ * the payments branch cannot be reached by accident: it keys on the registry `category`, which is
+ * the field that says what a module is FOR, rather than on `kind`, which every remote service
+ * shares.
+ *
+ * @param {Object} mod Module boot record.
+ * @return {string} A meta suffix, or '' when there is nothing to add.
+ */
+function moduleStateLabel(mod) {
+  return 'payments' === mod?.category ? paymentStateLabel(mod) : integrationStateLabel(mod);
+}
+
+/**
+ * The boot-data record for a module code, or null when the catalog has no such entry.
+ * ONE lookup for every surface that resolves a code arriving from outside the catalog
+ * grid — a hash segment, a card action — so they cannot disagree about what a code means.
+ *
+ * @param {{modules?: Array}} bootConfig Admin boot config (`lib/config.js`).
+ * @param {string}            code       Registry module code.
+ * @return {Object|null} Module record.
+ */
+function findModuleRecord(bootConfig, code) {
+  const modules = Array.isArray(bootConfig?.modules) ? bootConfig.modules : [];
+  return modules.find(mod => mod?.code === code) || null;
+}
+
+/**
+ * Whether a module code is usable on THIS site, read off the boot-data `available`
+ * flag the server computed with `Plan::has()` (D-R27). Exported so any route can gate
+ * display on the same single truth instead of re-deriving one from `edition`/`status`.
+ *
+ * Unknown codes and boot data older than this bundle both answer `false` — never
+ * claim a capability that cannot be confirmed.
+ *
+ * @param {{modules?: Array}} bootConfig Admin boot config (`lib/config.js`).
+ * @param {string}            code       Registry module code.
+ * @return {boolean} Whether the module is available.
+ */
+function moduleAvailable(bootConfig, code) {
+  return findModuleRecord(bootConfig, code)?.available === true;
+}
+
+/**
+ * Whether this build may switch a module on or off (D-R31).
+ *
+ * The CLIENT MIRROR of the REST predicate in `ModulesController::isToggleable()`, and it is
+ * mirrored for the same reason every UI gate is: to decide what to draw. It decides nothing —
+ * the route re-checks all of it, so a card that renders a switch it should not have still cannot
+ * write (§5 invariant 3).
+ *
+ * Deliberately NOT `available`: a module the owner just switched OFF is unavailable, and gating
+ * the switch on availability would make disabling a one-way door in the UI exactly as it would in
+ * the API. The terms are the ones that survive being turned off — the registry's own
+ * `toggleable`, whether the code shipped in this build (`status`), and whether the edition allows
+ * it at all.
+ *
+ * @param {{edition?: string, toggleable?: boolean, status?: string}} mod         Module record from boot data.
+ * @param {string}                                                    planEdition Site plan edition.
+ * @return {boolean} Whether to render a switch.
+ */
+function moduleToggleAllowed(mod, planEdition = 'free') {
+  if (mod?.toggleable !== true || mod?.status !== 'included') {
+    return false;
+  }
+  return mod?.edition !== 'premium' || planEdition === 'premium';
+}
+
+/**
+ * The THREE honest states of one module, from the boot record alone (D-R57).
+ *
+ * ONE derivation, shared by every surface that has to explain a single module — the catalog
+ * card and the `#modules/{code}` page. They disagreed before: the card already knew that
+ * "switched off" and "not built for this site" are opposite messages (D-R31), while the panel
+ * route collapsed both into "This module is not available on this site." — telling an owner who
+ * had just flipped the switch themselves that their own site cannot have the module.
+ *
+ *   `enabled`     — `available` is `Plan::has()` for this build, so it is the whole answer.
+ *   `disabled`    — NOT available, but this build may switch it: shipped, edition-allowed and
+ *                   registry-toggleable (`moduleToggleAllowed()`). The owner turned it off and
+ *                   can turn it back on; nothing was deleted (D-R31).
+ *   `unavailable` — everything else: a premium module on a Free build, an unshipped code, a
+ *                   display-only capability card, an unknown code, and boot data older than
+ *                   this bundle. Never claim a capability that cannot be confirmed.
+ *
+ * NO EDITION COMPARISON of its own: it reads the fields the server already computed, exactly
+ * like `moduleCardState()` — which is now expressed in terms of this function so the card and
+ * the page cannot drift apart again. Display only: REST re-checks `Plan::has()` on every read
+ * and write (§5 invariant 3).
+ *
+ * @param {{available?: boolean, edition?: string, toggleable?: boolean, status?: string}} mod         Module record from boot data.
+ * @param {string}                                                                         planEdition Site plan edition (`free`|`premium`).
+ * @return {'enabled'|'disabled'|'unavailable'} The module's state on this site.
+ */
+function moduleAvailability(mod, planEdition = 'free') {
+  if (mod?.available === true) {
+    return 'enabled';
+  }
+  return moduleToggleAllowed(mod, planEdition) ? 'disabled' : 'unavailable';
+}
+
+/**
+ * Whether switching a module ON has to be followed by a page reload (Codex A2, 2026-09-04;
+ * WIDENED by D-R57).
+ *
+ * TRUE for a module being ENABLED that owns a settings surface (`has_settings`) or a registry
+ * route slug (`menu`), and for nothing else. It used to name `kind: 'integration'`; every
+ * `integration` entry in the registry declares `has_settings`, so the old set is contained in
+ * this one and the original reason below is unchanged, not replaced.
+ *
+ * TWO REASONS, both server-side and both deliberate, and the page can fix neither:
+ *
+ *   1. THE PROJECTION DOES NOT EXIST (the original). The boot document computes `configured`,
+ *      `connected_count`, `used_count` — and, for a gateway, `payment_mode` — only for
+ *      `IntegrationRegistry::activeCodes()`, i.e. the modules that were switched ON when the page
+ *      was built (rest-contract §2.12b). A module enabled mid-session therefore has no such
+ *      fields anywhere in this document, and `PUT /modules/{code}` answers `{code, enabled}`
+ *      rather than a fresh projection. The session store can flip `enabled`/`available` honestly,
+ *      but it cannot invent state nobody computed — so the card would sit at "Setup needed" and a
+ *      payments card would report no mode, both of which are lies about a module that may be
+ *      fully configured.
+ *   2. THE BUNDLE WAS NEVER ENQUEUED (added by D-R57). `AdminPage::enqueueModuleBundles()` runs
+ *      when the PAGE is built, so a module switched on afterwards has no script on it: its
+ *      settings panel never registers (`lib/module-panels.js`) and neither does any admin route
+ *      it contributes through `registerAdminRoute()` (D-R56) — Resources → Locations is simply
+ *      absent until the document is rebuilt.
+ *
+ * So the caller RELOADS, and does not ask first (D-R57): neither surface that can toggle a module
+ * holds a form — `#modules` is a catalog, and the disabled card on `#modules/{code}` is shown
+ * precisely when the module's panel is not rendered — so there is nothing to lose, and a card that
+ * lies or a menu missing an entry is worse than one reload the operator asked for by pressing the
+ * switch.
+ *
+ * DISABLING never needs one: `applyModuleEnabled()` already makes every surface treat the module
+ * as gone, and the stale projection it leaves behind is hidden rather than shown.
+ *
+ * A module with neither a panel nor a route keeps today's behaviour — it has no projection to be
+ * missing and no script to be absent, so reloading would cost the operator their scroll position
+ * and their filters for nothing.
+ *
+ * @param {{has_settings?: boolean, menu?: ?string}} mod  Module boot record.
+ * @param {boolean}                                  next Requested switch position.
+ * @return {boolean} Whether to reload after the server confirms.
+ */
+function enablingNeedsReload(mod, next) {
+  if (true !== next) {
+    return false;
+  }
+  const menu = typeof mod?.menu === 'string' ? mod.menu.trim() : '';
+  return true === mod?.has_settings || '' !== menu;
+}
+
+/**
+ * Card presentation for one module — the honest states of the catalog
+ * (D-R22, founder-approved 2026-07-27; keyed on `available` since D-R27;
+ * premium-build treatment founder-approved 2026-08-28).
+ *
+ *   available          → kit `enabled` chrome, the module's own tier badge, a static
+ *                        "Included" label and — since D-R31 — a real ON switch where the
+ *                        registry says the module is toggleable. NO upgrade link: the site
+ *                        already owns this.
+ *   available: false,  → kit `disabled` chrome: the Included shape, muted, switch OFF. NO
+ *   but toggleable       "Coming soon" and NO upsell — the owner turned this off and can turn
+ *                        it back on. Distinguishing it from "planned" is the whole point of
+ *                        the state (D-R31): both are `available: false`, but telling someone
+ *                        their own choice is a roadmap item is nonsense.
+ *   free + planned     → kit `planned` chrome, green Free badge, "Coming soon".
+ *                        NO upgrade link: the module WILL be free, so pointing at
+ *                        the pricing page would be dishonest.
+ *   premium, unshipped → depends on WHO IS LOOKING:
+ *                        · FREE build    — unchanged locked card: `planned` chrome, amber
+ *                          Premium badge, no status label, per-placement UTM compare link.
+ *                        · PREMIUM build — neutral roadmap card: `planned` chrome, a
+ *                          NEUTRAL (unamber) Premium label, "Coming soon · {phase}", and
+ *                          NO upgrade link at all.
+ *
+ * WHY THE BUILD MATTERS HERE (founder, 2026-08-28): a paying customer must never be shown
+ * plan-marketing chrome. Selling Premium to someone who already bought it is not an upsell,
+ * it is noise — and the honest answer to "when do I get this" is the roadmap, not a pricing
+ * page. Note this is CHROME SELECTION, not gating: `planEdition` decides how an unavailable
+ * module is PRESENTED, while whether it is available at all stays `available`
+ * (`Plan::has()`), and REST enforces the real thing. Do not "fix" this into a gate.
+ *
+ * WHY `available` AND NOT `status` (D-R27): `status` is `Plan::isShipped()`, and that
+ * constant is EDITION-BLIND. The moment a premium module ships, a Free build would also
+ * report `status: 'included'` for it — and keying the card on that would drop the lock
+ * and the upsell for a capability the Free site does not own. `available` is
+ * `Plan::has()` for the running build: edition × shipped-ness × the module toggle.
+ *
+ * A module older than this bundle (boot data with no `available`) reads as unavailable,
+ * which is the conservative answer — it never claims a capability is present. An unknown
+ * `planEdition` reads as `free`, which keeps the upsell rather than hiding it.
+ *
+ * @param {{edition?: string, available?: boolean, phase?: string}} mod         Module record from boot data.
+ * @param {string}                                                 planEdition Site plan edition (`free`|`premium`).
+ * @return {{state: string, tier: ?Object, toggle: boolean, statusLabel: ?string, plannedLabel: ?string, upgrade: boolean}} Card descriptor.
+ */
+function moduleCardState(mod, planEdition = 'free') {
+  const premium = mod?.edition === 'premium';
+  const onPremiumBuild = planEdition === 'premium';
+  const tier = premium ? {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Premium', 'aponto'),
+    isPremium: true
+  } : {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Free', 'aponto'),
+    variant: 'free'
+  };
+  const toggle = moduleToggleAllowed(mod, planEdition);
+  // ONE derivation, shared with the `#modules/{code}` page (D-R57) — see `moduleAvailability()`.
+  const availability = moduleAvailability(mod, planEdition);
+  if ('enabled' === availability) {
+    return {
+      state: 'enabled',
+      tier,
+      toggle,
+      statusLabel: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Included', 'aponto'),
+      plannedLabel: null,
+      upgrade: false
+    };
+  }
+
+  // SWITCHED OFF — not "not built yet". Both are `available: false`, and without this branch a
+  // disabled module falls into the planned/upsell copy below and tells the owner their own
+  // choice is a roadmap item (D-R31). The card keeps the Included shape so flipping the switch
+  // back is obviously the way out; the kit mutes it via the `disabled` state.
+  if ('disabled' === availability) {
+    return {
+      state: 'disabled',
+      tier,
+      toggle: true,
+      statusLabel: null,
+      plannedLabel: null,
+      upgrade: false
+    };
+  }
+  if (premium && onPremiumBuild) {
+    return {
+      state: 'planned',
+      // Deliberately NOT `isPremium`: that flag is what paints the amber "locked/paid"
+      // chrome (kit `tierVariantClass`). The label still names the plan the module
+      // belongs to — a catalog fact — but on neutral chrome, because nothing here is
+      // locked to this viewer.
+      tier: {
+        label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Premium', 'aponto')
+      },
+      toggle: false,
+      statusLabel: null,
+      plannedLabel: comingSoonLabel(mod?.phase),
+      upgrade: false
+    };
+  }
+  return {
+    state: 'planned',
+    tier,
+    toggle: false,
+    statusLabel: null,
+    // A locked Premium card carries the compare link instead of a "Coming soon"
+    // label — its answer to "when" is the pricing page, not a status word.
+    plannedLabel: premium ? null : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming soon', 'aponto'),
+    upgrade: premium
+  };
+}
+
+/**
+ * "Coming soon", with the registry's roadmap phase appended when there is one.
+ *
+ * PHASE ON A CARD IS A DELIBERATE REVERSAL, scoped to premium builds (founder,
+ * 2026-08-28). Production cards previously carried NO phase label at all
+ * (plugin-dashboard-divergence.md §2.7 — the registry kept `phase` for docs and upsell
+ * planning only), and that still holds for the Free build: a prospect is shown what a
+ * plan includes, never a delivery schedule. A paying customer is in a different position
+ * — they have already bought the roadmap, so "P2b" is the most honest answer available to
+ * "when". It is a bare phase CODE on purpose: it commits to an ordering, not to a date.
+ *
+ * @param {string} phase Registry roadmap phase (e.g. `P2b`), or empty.
+ * @return {string} Card label.
+ */
+function comingSoonLabel(phase) {
+  const code = typeof phase === 'string' ? phase.trim() : '';
+  if ('' === code) {
+    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming soon', 'aponto');
+  }
+  return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %s: roadmap phase code, e.g. "P2b". */
+  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming soon · %s', 'aponto'), code);
+}
+
+// Roadmap phase (P2a/P3/…) is NOT surfaced on FREE-build cards — production copy shown to a
+// prospect carries no phase labels (divergence audit §2.7); the registry keeps it for docs and
+// upsell planning. The single exception, founder-approved 2026-08-28, is an unshipped premium
+// module on a PREMIUM build, where the phase replaces the upsell link as the honest answer to
+// "when" (see `comingSoonLabel()` above).
+
+/**
+ * Free/Included card → the admin surface that ALREADY manages that capability
+ * (D-R22 addendum, founder-approved 2026-07-27). An entry renders an internal
+ * "Open" link on the card; it is navigation, never an upsell, so it carries no
+ * UTM and never leaves the app.
+ *
+ * THE RULE: a code appears here ONLY when a real, shipped surface exists today.
+ * A capability with no destination gets NO link — never a placeholder, never a
+ * "coming soon" target, never a link to a page that does not manage it. Half a
+ * destination is worse than none: a link that lands the owner somewhere
+ * unrelated is exactly the fake affordance §6 / Guideline 5 forbids.
+ *
+ * Values are canonical hashes as the router spells them (lib/router.js +
+ * settings/ia.js). Settings deep links use the full `settings/<parent>/<child>`
+ * form, not a legacy alias — `#settings` and `#settings/booking` both resolve,
+ * but SettingsRoute silently rewrites them, so linking the alias would make the
+ * address bar change under the user.
+ *
+ *   booking_reminder      → Notifications. The reminder's real on/off switch is
+ *   email_notifications      the `booking_reminder_customer` template's enabled
+ *                            flag, and every other event email lives on the same
+ *                            leaf (settings/ia.js: Notifications is ONE surface).
+ *   csv_export            → Dedicated import-compatible CSV download panel
+ *                            (routes/Bookings.jsx `onExport`).
+ *   availability_engine   → Settings → Booking → Policy, the panel described as
+ *                            "Availability rules applied to every service"
+ *                            (settings/catalog.js PANEL_META.policy): lead time,
+ *                            booking window and buffers.
+ *   multi_staff           → Staff, which owns staff records, their work hours and
+ *                            their time off (D-R28, 2026-08-27). Per-service
+ *                            eligibility is edited in the service editor, but Staff
+ *                            is where the capability itself is managed. It is also
+ *                            the first PREMIUM entry here — the map is keyed on
+ *                            "a real surface already manages this", not on edition.
+ *
+ * DELIBERATELY ABSENT — both would need a placeholder to be listed:
+ *   booking_form  — its configuration is the block Inspector (Q11 2026-07-18
+ *                   moved form appearance there), which is a post-editor
+ *                   surface, not an admin route this hash router can reach.
+ *   ics_export    — ICS download / add-to-calendar links are emitted on
+ *                   confirmations and emails; there is no admin screen for them.
+ */
+const INCLUDED_CARD_ROUTES = {
+  booking_reminder: '#settings/notifications',
+  email_notifications: '#settings/notifications',
+  csv_export: '#modules/csv_export',
+  availability_engine: '#settings/booking/policy',
+  multi_staff: '#staff'
+};
+
+/**
+ * The in-app destination for an Included card, or '' when it has none.
+ *
+ * Only an AVAILABLE module gets one (D-R27): a planned capability has nothing to open,
+ * and a module the site does not own must keep the compare link as its single action
+ * (§6). `available` — not `status` — is the test, for the same reason `moduleCardState`
+ * uses it: `status` is edition-blind and would hand a Free build an "Open" link into a
+ * premium module's settings.
+ *
+ * Two destinations, in priority order:
+ *   1. `INCLUDED_CARD_ROUTES[code]` — the hand-mapped surface that ALREADY manages the
+ *      capability (the D-R22 addendum map above). A capability whose management lives on
+ *      an existing screen must land there, not on a generic panel page.
+ *   2. `#modules/{code}` — the module's own settings route, for any available module that
+ *      declares `has_settings`. That is where its registered panel renders.
+ * Anything else gets NO link, which is still the rule: half a destination is worse
+ * than none.
+ *
+ * @param {{code?: string, has_settings?: boolean, available?: boolean}} mod Module record from boot data.
+ * @return {string} Canonical hash (e.g. `#bookings`), or '' for no link.
+ */
+function moduleOpenHref(mod) {
+  if (mod?.available !== true) {
+    return '';
+  }
+  const mapped = INCLUDED_CARD_ROUTES[mod.code];
+  if (mapped) {
+    return mapped;
+  }
+  return mod?.has_settings === true ? `#modules/${mod.code}` : '';
+}
+const UPGRADE_BASE = 'https://pressmaximum.com/aponto/pricing/';
+
+/**
+ * Per-placement upgrade link with UTM tracking (§6). `placement` is the
+ * `utm_content`: `modules-{code}` for a card, `menu` for the page-level CTA.
+ */
+function upgradeUrl(placement) {
+  const params = new URLSearchParams({
+    utm_source: 'aponto',
+    utm_medium: 'plugin',
+    utm_campaign: 'upsell',
+    utm_content: placement
+  });
+  return `${UPGRADE_BASE}?${params.toString()}`;
+}
+
+/** Free-vs-premium comparison matrix for the CompareTable at the page foot (§6). */
+const COMPARE_SECTIONS = [{
+  id: 'bookings',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bookings', 'aponto'),
+  rows: [{
+    id: 'unlimited',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Unlimited bookings', 'aponto'),
+    free: true,
+    pro: true
+  }, {
+    id: 'staff',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Staff members', 'aponto'),
+    free: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('1', 'aponto'),
+    pro: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Unlimited', 'aponto')
+  }, {
+    id: 'services',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Services & categories', 'aponto'),
+    free: true,
+    pro: true
+  },
+  // D-R43: Free books one business address (General -> Business, `location_id = 0`); named
+  // locations are the Premium `multi_location` module, whose registry `category` is `booking`.
+  {
+    id: 'locations',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple locations', 'aponto'),
+    free: false,
+    pro: true
+  }, {
+    id: 'group',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Group bookings', 'aponto'),
+    free: false,
+    pro: true
+  }, {
+    id: 'recurring',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Recurring appointments', 'aponto'),
+    free: false,
+    pro: true
+  }, {
+    id: 'waitlist',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Waitlist', 'aponto'),
+    free: false,
+    pro: true
+  }]
+}, {
+  id: 'payments',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payments', 'aponto'),
+  rows: [{
+    id: 'manual',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Mark bookings paid / unpaid', 'aponto'),
+    free: true,
+    pro: true
+  },
+  // D-R22: Stripe is a Free module; PayPal stays Premium — the old single "Online
+  // payments (Stripe, PayPal)" row can no longer state one answer. Stripe SHIPPED in P3
+  // (D-R39), so the Free column is a tick: the shipped-truth rule says this table may
+  // never say "Coming" for a capability whose own card on the same screen reads
+  // "Ready" (QA BUG-8).
+  {
+    id: 'stripe',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Stripe payments', 'aponto'),
+    free: true,
+    pro: true
+  }, {
+    id: 'paypal',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('PayPal payments', 'aponto'),
+    free: false,
+    pro: true
+  }, {
+    id: 'deposits',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Deposits', 'aponto'),
+    free: false,
+    pro: true
+  }, {
+    id: 'coupons',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coupons', 'aponto'),
+    free: false,
+    pro: true
+  }]
+}, {
+  id: 'connections',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Connections', 'aponto'),
+  rows: [{
+    id: 'email',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Email notifications', 'aponto'),
+    free: true,
+    pro: true
+  },
+  // A5 / D-R22: the fixed 24h email reminder is core Free; only custom schedules
+  // (multi-step, follow-ups) are the Premium `reminders` module.
+  {
+    id: 'reminder',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('24-hour email reminder', 'aponto'),
+    free: true,
+    pro: true
+  }, {
+    id: 'reminders_advanced',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Custom reminder schedules', 'aponto'),
+    free: false,
+    pro: true
+  }, {
+    id: 'calendar',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Calendar sync (Google, Outlook)', 'aponto'),
+    free: false,
+    pro: true
+  }, {
+    id: 'sms',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('SMS reminders', 'aponto'),
+    free: false,
+    pro: true
+  }, {
+    id: 'video',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Video meeting links', 'aponto'),
+    free: false,
+    pro: true
+  }, {
+    id: 'webhooks',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Webhooks', 'aponto'),
+    free: false,
+    pro: true
+  }]
+}, {
+  id: 'site_tools',
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Site & tools', 'aponto'),
+  rows: [{
+    id: 'csv_export',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV export', 'aponto'),
+    free: true,
+    pro: true
+  }, {
+    id: 'csv_import',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV import', 'aponto'),
+    free: true,
+    pro: true
+  }, {
+    id: 'service_catalog',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Service catalog pages', 'aponto'),
+    free: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming', 'aponto'),
+    pro: true
+  }, {
+    id: 'roles',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Team roles', 'aponto'),
+    free: false,
+    pro: true
+  }, {
+    id: 'white_label',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('White label', 'aponto'),
+    free: false,
+    pro: true
+  }]
+}];
+
+/***/ },
+
+/***/ "./assets/src/admin/modules/filters.js"
+/*!*********************************************!*\
+  !*** ./assets/src/admin/modules/filters.js ***!
+  \*********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CATEGORY_ALL: () => (/* binding */ CATEGORY_ALL),
+/* harmony export */   INDUSTRY_ALL: () => (/* binding */ INDUSTRY_ALL),
+/* harmony export */   INDUSTRY_IDS: () => (/* binding */ INDUSTRY_IDS),
+/* harmony export */   filterModules: () => (/* binding */ filterModules),
+/* harmony export */   hasBrowseFilters: () => (/* binding */ hasBrowseFilters),
+/* harmony export */   matchesCategory: () => (/* binding */ matchesCategory),
+/* harmony export */   matchesIndustry: () => (/* binding */ matchesIndustry),
+/* harmony export */   matchesQuery: () => (/* binding */ matchesQuery),
+/* harmony export */   moduleIndustries: () => (/* binding */ moduleIndustries)
+/* harmony export */ });
+/**
+ * Pure browse-filter logic for the Modules catalog (D-R21, 2026-07-25).
+ *
+ * The Modules screen combines three independent filters with AND: the category
+ * tabs, the Industry select and the free-text search box — the same combination
+ * the mockup's `filteredModules()` applies (docs/mockups/v4/plugin-dashboard/
+ * assets/js/plugin-dashboard.js). Kept framework- and i18n-free so it is unit
+ * testable in the node Jest environment; every display string is injected by the
+ * caller through `resolveText`.
+ *
+ * The mockup's Status and License selects are deliberately NOT part of this
+ * module: D-R21 approved the Industry filter only, and D-R22 (mixed editions and
+ * card states in the catalog) did not re-open that scope.
+ */
+
+/** Sentinel industry id: matches every industry, on a module and as a filter value. */
+const INDUSTRY_ALL = 'all';
+
+/** Sentinel category id used by the "All" tab. */
+const CATEGORY_ALL = 'all';
+
+/**
+ * The controlled industry vocabulary (D-R21), in display order. Mirrors the
+ * registry's `industries` field; `all` is the sentinel and is not listed here.
+ */
+const INDUSTRY_IDS = ['beauty', 'coaching', 'fitness', 'healthcare', 'events', 'venues', 'agencies', 'field_services'];
+
+/**
+ * A module's industry tags, defensively normalized. A registry entry that ships
+ * without the field (older boot data) reads as untagged.
+ *
+ * @param {{industries?: string[]}} mod Module record.
+ * @return {string[]} Industry ids.
+ */
+function moduleIndustries(mod) {
+  return Array.isArray(mod?.industries) ? mod.industries.filter(id => typeof id === 'string') : [];
+}
+
+/**
+ * Industry predicate. `all` on either side matches; an untagged module stays
+ * visible rather than disappearing from every industry view (forward-compat with
+ * a bundle newer than its boot data).
+ *
+ * @param {{industries?: string[]}} mod      Module record.
+ * @param {string}                  industry Selected industry id.
+ * @return {boolean} Whether the module belongs to the industry.
+ */
+function matchesIndustry(mod, industry) {
+  if (!industry || industry === INDUSTRY_ALL) {
+    return true;
+  }
+  const tags = moduleIndustries(mod);
+  if (tags.length === 0) {
+    return true;
+  }
+  return tags.includes(INDUSTRY_ALL) || tags.includes(industry);
+}
+
+/**
+ * Category predicate (the tab strip).
+ *
+ * @param {{category?: string}} mod      Module record.
+ * @param {string}              category Selected category id.
+ * @return {boolean} Whether the module belongs to the category.
+ */
+function matchesCategory(mod, category) {
+  return !category || category === CATEGORY_ALL || mod?.category === category;
+}
+
+/**
+ * Free-text predicate over the caller-supplied display strings (title,
+ * description, category label, industry labels). Matching is case-insensitive
+ * substring, like the mockup's haystack.
+ *
+ * @param {Object}   mod         Module record.
+ * @param {string}   query       Raw query string.
+ * @param {Function} resolveText `( mod ) => string[]` searchable strings.
+ * @return {boolean} Whether the module matches the query.
+ */
+function matchesQuery(mod, query, resolveText) {
+  const needle = String(query || '').trim().toLowerCase();
+  if ('' === needle) {
+    return true;
+  }
+  const parts = typeof resolveText === 'function' ? resolveText(mod) : [];
+  const haystack = [mod?.code, ...(Array.isArray(parts) ? parts : [])].filter(part => typeof part === 'string' && '' !== part).join(' ').toLowerCase();
+  return haystack.includes(needle);
+}
+
+/**
+ * Apply every active filter with AND, preserving registry order.
+ *
+ * @param {Object[]} modules             Module records.
+ * @param {Object}   filters             Active filters.
+ * @param {string}   [filters.category]  Category id (`all` = no filter).
+ * @param {string}   [filters.industry]  Industry id (`all` = no filter).
+ * @param {string}   [filters.query]     Free-text query.
+ * @param {Function} [resolveText]       `( mod ) => string[]` searchable strings.
+ * @return {Object[]} Matching modules.
+ */
+function filterModules(modules, filters = {}, resolveText) {
+  const {
+    category = CATEGORY_ALL,
+    industry = INDUSTRY_ALL,
+    query = ''
+  } = filters;
+  const list = Array.isArray(modules) ? modules : [];
+  return list.filter(mod => matchesCategory(mod, category) && matchesIndustry(mod, industry) && matchesQuery(mod, query, resolveText));
+}
+
+/**
+ * Whether any filter other than the category tab is narrowing the view — used to
+ * decide between "this category is empty" and "clear a filter" copy.
+ *
+ * @param {Object} filters            Active filters.
+ * @param {string} [filters.industry] Industry id.
+ * @param {string} [filters.query]    Free-text query.
+ * @return {boolean} Whether a browse filter is active.
+ */
+function hasBrowseFilters(filters = {}) {
+  const {
+    industry = INDUSTRY_ALL,
+    query = ''
+  } = filters;
+  return industry !== INDUSTRY_ALL || '' !== String(query || '').trim();
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/modules/module-state.js"
+/*!**************************************************!*\
+  !*** ./assets/src/admin/modules/module-state.js ***!
+  \**************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   applyModuleEnabled: () => (/* binding */ applyModuleEnabled),
+/* harmony export */   getModules: () => (/* binding */ getModules),
+/* harmony export */   resetModuleState: () => (/* binding */ resetModuleState),
+/* harmony export */   subscribeModules: () => (/* binding */ subscribeModules),
+/* harmony export */   useModules: () => (/* binding */ useModules)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
+/* harmony import */ var _catalog_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./catalog.js */ "./assets/src/admin/modules/catalog.js");
+/**
+ * Live module records for the whole SPA session (D-R31 fix, 2026-08-29).
+ *
+ * WHY THIS EXISTS. The catalog's toggle first kept its optimistic result in route-local
+ * `useState` inside `ModulesApp`, layered over the static `config.modules` boot snapshot. That
+ * works exactly as long as the route stays mounted — and the Modules section is precisely where
+ * it does not: hash-navigating to a panel unmounts `ModulesApp`, the state dies with it, and
+ * every consumer falls back to the boot snapshot until a full document reload. Two real symptom
+ * pairs came out of that, both reported from the assembled preview:
+ *
+ *   - disable a module → open a panel → go back to `#modules`: the card reads Enabled again,
+ *     AND the disabled module's panel route still mounts its editor, which then fetches a route
+ *     the server has stopped serving and shows a raw `rest_no_route` banner;
+ *   - enable a module → open its panel without reloading: the route insists the module "is not
+ *     available on this site".
+ *
+ * The state was never wrong — it was scoped to the wrong lifetime. It belongs to the SESSION,
+ * not to a route, so it lives here: a module-level singleton, the same house idiom as
+ * `lib/nav-guard.js` and `lib/module-panels.js`. No context, no new dependency.
+ *
+ * A fresh document load re-seeds from boot data, which the server already computes correctly —
+ * this store only has to keep the CURRENT page honest between reloads.
+ */
+
+
+
+
+/**
+ * Session records, seeded lazily from boot data.
+ *
+ * @type {Array|null}
+ */
+let records = null;
+
+/** @type {Set<Function>} */
+const listeners = new Set();
+
+/** The live records, seeding from the boot snapshot on first read. */
+function getModules() {
+  if (records === null) {
+    records = Array.isArray(_lib_config_js__WEBPACK_IMPORTED_MODULE_1__.config.modules) ? _lib_config_js__WEBPACK_IMPORTED_MODULE_1__.config.modules.slice() : [];
+  }
+  return records;
+}
+
+/**
+ * Apply a module's new switch position to the session view.
+ *
+ * `available` moves WITH `enabled` — but only for a module this build may actually toggle. That
+ * flag is `Plan::has()` server-side, and the user switch is one of its terms; the other terms
+ * (edition, shipped-ness) cannot change without a reload, so for a toggle-eligible module
+ * `available` reduces to `enabled`. Deriving it here is what makes the card, the subnav and the
+ * panel route's availability gate agree instantly, since all three key on `available`.
+ *
+ * A module that is NOT toggle-eligible keeps its boot `available` untouched: nothing in this
+ * session can legitimately change it.
+ *
+ * @param {string}  code    Module code.
+ * @param {boolean} enabled New switch position.
+ */
+function applyModuleEnabled(code, enabled) {
+  records = getModules().map(mod => {
+    if (mod?.code !== code) {
+      return mod;
+    }
+    const eligible = (0,_catalog_js__WEBPACK_IMPORTED_MODULE_2__.moduleToggleAllowed)(mod, _lib_config_js__WEBPACK_IMPORTED_MODULE_1__.config.planEdition);
+    return {
+      ...mod,
+      enabled,
+      available: eligible ? enabled : mod.available
+    };
+  });
+  listeners.forEach(listener => listener(records));
+}
+
+/**
+ * Subscribe to session changes.
+ *
+ * @param {Function} listener Called with the new records.
+ * @return {Function} Unsubscribe.
+ */
+function subscribeModules(listener) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+/**
+ * The live records, re-rendering the caller when they change.
+ *
+ * Every module surface reads through this — the catalog cards, the section subnav and the panel
+ * route's availability gate — so they cannot disagree about a module's state within a session.
+ *
+ * @return {Array} Module records.
+ */
+function useModules() {
+  const [state, setState] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(getModules);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => subscribeModules(setState), []);
+  return state;
+}
+
+/** Drop the session view so the next read re-seeds from boot data. Test seam only. */
+function resetModuleState() {
+  records = null;
+  listeners.clear();
+}
+
+/***/ },
+
 /***/ "./assets/src/admin/routes/Bookings.jsx"
 /*!**********************************************!*\
   !*** ./assets/src/admin/routes/Bookings.jsx ***!
@@ -12706,24 +16552,32 @@ function RouteEmpty({
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Bookings: () => (/* binding */ Bookings)
+/* harmony export */   Bookings: () => (/* binding */ Bookings),
+/* harmony export */   confirmCompletionBalance: () => (/* binding */ confirmCompletionBalance),
+/* harmony export */   editorExit: () => (/* binding */ editorExit)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _lib_api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../lib/api.js */ "./assets/src/admin/lib/api.js");
-/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
-/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
-/* harmony import */ var _lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/booking-adapter.js */ "./assets/src/admin/lib/booking-adapter.js");
-/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
-/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
-/* harmony import */ var _lib_toast_jsx__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/toast.jsx */ "./assets/src/admin/lib/toast.jsx");
-/* harmony import */ var _lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/confirm.jsx */ "./assets/src/admin/lib/confirm.jsx");
-/* harmony import */ var _bookings_BookingsTable_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../bookings/BookingsTable.jsx */ "./assets/src/admin/bookings/BookingsTable.jsx");
-/* harmony import */ var _lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/lazy.jsx */ "./assets/src/admin/lib/lazy.jsx");
-/* harmony import */ var _lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../lib/notification-outcome.js */ "./assets/src/admin/lib/notification-outcome.js");
-/* harmony import */ var _lib_inspector_width_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../lib/inspector-width.js */ "./assets/src/admin/lib/inspector-width.js");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _lib_external_order_sync_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../lib/external-order-sync.js */ "./assets/src/admin/lib/external-order-sync.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _lib_api_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/api.js */ "./assets/src/admin/lib/api.js");
+/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
+/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
+/* harmony import */ var _lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/booking-adapter.js */ "./assets/src/admin/lib/booking-adapter.js");
+/* harmony import */ var _lib_branches_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/branches.js */ "./assets/src/admin/lib/branches.js");
+/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
+/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
+/* harmony import */ var _lib_toast_jsx__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/toast.jsx */ "./assets/src/admin/lib/toast.jsx");
+/* harmony import */ var _lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../lib/confirm.jsx */ "./assets/src/admin/lib/confirm.jsx");
+/* harmony import */ var _bookings_BookingsTable_jsx__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../bookings/BookingsTable.jsx */ "./assets/src/admin/bookings/BookingsTable.jsx");
+/* harmony import */ var _lib_table_preferences_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../lib/table-preferences.js */ "./assets/src/admin/lib/table-preferences.js");
+/* harmony import */ var _lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../lib/lazy.jsx */ "./assets/src/admin/lib/lazy.jsx");
+/* harmony import */ var _lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../lib/notification-outcome.js */ "./assets/src/admin/lib/notification-outcome.js");
+/* harmony import */ var _lib_inspector_width_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../lib/inspector-width.js */ "./assets/src/admin/lib/inspector-width.js");
+/* harmony import */ var _lib_router_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ../lib/router.js */ "./assets/src/admin/lib/router.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__);
 /**
  * Bookings route (SPEC-P1 §1.4). Flat operational list (reused TanStack
  * BookingsTable) + the in-flow booking editor in a two-column push workspace
@@ -12744,11 +16598,16 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+
+
+
 // The inspector is a SECOND paint, always behind a click on a row (or a cross-route
 // "open this booking"), so it is a chunk rather than entry bytes — the list itself is
 // the first-paint surface and stays whole. Admin bundle budget, AGENTS §6.
 
-const BookingEditor = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_10__.lazySurface)(() => __webpack_require__.e(/*! import() | admin-chunk-booking-editor */ "admin-chunk-booking-editor").then(__webpack_require__.bind(__webpack_require__, /*! ./BookingEditor.jsx */ "./assets/src/admin/routes/BookingEditor.jsx")), {
+const BookingEditor = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_14__.lazySurface)(() => __webpack_require__.e(/*! import() | admin-chunk-booking-editor */ "admin-chunk-booking-editor").then(__webpack_require__.bind(__webpack_require__, /*! ./BookingEditor.jsx */ "./assets/src/admin/routes/BookingEditor.jsx")), {
   pick: 'BookingEditor',
   label: 'Loading booking'
 });
@@ -12775,19 +16634,60 @@ const PREMATURE = {
 // (lib/inspector-width.js): one stored preference per route, one viewport-aware clamp. This file
 // used to carry its own copy — with a different 344px floor — so a fix to one never reached the other.
 const WIDTH_KEY = 'aponto.admin.booking-inspector-width.v1';
-function Bookings() {
-  const showToast = (0,_lib_toast_jsx__WEBPACK_IMPORTED_MODULE_7__.useToast)();
+
+/** Re-read the ledger before offering collection from a possibly stale list row. */
+async function confirmCompletionBalance(booking, confirm) {
+  if (!(booking.payableNowMinor > 0 && booking.payableNowMinor < booking.total)) return true;
+  const {
+    order
+  } = await _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.get(`/bookings/${booking.id}`);
+  if (!order || order.balance_due_minor <= 0) return true;
+  const transactions = order.transactions || [];
+  const canRecord = order.can_record_onsite_balance ?? (order.payment_status === 'partial' && order.payable_now_minor > 0 && order.payable_now_minor < order.total_minor && !transactions.some(t => t.kind === 'onsite' && t.status === 'succeeded' || t.kind === 'refund' && t.status === 'pending'));
+  const accepted = await confirm({
+    title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('A balance is still due.', 'aponto'),
+    message: canRecord ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Record the balance if you collected it on site.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('The balance cannot be recorded in the current payment state.', 'aponto'),
+    confirmText: canRecord ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Record balance paid on site', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Continue without recording', 'aponto'),
+    cancelText: canRecord ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Continue without recording', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Cancel', 'aponto')
+  });
+  if (accepted && canRecord) await _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.post(`/bookings/${booking.id}/balance`, {});
+  return canRecord || !!accepted;
+}
+
+/**
+ * How an editor leaves (D-R63 fix rounds 3–4): a New booking opened from a Calendar slot carries
+ * `prefill.returnTo`, and EVERY way out of it — Save, Cancel, × — goes back there; any other editor
+ * just closes.
+ *
+ * @param {?Object}  editor      The open editor state (`{ mode, prefill, … }`).
+ * @param {Function} closeEditor Close the inspector.
+ * @return {Function} The editor's `onClose`.
+ */
+function editorExit(editor, closeEditor) {
+  const back = editor?.prefill?.returnTo;
+  if (!back) {
+    return closeEditor;
+  }
+  return () => {
+    closeEditor();
+    window.location.hash = `#${back}`;
+  };
+}
+function Bookings({
+  segments = []
+}) {
+  const showToast = (0,_lib_toast_jsx__WEBPACK_IMPORTED_MODULE_10__.useToast)();
   const {
     confirm,
     dialog
-  } = (0,_lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_8__.useConfirmDialog)();
-  const [state, setState] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
+  } = (0,_lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_11__.useConfirmDialog)();
+  const [state, setState] = (0,react__WEBPACK_IMPORTED_MODULE_2__.useState)({
     loading: true,
     error: null,
     rows: [],
     total: 0
   });
-  const [editor, setEditor] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null); // { mode, id, row, action, prefill }
+  const [editor, setEditor] = (0,react__WEBPACK_IMPORTED_MODULE_2__.useState)(null); // { mode, id, row, action, prefill }
   const {
     width,
     maxWidth,
@@ -12796,24 +16696,28 @@ function Bookings() {
     workspaceRef,
     startResize,
     keyResize
-  } = (0,_lib_inspector_width_js__WEBPACK_IMPORTED_MODULE_12__.useInspectorWidth)(WIDTH_KEY);
-  const load = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+  } = (0,_lib_inspector_width_js__WEBPACK_IMPORTED_MODULE_16__.useInspectorWidth)(WIDTH_KEY);
+  const load = (0,react__WEBPACK_IMPORTED_MODULE_2__.useCallback)(() => {
     setState(s => ({
       ...s,
       loading: s.rows.length === 0,
       error: null
     }));
-    const from = (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_3__.toUtcInstant)(Date.now() - 60 * 86400000);
-    const to = (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_3__.toUtcInstant)(Date.now() + 120 * 86400000);
-    _lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api.get('/bookings', {
+    const from = (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.toUtcInstant)(Date.now() - 60 * 86400000);
+    const to = (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.toUtcInstant)(Date.now() + 120 * 86400000);
+    // D-R74: the list asks for newest-created first, so when the window holds more than the
+    // 100 rows fetched, the ones kept are the latest bookings to come in. Only this route sends
+    // `order_by`; Calendar and Dashboard keep the route's start-time default.
+    _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.get('/bookings', {
       status: 'all',
       from,
       to,
-      per_page: 100
+      per_page: 100,
+      order_by: 'created'
     }).then(res => setState({
       loading: false,
       error: null,
-      rows: (res.items || []).map(_lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_4__.bookingRowFromListItem),
+      rows: (res.items || []).map(_lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_6__.bookingRowFromListItem),
       total: Number(res.total) || (res.items || []).length
     })).catch(err => setState({
       loading: false,
@@ -12822,11 +16726,97 @@ function Bookings() {
       total: 0
     }));
   }, []);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(load, [load]);
+  (0,react__WEBPACK_IMPORTED_MODULE_2__.useEffect)(load, [load]);
+
+  // STICKY INSPECTOR GEOMETRY (founder QA 2026-10-01). The page scrolls in the WINDOW (`.ap-admin`
+  // only clips), so the stylesheet's fixed `top: 0` slid the panel under WordPress's fixed admin
+  // bar, and its fixed `calc(100dvh - 144px)` height left the footer floating ~112px above the
+  // viewport bottom once the panel stuck. Measure instead: stick just below a FIXED admin bar, and
+  // size the panel from where it actually starts to the visible bottom (InflowWorkspace does the
+  // same for module pages).
+  const inspectorRef = (0,react__WEBPACK_IMPORTED_MODULE_2__.useRef)(null);
+  const [inspectorGeometry, setInspectorGeometry] = (0,react__WEBPACK_IMPORTED_MODULE_2__.useState)(null);
+  const measureInspector = (0,react__WEBPACK_IMPORTED_MODULE_2__.useCallback)(() => {
+    const node = inspectorRef.current;
+    if (!editor || !node) {
+      return;
+    }
+    const bar = document.getElementById('wpadminbar');
+    const stickyTop = bar && 'fixed' === window.getComputedStyle(bar).position ? bar.offsetHeight : 0;
+    const visual = window.visualViewport;
+    const viewportBottom = (visual?.offsetTop || 0) + (visual?.height || window.innerHeight);
+    const top = Math.max(stickyTop, node.getBoundingClientRect().top);
+    const height = Math.max(240, Math.floor(viewportBottom - top));
+    setInspectorGeometry(previous => previous && previous.top === stickyTop && previous.height === height ? previous : {
+      top: stickyTop,
+      height
+    });
+  }, [editor]);
+  (0,react__WEBPACK_IMPORTED_MODULE_2__.useLayoutEffect)(() => {
+    if (!editor) {
+      return undefined;
+    }
+    measureInspector();
+    window.addEventListener('resize', measureInspector);
+    window.addEventListener('scroll', measureInspector, true);
+    window.visualViewport?.addEventListener('resize', measureInspector);
+    return () => {
+      window.removeEventListener('resize', measureInspector);
+      window.removeEventListener('scroll', measureInspector, true);
+      window.visualViewport?.removeEventListener('resize', measureInspector);
+    };
+  }, [editor, measureInspector]);
+  // The Columns menu's choices follow the operator (D-R74, rest-contract §2.23). BookingsTable
+  // reports its layout on mount too, so the first report of each mount is only the baseline; after
+  // that, a layout that actually changed is saved. Sorting rides the same callback and is not saved.
+  const lastLayout = (0,react__WEBPACK_IMPORTED_MODULE_2__.useRef)(null);
+  const onPreferencesChange = (0,react__WEBPACK_IMPORTED_MODULE_2__.useCallback)(({
+    columnVisibility,
+    columnOrder
+  }) => {
+    const key = JSON.stringify([columnVisibility, columnOrder]);
+    if (null === lastLayout.current || key === lastLayout.current) {
+      lastLayout.current = key;
+      return;
+    }
+    lastLayout.current = key;
+    // A failed save stays silent (DESIGN-SYSTEM §"Persistent workspace preferences"): the
+    // columns on screen are already right, only the next visit would miss them.
+    (0,_lib_table_preferences_js__WEBPACK_IMPORTED_MODULE_13__.saveBookingsTableLayout)({
+      columnVisibility,
+      columnOrder
+    }, (0,_bookings_BookingsTable_jsx__WEBPACK_IMPORTED_MODULE_12__.isDefaultColumnLayout)({
+      columnVisibility,
+      columnOrder
+    }));
+  }, []);
+  // Leaving the route inside the debounce window still saves the last change.
+  (0,react__WEBPACK_IMPORTED_MODULE_2__.useEffect)(() => _lib_table_preferences_js__WEBPACK_IMPORTED_MODULE_13__.flushBookingsTableLayout, []);
+
+  // D-R63: the location catalog names the rows' `locationId` for the Location column + facet. ALL
+  // statuses — a booking at an archived branch is still at that branch. With no location at all
+  // (Free, or a Premium site that never created one) the rows keep `location: ''`, so the column
+  // and facet are exactly what they were before.
+  const [locations, setLocations] = (0,react__WEBPACK_IMPORTED_MODULE_2__.useState)([]);
+  (0,react__WEBPACK_IMPORTED_MODULE_2__.useEffect)(() => {
+    let live = true;
+    (0,_lib_branches_js__WEBPACK_IMPORTED_MODULE_7__.fetchLocations)().then(({
+      items
+    }) => {
+      if (live && items.length) setLocations(items);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+  const rows = (0,react__WEBPACK_IMPORTED_MODULE_2__.useMemo)(() => locations.length ? state.rows.map(row => ({
+    ...row,
+    location: (0,_lib_branches_js__WEBPACK_IMPORTED_MODULE_7__.locationLabel)(locations, row.locationId)
+  })) : state.rows, [state.rows, locations]);
 
   // Cross-route "New booking" (Dashboard / Calendar). A calendar free-slot click
   // carries a prefill { date, startUtc } for the create schedule.
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+  (0,react__WEBPACK_IMPORTED_MODULE_2__.useEffect)(() => {
     const pending = window.__apontoPendingCreate;
     if (pending) {
       window.__apontoPendingCreate = false;
@@ -12838,7 +16828,7 @@ function Bookings() {
   }, []);
 
   // Cross-route "open this booking" (from Calendar) once rows are available.
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+  (0,react__WEBPACK_IMPORTED_MODULE_2__.useEffect)(() => {
     const id = window.__apontoPendingOpenId;
     if (id && state.rows.length) {
       window.__apontoPendingOpenId = null;
@@ -12852,6 +16842,59 @@ function Bookings() {
       }
     }
   }, [state.rows]);
+
+  // `#bookings/{id}` opens THAT booking (persona QA 2026-10-05) — the link in the staff mails
+  // (`{admin_booking_link}`) and on an external order. The list holds a window of 100 rows, so a
+  // booking outside it is fetched by id (`GET /bookings?id=`, the same list item the rows are
+  // made of — the drawer needs its customer and service names). The hash SEEDS the drawer, like
+  // `#services/{id}`: once per id, after the list has loaded, and never over an open editor's
+  // own navigation — closing the drawer moves the hash back to the list (below).
+  const deepLinkId = (0,_lib_router_js__WEBPACK_IMPORTED_MODULE_17__.bookingRouteId)(segments);
+  const openedDeepLink = (0,react__WEBPACK_IMPORTED_MODULE_2__.useRef)(0);
+  (0,react__WEBPACK_IMPORTED_MODULE_2__.useEffect)(() => {
+    if (!deepLinkId) {
+      openedDeepLink.current = 0;
+      return undefined;
+    }
+    if (openedDeepLink.current === deepLinkId || state.loading) {
+      return undefined;
+    }
+    openedDeepLink.current = deepLinkId;
+    const row = state.rows.find(r => r.id === deepLinkId);
+    if (row) {
+      setEditor({
+        mode: 'edit',
+        id: deepLinkId,
+        row
+      });
+      return undefined;
+    }
+    let live = true;
+    _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.get('/bookings', {
+      status: 'all',
+      id: deepLinkId,
+      per_page: 1
+    }).then(res => {
+      if (!live) {
+        return;
+      }
+      const item = (res.items || [])[0];
+      if (item) {
+        setEditor({
+          mode: 'edit',
+          id: deepLinkId,
+          row: (0,_lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_6__.bookingRowFromListItem)(item)
+        });
+      } else {
+        showToast(`Booking #${deepLinkId} was not found.`, 'danger');
+      }
+    }).catch(err => {
+      if (live) showToast(err.message || 'Could not open the booking.', 'danger');
+    });
+    return () => {
+      live = false;
+    };
+  }, [deepLinkId, state.loading, state.rows, showToast]);
   const openEdit = id => {
     const row = state.rows.find(r => r.id === id) || null;
     setEditor({
@@ -12860,16 +16903,31 @@ function Bookings() {
       row
     });
   };
-  const closeEditor = () => setEditor(null);
+  const closeEditor = () => {
+    setEditor(null);
+    // Leave a `#bookings/{id}` deep link with its drawer, so the same link opens it again.
+    if ((0,_lib_router_js__WEBPACK_IMPORTED_MODULE_17__.bookingRouteId)(window.location.hash.replace(/^#/, '').split('/').filter(Boolean))) {
+      window.location.hash = 'bookings';
+    }
+  };
   const onStatusChange = async (booking, next, extra = {}) => {
     try {
-      const res = await _lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api.patch(`/bookings/${booking.id}`, {
+      if (next === 'completed' && !(await confirmCompletionBalance(booking, confirm))) return;
+      const res = await _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.patch(`/bookings/${booking.id}`, {
         status: next,
         notify: true,
         ...extra
       });
-      showToast((0,_lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_11__.statusToast)(booking.customer, next, res?.notification));
+      const syncNotice = (0,_lib_external_order_sync_js__WEBPACK_IMPORTED_MODULE_1__.externalSyncNotice)(res?.external_order);
+      showToast(syncNotice || (0,_lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_15__.statusToast)(booking.customer, next, res?.notification), syncNotice ? 'default' : (0,_lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_15__.statusTone)(next));
       load();
+      // The drawer holds its own copy of the booking: when the row it shows changed from the
+      // table, re-open it on fresh data instead of leaving a stale status in the form.
+      setEditor(current => current && current.mode === 'edit' && current.id === booking.id ? {
+        ...current,
+        action: undefined,
+        rev: (current.rev || 0) + 1
+      } : current);
     } catch (err) {
       // Premature complete (422 aponto_invalid_transition, SPEC-P1 §1.4) and premature
       // no-show (D-R33, the same escape keyed on start_utc): the appointment has not ended /
@@ -12938,7 +16996,7 @@ function Bookings() {
     let ok = 0;
     for (const b of selected) {
       try {
-        await _lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api.del(`/bookings/${b.id}`); // eslint-disable-line no-await-in-loop
+        await _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.del(`/bookings/${b.id}`); // eslint-disable-line no-await-in-loop
         ok += 1;
       } catch (e) {/* continue; report count */}
     }
@@ -12955,7 +17013,7 @@ function Bookings() {
     // The live view filters — status, service, staff, date range, search — are
     // threaded through so the export matches the current view (no client-side
     // CSV generation). Gap notes live in exportFiltersFromTable (BookingsTable).
-    const base = _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.restUrl.replace(/\/$/, '');
+    const base = _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.restUrl.replace(/\/$/, '');
     const params = new URLSearchParams({
       status: filters.status || 'all'
     });
@@ -12964,27 +17022,34 @@ function Bookings() {
         params.set(key, String(filters[key]));
       }
     }
-    params.set('_wpnonce', _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.nonce);
+    // `0` is a real location filter ("No location", D-R63), so it cannot ride the truthy loop.
+    if (Number.isInteger(filters.location_id)) {
+      params.set('location_id', String(filters.location_id));
+    }
+    params.set('_wpnonce', _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.nonce);
     window.open(`${base}/export/bookings.csv?${params.toString()}`, '_blank', 'noopener');
   };
   let content;
   if (state.loading) {
-    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.RouteLoading, {
+    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.RouteLoading, {
       label: "Loading bookings"
     });
   } else if (state.error) {
-    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.RouteError, {
+    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.RouteError, {
       message: state.error,
       onRetry: load
     });
   } else {
-    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_bookings_BookingsTable_jsx__WEBPACK_IMPORTED_MODULE_9__.BookingsTable, {
-      data: state.rows,
-      totalCount: state.rows.length,
+    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_bookings_BookingsTable_jsx__WEBPACK_IMPORTED_MODULE_12__.BookingsTable, {
+      data: rows,
+      totalCount: rows.length,
+      initialPreferences: (0,_lib_table_preferences_js__WEBPACK_IMPORTED_MODULE_13__.bookingsTableLayout)(),
+      onPreferencesChange: onPreferencesChange,
       pageSize: 25,
-      renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon,
-      formatMoney: (minor, bookingRow) => (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_3__.money)(minor, bookingRow?.currency || _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.currency, bookingRow?.currencyExponent ?? null),
-      businessTimezone: _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.business.timezone,
+      renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon,
+      formatMoney: (minor, bookingRow) => (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.money)(minor, bookingRow?.currency || _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.currency, bookingRow?.currencyExponent ?? null),
+      businessTimezone: _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.business.timezone,
+      hasLocations: locations.length > 0,
       onOpenBooking: openEdit,
       onBookingAction: onBookingAction,
       onStatusChange: onStatusChange,
@@ -12995,37 +17060,41 @@ function Bookings() {
       onExport: onExport
     });
   }
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
     className: "pd-page pd-bookings-page",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
       ref: workspaceRef,
       className: `pd-bookings-workspace${editor ? ' is-inspecting' : ''}${resizing ? ' is-resizing' : ''}`,
       style: {
-        '--pd-booking-inspector-width': `${width}px`
+        '--pd-booking-inspector-width': `${width}px`,
+        ...(editor && inspectorGeometry && !stacked ? {
+          '--pd-booking-inspector-sticky-top': `${inspectorGeometry.top}px`,
+          '--pd-booking-inspector-height': `${inspectorGeometry.height}px`
+        } : {})
       },
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
         className: "pd-bookings-main",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.PageHeader, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.PageHeader, {
           title: "Bookings"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("section", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("section", {
           className: "pd-bookings-list pd-data-list",
           "aria-label": "Bookings list",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
             className: "pd-tanstack-bookings",
             id: "bookingsTableRoot",
             children: content
-          }), !state.loading && !state.error && state.total > state.rows.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("p", {
+          }), !state.loading && !state.error && state.total > state.rows.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("p", {
             className: "ap-list-note",
             role: "status",
             children: ["Showing the first ", state.rows.length, " of ", state.total, " bookings in this window \u2014 narrow the date range or search to find the rest."]
           }) : null]
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
         className: "pd-inflow-resizer",
         role: "separator",
         "aria-orientation": stacked ? 'horizontal' : 'vertical',
         "aria-label": "Resize booking editor",
-        "aria-valuemin": stacked ? undefined : _lib_inspector_width_js__WEBPACK_IMPORTED_MODULE_12__.MIN_W,
+        "aria-valuemin": stacked ? undefined : _lib_inspector_width_js__WEBPACK_IMPORTED_MODULE_16__.MIN_W,
         "aria-valuemax": stacked ? undefined : maxWidth,
         "aria-valuenow": stacked ? undefined : width,
         "aria-disabled": stacked ? true : undefined,
@@ -13033,24 +17102,25 @@ function Bookings() {
         hidden: !editor,
         onPointerDown: stacked ? undefined : startResize,
         onKeyDown: stacked ? undefined : keyResize,
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("span", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("span", {
           "aria-hidden": "true",
           children: [width, "px"]
         })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)("aside", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("aside", {
+        ref: inspectorRef,
         className: "pd-booking-inspector",
         id: "bookingInspector",
         "aria-labelledby": "bookingInspectorTitle",
         hidden: !editor,
-        children: editor ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(BookingEditor, {
+        children: editor ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(BookingEditor, {
           mode: editor.mode,
           bookingId: editor.id,
           row: editor.row,
           initialAction: editor.action,
           prefill: editor.prefill,
-          onClose: closeEditor,
+          onClose: editorExit(editor, closeEditor),
           onChanged: load
-        }, `${editor.mode}-${editor.id || 'new'}-${editor.action || ''}`) : null
+        }, `${editor.mode}-${editor.id || 'new'}-${editor.action || ''}-${editor.rev || 0}`) : null
       })]
     }), dialog]
   });
@@ -13066,31 +17136,37 @@ function Bookings() {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Calendar: () => (/* binding */ Calendar)
+/* harmony export */   Calendar: () => (/* binding */ Calendar),
+/* harmony export */   addBookingPrefill: () => (/* binding */ addBookingPrefill),
+/* harmony export */   readCalendarFilters: () => (/* binding */ readCalendarFilters)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _lib_api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../lib/api.js */ "./assets/src/admin/lib/api.js");
-/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
-/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
-/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
-/* harmony import */ var _lib_schedule_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/schedule.js */ "./assets/src/admin/lib/schedule.js");
-/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
-/* harmony import */ var _lib_toast_jsx__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/toast.jsx */ "./assets/src/admin/lib/toast.jsx");
-/* harmony import */ var _lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/confirm.jsx */ "./assets/src/admin/lib/confirm.jsx");
-/* harmony import */ var _lib_day_sheet_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/day-sheet.js */ "./assets/src/admin/lib/day-sheet.js");
-/* harmony import */ var _calendar_ApontoCalendar_jsx__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../calendar/ApontoCalendar.jsx */ "./assets/src/admin/calendar/ApontoCalendar.jsx");
-/* harmony import */ var _calendar_slot_select_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../calendar/slot-select.js */ "./assets/src/admin/calendar/slot-select.js");
-/* harmony import */ var _calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../calendar/staff-scope.js */ "./assets/src/admin/calendar/staff-scope.js");
-/* harmony import */ var _calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../calendar/constants.js */ "./assets/src/admin/calendar/constants.js");
-/* harmony import */ var _calendar_window_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../calendar/window.js */ "./assets/src/admin/calendar/window.js");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _lib_api_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lib/api.js */ "./assets/src/admin/lib/api.js");
+/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
+/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
+/* harmony import */ var _shared_person_name_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/person-name.js */ "./assets/src/shared/person-name.js");
+/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
+/* harmony import */ var _lib_schedule_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/schedule.js */ "./assets/src/admin/lib/schedule.js");
+/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
+/* harmony import */ var _lib_toast_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/toast.jsx */ "./assets/src/admin/lib/toast.jsx");
+/* harmony import */ var _lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/confirm.jsx */ "./assets/src/admin/lib/confirm.jsx");
+/* harmony import */ var _lib_branches_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../lib/branches.js */ "./assets/src/admin/lib/branches.js");
+/* harmony import */ var _lib_day_sheet_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../lib/day-sheet.js */ "./assets/src/admin/lib/day-sheet.js");
+/* harmony import */ var _calendar_ApontoCalendar_jsx__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../calendar/ApontoCalendar.jsx */ "./assets/src/admin/calendar/ApontoCalendar.jsx");
+/* harmony import */ var _calendar_slot_select_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../calendar/slot-select.js */ "./assets/src/admin/calendar/slot-select.js");
+/* harmony import */ var _calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../calendar/staff-scope.js */ "./assets/src/admin/calendar/staff-scope.js");
+/* harmony import */ var _calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../calendar/constants.js */ "./assets/src/admin/calendar/constants.js");
+/* harmony import */ var _calendar_window_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ../calendar/window.js */ "./assets/src/admin/calendar/window.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__);
 /**
  * Calendar route (SPEC-P1 §1.4 · Q10). Event Calendar day/week grid with the
  * Fresha-style look: business-time events coloured by status, diagonal-stripe
  * non-working hours from the REAL schedule + blocked-periods (not the spike mock),
- * accent now-indicator, custom toolbar, status + service filters, click-booking →
+ * accent now-indicator, custom toolbar, status + service (+ location, D-R63) filters, click-booking →
  * detail, click free slot → New booking, Block time → POST /blocked-periods.
  *
  * ONE staff member at a time (D-R28, R2). Every per-staff layer — the non-working
@@ -13101,9 +17177,18 @@ __webpack_require__.r(__webpack_exports__);
  * staff meant reading someone else's appointments against the first member's hours.
  * With a single staff member the selector is not rendered and the view is unchanged.
  *
- * DEBT: an all-staff / resource-column view (a column per member, Fresha-style) is
- * the natural next step and is deliberately out of scope here — P2 polish.
+ * "All staff" (D-R64) is an explicit choice in that selector, never the default: every
+ * member's bookings on one grid, each event naming its member, the shading switched to the
+ * BUSINESS hours (and saying so), no blocked periods painted and Block time refused —
+ * each per-staff layer changes meaning rather than quietly staying on one person
+ * (`calendar/staff-scope.js`).
+ *
+ * DEBT: a resource-column view (a column per member, Fresha-style) is still the natural
+ * next step and is deliberately out of scope here — P2 polish.
  */
+
+
+
 
 
 
@@ -13137,34 +17222,108 @@ function dayAtMinutes(midnight, minutes) {
   d.setMinutes(minutes);
   return d;
 }
+
+/**
+ * The Calendar's filters survive a round-trip to #bookings (D-R63 fix round 4): the route unmounts
+ * there, and a branch view that reset to "All locations" on the way back would also stop pre-filling
+ * the branch on the next slot click. Per-viewer, per-tab `sessionStorage`, namespaced by the site's
+ * REST base (two sites on one origin keep their own); every access is guarded — a blocked store
+ * simply means the filters start at their defaults, as they always did.
+ */
+const FILTERS_KEY = `aponto.admin.calendar-filters.v1:${_lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.restUrl}`;
+function readCalendarFilters() {
+  try {
+    const saved = JSON.parse(window.sessionStorage.getItem(FILTERS_KEY) || '{}');
+    return saved && 'object' === typeof saved ? saved : {};
+  } catch {
+    return {};
+  }
+}
+function writeCalendarFilters(filters) {
+  try {
+    window.sessionStorage.setItem(FILTERS_KEY, JSON.stringify(filters));
+  } catch {
+    // A blocked store is a lost convenience, never an error.
+  }
+}
+
+/**
+ * The New-booking prefill for the toolbar's "+ Add" (T-052).
+ *
+ * @param {?Date}  viewedDay Business-local first day on screen, or null when today is on screen.
+ * @param {string} today     Business-local `Y-m-d`.
+ * @return {{returnTo: string, date?: string}} Prefill for the create drawer.
+ */
+function addBookingPrefill(viewedDay, today) {
+  const prefill = {
+    returnTo: 'calendar'
+  };
+  if (viewedDay instanceof Date && !Number.isNaN(viewedDay.getTime())) {
+    const pad = n => String(n).padStart(2, '0');
+    const date = `${viewedDay.getFullYear()}-${pad(viewedDay.getMonth() + 1)}-${pad(viewedDay.getDate())}`;
+    if (date > today) {
+      prefill.date = date;
+    }
+  }
+  return prefill;
+}
 function Calendar({
   onNavigate
 }) {
-  const showToast = (0,_lib_toast_jsx__WEBPACK_IMPORTED_MODULE_7__.useToast)();
+  const saved = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(readCalendarFilters, []);
+  const showToast = (0,_lib_toast_jsx__WEBPACK_IMPORTED_MODULE_9__.useToast)();
   const {
     confirm,
     dialog
-  } = (0,_lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_8__.useConfirmDialog)();
+  } = (0,_lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_10__.useConfirmDialog)();
   const [state, setState] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
     loading: true,
     error: null
   });
   const [data, setData] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
     bookings: [],
+    total: 0,
     blocks: [],
     openByDow: {},
     staffId: null
   });
-  const [statusFilter, setStatusFilter] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('all');
-  const [serviceFilter, setServiceFilter] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('all');
+  const [statusFilter, setStatusFilter] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => saved.status || 'all');
+  const [serviceFilter, setServiceFilter] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => saved.service || 'all');
+  // D-R63 (+ fix round 1, rest-contract §2.8 addendum): a location filter beside status/service,
+  // rendered only when the site HAS locations (all statuses: an archived branch keeps its
+  // bookings). A BRANCH scopes the reads themselves — `location_id` on the bookings window, and
+  // the member's hours resolved AT that branch for the shading — because a client-side filter over
+  // a 100-row window can drop that branch's bookings. "All locations" keeps the wildcard hours.
+  const [locationFilter, setLocationFilter] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('all');
+  const [locations, setLocations] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    let live = true;
+    (0,_lib_branches_js__WEBPACK_IMPORTED_MODULE_11__.fetchLocations)().then(({
+      items
+    }) => {
+      if (!live || !items.length) {
+        return;
+      }
+      setLocations(items);
+      // A restored branch applies only once the catalog confirms it still exists ("No
+      // location" = `0` always does); a site with no locations never scopes by one.
+      const restored = String(saved.location ?? 'all');
+      if ('0' === restored || items.some(location => String(location.id) === restored)) {
+        setLocationFilter(restored);
+      }
+    });
+    return () => {
+      live = false;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- `saved` is read once per mount.
   const [blockMode, setBlockMode] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [daySheet, setDaySheet] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
     date: null,
     items: []
   });
-  // The FULL staff roster (active AND archived) and the member the grid is describing. Route
-  // state only — the selection is a view preference, not a setting, so it resets with the route
-  // (no new option, nothing to migrate, nothing shared between admins).
+  // The FULL staff roster (active AND archived) and the member the grid is describing. A view
+  // preference, not a setting: it lives in this tab's session only (fix round 4 — see
+  // `readCalendarFilters()`), with no option, nothing to migrate and nothing shared between admins.
   //
   // `status: 'all'` is load-bearing, not defensive (Codex review): an archived member keeps the
   // bookings they already had, so scoping off the ACTIVE count let those bookings bleed onto the
@@ -13174,7 +17333,18 @@ function Calendar({
     loaded: false,
     items: []
   });
-  const [staffId, setStaffId] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  // Seeded from the session (fix round 4); the roster effect still validates it through
+  // `resolveSelectedStaff()`, so an archived/deleted member falls back to the first one — and a
+  // remembered "All staff" (D-R64) holds only while the roster still offers it.
+  const [staffId, setStaffId] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => (0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.isAllStaff)(saved.staffId) ? _calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.ALL_STAFF : Number(saved.staffId) || null);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    writeCalendarFilters({
+      status: statusFilter,
+      service: serviceFilter,
+      location: locationFilter,
+      staffId
+    });
+  }, [statusFilter, serviceFilter, locationFilter, staffId]);
   // The grid's ACTIVE RANGE, reported by Event Calendar (`datesSet`). The window and the stripes
   // are derived for what is ON SCREEN, so a day off six weeks out cannot reshape this week and
   // the day view is not stretched by another weekday's hours (Codex review P2-1). Null until the
@@ -13195,7 +17365,7 @@ function Calendar({
   // changes would let a mid-session staff edit silently move the selector under the user.
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     let live = true;
-    _lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api.get('/staff', {
+    _lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api.get('/staff', {
       status: 'all',
       per_page: 100
     }).then(res => {
@@ -13207,7 +17377,7 @@ function Calendar({
         loaded: true,
         items
       });
-      setStaffId(current => (0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_12__.resolveSelectedStaff)(items, current));
+      setStaffId(current => (0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.resolveSelectedStaff)(items, current));
     }).catch(err => {
       if (live) {
         setState({
@@ -13221,26 +17391,60 @@ function Calendar({
     };
   }, []);
   const staffCount = roster.items.length;
+  // D-R63 fix round 2: a monotonic token per load, so an OLDER branch/staff response that lands
+  // after a newer selection's can never overwrite its bookings and shading (the LocationsRoute
+  // pattern). `loadedOnce` keeps the grid — and the filters — on screen during a RE-load, which is
+  // what makes two quick selections possible at all.
+  const loadToken = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(0);
+  const loadedOnce = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
   const load = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     if (!roster.loaded) {
       return;
     }
+    const token = ++loadToken.current;
     setState({
       loading: true,
       error: null
     });
-    const from = (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_3__.toUtcInstant)(Date.now() - WINDOW_DAYS * 86400000);
-    const to = (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_3__.toUtcInstant)(Date.now() + WINDOW_DAYS * 86400000);
-    const bookingQuery = (0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_12__.bookingQueryForStaff)({
+    const from = (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_4__.toUtcInstant)(Date.now() - WINDOW_DAYS * 86400000);
+    const to = (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_4__.toUtcInstant)(Date.now() + WINDOW_DAYS * 86400000);
+    const bookingQuery = (0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.bookingQueryForStaff)({
       status: 'all',
       from,
       to,
       per_page: 100
     }, staffId, staffCount);
-    Promise.all([_lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api.get('/bookings', bookingQuery).catch(() => ({
+    const branch = 'all' === locationFilter ? null : Number(locationFilter);
+    if (null !== branch) {
+      bookingQuery.location_id = branch;
+    }
+    // D-R64: in the All-staff scope there is no one member whose blocks or hours apply — the
+    // shading is the BUSINESS hours (the wildcard `(0,0,0)` rows, read fresh so an edit made in
+    // Settings this session shows; the boot snapshot is the fallback) and no blocks are painted.
+    const member = staffId && !(0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.isAllStaff)(staffId) ? staffId : null;
+    let hours = Promise.resolve({
+      weekly: null
+    });
+    if (member) {
+      // resolved=1: server merges own + business hours (§1.3) so the client no
+      // longer resolves inheritance from two sources. `weekly: null` marks "no
+      // resolved answer" (fetch failed / no staff) → boot-snapshot fallback; a
+      // SUCCESSFUL empty weekly is authoritative (closed all week → full stripes).
+      hours = _lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api.get(`/staff/${member}/schedule`, {
+        resolved: 1,
+        location_id: branch || undefined
+      }).catch(() => ({
+        weekly: null
+      }));
+    } else if (staffId) {
+      hours = _lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api.get('/business-hours').catch(() => ({
+        weekly: null
+      }));
+    }
+    Promise.all([_lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api.get('/bookings', bookingQuery).catch(() => ({
       items: []
-    })), staffId ? _lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api.get('/blocked-periods', {
-      staff_id: staffId,
+    })), member ? _lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api.get('/blocked-periods', {
+      staff_id: member,
       from,
       to,
       per_page: 100
@@ -13248,21 +17452,18 @@ function Calendar({
       items: []
     })) : Promise.resolve({
       items: []
-    }),
-    // resolved=1: server merges own + business hours (§1.3) so the client no
-    // longer resolves inheritance from two sources. `weekly: null` marks "no
-    // resolved answer" (fetch failed / no staff) → boot-snapshot fallback; a
-    // SUCCESSFUL empty weekly is authoritative (closed all week → full stripes).
-    staffId ? _lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api.get(`/staff/${staffId}/schedule`, {
-      resolved: 1
-    }).catch(() => ({
-      weekly: null
-    })) : Promise.resolve({
-      weekly: null
-    })]).then(([bookings, blocks, schedule]) => {
-      const openByDow = (0,_lib_schedule_js__WEBPACK_IMPORTED_MODULE_5__.effectiveOpenByDow)(schedule.weekly, _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.businessHours);
+    }), hours]).then(([bookings, blocks, schedule]) => {
+      if (token !== loadToken.current) {
+        return;
+      }
+      loadedOnce.current = true;
+      const openByDow = (0,_lib_schedule_js__WEBPACK_IMPORTED_MODULE_7__.effectiveOpenByDow)(schedule.weekly, _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.businessHours);
+      const items = bookings.items || [];
+      // `total` is the server's count for the window; more than the 100 rows read means the
+      // grid is incomplete, and the route says so (likeliest in the All-staff scope).
       setData({
-        bookings: bookings.items || [],
+        bookings: items,
+        total: Number(bookings.total) || items.length,
         blocks: blocks.items || [],
         openByDow,
         staffId
@@ -13271,11 +17472,13 @@ function Calendar({
         loading: false,
         error: null
       });
-    }).catch(err => setState({
-      loading: false,
-      error: err.message
-    }));
-  }, [roster.loaded, staffCount, staffId]);
+    }).catch(err => {
+      if (token === loadToken.current) setState({
+        loading: false,
+        error: err.message
+      });
+    });
+  }, [roster.loaded, staffCount, staffId, locationFilter]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(load, [load]);
   const serviceOptions = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
     const names = new Set(data.bookings.map(b => b.service?.name).filter(Boolean));
@@ -13288,14 +17491,16 @@ function Calendar({
   // by the status or service filter — must not widen the grid either.
   const timed = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
     const items = [];
+    // D-R64: with every member on one grid, each event has to say whose it is.
+    const allView = (0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.isAllStaff)(data.staffId);
 
     // Blocked periods render as LABELLED events (not plain stripes) so a "meeting"/"lunch" is
     // distinguishable from closed business hours (C3, finding U2). The reason rides the event for
     // the on-event label + hover tooltip (event-content.js / ApontoCalendar eventDidMount).
     data.blocks.forEach(block => items.push({
       id: `blk-${block.id}`,
-      start: (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.toBusinessLocalDate)(block.start_datetime_utc, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.TZ),
-      end: (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.toBusinessLocalDate)(block.end_datetime_utc, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.TZ),
+      start: (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.toBusinessLocalDate)(block.start_datetime_utc, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.TZ),
+      end: (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.toBusinessLocalDate)(block.end_datetime_utc, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.TZ),
       classNames: ['ap-blocked'],
       extendedProps: {
         kind: 'blocked',
@@ -13308,7 +17513,7 @@ function Calendar({
     // appointment belonging to someone other than the member whose hours are shaded — a
     // stale response arriving after a selector change would otherwise do exactly that.
     data.bookings.forEach(b => {
-      if (!(0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_12__.bookingBelongsToStaff)(b, data.staffId, staffCount)) {
+      if (!(0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.bookingBelongsToStaff)(b, data.staffId, staffCount)) {
         return;
       }
       if (statusFilter !== 'all' && b.status !== statusFilter) {
@@ -13317,24 +17522,35 @@ function Calendar({
       if (serviceFilter !== 'all' && b.service?.name !== serviceFilter) {
         return;
       }
+      if (!(0,_lib_branches_js__WEBPACK_IMPORTED_MODULE_11__.matchesLocationFilter)(b, locationFilter)) {
+        return;
+      }
+      // A cancelled checkout nobody ever placed is not an appointment (persona QA 2026-10-05,
+      // #82): it stays in the Bookings list under Cancelled and off the grid.
+      if (b.checkout_abandoned === true) {
+        return;
+      }
       items.push({
         id: `bk-${b.id}`,
-        start: (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.toBusinessLocalDate)(b.start_utc, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.TZ),
-        end: (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.toBusinessLocalDate)(b.end_utc, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.TZ),
+        start: (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.toBusinessLocalDate)(b.start_utc, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.TZ),
+        end: (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.toBusinessLocalDate)(b.end_utc, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.TZ),
         classNames: ['ap-ev', `ap-ev--${b.status}`],
         extendedProps: {
           kind: 'booking',
           status: b.status,
-          customer: b.customer?.name || '',
+          customer: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_5__.displayNameOf)(b.customer),
           service: b.service?.name || '',
-          bookingId: b.id
+          bookingId: b.id,
+          ...(allView ? {
+            staff: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_5__.displayNameOf)(b.staff)
+          } : {})
         }
       });
     });
     return {
       items
     };
-  }, [data, staffCount, statusFilter, serviceFilter]);
+  }, [data, staffCount, statusFilter, serviceFilter, locationFilter]);
 
   // THE VISIBLE WINDOW (beta bug): the grid used to be pinned to 07:00–21:00, and Event Calendar
   // simply does not draw an event lying outside its slot range — a salon opening at 06:00 or
@@ -13343,7 +17559,7 @@ function Calendar({
   // (no extra REST call) plus the events above, and stays 07:00–21:00 when nothing pushes it.
   // Scoped to the ACTIVE RANGE the grid reports, so one late booking (or one day off) cannot
   // reshape a week it is not even on — `calendar/window.js` holds the rules.
-  const slotWindow = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => (0,_calendar_window_js__WEBPACK_IMPORTED_MODULE_14__.deriveSlotWindow)({
+  const slotWindow = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => (0,_calendar_window_js__WEBPACK_IMPORTED_MODULE_17__.deriveSlotWindow)({
     openByDow: data.openByDow,
     events: timed.items,
     range
@@ -13356,13 +17572,13 @@ function Calendar({
     // absent — is striped across the whole visible window (Sat/Sun closed, fully-closed days,
     // or a zero-config install where nothing is working yet). They span the DERIVED window, so
     // an hour the grid gained (early open, late booking) is shaded exactly like the rest.
-    const base = (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.toBusinessLocalDate)(Date.now(), _calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.TZ);
+    const base = (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.toBusinessLocalDate)(Date.now(), _calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.TZ);
     base.setHours(0, 0, 0, 0);
     for (let offset = -WINDOW_DAYS; offset <= WINDOW_DAYS; offset += 1) {
       const day = new Date(base);
       day.setDate(base.getDate() + offset);
       const dow = (day.getDay() + 6) % 7; // 0 = Monday
-      (0,_lib_schedule_js__WEBPACK_IMPORTED_MODULE_5__.closedIntervals)(data.openByDow[dow] || [], slotWindow.minMinutes, slotWindow.maxMinutes).forEach(([s, e], i) => out.push({
+      (0,_lib_schedule_js__WEBPACK_IMPORTED_MODULE_7__.closedIntervals)(data.openByDow[dow] || [], slotWindow.minMinutes, slotWindow.maxMinutes).forEach(([s, e], i) => out.push({
         id: `nw-${offset}-${i}`,
         start: dayAtMinutes(day, s),
         end: dayAtMinutes(day, e),
@@ -13385,7 +17601,7 @@ function Calendar({
     const dayEnd = new Date(dayStart);
     dayEnd.setDate(dayStart.getDate() + 1);
     try {
-      const items = await (0,_lib_day_sheet_js__WEBPACK_IMPORTED_MODULE_9__.fetchAllDayBookings)(_lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api, (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.businessLocalDateToUtcIso)(dayStart, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.TZ), (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.businessLocalDateToUtcIso)(dayEnd, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.TZ));
+      const items = await (0,_lib_day_sheet_js__WEBPACK_IMPORTED_MODULE_12__.fetchAllDayBookings)(_lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api, (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.businessLocalDateToUtcIso)(dayStart, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.TZ), (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.businessLocalDateToUtcIso)(dayEnd, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.TZ));
       setDaySheet({
         date: dayStart,
         items
@@ -13396,7 +17612,15 @@ function Calendar({
       showToast('Could not load the day’s bookings for printing.', 'danger');
     }
   };
+
+  // Fix round 3: while a RE-load is unsettled the grid still shows the PREVIOUS selection's
+  // bookings and hours, so acting on it would mix the old staff/hours with the new filter — a slot
+  // click, block time and event clicks are inert (and the card says busy) until the token settles.
+  const reloading = state.loading && loadedOnce.current;
   const openBooking = id => {
+    if (reloading) {
+      return;
+    }
     window.__apontoPendingOpenId = id;
     onNavigate('bookings');
   };
@@ -13404,6 +17628,21 @@ function Calendar({
     window.__apontoPendingCreate = prefill;
     onNavigate('bookings');
   };
+  // The toolbar's "+ Add" (persona QA 2026-10-05, T-052). The create drawer lives on the Bookings
+  // route, so the click still goes there — but it now opens on the day being VIEWED rather than
+  // today (never a past day: the drawer's date input starts at today), and every way out of it
+  // comes back to the calendar, exactly like a free-slot click.
+  const addBooking = viewedDay => {
+    newBooking(addBookingPrefill(viewedDay, _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.business.today));
+  };
+
+  // A block belongs to ONE person (D-R64), so the All-staff scope disarms an armed Block time.
+  const allStaffSelected = (0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.isAllStaff)(staffId);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (allStaffSelected) {
+      setBlockMode(false);
+    }
+  }, [allStaffSelected]);
 
   // Escape leaves an armed block mode cleanly: the mode changes what every click on the grid
   // does, so it must be dismissable without hunting for the toolbar button again.
@@ -13420,12 +17659,15 @@ function Calendar({
     return () => document.removeEventListener('keydown', onKey);
   }, [blockMode]);
   const onSelect = async info => {
+    if (reloading) {
+      return;
+    }
     const {
       action,
       start,
       end
-    } = (0,_calendar_slot_select_js__WEBPACK_IMPORTED_MODULE_11__.planSlotSelection)(info, {
-      blockMode,
+    } = (0,_calendar_slot_select_js__WEBPACK_IMPORTED_MODULE_14__.planSlotSelection)(info, {
+      blockMode: blockMode && !(0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.isAllStaff)(data.staffId),
       staffId: data.staffId
     });
     if (action === 'booking') {
@@ -13433,8 +17675,13 @@ function Calendar({
       // start (date + slot preselect once availability confirms it).
       // Carries the SELECTED staff member: the slot was clicked against their hours, so the
       // booking must be created for them rather than falling back to any-staff availability
-      // (which could hand it to somebody else entirely).
-      newBooking((0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_12__.slotBookingPrefill)(start, (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.businessLocalDateToUtcIso)(start, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.TZ), data.staffId));
+      // (which could hand it to somebody else entirely). In the All-staff scope nobody is
+      // preselected (D-R64): the grid showed no one's hours in particular.
+      // `returnTo`: Cancel on that New booking brings the operator back here (fix round 2).
+      newBooking({
+        ...(0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.slotBookingPrefill)(start, (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.businessLocalDateToUtcIso)(start, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.TZ), data.staffId, 'all' === locationFilter ? null : locationFilter),
+        returnTo: 'calendar'
+      });
       return;
     }
     if (action === 'block-needs-staff') {
@@ -13459,154 +17706,177 @@ function Calendar({
       return;
     }
     try {
-      await _lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api.post('/blocked-periods', {
+      await _lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api.post('/blocked-periods', {
         staff_id: data.staffId,
-        start_datetime_utc: (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.businessLocalDateToUtcIso)(start, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.TZ),
-        end_datetime_utc: (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.businessLocalDateToUtcIso)(end, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.TZ),
+        start_datetime_utc: (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.businessLocalDateToUtcIso)(start, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.TZ),
+        end_datetime_utc: (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.businessLocalDateToUtcIso)(end, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.TZ),
         reason: reason || ''
       });
-      showToast('Time blocked.');
+      showToast('Time blocked.', 'success');
       setBlockMode(false);
       load();
     } catch (err) {
       showToast(err.message, 'danger');
     }
   };
-  if (state.loading) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
+  if (state.loading && !loadedOnce.current) {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
       className: "pd-page",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.PageHeader, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_8__.PageHeader, {
         title: "Calendar"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.RouteLoading, {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_8__.RouteLoading, {
         label: "Loading calendar"
       })]
     });
   }
   if (state.error) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
       className: "pd-page",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.PageHeader, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_8__.PageHeader, {
         title: "Calendar"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.RouteError, {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_8__.RouteError, {
         message: state.error,
         onRetry: load
       })]
     });
   }
-  const blockButton = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("button", {
+  const blockButton = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("button", {
     className: `ap-cal-btn ap-cal-btn--ghost${blockMode ? ' is-active' : ''}`,
     type: "button",
     "aria-pressed": blockMode,
+    disabled: reloading || allStaffSelected,
+    title: allStaffSelected ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Choose a staff member to block time', 'aponto') : undefined,
     onClick: () => setBlockMode(v => !v),
-    children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_4__.renderIcon)('prohibit'), blockMode ? 'Blocking… pick a slot' : 'Block time']
+    children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('prohibit'), blockMode ? 'Blocking… pick a slot' : 'Block time']
   });
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
     className: "pd-page",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.PageHeader, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_8__.PageHeader, {
       title: "Calendar",
-      description: _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.businessTimeLine
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
+      description: range?.start ? (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_4__.businessTimeLineAt)((0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.businessLocalDateToUtcIso)(range.start, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.TZ)) : _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.businessTimeLine
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
       className: "ap-cal-card",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
+      "aria-busy": reloading || undefined,
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
         className: "ap-cal-filters",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("span", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
           className: "ap-cal-filters-label",
           children: "Filters"
-        }), (0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_12__.scopesToOneStaff)(staffCount) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("select", {
+        }), (0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.scopesToOneStaff)(staffCount) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("select", {
           className: "pd-select",
           "aria-label": "Show calendar for staff member",
           value: staffId ?? '',
-          onChange: e => setStaffId(Number(e.target.value) || null),
-          children: (0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_12__.staffSelectorOptions)(roster.items).map(option => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("option", {
+          onChange: e => setStaffId((0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.isAllStaff)(e.target.value) ? _calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.ALL_STAFF : Number(e.target.value) || null),
+          children: (0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.staffSelectorOptions)(roster.items, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('All staff', 'aponto')).map(option => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("option", {
             value: option.id,
             children: option.label
           }, option.id))
-        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("select", {
+        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("select", {
           className: "pd-select",
           "aria-label": "Filter by status",
           value: statusFilter,
           onChange: e => setStatusFilter(e.target.value),
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("option", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("option", {
             value: "all",
             children: "All statuses"
-          }), STATUS_OPTIONS.map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("option", {
+          }), STATUS_OPTIONS.map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("option", {
             value: s,
             children: STATUS_FILTER_LABELS[s]
           }, s))]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("select", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("select", {
           className: "pd-select",
           "aria-label": "Filter by service",
           value: serviceFilter,
           onChange: e => setServiceFilter(e.target.value),
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("option", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("option", {
             value: "all",
             children: "All services"
-          }), serviceOptions.map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("option", {
+          }), serviceOptions.map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("option", {
             value: s,
             children: s
           }, s))]
-        })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_calendar_ApontoCalendar_jsx__WEBPACK_IMPORTED_MODULE_10__.ApontoCalendar, {
+        }), locations.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("select", {
+          className: "pd-select",
+          "aria-label": (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Filter by location', 'aponto'),
+          value: locationFilter,
+          onChange: e => setLocationFilter(e.target.value),
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("option", {
+            value: "all",
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('All locations', 'aponto')
+          }), locations.map(l => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("option", {
+            value: l.id,
+            children: l.name
+          }, l.id)), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("option", {
+            value: _lib_branches_js__WEBPACK_IMPORTED_MODULE_11__.NO_LOCATION,
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('No location', 'aponto')
+          })]
+        }) : null]
+      }), (0,_calendar_staff_scope_js__WEBPACK_IMPORTED_MODULE_15__.isAllStaff)(data.staffId) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("p", {
+        className: "ap-list-note",
+        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Shading shows business hours. Choose a staff member to see their hours.', 'aponto')
+      }) : null, data.total > data.bookings.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("p", {
+        className: "ap-list-note",
+        role: "status",
+        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)(/* translators: 1: bookings shown, 2: bookings in the window. */
+        (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Showing the first %1$d of %2$d bookings in this window — filter by staff member or location to see the rest.', 'aponto'), data.bookings.length, data.total)
+      }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_calendar_ApontoCalendar_jsx__WEBPACK_IMPORTED_MODULE_13__.ApontoCalendar, {
         events: events,
         slotWindow: slotWindow,
         onRangeChange: onRangeChange,
         onEventClick: openBooking,
         onSelect: onSelect,
-        onAdd: newBooking,
+        onAdd: addBooking,
         onPrint: printDaySheet,
         toolbarExtra: blockButton,
         isBlocking: blockMode
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
       className: "ap-daysheet",
       role: "region",
       "aria-label": "Day sheet for printing",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
         className: "ap-daysheet-head",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("h1", {
-          children: _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.business.name || 'Bookings'
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("p", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("h1", {
+          children: _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.business.name || 'Bookings'
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("p", {
           children: [daySheet.date ? daySheet.date.toLocaleDateString(undefined, {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
             day: 'numeric'
           }) : '', " \xB7 Day sheet"]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("p", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("p", {
           className: "ap-daysheet-scope",
           children: "All bookings for this day \u2014 the calendar\u2019s on-screen status and service filters are not applied."
         })]
-      }), daySheet.items.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("table", {
+      }), daySheet.items.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("table", {
         className: "ap-daysheet-table",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("thead", {
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("tr", {
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("th", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("thead", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("tr", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("th", {
               children: "Time"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("th", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("th", {
               children: "Customer"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("th", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("th", {
               children: "Service"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("th", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("th", {
               children: "Status"
             })]
           })
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("tbody", {
-          children: daySheet.items.map(b => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("tr", {
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("td", {
-              children: (0,_calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.toBusinessLocalDate)(b.start_utc, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_13__.TZ).toLocaleTimeString([], {
-                hour: 'numeric',
-                minute: '2-digit'
-              })
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("td", {
-              children: b.customer?.name || '—'
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("td", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("tbody", {
+          children: daySheet.items.map(b => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("tr", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("td", {
+              children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_4__.timeLabel)(b.start_utc, _calendar_constants_js__WEBPACK_IMPORTED_MODULE_16__.TZ)
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("td", {
+              children: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_5__.displayNameOf)(b.customer) || '—'
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("td", {
               children: b.service?.name || '—'
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("td", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("td", {
               children: b.status || ''
             })]
           }, b.id))
         })]
-      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("p", {
+      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("p", {
         className: "ap-daysheet-empty",
         children: "No bookings for this day."
       })]
@@ -13632,16 +17902,19 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
 /* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
 /* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
-/* harmony import */ var _lib_toast_jsx__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/toast.jsx */ "./assets/src/admin/lib/toast.jsx");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/field-error.jsx */ "./assets/src/admin/lib/field-error.jsx");
+/* harmony import */ var _shared_person_name_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/person-name.js */ "./assets/src/shared/person-name.js");
+/* harmony import */ var _lib_toast_jsx__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/toast.jsx */ "./assets/src/admin/lib/toast.jsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__);
 /**
  * Customer inspector (SPEC-P1 §1.5 / mockup §7.7 / §6.7). Shared in-flow inspector
  * with three modes: read-only Detail first (history + aggregates strip) → footer
  * "Edit customer"; Edit form; and Create directly. Sections Contact + Preferences.
  *
- * - name* + a valid email are required; a duplicate normalised email is rejected
- *   inline from the API's 422 (`data.fields.email`, SPEC-P0 §4.5).
+ * - First name* + last name* (name split, 2026-10-01) + a valid email are required; the API's
+ *   422 keys `first_name` / `last_name` / `email` land inline (a duplicate normalised email is
+ *   `data.fields.email`, SPEC-P0 §4.5).
  * - Internal notes are staff-only (never enter the booking form / notifications).
  * - Timezone is DERIVE read-only from the latest booking (Q4 — no editable field);
  *   a warning shows when it differs from the business timezone.
@@ -13654,37 +17927,42 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
 const TZ = _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.business.timezone;
+
+/** The `POST`/`PUT /customers` 422 keys this editor renders inline. */
+const FIELD_KEYS = ['first_name', 'last_name', 'email', 'phone'];
 function AggregatesStrip({
   row
 }) {
   const last = row.lastBooking ? (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_3__.longDate)(row.lastBooking) : '—';
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("dl", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("dl", {
     className: "ap-aggregates-strip",
     "aria-label": "Customer activity",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("dt", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("dt", {
         children: "Total bookings"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("dd", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("dd", {
         children: row.bookingsCount
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("dt", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("dt", {
         children: "Upcoming"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("dd", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("dd", {
         children: row.upcoming
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("dt", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("dt", {
         children: "Last booking"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("dd", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("dd", {
         className: "ap-aggregate-date",
         children: last
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("dt", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("dt", {
         children: "No-shows"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("dd", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("dd", {
         children: row.noShowCount || 0
       })]
     })]
@@ -13696,11 +17974,12 @@ function CustomerInspector({
   onClose,
   onSaved
 }) {
-  const showToast = (0,_lib_toast_jsx__WEBPACK_IMPORTED_MODULE_5__.useToast)();
+  const showToast = (0,_lib_toast_jsx__WEBPACK_IMPORTED_MODULE_7__.useToast)();
   const [mode, setMode] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialMode); // 'detail' | 'edit' | 'create'
   const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [form, setForm] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => ({
-    name: row?.name || '',
+    first_name: row?.firstName || '',
+    last_name: row?.lastName || '',
     email: row?.email || '',
     phone: row?.phone || '',
     note: row?.note || ''
@@ -13713,12 +17992,21 @@ function CustomerInspector({
     ...f,
     [key]: e.target.value
   }));
+
+  // D-R77: a customer the front desk booked WITHOUT an email (or a last name) can be saved without
+  // one — the server allows a part that is not stored to stay absent, and never lets a stored one
+  // be removed. A new customer still needs all three.
+  const lastNameOptional = !creating && !row?.lastName;
+  const emailOptional = !creating && !row?.email;
   const save = async () => {
     const errors = {};
-    if (!form.name.trim()) {
-      errors.name = 'A name is required.';
+    if (!(0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_6__.normalizePart)(form.first_name)) {
+      errors.first_name = 'A first name is required.';
     }
-    if (!/.+@.+\..+/.test(form.email.trim())) {
+    if (!(0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_6__.normalizePart)(form.last_name) && !lastNameOptional) {
+      errors.last_name = 'A last name is required.';
+    }
+    if (!/.+@.+\..+/.test(form.email.trim()) && !(emailOptional && !form.email.trim())) {
       errors.email = 'A valid email is required.';
     }
     if (Object.keys(errors).length) {
@@ -13729,29 +18017,33 @@ function CustomerInspector({
     setFieldError({});
     try {
       const body = {
-        name: form.name.trim(),
+        first_name: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_6__.normalizePart)(form.first_name),
+        last_name: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_6__.normalizePart)(form.last_name),
         email: form.email.trim(),
         phone: form.phone.trim(),
         note: form.note
       };
       if (creating) {
         await _lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api.post('/customers', body);
-        showToast(`${body.name} added.`);
+        showToast(`${(0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_6__.displayName)(body.first_name, body.last_name)} added.`, 'success');
       } else {
         await _lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api.put(`/customers/${row.id}`, {
           ...body,
           wp_user_id: row.wpUserId ?? null
         });
-        showToast('Customer updated.');
+        showToast('Customer updated.', 'success');
       }
       onSaved?.();
       onClose?.();
     } catch (err) {
-      const emailError = err.data?.fields?.email;
-      if (emailError) {
-        setFieldError({
-          email: emailError
-        });
+      const inline = {};
+      for (const key of FIELD_KEYS) {
+        if (err.data?.fields?.[key]) {
+          inline[key] = err.data.fields[key];
+        }
+      }
+      if (Object.keys(inline).length) {
+        setFieldError(inline);
       } else {
         showToast(err.message, 'danger');
       }
@@ -13759,15 +18051,15 @@ function CustomerInspector({
     }
   };
   const title = creating ? 'New customer' : editing ? 'Edit customer' : row?.name || 'Customer';
-  const header = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("header", {
+  const header = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("header", {
     className: "pd-booking-inspector-head pd-booking-editor-head",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
       className: "pd-booking-inspector-identity",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("h2", {
         id: "customerInspectorTitle",
         children: title
       })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("button", {
       className: "pd-icon-button",
       type: "button",
       "aria-label": "Close customer inspector",
@@ -13778,84 +18070,84 @@ function CustomerInspector({
 
   // ---- Detail (read-only) ------------------------------------------------
   if (mode === 'detail' && row) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
-      children: [header, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.Fragment, {
+      children: [header, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
         className: "pd-booking-inspector-body",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
           className: "ap-inspector-identity",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
             className: "pmdk-avatar is-large",
             "aria-hidden": "true",
-            children: (row.name || '?').trim().charAt(0).toUpperCase()
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("strong", {
+            children: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_6__.initials)(row.firstName, row.lastName) || (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_6__.initials)(row.name, '') || '?'
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
               children: row.name
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
               className: "pd-ltr",
               children: row.email || 'No email'
             })]
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(AggregatesStrip, {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(AggregatesStrip, {
           row: row
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("section", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("section", {
           className: "pd-editor-section",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
             className: "pd-editor-section-head",
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h3", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("h3", {
               children: "Contact"
             })
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
             className: "pd-editor-readonly",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
               className: "pd-editor-readonly-label",
               children: "Email"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("strong", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
               className: "pd-ltr",
               children: row.email || '—'
             })]
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
             className: "pd-editor-readonly",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
               className: "pd-editor-readonly-label",
               children: "Phone"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("strong", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
               className: "pd-ltr",
               children: row.phone || '—'
             })]
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
             className: "pd-editor-readonly",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
               className: "pd-editor-readonly-label",
               children: "Timezone"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("strong", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
               children: row.timezone ? (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_3__.tzLabel)(row.timezone) : 'Not yet known'
             })]
-          }), tzDiffers ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("p", {
+          }), tzDiffers ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("p", {
             className: "ap-inspector-warning",
-            children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_4__.renderIcon)('clock'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+            children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_4__.renderIcon)('clock'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
               children: "Differs from your business timezone on the last booking."
             })]
           }) : null]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("section", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("section", {
           className: "pd-editor-section",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
             className: "pd-editor-section-head",
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h3", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("h3", {
               children: "Internal notes"
             })
-          }), row.note ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+          }), row.note ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("p", {
             className: "ap-inspector-note",
             children: row.note
-          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("p", {
             className: "pd-editor-note",
             children: "No internal notes. Visible to staff only."
           })]
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("footer", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("footer", {
         className: "pd-drawer-foot pd-booking-inspector-foot",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
           className: "pd-inspector-foot-actions",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("button", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("button", {
             className: "pd-button primary sm",
             type: "button",
             onClick: () => setMode('edit'),
@@ -13867,110 +18159,134 @@ function CustomerInspector({
   }
 
   // ---- Edit / Create -----------------------------------------------------
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
-    children: [header, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("form", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.Fragment, {
+    children: [header, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("form", {
       className: "pd-booking-inspector-body pd-compact-editor",
       autoComplete: "off",
       onSubmit: e => e.preventDefault(),
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("section", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("section", {
         className: "pd-editor-section",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
           className: "pd-editor-section-head",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h3", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("h3", {
             children: "Contact"
           })
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
-          className: `pd-compact-field${fieldError.name ? ' has-error' : ''}`,
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
-            name: "name",
-            value: form.name,
-            placeholder: " ",
-            required: true,
-            onChange: set('name')
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
-            className: "pd-compact-label",
-            children: "Full name"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+          className: "pd-field-grid",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_5__.fieldClass)('pd-compact-field', fieldError, 'first_name'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("input", {
+              name: "first_name",
+              value: form.first_name,
+              placeholder: " ",
+              required: true,
+              ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_5__.fieldAria)('customer', fieldError, 'first_name'),
+              onChange: set('first_name')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
+              className: "pd-compact-label",
+              children: "First name"
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_5__.fieldClass)('pd-compact-field', fieldError, 'last_name'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("input", {
+              name: "last_name",
+              value: form.last_name,
+              placeholder: " ",
+              required: !lastNameOptional,
+              ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_5__.fieldAria)('customer', fieldError, 'last_name'),
+              onChange: set('last_name')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
+              className: "pd-compact-label",
+              children: "Last name"
+            })]
           })]
-        }), fieldError.name ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
-          className: "ap-field-error",
-          children: fieldError.name
-        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
-          className: `pd-compact-field${fieldError.email ? ' has-error' : ''}`,
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
-            className: "pd-ltr",
-            type: "email",
-            name: "email",
-            value: form.email,
-            placeholder: " ",
-            required: true,
-            onChange: set('email')
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
-            className: "pd-compact-label",
-            children: "Email"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_5__.FieldErrors, {
+          prefix: "customer",
+          fieldError: fieldError,
+          keys: ['first_name', 'last_name']
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+          className: "pd-field-grid",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_5__.fieldClass)('pd-compact-field', fieldError, 'email'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("input", {
+              className: "pd-ltr",
+              type: "email",
+              name: "email",
+              value: form.email,
+              placeholder: " ",
+              required: !emailOptional,
+              ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_5__.fieldAria)('customer', fieldError, 'email'),
+              onChange: set('email')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
+              className: "pd-compact-label",
+              children: "Email"
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_5__.fieldClass)('pd-compact-field', fieldError, 'phone'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("input", {
+              className: "pd-ltr",
+              name: "phone",
+              value: form.phone,
+              placeholder: " ",
+              ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_5__.fieldAria)('customer', fieldError, 'phone'),
+              onChange: set('phone')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
+              className: "pd-compact-label",
+              children: "Phone"
+            })]
           })]
-        }), fieldError.email ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
-          className: "ap-field-error",
-          children: fieldError.email
-        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
-          className: "pd-compact-field",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
-            className: "pd-ltr",
-            name: "phone",
-            value: form.phone,
-            placeholder: " ",
-            onChange: set('phone')
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
-            className: "pd-compact-label",
-            children: "Phone"
-          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_5__.FieldErrors, {
+          prefix: "customer",
+          fieldError: fieldError,
+          keys: ['email', 'phone']
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("section", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("section", {
         className: "pd-editor-section",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
           className: "pd-editor-section-head",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h3", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("h3", {
             children: "Preferences"
           })
-        }), !creating && row?.timezone ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+        }), !creating && row?.timezone ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
           className: "pd-editor-readonly",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
             className: "pd-editor-readonly-label",
             children: "Timezone"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("strong", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
             children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_3__.tzLabel)(row.timezone)
           })]
-        }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+        }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("p", {
           className: "pd-editor-note",
           children: "Timezone is derived from the customer's most recent booking \u2014 not editable."
-        }), tzDiffers ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("p", {
+        }), tzDiffers ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("p", {
           className: "ap-inspector-warning",
-          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_4__.renderIcon)('clock'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_4__.renderIcon)('clock'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
             children: "Differs from your business timezone on the last booking."
           })]
-        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
           className: "pd-compact-field pd-compact-notes",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("textarea", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("textarea", {
             name: "note",
             rows: "3",
             placeholder: " ",
             value: form.note,
             onChange: set('note')
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
             className: "pd-compact-label",
             children: "Internal note (staff only)"
           })]
         })]
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("footer", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("footer", {
       className: "pd-drawer-foot pd-booking-inspector-foot",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
         className: "pd-inspector-foot-actions",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("button", {
           className: "pd-button sm",
           type: "button",
           onClick: creating ? onClose : () => setMode('detail'),
           children: "Cancel"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("button", {
           className: "pd-button primary sm",
           type: "button",
           disabled: saving,
@@ -13992,7 +18308,8 @@ function CustomerInspector({
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Customers: () => (/* binding */ Customers)
+/* harmony export */   Customers: () => (/* binding */ Customers),
+/* harmony export */   toRow: () => (/* binding */ toRow)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
@@ -14000,15 +18317,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _pressmaximum_dashboard_kit_table__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @pressmaximum/dashboard-kit/table */ "./node_modules/@pressmaximum/dashboard-kit/build/table/index.mjs");
 /* harmony import */ var _lib_api_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/api.js */ "./assets/src/admin/lib/api.js");
 /* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
-/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
-/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
-/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
-/* harmony import */ var _lib_InflowWorkspace_jsx__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/InflowWorkspace.jsx */ "./assets/src/admin/lib/InflowWorkspace.jsx");
-/* harmony import */ var _lib_RowMenu_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/RowMenu.jsx */ "./assets/src/admin/lib/RowMenu.jsx");
-/* harmony import */ var _lib_facets_jsx__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/facets.jsx */ "./assets/src/admin/lib/facets.jsx");
-/* harmony import */ var _CustomerInspector_jsx__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./CustomerInspector.jsx */ "./assets/src/admin/routes/CustomerInspector.jsx");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__);
+/* harmony import */ var _modules_catalog_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../modules/catalog.js */ "./assets/src/admin/modules/catalog.js");
+/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
+/* harmony import */ var _shared_person_name_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/person-name.js */ "./assets/src/shared/person-name.js");
+/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
+/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
+/* harmony import */ var _lib_InflowWorkspace_jsx__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/InflowWorkspace.jsx */ "./assets/src/admin/lib/InflowWorkspace.jsx");
+/* harmony import */ var _lib_RowMenu_jsx__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../lib/RowMenu.jsx */ "./assets/src/admin/lib/RowMenu.jsx");
+/* harmony import */ var _lib_facets_jsx__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../lib/facets.jsx */ "./assets/src/admin/lib/facets.jsx");
+/* harmony import */ var _CustomerInspector_jsx__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./CustomerInspector.jsx */ "./assets/src/admin/routes/CustomerInspector.jsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__);
 /**
  * Customers route (SPEC-P1 §1.5 / mockup §7.7). First real consumer of the kit
  * PMDKDataTable: the kit owns sorting / search / facets / pagination / selection /
@@ -14034,6 +18353,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
 const TZ = _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.business.timezone;
 const WIDTH_KEY = 'aponto.admin.customer-inspector-width.v1';
 const columnHelper = (0,_tanstack_react_table__WEBPACK_IMPORTED_MODULE_1__.createColumnHelper)();
@@ -14046,18 +18367,37 @@ const FACETS = [{
   label: 'Timezone differs on last booking',
   type: 'toggle'
 }];
+
+/**
+ * GET /customers item → table row.
+ *
+ * Persona QA 2026-10-05, T-051: the Bookings figure leaves CANCELLED bookings out (they are
+ * labelled beside it instead) and "Last booking" is the latest one that was not cancelled, so a
+ * customer who only ever cancelled does not read as a regular. A DTO older than
+ * `cancelled_count` / `last_active_booking` keeps the previous figures.
+ *
+ * @param {Object} dto Customer DTO (rest-contract §2.10).
+ * @return {Object} Row.
+ */
 function toRow(dto) {
+  const cancelled = Number(dto.cancelled_count) || 0;
+  const hasActive = Object.prototype.hasOwnProperty.call(dto, 'last_active_booking');
   return {
     id: dto.id,
-    name: dto.name,
+    // ONE Name column: the server-composed display name (name split, 2026-10-01); the parts
+    // ride along for the inspector's two inputs, the search haystack and the CSV.
+    name: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_7__.displayNameOf)(dto),
+    firstName: dto.first_name || '',
+    lastName: dto.last_name || '',
     email: dto.email || '',
     phone: dto.phone || '',
     note: dto.note || '',
     wpUserId: dto.wp_user_id ?? null,
-    bookingsCount: Number(dto.bookings_count) || 0,
+    bookingsCount: Math.max(0, (Number(dto.bookings_count) || 0) - cancelled),
+    cancelledCount: cancelled,
     noShowCount: Number(dto.no_show_count) || 0,
     upcoming: Number(dto.upcoming) || 0,
-    lastBooking: dto.last_booking || null,
+    lastBooking: (hasActive ? dto.last_active_booking : dto.last_booking) || null,
     timezone: dto.timezone || null,
     upcomingBool: (Number(dto.upcoming) || 0) > 0,
     tzDiffers: Boolean(dto.timezone && dto.timezone !== TZ)
@@ -14069,7 +18409,7 @@ function customerGlobalFilter(row, _columnId, value) {
     return true;
   }
   const c = row.original;
-  return `${c.name} ${c.email} ${c.phone} ${c.note}`.toLowerCase().includes(query);
+  return [c.name, c.firstName, c.lastName, c.email, c.phone, c.note].filter(Boolean).join(' ').toLowerCase().includes(query);
 }
 function csvCell(value) {
   const str = String(value ?? '');
@@ -14080,8 +18420,8 @@ function csvCell(value) {
   return `"${safe.replace(/"/g, '""')}"`;
 }
 function exportSelectedCsv(rows) {
-  const header = ['Name', 'Email', 'Phone', 'Bookings', 'Last booking'];
-  const body = rows.map(r => [r.name, r.email, r.phone, r.bookingsCount, r.lastBooking ? (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.longDate)(r.lastBooking) : '']);
+  const header = ['First name', 'Last name', 'Email', 'Phone', 'Bookings', 'Cancelled', 'No-shows', 'Last booking'];
+  const body = rows.map(r => [r.firstName, r.lastName, r.email, r.phone, r.bookingsCount, r.cancelledCount, r.noShowCount, r.lastBooking ? (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.longDate)(r.lastBooking) : '']);
   const csv = [header, ...body].map(cols => cols.map(csvCell).join(',')).join('\n');
   const url = URL.createObjectURL(new Blob([csv], {
     type: 'text/csv;charset=utf-8'
@@ -14173,14 +18513,15 @@ function Customers() {
     meta: {
       label: 'Name'
     },
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("span", {
       className: "ap-cell-identity",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
         className: "pmdk-avatar",
         "aria-hidden": "true",
-        children: (info.getValue() || '?').trim().charAt(0).toUpperCase()
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+        children: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_7__.initials)(info.row.original.firstName, info.row.original.lastName) || (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_7__.initials)(info.getValue(), '') || '?'
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
         className: "pmdk-cell-value pmdk-cell-strong",
+        title: info.getValue(),
         children: info.getValue()
       })]
     })
@@ -14190,7 +18531,7 @@ function Customers() {
     meta: {
       label: 'Email'
     },
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
       className: "pmdk-cell-value pmdk-cell-muted pd-ltr",
       children: info.getValue() || '—'
     })
@@ -14200,7 +18541,7 @@ function Customers() {
     meta: {
       label: 'Phone'
     },
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
       className: "pmdk-cell-value pmdk-cell-muted pd-ltr",
       children: info.getValue() || '—'
     })
@@ -14211,12 +18552,14 @@ function Customers() {
     meta: {
       label: 'Notes'
     },
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
       className: "pmdk-cell-value pmdk-cell-muted ap-cell-truncate",
       title: info.getValue() || undefined,
       children: info.getValue() || '—'
     })
-  }), columnHelper.accessor('bookingsCount', {
+  }),
+  // Cancelled bookings are not counted, and are named in the tooltip (T-051).
+  columnHelper.accessor('bookingsCount', {
     id: 'bookings',
     header: 'Bookings',
     size: 90,
@@ -14224,9 +18567,24 @@ function Customers() {
       label: 'Bookings',
       numeric: true
     },
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
       className: "pmdk-cell-value pmdk-cell-numeric",
+      title: info.row.original.cancelledCount ? `${info.row.original.cancelledCount} cancelled, not counted` : undefined,
       children: info.getValue()
+    })
+  }),
+  // The no-show count was in the inspector only (T-051); a dash keeps a clean record quiet.
+  columnHelper.accessor('noShowCount', {
+    id: 'noShows',
+    header: 'No-shows',
+    size: 90,
+    meta: {
+      label: 'No-shows',
+      numeric: true
+    },
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
+      className: "pmdk-cell-value pmdk-cell-numeric",
+      children: info.getValue() || '—'
     })
   }), columnHelper.accessor('lastBooking', {
     id: 'lastBooking',
@@ -14236,9 +18594,9 @@ function Customers() {
       label: 'Last booking'
     },
     sortingFn: (a, b) => String(a.original.lastBooking || '').localeCompare(String(b.original.lastBooking || '')),
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
       className: "pmdk-cell-value pmdk-cell-muted",
-      children: info.getValue() ? (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.longDate)(info.getValue()) : '—'
+      children: info.getValue() ? (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.longDate)(info.getValue()) : '—'
     })
   }), columnHelper.accessor('upcomingBool', {
     id: 'upcomingBool',
@@ -14248,7 +18606,7 @@ function Customers() {
       label: 'Upcoming',
       filterOnly: true
     },
-    filterFn: _lib_facets_jsx__WEBPACK_IMPORTED_MODULE_10__.isTrueFilter,
+    filterFn: _lib_facets_jsx__WEBPACK_IMPORTED_MODULE_12__.isTrueFilter,
     cell: () => null
   }), columnHelper.accessor('tzDiffers', {
     id: 'tzDiffers',
@@ -14258,7 +18616,7 @@ function Customers() {
       label: 'Timezone differs',
       filterOnly: true
     },
-    filterFn: _lib_facets_jsx__WEBPACK_IMPORTED_MODULE_10__.isTrueFilter,
+    filterFn: _lib_facets_jsx__WEBPACK_IMPORTED_MODULE_12__.isTrueFilter,
     cell: () => null
   }), columnHelper.display({
     id: 'action',
@@ -14266,9 +18624,9 @@ function Customers() {
     enableHiding: false,
     enableSorting: false,
     header: 'Action',
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_lib_RowMenu_jsx__WEBPACK_IMPORTED_MODULE_9__.RowMenu, {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_lib_RowMenu_jsx__WEBPACK_IMPORTED_MODULE_11__.RowMenu, {
       label: `Actions for ${info.row.original.name}`,
-      renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon,
+      renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon,
       items: [{
         action: 'view',
         label: 'View details',
@@ -14297,39 +18655,39 @@ function Customers() {
     params.set('_wpnonce', _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.nonce);
     window.open(`${base}/export/customers.csv?${params.toString()}`, '_blank', 'noopener');
   };
-  const list = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.Fragment, {
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_7__.PageHeader, {
+  const list = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.PageHeader, {
       title: "Customers"
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("section", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("section", {
       className: "pd-data-list pmdk-data-list",
       "aria-label": "Customers list",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_pressmaximum_dashboard_kit_table__WEBPACK_IMPORTED_MODULE_2__.PMDKDataTable, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_pressmaximum_dashboard_kit_table__WEBPACK_IMPORTED_MODULE_2__.PMDKDataTable, {
         columns: columns,
         data: state.rows,
         getRowId: row => String(row.id),
         status: state.status,
         states: {
           empty: {
-            icon: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('people'),
+            icon: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('people'),
             title: 'No customers yet',
             description: 'Customers are created automatically when a booking is made, or you can add one manually.',
-            action: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+            action: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("button", {
               className: "pmdk-button primary sm",
               type: "button",
               onClick: () => setInspector({
                 mode: 'create'
               }),
-              children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('plus'), "New customer"]
+              children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('plus'), "New customer"]
             })
           },
           error: {
             title: 'Could not load customers',
             description: state.error || '',
-            action: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+            action: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("button", {
               className: "pmdk-button sm",
               type: "button",
               onClick: load,
-              children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('arrows'), "Retry"]
+              children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('arrows'), "Retry"]
             })
           }
         },
@@ -14338,64 +18696,63 @@ function Customers() {
         bulkActions: ({
           selectedRows,
           clearSelection
-        }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+        }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("button", {
           className: "pmdk-button sm",
           type: "button",
           onClick: () => {
             exportSelectedCsv(selectedRows.map(r => r.original));
             clearSelection();
           },
-          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('csv'), "Export selected"]
+          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('csv'), "Export selected"]
         }),
         globalFilterFn: customerGlobalFilter,
         getColumnCanGlobalFilter: column => column.id === 'name',
         toolbarControls: ({
           table
-        }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(SearchSync, {
+        }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(SearchSync, {
           table: table,
           onChange: queueServerSearch
         }),
         filterBuilder: ({
           table
-        }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_10__.Facets, {
+        }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_12__.Facets, {
           table: table,
           defs: FACETS,
-          renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon
+          renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon
         }),
         activeFilters: ({
           table
-        }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_10__.FacetChips, {
+        }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_12__.FacetChips, {
           table: table,
           defs: FACETS,
-          renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon
+          renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon
         }),
         filterCount: ({
           table
-        }) => (0,_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_10__.facetCount)(table, FACETS),
-        primaryAction: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("button", {
+        }) => (0,_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_12__.facetCount)(table, FACETS),
+        primaryAction: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("button", {
           className: "pmdk-button primary sm",
           type: "button",
           onClick: () => setInspector({
             mode: 'create'
           }),
-          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('plus'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('plus'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("span", {
             children: "New customer"
           })]
         }),
         menuItems: [{
           id: 'export',
           label: 'Export customers (CSV)',
-          icon: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('csv'),
+          icon: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('csv'),
           onSelect: exportAll
-        }
-        /*
-         * No "Import customers" row: CSV import is not built yet, and the kit's
-         * `menuItems` renders every entry as a live button — it supports no
-         * disabled/aria-disabled row — so keeping it would be a control whose
-         * only effect is a toast explaining itself after the click. The
-         * "CSV import — Free, coming soon" card on the Modules screen is where
-         * that promise lives until this row can actually do something.
-         */],
+        }, ...(_lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.caps.bookings && (0,_modules_catalog_js__WEBPACK_IMPORTED_MODULE_5__.moduleAvailable)(_lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config, 'csv_import') ? [{
+          id: 'import',
+          label: 'Import customers (CSV)',
+          icon: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('import'),
+          onSelect: () => {
+            window.location.hash = 'modules/csv_import';
+          }
+        }] : [])],
         defaultColumnVisibility: {
           upcomingBool: false,
           tzDiffers: false
@@ -14406,26 +18763,26 @@ function Customers() {
         }],
         onRowActivate: openDetail,
         getRowAriaLabel: row => `Open ${row.name}`,
-        renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon,
+        renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon,
         itemsLabel: "customers",
         labels: {
           searchPlaceholder: 'Search name, email, phone or notes…',
           searchAria: 'Search customers'
         },
         persistenceKey: "aponto.admin.customers.table.v1"
-      }), state.status === 'ready' && state.total > state.rows.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("p", {
+      }), state.status === 'ready' && state.total > state.rows.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("p", {
         className: "ap-list-note",
         role: "status",
         children: ["Showing the first ", state.rows.length, " of ", state.total, " ", serverSearch ? 'matching customers — refine the search to narrow further.' : 'customers — search to find the rest.']
       }) : null]
     })]
   });
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_lib_InflowWorkspace_jsx__WEBPACK_IMPORTED_MODULE_8__.InflowWorkspace, {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_lib_InflowWorkspace_jsx__WEBPACK_IMPORTED_MODULE_10__.InflowWorkspace, {
     widthKey: WIDTH_KEY,
     open: Boolean(inspector),
     label: "Customer inspector",
     inspectorLabelledBy: "customerInspectorTitle",
-    inspector: inspector ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_CustomerInspector_jsx__WEBPACK_IMPORTED_MODULE_11__.CustomerInspector, {
+    inspector: inspector ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_CustomerInspector_jsx__WEBPACK_IMPORTED_MODULE_13__.CustomerInspector, {
       mode: inspector.mode,
       row: inspector.row,
       onClose: closeInspector,
@@ -14449,15 +18806,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _lib_api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../lib/api.js */ "./assets/src/admin/lib/api.js");
-/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
-/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
-/* harmony import */ var _lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/booking-adapter.js */ "./assets/src/admin/lib/booking-adapter.js");
-/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
-/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
-/* harmony import */ var _settings_ia_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../settings/ia.js */ "./assets/src/admin/settings/ia.js");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _lib_api_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lib/api.js */ "./assets/src/admin/lib/api.js");
+/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
+/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
+/* harmony import */ var _lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/booking-adapter.js */ "./assets/src/admin/lib/booking-adapter.js");
+/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
+/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
+/* harmony import */ var _settings_ia_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../settings/ia.js */ "./assets/src/admin/settings/ia.js");
+/* harmony import */ var _bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../bookings/dashboard-stats.js */ "./assets/src/admin/bookings/dashboard-stats.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__);
 /**
  * Dashboard — default landing (SPEC-P1 §1.0.1). Answers "what needs attention
  * today?" and stays quieter than the dense data routes. All aggregates are
@@ -14472,13 +18832,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-// Booked value counts only bookings that still represent money for today. `no_show` stays OUT,
-// exactly like `cancelled` (SPEC-P1 §1.0.1 + D-R33) — the chair was empty either way.
 
-const BLOCKING = new Set(['pending', 'confirmed', 'completed']);
+
+// The greeting follows the BUSINESS clock, like every other time on this screen (persona QA
+// 2026-10-05, T-038) — not the browser's.
+
 function greeting() {
-  const hour = new Date().getHours();
-  return hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const part = (0,_bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_9__.dayPart)((0,_bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_9__.hourIn)(_lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.business.timezone));
+  return part === 'morning' ? 'Good morning' : part === 'afternoon' ? 'Good afternoon' : 'Good evening';
 }
 function Summary({
   icon,
@@ -14486,15 +18847,15 @@ function Summary({
   value,
   detail
 }) {
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
     className: "pd-summary-item",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
       className: "pd-summary-label",
-      children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)(icon), label]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+      children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)(icon), label]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
       className: "pd-summary-value",
       children: value
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
       className: "pd-summary-detail",
       children: detail
     })]
@@ -14515,35 +18876,36 @@ function statusPill(status, label) {
     cancelled: 'Cancelled',
     no_show: 'No-show'
   };
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
     className: `pd-status ${status}`,
-    children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)(icons[status] || 'info'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
+    children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)(icons[status] || 'info'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
       children: label || labels[status]
     })]
   });
 }
 
 /**
- * Booking-page readiness (real state — Q fix 4): the wizard-created page id lives
- * in `aponto_booking_page_id` (boot data), services count comes from /services.
+ * Booking-page readiness (real state — Q fix 4): the booking page id (set by the wizard or
+ * in Settings → Booking → Form presentation, D-R75) lives in `aponto_booking_page_id` (boot
+ * data), services count comes from /services.
  */
 function BookingPageLine({
   servicesCount,
   onNavigate
 }) {
-  const page = _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.bookingPage;
+  const page = _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.bookingPage;
   if (servicesCount === 0) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
       className: "pd-booking-page-line",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)('alert'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('alert'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
             children: "Add your first service"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("small", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
             children: "Customers need something to book"
           })]
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("button", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
         className: "pd-button text sm",
         type: "button",
         onClick: () => onNavigate('services'),
@@ -14552,52 +18914,75 @@ function BookingPageLine({
     });
   }
   if (!page) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
       className: "pd-booking-page-line",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)('alert'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('alert'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
             children: "Create your booking page"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("small", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
             children: "Publish the page customers book on"
           })]
         })]
-      }), _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.wizardUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("a", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
         className: "pd-button text sm",
-        href: _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.wizardUrl,
-        children: "Create page"
-      }) : null]
+        type: "button",
+        onClick: () => onNavigate((0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_8__.settingsPath)('booking', 'form')),
+        children: "Set up page"
+      })]
     });
   }
   if (page.status !== 'publish') {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
       className: "pd-booking-page-line",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)('clock'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('clock'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
             children: "Booking page is a draft"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("small", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
             children: "Review and publish it to go live"
           })]
         })]
-      }), page.editUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("a", {
+      }), page.editUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("a", {
         className: "pd-button text sm",
         href: page.editUrl,
         children: "Edit page"
       }) : null]
     });
   }
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+  // A published page WITHOUT the booking form is not "live" (persona QA 2026-10-05, T-040) — the
+  // same hint Settings → Booking gives. Only an explicit `false` warns: boot data older than this
+  // bundle carries no `hasForm`, and a form reached through a pattern reads false too, so the
+  // line says what to check rather than claiming the page is broken.
+  if (page.hasForm === false) {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+      className: "pd-booking-page-line",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('alert'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('No booking form on your booking page', 'aponto')
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Add the Aponto booking form block so customers can book there', 'aponto')
+          })]
+        })]
+      }), page.editUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("a", {
+        className: "pd-button text sm",
+        href: page.editUrl,
+        children: "Edit page"
+      }) : null]
+    });
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
     className: "pd-booking-page-line",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-      children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)('check'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+      children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('check'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
           children: "Online booking is live"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("small", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
           children: page.url ? new URL(page.url, window.location.origin).pathname : ''
         })]
       })]
-    }), page.url ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("a", {
+    }), page.url ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("a", {
       className: "pd-button text sm",
       href: page.url,
       target: "_blank",
@@ -14615,16 +19000,22 @@ function Dashboard({
     rows: []
   });
   const [servicesCount, setServicesCount] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  // Active services no active staff member is assigned to: customers cannot see them (R11).
+  const [unbookableCount, setUnbookableCount] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
   const [staffCount, setStaffCount] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  // The stored `payments.mode`, read only when it can matter (see `load`). '' = unknown.
+  const [paymentMode, setPaymentMode] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  // D-R79: the owner's choice for "required but no method ready" (`accept` | `refuse`).
+  const [whenUnavailable, setWhenUnavailable] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
   const load = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     setState(s => ({
       ...s,
       loading: true,
       error: null
     }));
-    const from = (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_3__.toUtcInstant)(Date.now() - 31 * 86400000);
-    const to = (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_3__.toUtcInstant)(Date.now() + 92 * 86400000);
-    _lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api.get('/bookings', {
+    const from = (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_4__.toUtcInstant)(Date.now() - 31 * 86400000);
+    const to = (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_4__.toUtcInstant)(Date.now() + 92 * 86400000);
+    _lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api.get('/bookings', {
       status: 'all',
       from,
       to,
@@ -14632,268 +19023,380 @@ function Dashboard({
     }).then(res => setState({
       loading: false,
       error: null,
-      rows: (res.items || []).map(_lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_4__.bookingRowFromListItem)
+      rows: (res.items || []).map(_lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_5__.bookingRowFromListItem)
     })).catch(err => setState({
       loading: false,
       error: err.message,
       rows: []
     }));
-    _lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api.get('/services', {
+    // The whole first page rather than a count of one (re-test R11): "8 active services"
+    // included one nobody is assigned to, which customers cannot see. Past 100 services the
+    // rows beyond the page are counted as bookable — the line then understates the warning,
+    // never overstates it.
+    _lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api.get('/services', {
       status: 'active',
-      per_page: 1
-    }).then(res => setServicesCount(Number(res.total) || 0)).catch(() => setServicesCount(null));
+      per_page: 100
+    }).then(res => {
+      const unbookable = (res.items || []).filter(_bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_9__.serviceNotBookable).length;
+      setUnbookableCount(unbookable);
+      setServicesCount(Math.max(0, (Number(res.total) || 0) - unbookable));
+    }).catch(() => {
+      setServicesCount(null);
+      setUnbookableCount(0);
+    });
     // Staff readiness (skip-path guidance): a booking needs at least one staff member for
     // any availability, so a fresh 0-staff install is nudged before anything else. Count all
     // statuses — existence, matching how the Staff route itself counts (Staff.jsx).
-    _lib_api_js__WEBPACK_IMPORTED_MODULE_1__.api.get('/staff', {
+    _lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api.get('/staff', {
       status: 'all',
       per_page: 1
     }).then(res => setStaffCount(Number(res.total) || 0)).catch(() => setStaffCount(null));
+    // Payment readiness (persona QA 2026-10-05, T-037). The module catalog on the boot data
+    // already says whether an enabled payment module is ready; the one missing fact is whether
+    // online payment is switched on at all, which only someone who can manage settings may
+    // read — and they are the one who can act on it. No request on a site whose enabled
+    // payment modules are ready (or that has none).
+    if (_lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.caps.settings && (0,_bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_9__.paymentNotReady)(_lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.modules, 'required')) {
+      _lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api.get('/settings').then(res => {
+        setPaymentMode(String(res?.payments?.mode || ''));
+        setWhenUnavailable(String(res?.payments?.when_unavailable || ''));
+      }).catch(() => setPaymentMode(''));
+    }
   }, []);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(load, [load]);
   const openCreate = () => {
     window.__apontoPendingCreate = true;
     onNavigate('bookings');
   };
+  // Open THE booking, not just the list (T-038) — the Calendar's cross-route seam.
+  const openBooking = id => {
+    window.__apontoPendingOpenId = id;
+    onNavigate('bookings');
+  };
   if (state.loading) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
       className: "pd-page",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.PageHeader, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_7__.PageHeader, {
         title: `${greeting()}`
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.RouteLoading, {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_7__.RouteLoading, {
         label: "Loading dashboard"
       })]
     });
   }
   if (state.error) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
       className: "pd-page",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.PageHeader, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_7__.PageHeader, {
         title: greeting()
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.RouteError, {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_7__.RouteError, {
         message: state.error,
         onRetry: load
       })]
     });
   }
-  const today = _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.business.today;
-  const rows = state.rows;
-  const todays = rows.filter(b => b.date === today && b.status !== 'cancelled').sort((a, b) => a.startUtc.localeCompare(b.startUtc));
-  const pending = rows.filter(b => b.status === 'pending').sort((a, b) => a.startUtc.localeCompare(b.startUtc));
-  const bookedValue = todays.filter(b => BLOCKING.has(b.status)).reduce((sum, b) => sum + (b.total || 0), 0);
-  const newCustomers = new Set(rows.filter(b => b.created && (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_3__.isoDate)(b.created) === today).map(b => (b.email || b.customer).toLowerCase())).size;
+  const today = _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.business.today;
+  // Unfinished checkouts (a slot held while a customer pays, no customer on it yet) are NOT
+  // appointments, requests, new customers or booked value (persona QA 2026-10-05, T-038): they are
+  // counted apart, as "awaiting checkout". `bookings/dashboard-stats.js` holds the rules.
+  const {
+    todays,
+    pending,
+    holds,
+    refunds,
+    bookedValue,
+    newCustomers
+  } = (0,_bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_9__.dashboardStats)(state.rows, today, utc => (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_4__.isoDate)(utc));
+  // T-037: online payment is on, a payment module is enabled, and none of them is ready.
+  const brokenPayment = (0,_bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_9__.paymentFixTarget)(_lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.modules, paymentMode);
+  const fixPayment = () => {
+    // Several candidates: open the catalog on its Payments tab instead of guessing (N3).
+    if (brokenPayment.category) {
+      window.__apontoModulesCategory = brokenPayment.category;
+    }
+    onNavigate(brokenPayment.path);
+  };
 
   // Pending rail zero-state honours the default_booking_status setting: when new
   // bookings are auto-confirmed, nothing lands in "needs attention".
-  const autoConfirm = _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.settings.defaultBookingStatus === 'confirmed';
+  const autoConfirm = _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.settings.defaultBookingStatus === 'confirmed';
 
   // Skip-path readiness: with zero staff the calendar has no availability and nothing is
   // bookable, so the readiness card leads with "add a staff member" before any other step.
   // Null (still loading / errored) is treated as "don't nag".
   const mentionsStaff = staffCount === 0;
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
     className: "pd-page",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.PageHeader, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_7__.PageHeader, {
       title: greeting(),
       description: "Here\u2019s what needs your attention today.",
-      actions: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.Fragment, {
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("button", {
+      actions: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.Fragment, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("button", {
           className: "pd-button",
           type: "button",
           onClick: () => onNavigate('calendar'),
-          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)('calendar'), "View calendar"]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("button", {
+          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('calendar'), "View calendar"]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("button", {
           className: "pd-button primary",
           type: "button",
           onClick: openCreate,
-          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)('plus'), "New booking"]
+          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('plus'), "New booking"]
         })]
       })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("section", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("section", {
       className: "pd-summary",
       "aria-label": "Business overview",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(Summary, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(Summary, {
         icon: "calendar",
         label: "Today",
         value: todays.length,
         detail: "appointments"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(Summary, {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(Summary, {
         icon: "alert",
         label: "Needs attention",
         value: pending.length,
         detail: "pending confirmation"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(Summary, {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(Summary, {
         icon: "user",
         label: "New customers",
         value: newCustomers,
         detail: "added today"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(Summary, {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(Summary, {
         icon: "briefcase",
         label: "Booked value",
-        value: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_3__.money)(bookedValue),
-        detail: "today \xB7 payment tracking later"
+        value: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_4__.money)(bookedValue),
+        detail: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('today, all bookings', 'aponto')
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
       className: "pd-dashboard-grid",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("section", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("section", {
         className: "pd-card pd-dashboard-schedule",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
           className: "pd-card-header",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("h2", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("h2", {
               children: "Today\u2019s schedule"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("p", {
-              children: _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.businessTimeLine
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
+              children: _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.businessTimeLine
             })]
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("button", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
             className: "pd-button text sm",
             type: "button",
             onClick: () => onNavigate('bookings'),
             children: "View all"
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("div", {
           className: "pd-dashboard-agenda",
-          children: todays.length ? todays.map(b => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("button", {
+          children: todays.length ? todays.map(b => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("button", {
             className: "pd-dashboard-agenda-row",
             type: "button",
-            onClick: () => onNavigate('bookings'),
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
+            onClick: () => openBooking(b.id),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
               className: "pd-dashboard-time",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
                 children: b.start
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("small", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
                 children: b.end
               })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
               className: "pd-dashboard-marker"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
               className: "pd-dashboard-booking-copy",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
                 children: b.customer
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("small", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("small", {
                 children: [b.service, " \xB7 ", b.staff]
               })]
             }), statusPill(b.status)]
-          }, b.id)) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+          }, b.id)) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
             className: "pd-card-body pd-dashboard-attention-empty",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
               className: "pd-state-icon",
-              children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)('check')
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+              children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('check')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
                 children: "No appointments today"
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("small", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
                 children: "Enjoy the quiet, or create a booking."
               })]
             })]
           })
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("aside", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("aside", {
         className: "pd-dashboard-rail",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("section", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("section", {
           className: "pd-card",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
             className: "pd-card-header",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("h2", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("h2", {
                 children: "Needs attention"
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("p", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
                 children: pending.length ? `${pending.length} request${pending.length === 1 ? '' : 's'} waiting` : 'No requests waiting'
               })]
             }), pending.length ? statusPill('pending', `${pending.length} pending`) : null]
-          }), pending.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
+          }), pending.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("div", {
             className: "pd-dashboard-attention-list",
-            children: pending.slice(0, 6).map(b => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("button", {
+            children: pending.slice(0, 6).map(b => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("button", {
               type: "button",
-              onClick: () => onNavigate('bookings'),
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
+              onClick: () => openBooking(b.id),
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
                 className: "pd-avatar",
                 children: b.initials
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
                   children: b.customer
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("small", {
-                  children: [b.start, " \xB7 ", b.service]
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("small", {
+                  children: [b.dateLabel, " \xB7 ", b.start, " \xB7 ", b.service]
                 })]
-              }), (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)('chevron')]
+              }), (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('chevron')]
             }, b.id))
-          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
             className: "pd-card-body pd-dashboard-attention-empty",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
               className: "pd-state-icon",
-              children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)('check')
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+              children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('check')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
                 children: "Nothing waiting"
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("small", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
                 children: autoConfirm ? 'New bookings are confirmed automatically.' : 'New requests appear here when they need review.'
               })]
             })]
-          })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("section", {
+          }), brokenPayment || refunds.length || holds.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+            className: "pd-card-body",
+            children: [brokenPayment ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+              className: "pd-booking-page-line",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('alert'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Online payment is on, but no payment method is ready', 'aponto')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
+                    children: (0,_bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_9__.paidBookingsRefused)(_lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.modules, paymentMode, whenUnavailable, _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.paymentExclusive) ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Paid services cannot be booked online right now', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Paid services are being booked without payment', 'aponto')
+                  })]
+                })]
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
+                className: "pd-button text sm",
+                type: "button",
+                onClick: fixPayment,
+                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Fix', 'aponto')
+              })]
+            }) : null, refunds.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+              className: "pd-booking-page-line",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('alert'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)(/* translators: %d: number of cancelled bookings that are still paid. */
+                    (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__._n)('%d cancelled booking is still paid', '%d cancelled bookings are still paid', refunds.length, 'aponto'), refunds.length)
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Cancelling does not refund automatically — review the refund', 'aponto')
+                  })]
+                })]
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
+                className: "pd-button text sm",
+                type: "button",
+                onClick: () => openBooking(refunds[0].id),
+                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Review', 'aponto')
+              })]
+            }) : null, holds.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+              className: "pd-booking-page-line",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('clock'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)(/* translators: %d: number of unfinished checkouts holding a slot. */
+                    (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__._n)('%d awaiting checkout', '%d awaiting checkout', holds.length, 'aponto'), holds.length)
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Slots held while customers finish checkout — released automatically if they do not', 'aponto')
+                  })]
+                })]
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
+                className: "pd-button text sm",
+                type: "button",
+                onClick: () => onNavigate('bookings/payment/pending'),
+                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('View', 'aponto')
+              })]
+            }) : null]
+          }) : null]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("section", {
           className: "pd-card pd-booking-page-card",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
             className: "pd-card-header",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("h2", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("h2", {
                 children: "Booking page"
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("p", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
                 children: "Customer-facing entry point"
               })]
-            }), _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.bookingPage?.status === 'publish' ? statusPill('confirmed', 'Published') : null]
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+            }), _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.bookingPage?.status === 'publish' && _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.bookingPage?.hasForm !== false ? statusPill('confirmed', 'Published') : null]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
             className: "pd-card-body",
-            children: [mentionsStaff ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+            children: [mentionsStaff ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
               className: "pd-booking-page-line",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-                children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)('alert'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('alert'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
                     children: "Add a staff member"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("small", {
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
                     children: "Bookings need at least one staff member \u2014 add yourself"
                   })]
                 })]
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("button", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
                 className: "pd-button text sm",
                 type: "button",
                 onClick: () => onNavigate('staff'),
                 children: "Add staff"
               })]
-            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(BookingPageLine, {
+            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(BookingPageLine, {
               servicesCount: servicesCount,
               onNavigate: onNavigate
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
               className: "pd-booking-page-line",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-                children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)('briefcase'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('briefcase'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
                     children: "Services"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("small", {
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
                     children: servicesCount === null ? 'Set up what customers can book' : `${servicesCount} active service${servicesCount === 1 ? '' : 's'}`
                   })]
                 })]
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("button", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
                 className: "pd-button text sm",
                 type: "button",
                 onClick: () => onNavigate('services'),
                 children: "Open"
               })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+            }), unbookableCount > 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
               className: "pd-booking-page-line",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-                children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_5__.renderIcon)('clock'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("span", {
-                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
-                    children: "Business time"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("small", {
-                    children: [_lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.business.timezoneCity, " (", _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.business.utcOffset, ")"]
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('alert'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)(/* translators: %d: number of active services with no active staff member assigned. */
+                    (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__._n)('%d service is not bookable', '%d services are not bookable', unbookableCount, 'aponto'), unbookableCount)
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("small", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('No active staff member is assigned, so customers do not see it', 'aponto')
                   })]
                 })]
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("button", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
+                className: "pd-button text sm",
+                type: "button",
+                onClick: () => onNavigate('services'),
+                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Review', 'aponto')
+              })]
+            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+              className: "pd-booking-page-line",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_6__.renderIcon)('clock'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
+                    children: "Business time"
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("small", {
+                    children: [_lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.business.timezoneCity, " (", _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.business.utcOffset, ")"]
+                  })]
+                })]
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
                 className: "pd-button text sm",
                 type: "button",
                 onClick: () => {
                   window.__apontoScrollToHours = true;
-                  onNavigate((0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_7__.settingsPath)('general', 'business'));
+                  onNavigate((0,_settings_ia_js__WEBPACK_IMPORTED_MODULE_8__.settingsPath)('general', 'business'));
                 },
                 children: "Manage"
               })]
@@ -15117,7 +19620,12 @@ const SETTINGS_TREE = [{
   children: [{
     id: 'policy',
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Policy', 'aponto'),
-    panels: ['policy']
+    // The `staff` panel (D-R52) rides this section rather than a nav leaf of its
+    // own: every key in it is gated on `multi_staff`, so a dedicated leaf would be
+    // an empty screen on Free and on any build without the module. Rendered as its
+    // own card under Booking policy, with its own heading. `location` (D-R61) rides
+    // it for the same reason, gated on `multi_location`.
+    panels: ['policy', 'staff', 'location']
   }, {
     // Payments (D-R38, 2026-09-04). A CHILD of Booking rather than a tab of its own,
     // because these three keys are booking policy — what the site requires before a slot
@@ -15132,11 +19640,12 @@ const SETTINGS_TREE = [{
     // The mockup's Booking → Form presentation child states the form contract
     // rather than exposing per-install settings (plugin-dashboard.js:366).
     // Production's real content for it is the booking-form appearance pointer
-    // (Q11: accent + radius live in the block Inspector).
+    // (Q11: accent + radius live in the block Inspector) and, since D-R75, WHICH
+    // page hosts the form — the one setting the onboarding wizard used to own alone.
     id: 'form',
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Form presentation', 'aponto'),
     panels: [],
-    extras: ['appearance-hint']
+    extras: ['booking-page', 'appearance-hint']
   }]
 }, {
   id: 'notifications',
@@ -15253,6 +19762,119 @@ function settingsSection(parentId, childId = '') {
 function settingsMenuSubline(node) {
   const children = settingsChildren(node?.id);
   return children.length ? children.map(child => child.label).join(' · ') : node?.description || '';
+}
+
+/***/ },
+
+/***/ "./assets/src/shared/person-name.js"
+/*!******************************************!*\
+  !*** ./assets/src/shared/person-name.js ***!
+  \******************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   displayName: () => (/* binding */ displayName),
+/* harmony export */   displayNameOf: () => (/* binding */ displayNameOf),
+/* harmony export */   initials: () => (/* binding */ initials),
+/* harmony export */   initialsOf: () => (/* binding */ initialsOf),
+/* harmony export */   normalizePart: () => (/* binding */ normalizePart)
+/* harmony export */ });
+/**
+ * The ONE person-name rule on the JS side (name split, 2026-10-01).
+ *
+ * Customers and staff are stored as `first_name` + `last_name`; every REST DTO also carries a
+ * server-composed `name`. This module is the JS twin of `Aponto\Support\PersonName` (PHP) and is
+ * pinned to it by `tests/fixtures/person-name-lockstep.json` — a Jest test and a PHP unit test
+ * both run the same `display` and `initials` cases, so the two sides cannot drift.
+ *
+ * Framework-free and dependency-free on purpose: the admin SPA (React), the wizard and the
+ * booking widget (Preact) all import it by relative path and webpack inlines a copy into each
+ * bundle, so nothing here may pull in a runtime.
+ *
+ * Display order "First Last" lives ONLY in `displayName()`.
+ */
+
+/**
+ * The whitespace class, matching PHP's `/[\s\p{Z}]+/u`: PCRE `\s` under `/u` is the ASCII set
+ * (space, tab, LF, VT, FF, CR) and `\p{Z}` adds every Unicode separator (NBSP, U+3000, …).
+ * Spelled out rather than JS `\s`, which also treats U+FEFF as whitespace and PHP does not, and
+ * with the `\p{Z}` members listed (Zs + U+2028 Zl + U+2029 Zp) so no transpiler expands a
+ * property escape into a large character table inside every bundle.
+ */
+const WHITESPACE_RUN = /[\t\n\v\f\r \u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+/g;
+
+/**
+ * One name part, normalized: Unicode whitespace trimmed and every internal run collapsed to a
+ * single ASCII space. `null`/`undefined` read as ''.
+ *
+ * @param {*} part Raw first or last name.
+ * @return {string} Normalized part ('' when blank).
+ */
+function normalizePart(part) {
+  return String(part ?? '').replace(WHITESPACE_RUN, ' ').replace(/^ | $/g, '');
+}
+
+/**
+ * The display name: "First Last", or whichever part is non-empty.
+ *
+ * @param {*} first First name.
+ * @param {*} last  Last name.
+ * @return {string} Display name ('' when both parts are blank).
+ */
+function displayName(first, last) {
+  return [normalizePart(first), normalizePart(last)].filter(Boolean).join(' ');
+}
+
+/**
+ * Up to two upper-cased initials: the first code point of the FIRST word and of the LAST word of
+ * the display name — so "Ana Maria" + "Silva" is AS, a one-word name yields one letter, and a
+ * blank name yields ''. Spread-based, so an astral first character stays whole.
+ *
+ * @param {*} first First name.
+ * @param {*} last  Last name.
+ * @return {string} 0–2 characters (more only when upper-casing expands, e.g. ß → SS).
+ */
+function initials(first, last) {
+  const words = displayName(first, last).split(' ').filter(Boolean);
+  if (!words.length) {
+    return '';
+  }
+  const head = [...words[0]][0] || '';
+  const tail = words.length > 1 ? [...words[words.length - 1]][0] || '' : '';
+  return (head + tail).toUpperCase();
+}
+
+/**
+ * The display name of a person DTO (customer, staff, a booking's `customer`/`staff` block).
+ *
+ * The server composes `name` with the same rule, so it wins when present; the parts are the
+ * fallback for a payload that carries only them.
+ *
+ * @param {?Object} person DTO with `name` and/or `first_name`/`last_name`.
+ * @return {string} Display name ('' for a missing or nameless record).
+ */
+function displayNameOf(person) {
+  if (!person || 'object' !== typeof person) {
+    return '';
+  }
+  const composed = normalizePart(person.name);
+  return composed || displayName(person.first_name, person.last_name);
+}
+
+/**
+ * The initials of a person DTO — from its parts when it has them, else from its composed name
+ * (whose words are the parts' words, so the answer is the same).
+ *
+ * @param {?Object} person DTO with `first_name`/`last_name` and/or `name`.
+ * @return {string} 0–2 characters.
+ */
+function initialsOf(person) {
+  if (!person || 'object' !== typeof person) {
+    return '';
+  }
+  const fromParts = initials(person.first_name, person.last_name);
+  return fromParts || initials(person.name, '');
 }
 
 /***/ },
@@ -47063,7 +51685,7 @@ const PUBLIC_VERSION = '5';
 /******/ 		// This function allow to reference async chunks
 /******/ 		__webpack_require__.u = (chunkId) => {
 /******/ 			// return url for filenames based on template
-/******/ 			return "" + chunkId + ".js?ver=" + {"admin-chunk-vendor":"e8a10aa66afa6469b5af","admin-chunk-settings":"ed1d10d469f04937cb44","admin-chunk-services":"d879193faccfe20a4b3a","admin-chunk-staff":"1bdcc5169b499a15e770","admin-chunk-modules":"04c96e67b52a7659e1dd","admin-chunk-booking-editor":"7e675162ec9b2b6760c6","admin-chunk-refund-dialog":"281a467c6dc9c40e571c"}[chunkId] + "";
+/******/ 			return "" + chunkId + ".js?ver=" + {"admin-chunk-vendor":"e8a10aa66afa6469b5af","admin-chunk-settings":"84908e6c2b002212df36","admin-chunk-import":"c8fc3973d89a9f35f9bd","admin-chunk-services":"9ff221a4084bbcd55125","admin-chunk-staff":"c6adedad8338a8cc59bd","admin-chunk-modules":"8e91d298d151dcc906c0","admin-chunk-booking-editor":"f7f9b3201803e848ea48","admin-chunk-refund-dialog":"91a1345a8c216a7def99"}[chunkId] + "";
 /******/ 		};
 /******/ 	})();
 /******/ 	
@@ -47072,7 +51694,7 @@ const PUBLIC_VERSION = '5';
 /******/ 		// This function allow to reference async chunks
 /******/ 		__webpack_require__.miniCssF = (chunkId) => {
 /******/ 			// return url for filenames based on template
-/******/ 			return undefined;
+/******/ 			return "" + chunkId + ".css";
 /******/ 		};
 /******/ 	})();
 /******/ 	
@@ -47158,6 +51780,92 @@ const PUBLIC_VERSION = '5';
 /******/ 		if (!scriptUrl) throw new Error("Automatic publicPath is not supported in this browser");
 /******/ 		scriptUrl = scriptUrl.replace(/^blob:/, "").replace(/#.*$/, "").replace(/\?.*$/, "").replace(/\/[^\/]+$/, "/");
 /******/ 		__webpack_require__.p = scriptUrl;
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/css loading */
+/******/ 	(() => {
+/******/ 		if (typeof document === "undefined") return;
+/******/ 		var createStylesheet = (chunkId, fullhref, oldTag, resolve, reject) => {
+/******/ 			var linkTag = document.createElement("link");
+/******/ 		
+/******/ 			linkTag.rel = "stylesheet";
+/******/ 			linkTag.type = "text/css";
+/******/ 			if (__webpack_require__.nc) {
+/******/ 				linkTag.nonce = __webpack_require__.nc;
+/******/ 			}
+/******/ 			var onLinkComplete = (event) => {
+/******/ 				// avoid mem leaks.
+/******/ 				linkTag.onerror = linkTag.onload = null;
+/******/ 				if (event.type === 'load') {
+/******/ 					resolve();
+/******/ 				} else {
+/******/ 					var errorType = event && event.type;
+/******/ 					var realHref = event && event.target && event.target.href || fullhref;
+/******/ 					var err = new Error("Loading CSS chunk " + chunkId + " failed.\n(" + errorType + ": " + realHref + ")");
+/******/ 					err.name = "ChunkLoadError";
+/******/ 					err.code = "CSS_CHUNK_LOAD_FAILED";
+/******/ 					err.type = errorType;
+/******/ 					err.request = realHref;
+/******/ 					if (linkTag.parentNode) linkTag.parentNode.removeChild(linkTag)
+/******/ 					reject(err);
+/******/ 				}
+/******/ 			}
+/******/ 			linkTag.onerror = linkTag.onload = onLinkComplete;
+/******/ 			linkTag.href = fullhref;
+/******/ 		
+/******/ 		
+/******/ 			if (oldTag) {
+/******/ 				oldTag.parentNode.insertBefore(linkTag, oldTag.nextSibling);
+/******/ 			} else {
+/******/ 				document.head.appendChild(linkTag);
+/******/ 			}
+/******/ 			return linkTag;
+/******/ 		};
+/******/ 		var findStylesheet = (href, fullhref) => {
+/******/ 			var existingLinkTags = document.getElementsByTagName("link");
+/******/ 			for(var i = 0; i < existingLinkTags.length; i++) {
+/******/ 				var tag = existingLinkTags[i];
+/******/ 				var dataHref = tag.getAttribute("data-href") || tag.getAttribute("href");
+/******/ 				if(tag.rel === "stylesheet" && (dataHref === href || dataHref === fullhref)) return tag;
+/******/ 			}
+/******/ 			var existingStyleTags = document.getElementsByTagName("style");
+/******/ 			for(var i = 0; i < existingStyleTags.length; i++) {
+/******/ 				var tag = existingStyleTags[i];
+/******/ 				var dataHref = tag.getAttribute("data-href");
+/******/ 				if(dataHref === href || dataHref === fullhref) return tag;
+/******/ 			}
+/******/ 		};
+/******/ 		var loadStylesheet = (chunkId) => {
+/******/ 			return new Promise((resolve, reject) => {
+/******/ 				var href = __webpack_require__.miniCssF(chunkId);
+/******/ 				var fullhref = __webpack_require__.p + href;
+/******/ 				if(findStylesheet(href, fullhref)) return resolve();
+/******/ 				createStylesheet(chunkId, fullhref, null, resolve, reject);
+/******/ 			});
+/******/ 		}
+/******/ 		// object to store loaded CSS chunks
+/******/ 		var installedCssChunks = {
+/******/ 			"admin": 0
+/******/ 		};
+/******/ 		
+/******/ 		__webpack_require__.f.miniCss = (chunkId, promises) => {
+/******/ 			var cssChunks = {"admin-chunk-import":1};
+/******/ 			if(installedCssChunks[chunkId]) promises.push(installedCssChunks[chunkId]);
+/******/ 			else if(installedCssChunks[chunkId] !== 0 && cssChunks[chunkId]) {
+/******/ 				promises.push(installedCssChunks[chunkId] = loadStylesheet(chunkId).then(() => {
+/******/ 					installedCssChunks[chunkId] = 0;
+/******/ 				}, (e) => {
+/******/ 					delete installedCssChunks[chunkId];
+/******/ 					throw e;
+/******/ 				}));
+/******/ 			}
+/******/ 		};
+/******/ 		
+/******/ 		// no hmr
+/******/ 		
+/******/ 		// no prefetching
+/******/ 		
+/******/ 		// no preloaded
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/jsonp chunk loading */

@@ -29,8 +29,8 @@ use Aponto\Database\TransactionGuard;
  * rolls everything back, so the eraser can always find the customer again by the OLD email and
  * retry — no half-anonymized orphan is ever committed.
  *
- * Values (§6.4.8): `customers.email`/`email_norm` → `anon-{id}@invalid`; `name` →
- * `Deleted customer`; `phone`/`note` → `''`; `bookings.customer_note` → `''`; `token_hash` → fresh
+ * Values (§6.4.8): `customers.email`/`email_norm` → `anon-{id}@invalid`; `first_name` →
+ * `Deleted customer` and `last_name` → `''` (name split, D-R69); `phone`/`note` → `''`; `bookings.customer_note` → `''`; `token_hash` → fresh
  * random (kills the manage link); `consent_at` KEPT; `activities.meta` → `{}`;
  * `notification_deliveries.payload_cipher` → `''` with `recipient_hash` KEPT. `wp_user_id`,
  * `customer_timezone` and order/payment references are intentionally untouched (inventory OPEN
@@ -62,13 +62,31 @@ final class Anonymizer {
 	 *                    re-thrown after a full rollback.
 	 */
 	public function anonymizeCustomer( int $customer_id ): void {
-		$this->tx->begin();
-		try {
-			$this->applyInTransaction( $customer_id );
-			$this->tx->commit();
-		} catch ( \Throwable $failure ) {
-			$this->tx->rollback();
-			throw $failure;
+		$changed = \Aponto\Extension\RetainedData::run(
+			$this->wpdb,
+			function () use ( $customer_id ): bool {
+				$this->tx->begin();
+				try {
+					$changed = $this->applyInTransaction( $customer_id );
+					$this->tx->commit();
+				} catch ( \Throwable $failure ) {
+					$this->tx->rollback();
+					throw $failure;
+				}
+				return $changed;
+			}
+		);
+		if ( $changed ) {
+			try {
+				/**
+				 * Fires after a customer is anonymized and business locks are released (extension-surface §2).
+				 *
+				 * @param array<string, mixed> $row Erased subject identity.
+				 */
+				do_action( 'aponto_customer_anonymized', array( 'id' => $customer_id ) );
+			} catch ( \Throwable $listener_failure ) {
+				unset( $listener_failure ); // Post-commit extensions cannot invalidate the saved operation.
+			}
 		}
 	}
 
@@ -104,13 +122,13 @@ final class Anonymizer {
 	 * @param int $customer_id Customer id.
 	 * @throws StorageException When any statement fails.
 	 */
-	public function applyInTransaction( int $customer_id ): void {
+	public function applyInTransaction( int $customer_id ): bool {
 		$customers = $this->wpdb->prefix . 'aponto_customers';
 		$lock_sql  = "SELECT id FROM {$customers} WHERE id = %d FOR UPDATE";
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); row lock serialises with reserve()'s customer upsert.
 		$locked = $this->wpdb->get_var( $this->wpdb->prepare( $lock_sql, $customer_id ) );
 		if ( null === $locked ) {
-			return; // Customer vanished — nothing to anonymize (idempotent no-op).
+			return false; // Customer vanished — nothing to anonymize (idempotent no-op).
 		}
 
 		if ( null !== $this->post_lock_probe ) {
@@ -164,26 +182,62 @@ final class Anonymizer {
 				( new BookingMetaRepository( $this->wpdb ) )->deleteCustomFields( $booking_id ),
 				'anonymize booking custom fields'
 			);
+			// An external checkout's billing address (D-R71d) is contact data: delete it too.
+			$this->assertWrite(
+				( new BookingMetaRepository( $this->wpdb ) )->deleteKey( $booking_id, BookingMetaRepository::BILLING_ADDRESS_KEY ) ? 1 : false,
+				'anonymize booking billing address'
+			);
 		}
+
+		\Aponto\Extension\RetainedData::erase( $this->wpdb, 'customer', $customer_id );
+
+		( new \Aponto\Import\Store( $this->wpdb, new \Aponto\Support\Clock() ) )->eraseCustomer( $customer_id );
 
 		// IDENTITY LAST (REST-3): the customer's contact row is the lookup key for the eraser —
 		// it only changes once every linked record has been scrubbed successfully.
-		$anon = 'anon-' . $customer_id . '@invalid';
+		$anon = self::placeholderEmail( $customer_id );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Anonymization write.
 		$result = $this->wpdb->update(
 			$this->wpdb->prefix . 'aponto_customers',
 			array(
-				'name'       => 'Deleted customer',
+				// The whole placeholder lives in `first_name`; `last_name` is emptied, so the
+				// composed display name stays "Deleted customer" (name split, D-R69).
+				'first_name' => 'Deleted customer',
+				'last_name'  => '',
 				'email'      => $anon,
 				'email_norm' => $anon,
 				'phone'      => '',
 				'note'       => '',
 			),
 			array( 'id' => $customer_id ),
-			array( '%s', '%s', '%s', '%s', '%s' ),
+			array( '%s', '%s', '%s', '%s', '%s', '%s' ),
 			array( '%d' )
 		);
 		$this->assertWrite( $result, 'anonymize customer' );
+		return true;
+	}
+
+	/**
+	 * The value an anonymized customer carries in BOTH `email` and `email_norm` (§6.4.8).
+	 *
+	 * @param int $customer_id Customer id.
+	 */
+	public static function placeholderEmail( int $customer_id ): string {
+		return 'anon-' . $customer_id . '@invalid';
+	}
+
+	/**
+	 * Whether a customer row is an anonymized one — the ONE predicate for "this record was erased".
+	 *
+	 * Takes the row's `email` or its `email_norm`: the anonymizer writes the same placeholder to
+	 * both, and nothing else can store it (a real address needs a dotted domain, and a customer
+	 * without an email keeps `email = ''` and a `noemail:` key — D-R77).
+	 *
+	 * @param int    $customer_id Customer id.
+	 * @param string $email       The row's `email` or `email_norm`.
+	 */
+	public static function isAnonymized( int $customer_id, string $email ): bool {
+		return $customer_id > 0 && self::placeholderEmail( $customer_id ) === $email;
 	}
 
 	/**

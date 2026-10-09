@@ -63,6 +63,9 @@ final class Logger {
 		// The manage-token derivation secret was replaced because it no longer opened (D-R39d). One
 		// key only, and a closed vocabulary: nothing about the secret, the key or any booking.
 		'aponto_manage_token_secret_rotated' => array( 'reason' ),
+		// A webhook event could not be queued (Premium webhooks, review M2). The event type and a
+		// closed reason code only: never the snapshot, never an exception message.
+		'aponto_webhook_capture_failed'      => array( 'event_type', 'reason' ),
 	);
 
 	/**
@@ -244,7 +247,7 @@ final class Logger {
 		$clean = array();
 		foreach ( $context as $key => $value ) {
 			$name = (string) $key;
-			if ( 1 === preg_match( '/(?:email|phone|token|body|request|customer|template|payload|secret|authorization|idempotency)/i', $name ) ) {
+			if ( 1 === preg_match( '/(?:email|phone|token|body|request|customer|template|payload|secret|authorization|idempotency|first_name|last_name)/i', $name ) ) {
 				$clean[ $key ] = '[REDACTED]';
 			} elseif ( is_array( $value ) ) {
 				$clean[ $key ] = self::redactContext( $value );

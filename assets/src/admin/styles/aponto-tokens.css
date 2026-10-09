@@ -28,6 +28,9 @@
   --ap-color-inverse-surface: #12151b;
   --ap-color-on-inverse: #ffffff;
   --ap-color-on-inverse-danger: #ffb4a8;
+  /* D-R64: the success toast's check glyph. The inverse surface is NOT re-seeded by any dark
+   * preset below, so this one value serves both schemes (11.6:1 on #12151b; danger is 10.8:1). */
+  --ap-color-on-inverse-success: #7ee2a8;
 
   /* Internal tone weights. Presets may tune contrast without adding colors.
    * muted/soft darkened to WCAG AA (4.5:1 on surface): muted 68→72% (4.55→5.13),
@@ -51,6 +54,11 @@
   --ap-color-surface-muted: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-surface-muted), var(--ap-color-surface));
   --ap-color-avatar-surface: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-avatar-surface), var(--ap-color-surface));
   --ap-color-border: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-border), var(--ap-color-surface));
+  /* The card header hairline, shared by the Settings panels and the carded record editors
+     (founder QA 2026-09-21). Seeded to the exact value `@wordpress/components` draws its own
+     Card borders with (`CONFIG.surfaceBorderColor`), so the two surfaces match to the shade;
+     the dark preset flips it, because a black-alpha rule is invisible on a dark surface. */
+  --ap-color-card-hairline: rgba(0, 0, 0, 0.1);
   --ap-color-border-strong: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-border-strong), var(--ap-color-surface));
   --ap-color-row-hover: color-mix(in srgb, var(--ap-color-surface-subtle) 50%, var(--ap-color-surface));
 
@@ -160,6 +168,7 @@
   --ap-tone-surface-muted: 6%;
   --ap-tone-avatar-surface: 7%;
   --ap-tone-border: 12%;
+  --ap-color-card-hairline: rgba(255, 255, 255, 0.12);
   --ap-tone-border-strong: 20%;
   --ap-tone-accent-subtle: 22%;
   --ap-tone-accent-soft: 30%;

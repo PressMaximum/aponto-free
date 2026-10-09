@@ -19,13 +19,21 @@
  * refuses anything above it anyway (D-R38a(2)).
  */
 import { useState } from 'react';
+import { generateUuid } from '../../form/lib/idempotency.js';
 import { Button, Modal } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
 import { minorToMajor, money } from '../lib/format.js';
 import { gatewayLabel, refundAmountError, parseRefundAmount } from '../lib/payment-status.js';
+import { refundNotice } from '../lib/refund-notice.js';
 
-export function RefundDialog( { order, busy, onCancel, onConfirm } ) {
-	const refundable = order.refundableMinor || 0;
+export function RefundDialog( { order, busy, onCancel, onConfirm, onsite = false } ) {
+	const charges = ( order.refundableCharges || [] ).filter( ( charge ) => charge.refundable_minor > 0 && charge.available !== false );
+	const [ transactionId, setTransactionId ] = useState( charges[ 0 ]?.transaction_id ?? charges[ 0 ]?.id ?? null );
+	const charge = charges.find( ( item ) => ( item.transaction_id ?? item.id ) === transactionId );
+	const refundable = onsite ? order.onsiteRefundableMinor : charge?.refundable_minor ?? ( Array.isArray( order.refundableCharges ) ? 0 : order.refundableMinor ?? 0 );
+	const gateway = charge?.gateway || order.gateway;
+	const [ idempotency ] = useState( generateUuid );
+	const [ attempted, setAttempted ] = useState( false );
 	const exponent = order.currencyExponent ?? null;
 	const [ amount, setAmount ] = useState( () => String( minorToMajor( refundable, order.currency, exponent ) ) );
 	const [ reason, setReason ] = useState( '' );
@@ -34,7 +42,7 @@ export function RefundDialog( { order, busy, onCancel, onConfirm } ) {
 
 	return (
 		<Modal
-			title={ __( 'Refund this payment', 'aponto' ) }
+			title={ onsite ? __( 'Record an on-site refund', 'aponto' ) : __( 'Refund this payment', 'aponto' ) }
 			onRequestClose={ busy ? () => {} : onCancel }
 			className="ap-confirm-modal"
 			size="small"
@@ -42,16 +50,23 @@ export function RefundDialog( { order, busy, onCancel, onConfirm } ) {
 		>
 			<div className="ap-confirm">
 				<p className="ap-confirm-message">
-					{ sprintf(
-						/* translators: 1: refundable amount, formatted as money. 2: gateway name, e.g. "Stripe". */
-						__(
-							'%1$s of this payment can still be refunded through %2$s. The money goes back to the card the customer paid with; the booking is not cancelled.',
-							'aponto'
-						),
-						money( refundable, order.currency, exponent ),
-						gatewayLabel( order.gateway )
-					) }
+					{ onsite
+						? __( 'Only record this after you have returned the money to the customer outside Aponto. This action does not transfer money or cancel the booking.', 'aponto' )
+						// The selected charge's refundable amount and gateway (D-R71: a deposit order can
+						// hold a deposit charge and a balance charge on different gateways).
+						: refundNotice( { ...order, refundableMinor: refundable, gateway } ) }
 				</p>
+				{ ! onsite && charges.length > 1 ? <label className="ap-refund-field">
+					<span>{ __( 'Payment to refund', 'aponto' ) }</span>
+					<select className="ap-confirm-input" value={ transactionId } disabled={ busy } onChange={ ( event ) => {
+						const id = Number( event.target.value );
+						setTransactionId( id );
+						const selected = charges.find( ( item ) => ( item.transaction_id ?? item.id ) === id );
+						setAmount( String( minorToMajor( selected.refundable_minor, order.currency, exponent ) ) );
+					} }>
+						{ charges.map( ( item ) => <option key={ item.transaction_id ?? item.id } value={ item.transaction_id ?? item.id }>{ gatewayLabel( item.gateway ) + ' · #' + ( item.transaction_id ?? item.id ) + ' · ' + money( item.refundable_minor, order.currency, exponent ) }</option> ) }
+					</select>
+				</label> : null }
 				<label className="ap-refund-field">
 					<span>
 						{ sprintf(
@@ -64,12 +79,13 @@ export function RefundDialog( { order, busy, onCancel, onConfirm } ) {
 						className="ap-confirm-input"
 						type="text"
 						inputMode="decimal"
+						disabled={ busy || ( onsite && attempted ) }
 						value={ amount }
 						onChange={ ( e ) => setAmount( e.target.value ) }
 					/>
 				</label>
 				{ error ? <p className="ap-refund-error">{ error }</p> : null }
-				<label className="ap-refund-field">
+				{ ! onsite ? <label className="ap-refund-field">
 					<span>{ __( 'Reason (optional, recorded in the activity log)', 'aponto' ) }</span>
 					<textarea
 						className="ap-confirm-input"
@@ -77,7 +93,7 @@ export function RefundDialog( { order, busy, onCancel, onConfirm } ) {
 						value={ reason }
 						onChange={ ( e ) => setReason( e.target.value ) }
 					/>
-				</label>
+				</label> : null }
 				<div className="ap-confirm-actions">
 					<Button variant="tertiary" disabled={ busy } onClick={ onCancel }>{ __( 'Cancel', 'aponto' ) }</Button>
 					<Button
@@ -85,13 +101,13 @@ export function RefundDialog( { order, busy, onCancel, onConfirm } ) {
 						isDestructive
 						isBusy={ busy }
 						disabled={ busy || !! error }
-						onClick={ () => onConfirm( { amountMinor: minor, reason } ) }
+						onClick={ () => { setAttempted( true ); onConfirm( { amountMinor: minor, reason, transactionId, idempotency, onsite } ); } }
 					>
 						{ busy
-							? __( 'Refunding…', 'aponto' )
+							? ( onsite ? __( 'Recording…', 'aponto' ) : __( 'Refunding…', 'aponto' ) )
 							: sprintf(
 									/* translators: %s: amount to refund, formatted as money. */
-									__( 'Refund %s', 'aponto' ),
+									onsite ? __( 'Record refund %s', 'aponto' ) : __( 'Refund %s', 'aponto' ),
 									money( minor || 0, order.currency, exponent )
 							  ) }
 					</Button>

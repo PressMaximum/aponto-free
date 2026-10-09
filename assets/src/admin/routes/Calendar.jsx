@@ -2,7 +2,7 @@
  * Calendar route (SPEC-P1 §1.4 · Q10). Event Calendar day/week grid with the
  * Fresha-style look: business-time events coloured by status, diagonal-stripe
  * non-working hours from the REAL schedule + blocked-periods (not the spike mock),
- * accent now-indicator, custom toolbar, status + service filters, click-booking →
+ * accent now-indicator, custom toolbar, status + service (+ location, D-R63) filters, click-booking →
  * detail, click free slot → New booking, Block time → POST /blocked-periods.
  *
  * ONE staff member at a time (D-R28, R2). Every per-staff layer — the non-working
@@ -13,22 +13,31 @@
  * staff meant reading someone else's appointments against the first member's hours.
  * With a single staff member the selector is not rendered and the view is unchanged.
  *
- * DEBT: an all-staff / resource-column view (a column per member, Fresha-style) is
- * the natural next step and is deliberately out of scope here — P2 polish.
+ * "All staff" (D-R64) is an explicit choice in that selector, never the default: every
+ * member's bookings on one grid, each event naming its member, the shading switched to the
+ * BUSINESS hours (and saying so), no blocked periods painted and Block time refused —
+ * each per-staff layer changes meaning rather than quietly staying on one person
+ * (`calendar/staff-scope.js`).
+ *
+ * DEBT: a resource-column view (a column per member, Fresha-style) is still the natural
+ * next step and is deliberately out of scope here — P2 polish.
  */
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { __, sprintf } from '@wordpress/i18n';
 import { api } from '../lib/api.js';
 import { config, businessTimeLine } from '../lib/config.js';
-import { toUtcInstant } from '../lib/format.js';
+import { toUtcInstant, timeLabel, businessTimeLineAt } from '../lib/format.js';
+import { displayNameOf } from '../../shared/person-name.js';
 import { renderIcon } from '../lib/icon.jsx';
 import { closedIntervals, effectiveOpenByDow } from '../lib/schedule.js';
 import { PageHeader, RouteLoading, RouteError } from '../lib/ui.jsx';
 import { useToast } from '../lib/toast.jsx';
 import { useConfirmDialog } from '../lib/confirm.jsx';
+import { fetchLocations, matchesLocationFilter, NO_LOCATION } from '../lib/branches.js';
 import { fetchAllDayBookings } from '../lib/day-sheet.js';
 import { ApontoCalendar } from '../calendar/ApontoCalendar.jsx';
 import { planSlotSelection } from '../calendar/slot-select.js';
-import { bookingQueryForStaff, bookingBelongsToStaff, scopesToOneStaff, resolveSelectedStaff, staffSelectorOptions, slotBookingPrefill } from '../calendar/staff-scope.js';
+import { ALL_STAFF, isAllStaff, bookingQueryForStaff, bookingBelongsToStaff, scopesToOneStaff, resolveSelectedStaff, staffSelectorOptions, slotBookingPrefill } from '../calendar/staff-scope.js';
 import { TZ, toBusinessLocalDate, businessLocalDateToUtcIso } from '../calendar/constants.js';
 import { deriveSlotWindow } from '../calendar/window.js';
 
@@ -44,25 +53,100 @@ function dayAtMinutes( midnight, minutes ) {
 	return d;
 }
 
+/**
+ * The Calendar's filters survive a round-trip to #bookings (D-R63 fix round 4): the route unmounts
+ * there, and a branch view that reset to "All locations" on the way back would also stop pre-filling
+ * the branch on the next slot click. Per-viewer, per-tab `sessionStorage`, namespaced by the site's
+ * REST base (two sites on one origin keep their own); every access is guarded — a blocked store
+ * simply means the filters start at their defaults, as they always did.
+ */
+const FILTERS_KEY = `aponto.admin.calendar-filters.v1:${ config.restUrl }`;
+
+export function readCalendarFilters() {
+	try {
+		const saved = JSON.parse( window.sessionStorage.getItem( FILTERS_KEY ) || '{}' );
+		return saved && 'object' === typeof saved ? saved : {};
+	} catch {
+		return {};
+	}
+}
+
+function writeCalendarFilters( filters ) {
+	try {
+		window.sessionStorage.setItem( FILTERS_KEY, JSON.stringify( filters ) );
+	} catch {
+		// A blocked store is a lost convenience, never an error.
+	}
+}
+
+/**
+ * The New-booking prefill for the toolbar's "+ Add" (T-052).
+ *
+ * @param {?Date}  viewedDay Business-local first day on screen, or null when today is on screen.
+ * @param {string} today     Business-local `Y-m-d`.
+ * @return {{returnTo: string, date?: string}} Prefill for the create drawer.
+ */
+export function addBookingPrefill( viewedDay, today ) {
+	const prefill = { returnTo: 'calendar' };
+	if ( viewedDay instanceof Date && ! Number.isNaN( viewedDay.getTime() ) ) {
+		const pad = ( n ) => String( n ).padStart( 2, '0' );
+		const date = `${ viewedDay.getFullYear() }-${ pad( viewedDay.getMonth() + 1 ) }-${ pad( viewedDay.getDate() ) }`;
+		if ( date > today ) {
+			prefill.date = date;
+		}
+	}
+	return prefill;
+}
+
 export function Calendar( { onNavigate } ) {
+	const saved = useMemo( readCalendarFilters, [] );
 	const showToast = useToast();
 	const { confirm, dialog } = useConfirmDialog();
 	const [ state, setState ] = useState( { loading: true, error: null } );
-	const [ data, setData ] = useState( { bookings: [], blocks: [], openByDow: {}, staffId: null } );
-	const [ statusFilter, setStatusFilter ] = useState( 'all' );
-	const [ serviceFilter, setServiceFilter ] = useState( 'all' );
+	const [ data, setData ] = useState( { bookings: [], total: 0, blocks: [], openByDow: {}, staffId: null } );
+	const [ statusFilter, setStatusFilter ] = useState( () => saved.status || 'all' );
+	const [ serviceFilter, setServiceFilter ] = useState( () => saved.service || 'all' );
+	// D-R63 (+ fix round 1, rest-contract §2.8 addendum): a location filter beside status/service,
+	// rendered only when the site HAS locations (all statuses: an archived branch keeps its
+	// bookings). A BRANCH scopes the reads themselves — `location_id` on the bookings window, and
+	// the member's hours resolved AT that branch for the shading — because a client-side filter over
+	// a 100-row window can drop that branch's bookings. "All locations" keeps the wildcard hours.
+	const [ locationFilter, setLocationFilter ] = useState( 'all' );
+	const [ locations, setLocations ] = useState( [] );
+	useEffect( () => {
+		let live = true;
+		fetchLocations().then( ( { items } ) => {
+			if ( ! live || ! items.length ) {
+				return;
+			}
+			setLocations( items );
+			// A restored branch applies only once the catalog confirms it still exists ("No
+			// location" = `0` always does); a site with no locations never scopes by one.
+			const restored = String( saved.location ?? 'all' );
+			if ( '0' === restored || items.some( ( location ) => String( location.id ) === restored ) ) {
+				setLocationFilter( restored );
+			}
+		} );
+		return () => { live = false; };
+	}, [] ); // eslint-disable-line react-hooks/exhaustive-deps -- `saved` is read once per mount.
 	const [ blockMode, setBlockMode ] = useState( false );
 	const [ daySheet, setDaySheet ] = useState( { date: null, items: [] } );
-	// The FULL staff roster (active AND archived) and the member the grid is describing. Route
-	// state only — the selection is a view preference, not a setting, so it resets with the route
-	// (no new option, nothing to migrate, nothing shared between admins).
+	// The FULL staff roster (active AND archived) and the member the grid is describing. A view
+	// preference, not a setting: it lives in this tab's session only (fix round 4 — see
+	// `readCalendarFilters()`), with no option, nothing to migrate and nothing shared between admins.
 	//
 	// `status: 'all'` is load-bearing, not defensive (Codex review): an archived member keeps the
 	// bookings they already had, so scoping off the ACTIVE count let those bookings bleed onto the
 	// remaining active member's calendar the moment the active count fell back to 1. See
 	// `calendar/staff-scope.js`.
 	const [ roster, setRoster ] = useState( { loaded: false, items: [] } );
-	const [ staffId, setStaffId ] = useState( null );
+	// Seeded from the session (fix round 4); the roster effect still validates it through
+	// `resolveSelectedStaff()`, so an archived/deleted member falls back to the first one — and a
+	// remembered "All staff" (D-R64) holds only while the roster still offers it.
+	const [ staffId, setStaffId ] = useState( () => ( isAllStaff( saved.staffId ) ? ALL_STAFF : Number( saved.staffId ) || null ) );
+	useEffect( () => {
+		writeCalendarFilters( { status: statusFilter, service: serviceFilter, location: locationFilter, staffId } );
+	}, [ statusFilter, serviceFilter, locationFilter, staffId ] );
 	// The grid's ACTIVE RANGE, reported by Event Calendar (`datesSet`). The window and the stripes
 	// are derived for what is ON SCREEN, so a day off six weeks out cannot reshape this week and
 	// the day view is not stretched by another weekday's hours (Codex review P2-1). Null until the
@@ -104,31 +188,59 @@ export function Calendar( { onNavigate } ) {
 	}, [] );
 
 	const staffCount = roster.items.length;
+	// D-R63 fix round 2: a monotonic token per load, so an OLDER branch/staff response that lands
+	// after a newer selection's can never overwrite its bookings and shading (the LocationsRoute
+	// pattern). `loadedOnce` keeps the grid — and the filters — on screen during a RE-load, which is
+	// what makes two quick selections possible at all.
+	const loadToken = useRef( 0 );
+	const loadedOnce = useRef( false );
 
 	const load = useCallback( () => {
 		if ( ! roster.loaded ) {
 			return;
 		}
+		const token = ++loadToken.current;
 		setState( { loading: true, error: null } );
 		const from = toUtcInstant( Date.now() - WINDOW_DAYS * 86400000 );
 		const to = toUtcInstant( Date.now() + WINDOW_DAYS * 86400000 );
 		const bookingQuery = bookingQueryForStaff( { status: 'all', from, to, per_page: 100 }, staffId, staffCount );
-		Promise.all( [
-			api.get( '/bookings', bookingQuery ).catch( () => ( { items: [] } ) ),
-			staffId ? api.get( '/blocked-periods', { staff_id: staffId, from, to, per_page: 100 } ).catch( () => ( { items: [] } ) ) : Promise.resolve( { items: [] } ),
+		const branch = 'all' === locationFilter ? null : Number( locationFilter );
+		if ( null !== branch ) {
+			bookingQuery.location_id = branch;
+		}
+		// D-R64: in the All-staff scope there is no one member whose blocks or hours apply — the
+		// shading is the BUSINESS hours (the wildcard `(0,0,0)` rows, read fresh so an edit made in
+		// Settings this session shows; the boot snapshot is the fallback) and no blocks are painted.
+		const member = staffId && ! isAllStaff( staffId ) ? staffId : null;
+		let hours = Promise.resolve( { weekly: null } );
+		if ( member ) {
 			// resolved=1: server merges own + business hours (§1.3) so the client no
 			// longer resolves inheritance from two sources. `weekly: null` marks "no
 			// resolved answer" (fetch failed / no staff) → boot-snapshot fallback; a
 			// SUCCESSFUL empty weekly is authoritative (closed all week → full stripes).
-			staffId ? api.get( `/staff/${ staffId }/schedule`, { resolved: 1 } ).catch( () => ( { weekly: null } ) ) : Promise.resolve( { weekly: null } ),
+			hours = api.get( `/staff/${ member }/schedule`, { resolved: 1, location_id: branch || undefined } ).catch( () => ( { weekly: null } ) );
+		} else if ( staffId ) {
+			hours = api.get( '/business-hours' ).catch( () => ( { weekly: null } ) );
+		}
+		Promise.all( [
+			api.get( '/bookings', bookingQuery ).catch( () => ( { items: [] } ) ),
+			member ? api.get( '/blocked-periods', { staff_id: member, from, to, per_page: 100 } ).catch( () => ( { items: [] } ) ) : Promise.resolve( { items: [] } ),
+			hours,
 		] )
 			.then( ( [ bookings, blocks, schedule ] ) => {
+				if ( token !== loadToken.current ) {
+					return;
+				}
+				loadedOnce.current = true;
 				const openByDow = effectiveOpenByDow( schedule.weekly, config.businessHours );
-				setData( { bookings: bookings.items || [], blocks: blocks.items || [], openByDow, staffId } );
+				const items = bookings.items || [];
+				// `total` is the server's count for the window; more than the 100 rows read means the
+				// grid is incomplete, and the route says so (likeliest in the All-staff scope).
+				setData( { bookings: items, total: Number( bookings.total ) || items.length, blocks: blocks.items || [], openByDow, staffId } );
 				setState( { loading: false, error: null } );
 			} )
-			.catch( ( err ) => setState( { loading: false, error: err.message } ) );
-	}, [ roster.loaded, staffCount, staffId ] );
+			.catch( ( err ) => { if ( token === loadToken.current ) setState( { loading: false, error: err.message } ); } );
+	}, [ roster.loaded, staffCount, staffId, locationFilter ] );
 
 	useEffect( load, [ load ] );
 
@@ -143,6 +255,8 @@ export function Calendar( { onNavigate } ) {
 	// by the status or service filter — must not widen the grid either.
 	const timed = useMemo( () => {
 		const items = [];
+		// D-R64: with every member on one grid, each event has to say whose it is.
+		const allView = isAllStaff( data.staffId );
 
 		// Blocked periods render as LABELLED events (not plain stripes) so a "meeting"/"lunch" is
 		// distinguishable from closed business hours (C3, finding U2). The reason rides the event for
@@ -169,17 +283,25 @@ export function Calendar( { onNavigate } ) {
 			if ( serviceFilter !== 'all' && b.service?.name !== serviceFilter ) {
 				return;
 			}
+			if ( ! matchesLocationFilter( b, locationFilter ) ) {
+				return;
+			}
+			// A cancelled checkout nobody ever placed is not an appointment (persona QA 2026-10-05,
+			// #82): it stays in the Bookings list under Cancelled and off the grid.
+			if ( b.checkout_abandoned === true ) {
+				return;
+			}
 			items.push( {
 				id: `bk-${ b.id }`,
 				start: toBusinessLocalDate( b.start_utc, TZ ),
 				end: toBusinessLocalDate( b.end_utc, TZ ),
 				classNames: [ 'ap-ev', `ap-ev--${ b.status }` ],
-				extendedProps: { kind: 'booking', status: b.status, customer: b.customer?.name || '', service: b.service?.name || '', bookingId: b.id },
+				extendedProps: { kind: 'booking', status: b.status, customer: displayNameOf( b.customer ), service: b.service?.name || '', bookingId: b.id, ...( allView ? { staff: displayNameOf( b.staff ) } : {} ) },
 			} );
 		} );
 
 		return { items };
-	}, [ data, staffCount, statusFilter, serviceFilter ] );
+	}, [ data, staffCount, statusFilter, serviceFilter, locationFilter ] );
 
 	// THE VISIBLE WINDOW (beta bug): the grid used to be pinned to 07:00–21:00, and Event Calendar
 	// simply does not draw an event lying outside its slot range — a salon opening at 06:00 or
@@ -242,11 +364,37 @@ export function Calendar( { onNavigate } ) {
 		}
 	};
 
-	const openBooking = ( id ) => { window.__apontoPendingOpenId = id; onNavigate( 'bookings' ); };
+	// Fix round 3: while a RE-load is unsettled the grid still shows the PREVIOUS selection's
+	// bookings and hours, so acting on it would mix the old staff/hours with the new filter — a slot
+	// click, block time and event clicks are inert (and the card says busy) until the token settles.
+	const reloading = state.loading && loadedOnce.current;
+
+	const openBooking = ( id ) => {
+		if ( reloading ) {
+			return;
+		}
+		window.__apontoPendingOpenId = id;
+		onNavigate( 'bookings' );
+	};
 	const newBooking = ( prefill = true ) => {
 		window.__apontoPendingCreate = prefill;
 		onNavigate( 'bookings' );
 	};
+	// The toolbar's "+ Add" (persona QA 2026-10-05, T-052). The create drawer lives on the Bookings
+	// route, so the click still goes there — but it now opens on the day being VIEWED rather than
+	// today (never a past day: the drawer's date input starts at today), and every way out of it
+	// comes back to the calendar, exactly like a free-slot click.
+	const addBooking = ( viewedDay ) => {
+		newBooking( addBookingPrefill( viewedDay, config.business.today ) );
+	};
+
+	// A block belongs to ONE person (D-R64), so the All-staff scope disarms an armed Block time.
+	const allStaffSelected = isAllStaff( staffId );
+	useEffect( () => {
+		if ( allStaffSelected ) {
+			setBlockMode( false );
+		}
+	}, [ allStaffSelected ] );
 
 	// Escape leaves an armed block mode cleanly: the mode changes what every click on the grid
 	// does, so it must be dismissable without hunting for the toolbar button again.
@@ -264,14 +412,19 @@ export function Calendar( { onNavigate } ) {
 	}, [ blockMode ] );
 
 	const onSelect = async ( info ) => {
-		const { action, start, end } = planSlotSelection( info, { blockMode, staffId: data.staffId } );
+		if ( reloading ) {
+			return;
+		}
+		const { action, start, end } = planSlotSelection( info, { blockMode: blockMode && ! isAllStaff( data.staffId ), staffId: data.staffId } );
 		if ( action === 'booking' ) {
 			// Click a free slot → prefill New booking with the clicked business-local
 			// start (date + slot preselect once availability confirms it).
 			// Carries the SELECTED staff member: the slot was clicked against their hours, so the
 			// booking must be created for them rather than falling back to any-staff availability
-			// (which could hand it to somebody else entirely).
-			newBooking( slotBookingPrefill( start, businessLocalDateToUtcIso( start, TZ ), data.staffId ) );
+			// (which could hand it to somebody else entirely). In the All-staff scope nobody is
+			// preselected (D-R64): the grid showed no one's hours in particular.
+			// `returnTo`: Cancel on that New booking brings the operator back here (fix round 2).
+			newBooking( { ...slotBookingPrefill( start, businessLocalDateToUtcIso( start, TZ ), data.staffId, 'all' === locationFilter ? null : locationFilter ), returnTo: 'calendar' } );
 			return;
 		}
 		if ( action === 'block-needs-staff' ) {
@@ -302,7 +455,7 @@ export function Calendar( { onNavigate } ) {
 				end_datetime_utc: businessLocalDateToUtcIso( end, TZ ),
 				reason: reason || '',
 			} );
-			showToast( 'Time blocked.' );
+			showToast( 'Time blocked.', 'success' );
 			setBlockMode( false );
 			load();
 		} catch ( err ) {
@@ -310,7 +463,7 @@ export function Calendar( { onNavigate } ) {
 		}
 	};
 
-	if ( state.loading ) {
+	if ( state.loading && ! loadedOnce.current ) {
 		return <div className="pd-page"><PageHeader title="Calendar" /><RouteLoading label="Loading calendar" /></div>;
 	}
 	if ( state.error ) {
@@ -322,6 +475,8 @@ export function Calendar( { onNavigate } ) {
 			className={ `ap-cal-btn ap-cal-btn--ghost${ blockMode ? ' is-active' : '' }` }
 			type="button"
 			aria-pressed={ blockMode }
+			disabled={ reloading || allStaffSelected }
+			title={ allStaffSelected ? __( 'Choose a staff member to block time', 'aponto' ) : undefined }
 			onClick={ () => setBlockMode( ( v ) => ! v ) }
 		>
 			{ renderIcon( 'prohibit' ) }{ blockMode ? 'Blocking… pick a slot' : 'Block time' }
@@ -330,8 +485,8 @@ export function Calendar( { onNavigate } ) {
 
 	return (
 		<div className="pd-page">
-			<PageHeader title="Calendar" description={ businessTimeLine } />
-			<div className="ap-cal-card">
+			<PageHeader title="Calendar" description={ range?.start ? businessTimeLineAt( businessLocalDateToUtcIso( range.start, TZ ) ) : businessTimeLine } />
+			<div className="ap-cal-card" aria-busy={ reloading || undefined }>
 				<div className="ap-cal-filters">
 					<span className="ap-cal-filters-label">Filters</span>
 					{ /* One staff ROW ever = nothing to choose, so the control is not rendered at all
@@ -344,9 +499,9 @@ export function Calendar( { onNavigate } ) {
 							className="pd-select"
 							aria-label="Show calendar for staff member"
 							value={ staffId ?? '' }
-							onChange={ ( e ) => setStaffId( Number( e.target.value ) || null ) }
+							onChange={ ( e ) => setStaffId( isAllStaff( e.target.value ) ? ALL_STAFF : Number( e.target.value ) || null ) }
 						>
-							{ staffSelectorOptions( roster.items ).map( ( option ) => (
+							{ staffSelectorOptions( roster.items, __( 'All staff', 'aponto' ) ).map( ( option ) => (
 								<option key={ option.id } value={ option.id }>{ option.label }</option>
 							) ) }
 						</select>
@@ -359,14 +514,37 @@ export function Calendar( { onNavigate } ) {
 						<option value="all">All services</option>
 						{ serviceOptions.map( ( s ) => <option key={ s } value={ s }>{ s }</option> ) }
 					</select>
+					{ locations.length ? (
+						<select className="pd-select" aria-label={ __( 'Filter by location', 'aponto' ) } value={ locationFilter } onChange={ ( e ) => setLocationFilter( e.target.value ) }>
+							<option value="all">{ __( 'All locations', 'aponto' ) }</option>
+							{ locations.map( ( l ) => <option key={ l.id } value={ l.id }>{ l.name }</option> ) }
+							<option value={ NO_LOCATION }>{ __( 'No location', 'aponto' ) }</option>
+						</select>
+					) : null }
 				</div>
+				{ /* The shading note follows what is ON the grid (`data`), not the selector mid-load. */ }
+				{ /* Founder 2026-09-28: the "hours across all locations" note for one member + All locations
+				     is removed — that shading is the member's own default week, which needs no caption. */ }
+				{ isAllStaff( data.staffId ) ? (
+					<p className="ap-list-note">{ __( 'Shading shows business hours. Choose a staff member to see their hours.', 'aponto' ) }</p>
+				) : null }
+				{ data.total > data.bookings.length ? (
+					<p className="ap-list-note" role="status">
+						{ sprintf(
+							/* translators: 1: bookings shown, 2: bookings in the window. */
+							__( 'Showing the first %1$d of %2$d bookings in this window — filter by staff member or location to see the rest.', 'aponto' ),
+							data.bookings.length,
+							data.total
+						) }
+					</p>
+				) : null }
 				<ApontoCalendar
 					events={ events }
 					slotWindow={ slotWindow }
 					onRangeChange={ onRangeChange }
 					onEventClick={ openBooking }
 					onSelect={ onSelect }
-					onAdd={ newBooking }
+					onAdd={ addBooking }
 					onPrint={ printDaySheet }
 					toolbarExtra={ blockButton }
 					isBlocking={ blockMode }
@@ -384,8 +562,8 @@ export function Calendar( { onNavigate } ) {
 						<tbody>
 							{ daySheet.items.map( ( b ) => (
 								<tr key={ b.id }>
-									<td>{ toBusinessLocalDate( b.start_utc, TZ ).toLocaleTimeString( [], { hour: 'numeric', minute: '2-digit' } ) }</td>
-									<td>{ b.customer?.name || '—' }</td>
+									<td>{ timeLabel( b.start_utc, TZ ) }</td>
+									<td>{ displayNameOf( b.customer ) || '—' }</td>
 									<td>{ b.service?.name || '—' }</td>
 									<td>{ b.status || '' }</td>
 								</tr>

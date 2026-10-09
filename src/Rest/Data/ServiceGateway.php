@@ -136,6 +136,41 @@ final class ServiceGateway {
 	}
 
 	/**
+	 * ACTIVE eligible-staff counts for a set of service ids (persona QA 2026-10-05, re-test R11).
+	 *
+	 * {@see self::staffCountsFor()} counts every assigned row, archived members included, while the
+	 * public catalogue publishes a service only when an ACTIVE member is assigned
+	 * ({@see \Aponto\Booking\Repository\ConnectionRepository::staffedServiceIds()}, T-073). This
+	 * is that same test per service, so the admin list can say which active services customers
+	 * cannot see. A service with no active member has no entry (read it as 0).
+	 *
+	 * @param list<int> $ids Service ids on the current page.
+	 * @return array<int, int> service_id => distinct ACTIVE eligible staff count.
+	 */
+	public function activeStaffCountsFor( array $ids ): array {
+		$ids = array_values( array_unique( array_filter( array_map( 'intval', $ids ) ) ) );
+		if ( array() === $ids ) {
+			return array();
+		}
+
+		$connections  = $this->wpdb->prefix . 'aponto_staff_services';
+		$staff        = $this->wpdb->prefix . 'aponto_staff';
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+		$sql          = "SELECT ss.service_id, COUNT(DISTINCT ss.staff_id) AS staff_count FROM {$connections} ss
+			INNER JOIN {$staff} s ON s.id = ss.staff_id AND s.status = 'active'
+			WHERE ss.service_id IN ({$placeholders}) GROUP BY ss.service_id";
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; placeholders bound via prepare().
+		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $ids ), ARRAY_A );
+
+		$out = array();
+		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
+			$out[ (int) $row['service_id'] ] = (int) $row['staff_count'];
+		}
+
+		return $out;
+	}
+
+	/**
 	 * Booking counts for a set of service ids (admin list column, C1 archive-first).
 	 *
 	 * The Services list shows a permanent "Delete" action ONLY on a service with zero bookings
@@ -194,14 +229,18 @@ final class ServiceGateway {
 	 * Insert a service, returning its id.
 	 *
 	 * @param array<string, mixed> $data Column => value (validated).
+	 * @param bool                 $emit_event Emit the legacy hook; import defers it until commit.
 	 */
-	public function create( array $data ): int {
+	public function create( array $data, bool $emit_event = true ): int {
 		$now                = $this->clock->nowSql();
 		$data['created_at'] = $now;
 		$data['updated_at'] = $now;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin insert.
-		$this->wpdb->insert( $this->table(), $data, $this->formats( $data ) );
+		$result = $this->wpdb->insert( $this->table(), $data, $this->formats( $data ) );
+		if ( false === $result ) {
+			return 0;
+		}
 
 		$id = (int) $this->wpdb->insert_id;
 
@@ -214,7 +253,9 @@ final class ServiceGateway {
 		 * @param int                  $id   New service id.
 		 * @param array<string, mixed> $data Inserted column data.
 		 */
-		do_action( 'aponto_service_created', $id, $data );
+		if ( $emit_event ) {
+			do_action( 'aponto_service_created', $id, $data );
+		}
 
 		return $id;
 	}
@@ -224,21 +265,31 @@ final class ServiceGateway {
 	 *
 	 * @param int                  $id   Service id.
 	 * @param array<string, mixed> $data Column => value (partial).
+	 * @throws \Aponto\Database\StorageException On write failure.
 	 */
 	public function update( int $id, array $data ): void {
 		$data['updated_at'] = $this->clock->nowSql();
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin update.
-		$this->wpdb->update( $this->table(), $data, array( 'id' => $id ), $this->formats( $data ), array( '%d' ) );
+		$result = $this->wpdb->update( $this->table(), $data, array( 'id' => $id ), $this->formats( $data ), array( '%d' ) );
+		if ( false === $result ) {
+			$failure = \Aponto\Database\StorageException::fromWpdb( $this->wpdb, esc_html( 'update entity' ) );
+			throw $failure;
+		}
 	}
 
 	/**
 	 * Delete a service row.
 	 *
 	 * @param int $id Service id.
+	 * @throws \Aponto\Database\StorageException On write failure.
 	 */
 	public function delete( int $id ): void {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin delete.
-		$this->wpdb->delete( $this->table(), array( 'id' => $id ), array( '%d' ) );
+		$result = $this->wpdb->delete( $this->table(), array( 'id' => $id ), array( '%d' ) );
+		if ( 1 !== $result ) {
+			$failure = \Aponto\Database\StorageException::fromWpdb( $this->wpdb, esc_html( 'delete service' ) );
+			throw $failure;
+		}
 	}
 
 	/**
@@ -311,11 +362,14 @@ final class ServiceGateway {
 	 *
 	 * @param list<int> $ids Ordered service ids (full set).
 	 */
-	public function reorder( array $ids ): void {
+	public function reorder( array $ids ): bool {
 		foreach ( array_values( $ids ) as $index => $id ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin reorder.
-			$this->wpdb->update( $this->table(), array( 'position' => $index ), array( 'id' => (int) $id ), array( '%d' ), array( '%d' ) );
+			if ( false === $this->wpdb->update( $this->table(), array( 'position' => $index ), array( 'id' => (int) $id ), array( '%d' ), array( '%d' ) ) ) {
+				return false;
+			}
 		}
+		return true;
 	}
 
 	/**

@@ -51,6 +51,17 @@ final class SlotQuery {
 	 * @param string   $from_date   Inclusive start date `Y-m-d` (business tz).
 	 * @param string   $to_date     Inclusive end date `Y-m-d` (business tz).
 	 * @param string   $purpose     {@see self::PURPOSE_DISPLAY} or {@see self::PURPOSE_RESERVE}.
+	 * @param int|null $exclude_booking_id A booking to leave out of the busy set on the DISPLAY path,
+	 *                                     so the admin's "Edit time" list is not blocked by the very
+	 *                                     booking being moved (persona QA 2026-10-05, T-043). Null —
+	 *                                     the default and the only value a public caller can reach —
+	 *                                     excludes nothing.
+	 * @param bool     $front_desk         The admin "New booking" read (D-R77): the customer lead time
+	 *                                     and booking horizon do not apply, and today's starts are
+	 *                                     offered from the start of the business day — the front desk
+	 *                                     records a walk-in that is starting now or already started.
+	 *                                     Display window only: working hours, busy time and every
+	 *                                     `is_slot_free()` rule are untouched. False for any public caller.
 	 */
 	public function __construct(
 		public readonly int $service_id,
@@ -58,7 +69,9 @@ final class SlotQuery {
 		public readonly int $location_id,
 		public readonly string $from_date,
 		public readonly string $to_date,
-		public readonly string $purpose = self::PURPOSE_DISPLAY
+		public readonly string $purpose = self::PURPOSE_DISPLAY,
+		public readonly ?int $exclude_booking_id = null,
+		public readonly bool $front_desk = false
 	) {}
 
 	/**
@@ -71,6 +84,6 @@ final class SlotQuery {
 	 * @param int $staff_id Concrete staff id.
 	 */
 	public function withStaff( int $staff_id ): self {
-		return new self( $this->service_id, $staff_id, $this->location_id, $this->from_date, $this->to_date, $this->purpose );
+		return new self( $this->service_id, $staff_id, $this->location_id, $this->from_date, $this->to_date, $this->purpose, $this->exclude_booking_id, $this->front_desk );
 	}
 }

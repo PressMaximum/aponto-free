@@ -4,7 +4,7 @@
  * The admin renders in business time; the customer-timezone secondary line is a
  * derived label only.
  */
-import { config } from './config.js';
+import { config, businessTimeLine } from './config.js';
 
 const currencyDecimalsCache = new Map();
 
@@ -152,9 +152,61 @@ export function money( minor, currency = config.currency, exponent = null ) {
 
 const TZ = config.business.timezone;
 
-/** "9:00 AM" style time label for a UTC instant in the given timezone. */
+/**
+ * The site's clock convention as `Intl` hour options (persona QA 2026-10-05, T-071).
+ *
+ * `timeLabel()` forced a 12-hour clock, so a site whose owner set the time format to `H:i` read
+ * "5:30 PM" on every admin screen and "17:30" in its mails, its booking form and its manage page.
+ * The rule is the booking form's own (`assets/src/form/lib/tz.js` `setTimeFormat`): in the
+ * WordPress `time_format` (a PHP `date()` pattern) `H` / `G` is a 24-hour clock — `H` with a
+ * leading zero — and anything else keeps the 12-hour clock the admin has always printed. Escaped
+ * characters (`\H`) are literals, not hours.
+ *
+ * @param {string} [timeFormat] PHP time format; defaults to the site's (boot config).
+ * @return {{hour: string, hourCycle?: string, hour12?: boolean}} Options to spread into `Intl.DateTimeFormat`.
+ */
+export function clockOptions( timeFormat = config.settings.timeFormat ) {
+	const format = String( timeFormat || '' ).replace( /\\./g, '' );
+	if ( /[HG]/.test( format ) ) {
+		return { hour: format.includes( 'H' ) ? '2-digit' : 'numeric', hourCycle: 'h23' };
+	}
+	return { hour: 'numeric', hour12: true };
+}
+
+/** "9:00 AM" / "09:00" time label for a UTC instant in the given timezone, on the site's clock. */
 export function timeLabel( utc, tz = TZ ) {
-	return new Intl.DateTimeFormat( 'en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz } ).format( new Date( utc ) );
+	return new Intl.DateTimeFormat( 'en-US', { ...clockOptions(), minute: '2-digit', timeZone: tz } ).format( new Date( utc ) );
+}
+
+/**
+ * A minute of the day (0–1440) on the site's clock: `570` → "9:30 AM" / "09:30".
+ *
+ * @param {number} minutes Minutes after midnight.
+ * @return {string} Clock label.
+ */
+export function minutesLabel( minutes ) {
+	return timeLabel( Date.UTC( 2026, 0, 1, 0, Number( minutes ) || 0 ), 'UTC' );
+}
+
+/**
+ * The "Business time · City (offset)" line AT AN INSTANT (persona QA 2026-10-05).
+ *
+ * `businessTimeLine` (lib/config.js) carries the offset the business zone has NOW, which is the
+ * right caption for today's schedule and wrong under a booking on the other side of a clock
+ * change: the drawer of a 29 October appointment read "London (GMT+1)" while the appointment's
+ * own lines, everywhere else, said GMT+0. A site on a manual offset has no city and no clock
+ * change, so it keeps the server's line.
+ *
+ * @param {string|number|Date} [instant] The moment the line is about; none = now.
+ * @return {string} Caption.
+ */
+export function businessTimeLineAt( instant ) {
+	const at = instant ? new Date( instant ) : null;
+	if ( ! at || Number.isNaN( at.getTime() ) || ! TZ.includes( '/' ) || TZ.startsWith( 'Etc/' ) ) {
+		return businessTimeLine;
+	}
+	// "GMT+0", the server's spelling (`Rest\Support\TimezoneLabel`), where a browser says a bare "GMT".
+	return `Business time · ${ tzLabel( TZ, at ).replace( /\(GMT\)$/, '(GMT+0)' ) }`;
 }
 
 /** "Mon, Aug 1" style date label for a UTC instant in the given timezone. */
@@ -191,15 +243,6 @@ export function toUtcInstant( date ) {
 	return new Date( date ).toISOString().replace( /\.\d{3}Z$/, 'Z' );
 }
 
-/** Two uppercase initials from a display name. */
-export function initials( name ) {
-	const parts = String( name || '' ).trim().split( /\s+/ ).filter( Boolean );
-	if ( ! parts.length ) {
-		return '?';
-	}
-	return ( parts[ 0 ][ 0 ] + ( parts.length > 1 ? parts[ parts.length - 1 ][ 0 ] : '' ) ).toUpperCase();
-}
-
 /** Friendly "City (GMT±N)" label for an IANA timezone at a given instant. */
 export function tzLabel( tz, instant = Date.now() ) {
 	if ( ! tz ) {
@@ -216,5 +259,8 @@ export function tzLabel( tz, instant = Date.now() ) {
 	} catch ( e ) {
 		offset = 'GMT';
 	}
-	return `${ city } (${ offset })`;
+	// An `Etc/GMT∓N` stand-in (a manual-offset site, D-R63 fix round 1) or a bare `±HH:MM` offset has
+	// no city — and "GMT-7 (GMT+7)" would read backwards — so it is the offset alone, the rule
+	// `Rest\Support\TimezoneLabel` applies server-side.
+	return tz.startsWith( 'Etc/' ) || /^[+-]\d/.test( tz ) ? offset : `${ city } (${ offset })`;
 }

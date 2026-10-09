@@ -129,6 +129,8 @@ final class Kernel {
 		( new \Aponto\Frontend\BookingManagePage() )->register();
 		( new \Aponto\Admin\NotificationsPage() )->register();
 		\Aponto\Privacy\PersonalData::register( $wpdb );
+		// A deleted WordPress account leaves no coupon allow-list row behind, fail-closed (D-R67l).
+		\Aponto\Privacy\CouponUserTargets::register( $wpdb );
 
 		// Integration plumbing (extension-surface §4/§5, D-R34): the remote busy adapter, the outbound
 		// event sync and its cron, the settings-schema bridge and the shared OAuth callback. Free-
@@ -174,6 +176,11 @@ final class Kernel {
 	 */
 	public static function schemaReady(): bool {
 		if ( (int) get_option( Migrator::VERSION_OPTION, 0 ) < Migrator::SCHEMA_VERSION ) {
+			return false;
+		}
+		// Version reached is not shape proved (D-R67q): a pre-merge coupon dev database reads 11/12
+		// with a different shape, and serving it would fail at the first coupon release.
+		if ( ! Migrator::shapeCurrent() ) {
 			return false;
 		}
 
@@ -387,6 +394,12 @@ final class Kernel {
 				$logger->disableIfExpired();
 			},
 			1
+		);
+		add_action(
+			'aponto_payment_terms_invalid',
+			static function () use ( $logger ): void {
+				$logger->log( 'aponto_payment_anomaly', 'error', 'Invalid payment terms; full payment applied.', array( 'code' => 'invalid_payment_terms' ) );
+			}
 		);
 		add_action(
 			'aponto_reservation_anomaly',

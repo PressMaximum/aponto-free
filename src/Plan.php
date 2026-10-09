@@ -33,13 +33,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  *     menu: ?string,
  *     provider: ?class-string,
  *     category: 'booking'|'payments'|'connections'|'site_tools',
+ *     scope: 'per_staff'|'site',
  *     industries: non-empty-list<'all'|'beauty'|'coaching'|'fitness'|'healthcare'|'events'|'venues'|'agencies'|'field_services'>
  * }
  */
 final class Plan {
 
 	/**
-	 * Canonical module catalog: 28 entries × 9 metadata fields, mixed editions.
+	 * Canonical module catalog: 28 entries × 10 metadata fields, mixed editions.
 	 *
 	 * No longer a premium-only list (D-R22, founder-approved 2026-07-27): the Free tier
 	 * expanded — `payments_stripe`, `csv_import` and `service_catalog` moved to
@@ -50,8 +51,21 @@ final class Plan {
 	 * Const-only metadata (no callables/objects — extension-surface §3.1). `provider` is a
 	 * ServiceProvider FQCN string or null; here it is null for all entries (Free variant).
 	 * `phase` is documentation/upsell copy only. `menu` is the slug a module contributes to
-	 * the admin menu, or null. `category` is the tab of the "Modules" screen (SPEC-P0 §3.2,
+	 * the admin menu, or null — and since D-R56 it is also the ALLOW-LIST behind
+	 * `aponto_admin_menu_items`: a contributed {@see \Aponto\Admin\ModuleMenuItem} is kept only
+	 * when its slug equals this value, so a filter cannot invent a menu entry. It is metadata, a
+	 * slug and not a control; parity-checked like every other field.
+	 * `category` is the tab of the "Modules" screen (SPEC-P0 §3.2,
 	 * amended 77df91a 2026-07-12): booking | payments | connections | site_tools.
+	 *
+	 * `scope` is the tenth field (D-R65, founder-approved 2026-09-21) and answers ONE question:
+	 * does this module's configuration belong to a PERSON or to the SITE? `per_staff` means the
+	 * module stores state per staff member — today the two calendar connectors and `video_links`,
+	 * all three of which hold their own per-staff credentials in `Integration\ConnectionStore`.
+	 * `site` means one configuration for the whole install. It is NOT a second category and NOT a
+	 * gate: it exists because `category === 'connections'` is the wrong question for "what may the
+	 * Staff editor show?" — that tab also holds `sms` and `webhooks`, which are site-level and
+	 * would otherwise appear once per staff member the day they ship.
 	 *
 	 * `industries` is the browse-only industry vocabulary of the "Modules" screen filter
 	 * (SPEC-P0 §3.2 amended by D-R21, founder-approved 2026-07-25). The sentinel `all`
@@ -61,7 +75,7 @@ final class Plan {
 	 * @var array<string, FeatureMeta>
 	 */
 	public const FEATURES = array(
-		'multi_staff'         => array(
+		'multi_staff'          => array(
 			'edition'      => 'premium',
 			'phase'        => 'P2a',
 			'kind'         => 'capability',
@@ -70,9 +84,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'booking',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'calendar_google'     => array(
+		'calendar_google'      => array(
 			'edition'      => 'premium',
 			'phase'        => 'P2a',
 			'kind'         => 'integration',
@@ -81,9 +96,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'connections',
+			'scope'        => 'per_staff',
 			'industries'   => array( 'all' ),
 		),
-		'reminders'           => array(
+		'reminders'            => array(
 			'edition'      => 'premium',
 			'phase'        => 'P2a',
 			'kind'         => 'capability',
@@ -92,9 +108,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'booking',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'calendar_outlook'    => array(
+		'calendar_outlook'     => array(
 			'edition'      => 'premium',
 			'phase'        => 'P2b',
 			'kind'         => 'integration',
@@ -103,9 +120,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'connections',
+			'scope'        => 'per_staff',
 			'industries'   => array( 'all' ),
 		),
-		'video_links'         => array(
+		'video_links'          => array(
 			'edition'      => 'premium',
 			'phase'        => 'P2b',
 			'kind'         => 'integration',
@@ -114,9 +132,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'connections',
+			'scope'        => 'per_staff',
 			'industries'   => array( 'coaching', 'healthcare' ),
 		),
-		'custom_fields'       => array(
+		'custom_fields'        => array(
 			'edition'      => 'premium',
 			'phase'        => 'P2b',
 			'kind'         => 'capability',
@@ -125,20 +144,22 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'booking',
+			'scope'        => 'site',
 			'industries'   => array( 'beauty', 'coaching', 'healthcare', 'field_services' ),
 		),
-		'csv_import'          => array(
+		'csv_import'           => array(
 			'edition'      => 'free',
 			'phase'        => 'P2b',
 			'kind'         => 'capability',
-			'has_settings' => false,
+			'has_settings' => true,
 			'toggleable'   => true,
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'site_tools',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'payments_stripe'     => array(
+		'payments_stripe'      => array(
 			'edition'      => 'free',
 			'phase'        => 'P3',
 			'kind'         => 'integration',
@@ -147,9 +168,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'payments',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'payments_paypal'     => array(
+		'payments_paypal'      => array(
 			'edition'      => 'premium',
 			'phase'        => 'P3',
 			'kind'         => 'integration',
@@ -158,9 +180,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'payments',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'deposits'            => array(
+		'deposits'             => array(
 			'edition'      => 'premium',
 			'phase'        => 'P3',
 			'kind'         => 'engine_flag',
@@ -169,9 +192,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'payments',
+			'scope'        => 'site',
 			'industries'   => array( 'beauty', 'healthcare', 'fitness', 'events', 'field_services' ),
 		),
-		'coupons'             => array(
+		'coupons'              => array(
 			'edition'      => 'premium',
 			'phase'        => 'P3',
 			'kind'         => 'capability',
@@ -180,9 +204,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'payments',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'group_capacity'      => array(
+		'group_capacity'       => array(
 			'edition'      => 'premium',
 			'phase'        => 'P4',
 			'kind'         => 'engine_flag',
@@ -191,9 +216,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'booking',
+			'scope'        => 'site',
 			'industries'   => array( 'fitness', 'events' ),
 		),
-		'resources'           => array(
+		'resources'            => array(
 			'edition'      => 'premium',
 			'phase'        => 'P4',
 			'kind'         => 'engine_flag',
@@ -202,9 +228,10 @@ final class Plan {
 			'menu'         => 'resources',
 			'provider'     => null,
 			'category'     => 'booking',
+			'scope'        => 'site',
 			'industries'   => array( 'venues', 'events', 'fitness' ),
 		),
-		'recurring'           => array(
+		'recurring'            => array(
 			'edition'      => 'premium',
 			'phase'        => 'P4',
 			'kind'         => 'engine_flag',
@@ -213,20 +240,22 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'booking',
+			'scope'        => 'site',
 			'industries'   => array( 'beauty', 'coaching', 'healthcare', 'field_services' ),
 		),
-		'multi_location'      => array(
+		'multi_location'       => array(
 			'edition'      => 'premium',
 			'phase'        => 'P4',
 			'kind'         => 'engine_flag',
 			'has_settings' => true,
 			'toggleable'   => true,
-			'menu'         => null,
+			'menu'         => 'locations',
 			'provider'     => null,
 			'category'     => 'booking',
+			'scope'        => 'site',
 			'industries'   => array( 'beauty', 'healthcare', 'fitness', 'venues' ),
 		),
-		'waitlist'            => array(
+		'waitlist'             => array(
 			'edition'      => 'premium',
 			'phase'        => 'P4',
 			'kind'         => 'capability',
@@ -235,9 +264,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'booking',
+			'scope'        => 'site',
 			'industries'   => array( 'beauty', 'healthcare', 'fitness', 'events' ),
 		),
-		'sms'                 => array(
+		'sms'                  => array(
 			'edition'      => 'premium',
 			'phase'        => 'P5',
 			'kind'         => 'integration',
@@ -246,9 +276,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'connections',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'webhooks'            => array(
+		'webhooks'             => array(
 			'edition'      => 'premium',
 			'phase'        => 'P5',
 			'kind'         => 'integration',
@@ -257,9 +288,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'connections',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'woo_gateway'         => array(
+		'payments_woocommerce' => array(
 			'edition'      => 'premium',
 			'phase'        => 'P5',
 			'kind'         => 'integration',
@@ -268,9 +300,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'payments',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'service_catalog'     => array(
+		'service_catalog'      => array(
 			'edition'      => 'free',
 			'phase'        => 'P5',
 			'kind'         => 'capability',
@@ -279,9 +312,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'site_tools',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'roles'               => array(
+		'roles'                => array(
 			'edition'      => 'premium',
 			'phase'        => 'P5',
 			'kind'         => 'capability',
@@ -290,9 +324,10 @@ final class Plan {
 			'menu'         => 'roles',
 			'provider'     => null,
 			'category'     => 'site_tools',
+			'scope'        => 'site',
 			'industries'   => array( 'agencies', 'beauty', 'healthcare', 'fitness' ),
 		),
-		'white_label'         => array(
+		'white_label'          => array(
 			'edition'      => 'premium',
 			'phase'        => 'P5',
 			'kind'         => 'capability',
@@ -301,6 +336,7 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'site_tools',
+			'scope'        => 'site',
 			'industries'   => array( 'agencies' ),
 		),
 
@@ -316,7 +352,7 @@ final class Plan {
 		 * an off switch that the shipped code does not honour. Hence `toggleable => false`,
 		 * `has_settings => false`, `menu => null`, `provider => null`.
 		 */
-		'booking_form'        => array(
+		'booking_form'         => array(
 			'edition'      => 'free',
 			'phase'        => 'P1',
 			'kind'         => 'capability',
@@ -325,9 +361,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'booking',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'availability_engine' => array(
+		'availability_engine'  => array(
 			'edition'      => 'free',
 			'phase'        => 'P1',
 			'kind'         => 'capability',
@@ -336,9 +373,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'booking',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'booking_reminder'    => array(
+		'booking_reminder'     => array(
 			'edition'      => 'free',
 			'phase'        => 'P1',
 			'kind'         => 'capability',
@@ -347,9 +385,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'booking',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'email_notifications' => array(
+		'email_notifications'  => array(
 			'edition'      => 'free',
 			'phase'        => 'P1',
 			'kind'         => 'capability',
@@ -358,9 +397,10 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'connections',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'ics_export'          => array(
+		'ics_export'           => array(
 			'edition'      => 'free',
 			'phase'        => 'P1',
 			'kind'         => 'capability',
@@ -369,17 +409,19 @@ final class Plan {
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'connections',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
-		'csv_export'          => array(
+		'csv_export'           => array(
 			'edition'      => 'free',
 			'phase'        => 'P1',
 			'kind'         => 'capability',
-			'has_settings' => false,
+			'has_settings' => true,
 			'toggleable'   => false,
 			'menu'         => null,
 			'provider'     => null,
 			'category'     => 'site_tools',
+			'scope'        => 'site',
 			'industries'   => array( 'all' ),
 		),
 	);
@@ -406,6 +448,9 @@ final class Plan {
 	 * @var list<string>
 	 */
 	public const SHIPPED_MODULE_CODES = array(
+		'deposits',
+		'csv_import', // D-R72: customer import with durable source identities.
+		'webhooks',
 		'booking_form',
 		'availability_engine',
 		'booking_reminder',
@@ -456,7 +501,10 @@ final class Plan {
 		// `payments_stripe` its driver is a `ServiceProvider` under `src/Pro/` (the D-R35 shape); this
 		// code gates that provider and its admin panel, and with them every per-key verb dispatch for
 		// `payments_paypal` (D-R38).
+		'payments_woocommerce',
 		'payments_paypal',
+		// P3, 2026-09-08 (D-R67): shipped code; entitlement remains Premium-only.
+		'coupons',
 	);
 
 	/**

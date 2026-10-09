@@ -183,7 +183,10 @@ final class ScheduleController implements Controller {
 			return Errors::validation( $fields );
 		}
 
-		$this->gateway->replace( $staff_id, $service_id, $location_id, $rows );
+		$refusal = $this->replaceRefusal( $this->gateway->replace( $staff_id, $service_id, $location_id, $rows ) );
+		if ( null !== $refusal ) {
+			return $refusal;
+		}
 
 		return new WP_REST_Response( $this->representation( $staff_id, $service_id, $location_id ), 200 );
 	}
@@ -222,9 +225,29 @@ final class ScheduleController implements Controller {
 			return Errors::validation( $fields );
 		}
 
-		$this->gateway->replace( 0, 0, 0, $rows );
+		$refusal = $this->replaceRefusal( $this->gateway->replace( 0, 0, 0, $rows ) );
+		if ( null !== $refusal ) {
+			return $refusal;
+		}
 
 		return new WP_REST_Response( $this->representation( 0, 0, 0 ), 200 );
+	}
+
+	/**
+	 * Map a {@see ScheduleGateway::replace()} outcome to its REST refusal, or null on success.
+	 *
+	 * The replacement is serialized per scope and atomic (persona QA 2026-10-05, T-065): a writer
+	 * that could not get the scope lock answers the retryable `503 aponto_lock_timeout`, a rolled
+	 * back replacement `500 aponto_internal_error` — never a 200 over rows that were not written.
+	 *
+	 * @param string $outcome Gateway outcome.
+	 */
+	private function replaceRefusal( string $outcome ): ?\WP_Error {
+		if ( ScheduleGateway::REPLACED === $outcome ) {
+			return null;
+		}
+
+		return ScheduleGateway::LOCKED === $outcome ? Errors::lockTimeout() : Errors::internal();
 	}
 
 	/**
@@ -305,36 +328,8 @@ final class ScheduleController implements Controller {
 	 * @return array<string, mixed>
 	 */
 	private function resolvedRepresentation( int $staff_id, int $service_id, int $location_id ): array {
-		$weekly_rows = array();
-		foreach ( $this->repository->forStaff( $staff_id ) as $row ) {
-			if ( null === $row->date_override ) {
-				$weekly_rows[] = $row;
-			}
-		}
-
-		// 2024-01-01 is a Monday (ISO weekday 1); +0..+6 days walks Mon..Sun so the resolver's
-		// `date('N')` maps each representative date to the right ISO weekday.
-		$monday = new \DateTimeImmutable( '2024-01-01', new \DateTimeZone( 'UTC' ) );
-
-		$weekly = array();
-		for ( $iso = 1; $iso <= 7; $iso++ ) {
-			$date    = $monday->modify( '+' . ( $iso - 1 ) . ' day' )->format( 'Y-m-d' );
-			$periods = $this->resolver->resolve( $weekly_rows, $staff_id, $service_id, $location_id, $date );
-			if ( array() === $periods ) {
-				continue;
-			}
-			$out = array();
-			foreach ( $periods as $period ) {
-				$out[] = array(
-					'start_minute' => $period[0],
-					'end_minute'   => $period[1],
-				);
-			}
-			$weekly[] = array(
-				'weekday' => $iso,
-				'periods' => $out,
-			);
-		}
+		// ONE resolver definition for this read and `GET /locations/{id}/hours` (D-R63 fix round 1).
+		$weekly = $this->resolver->resolveWeek( $this->repository->forStaff( $staff_id ), $staff_id, $service_id, $location_id );
 
 		return array(
 			'staff_id'    => $staff_id,

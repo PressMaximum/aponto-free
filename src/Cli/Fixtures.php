@@ -106,48 +106,57 @@ final class Fixtures {
 	 * `services` is a list of catalog INDEXES into the service list seeded below; `weekdays` is
 	 * ISO 1..7. Member 4 works the weekend, which is when a schedule bug is most visible.
 	 *
-	 * @var list<array{name:string, email:string, weekdays:list<int>, start:int, end:int, services:list<int>}>
+	 * @var list<array{first_name:string, last_name:string, email:string, weekdays:list<int>, start:int, end:int, services:list<int>}>
 	 */
 	private const EXTRA_STAFF = array(
 		array(
-			'name'     => 'Blair Colorist',
-			'email'    => 'blair@example.com',
-			'weekdays' => array( 1, 2, 3, 4, 5 ),
-			'start'    => 660,
-			'end'      => 1140,
-			'services' => array( 0, 1 ),
+			'first_name' => 'Blair',
+			'last_name'  => 'Colorist',
+			'title'      => 'Color Specialist',
+			'email'      => 'blair@example.com',
+			'weekdays'   => array( 1, 2, 3, 4, 5 ),
+			'start'      => 660,
+			'end'        => 1140,
+			'services'   => array( 0, 1 ),
 		),
 		array(
-			'name'     => 'Casey Nails',
-			'email'    => 'casey@example.com',
-			'weekdays' => array( 2, 3, 4, 5, 6 ),
-			'start'    => 540,
-			'end'      => 960,
-			'services' => array( 2, 3 ),
+			'first_name' => 'Casey',
+			'last_name'  => 'Nails',
+			'title'      => 'Nail Technician',
+			'email'      => 'casey@example.com',
+			'weekdays'   => array( 2, 3, 4, 5, 6 ),
+			'start'      => 540,
+			'end'        => 960,
+			'services'   => array( 2, 3 ),
 		),
 		array(
-			'name'     => 'Devon Junior',
-			'email'    => 'devon@example.com',
-			'weekdays' => array( 1, 3, 5 ),
-			'start'    => 600,
-			'end'      => 840,
-			'services' => array( 0 ),
+			'first_name' => 'Devon',
+			'last_name'  => 'Junior',
+			'title'      => 'Junior Stylist',
+			'email'      => 'devon@example.com',
+			'weekdays'   => array( 1, 3, 5 ),
+			'start'      => 600,
+			'end'        => 840,
+			'services'   => array( 0 ),
 		),
 		array(
-			'name'     => 'Emery Weekend',
-			'email'    => 'emery@example.com',
-			'weekdays' => array( 6, 7 ),
-			'start'    => 600,
-			'end'      => 1080,
-			'services' => array( 0, 2, 3 ),
+			'first_name' => 'Emery',
+			'last_name'  => 'Weekend',
+			'title'      => 'Weekend Stylist',
+			'email'      => 'emery@example.com',
+			'weekdays'   => array( 6, 7 ),
+			'start'      => 600,
+			'end'        => 1080,
+			'services'   => array( 0, 2, 3 ),
 		),
 		array(
-			'name'     => 'Frankie Senior',
-			'email'    => 'frankie@example.com',
-			'weekdays' => array( 1, 2, 3, 4, 5 ),
-			'start'    => 480,
-			'end'      => 780,
-			'services' => array( 1, 3 ),
+			'first_name' => 'Frankie',
+			'last_name'  => 'Senior',
+			'email'      => 'frankie@example.com',
+			'weekdays'   => array( 1, 2, 3, 4, 5 ),
+			'start'      => 480,
+			'end'        => 780,
+			'services'   => array( 1, 3 ),
 		),
 	);
 
@@ -249,7 +258,9 @@ final class Fixtures {
 
 		// The primary member keeps the original shape exactly: every service, Mon–Fri 9–5. A seed
 		// without `--staff` must produce the dataset it always produced.
-		$staff = $this->insertStaff( 'Alex Stylist', 'alex@example.com', $now );
+		// A job title on the demo staff (D-R51) so a seeded site shows the booking form's
+		// specialist rows the way a real one does. No photo: the seeder writes no attachments.
+		$staff = $this->insertStaff( 'Alex', 'Stylist', 'alex@example.com', $now, 'Senior Stylist' );
 		foreach ( $services as $service_id ) {
 			$this->connect( $staff, $service_id );
 		}
@@ -258,7 +269,7 @@ final class Fixtures {
 		$extra = max( 0, min( self::MAX_STAFF, $staff_count ) - 1 );
 		for ( $i = 0; $i < $extra; $i++ ) {
 			$spec = self::EXTRA_STAFF[ $i ];
-			$id   = $this->insertStaff( $spec['name'], $spec['email'], $now );
+			$id   = $this->insertStaff( $spec['first_name'], $spec['last_name'], $spec['email'], $now, $spec['title'] );
 			// Every index in EXTRA_STAFF addresses one of the four services seeded above; PHPStan
 			// proves the offsets, so a defensive isset() here would be unreachable code.
 			foreach ( $spec['services'] as $index ) {
@@ -267,7 +278,7 @@ final class Fixtures {
 			$this->weeklyHours( $id, $spec['weekdays'], $spec['start'], $spec['end'] );
 		}
 
-		$customer = $this->insertCustomer( 'Sample Customer', 'sample.customer@example.com', $now );
+		$customer = $this->insertCustomer( 'Sample', 'Customer', 'sample.customer@example.com', $now );
 		$bookings = 0;
 		$planned  = 0;
 		foreach ( self::BOOKING_PLAN as $slot ) {
@@ -357,11 +368,13 @@ final class Fixtures {
 	 * REST staff storage is also uncapped (D-R42); onboarding alone uses the bounded helper because
 	 * its first-owner create-or-adopt flow must converge under a double submission.
 	 *
-	 * @param string $name  Name.
+	 * @param string $first First name (name split, D-R69).
+	 * @param string $last  Last name.
 	 * @param string $email Email.
 	 * @param string $now   Timestamp.
+	 * @param string $title Public job title (D-R51); empty keeps the column default.
 	 */
-	private function insertStaff( string $name, string $email, string $now ): int {
+	private function insertStaff( string $first, string $last, string $email, string $now, string $title = '' ): int {
 		$table = $this->wpdb->prefix . 'aponto_staff';
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
 		$id = (int) $this->wpdb->get_var( $this->wpdb->prepare( "SELECT id FROM {$table} WHERE email = %s LIMIT 1", $email ) );
@@ -374,13 +387,15 @@ final class Fixtures {
 			$table,
 			array(
 				'type'       => 'human',
-				'name'       => $name,
+				'first_name' => $first,
+				'last_name'  => $last,
 				'email'      => $email,
+				'title'      => $title,
 				'status'     => 'active',
 				'created_at' => $now,
 				'updated_at' => $now,
 			),
-			array( '%s', '%s', '%s', '%s', '%s', '%s' )
+			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
 		);
 
 		return (int) $this->wpdb->insert_id;
@@ -457,11 +472,12 @@ final class Fixtures {
 	/**
 	 * Insert a customer.
 	 *
-	 * @param string $name  Name.
+	 * @param string $first First name (name split, D-R69).
+	 * @param string $last  Last name.
 	 * @param string $email Email.
 	 * @param string $now   Timestamp.
 	 */
-	private function insertCustomer( string $name, string $email, string $now ): int {
+	private function insertCustomer( string $first, string $last, string $email, string $now ): int {
 		$table      = $this->wpdb->prefix . 'aponto_customers';
 		$email_norm = strtolower( trim( $email ) );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- CLI fixture natural-key lookup.
@@ -474,13 +490,14 @@ final class Fixtures {
 		$this->wpdb->insert(
 			$table,
 			array(
-				'name'       => $name,
+				'first_name' => $first,
+				'last_name'  => $last,
 				'email'      => $email,
 				'email_norm' => $email_norm,
 				'note'       => '',
 				'created_at' => $now,
 			),
-			array( '%s', '%s', '%s', '%s', '%s' )
+			array( '%s', '%s', '%s', '%s', '%s', '%s' )
 		);
 
 		return (int) $this->wpdb->insert_id;

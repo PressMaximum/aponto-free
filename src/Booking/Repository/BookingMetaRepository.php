@@ -39,6 +39,14 @@ final class BookingMetaRepository {
 	private const INTERNAL_NOTE = 'internal_note';
 
 	/**
+	 * Billing address snapshot an external checkout recorded for this booking (D-R71d).
+	 *
+	 * Personal data: exported by {@see \Aponto\Privacy\PersonalData} and deleted by
+	 * {@see \Aponto\Privacy\Anonymizer}.
+	 */
+	public const BILLING_ADDRESS_KEY = 'checkout.billing_address';
+
+	/**
 	 * Construct the repository.
 	 *
 	 * @param \wpdb $wpdb Database handle.
@@ -131,31 +139,22 @@ final class BookingMetaRepository {
 
 		$suppressed = $this->wpdb->suppress_errors( true );
 		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Custom table is indexed by UNIQUE KEY owner_key (booking_id, meta_key); meta_value is payload for the atomic insert.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic unique claim; a duplicate-key failure is the expected "already claimed" answer, handled below.
-		$inserted = $this->wpdb->insert(
-			$table,
-			array(
-				'booking_id' => $booking_id,
-				'meta_key'   => $meta_key,
-				'meta_value' => $value,
-			),
-			array( '%d', '%s', '%s' )
-		);
+		$sql = 'INSERT IGNORE INTO %i (booking_id, meta_key, meta_value) VALUES (%d, %s, %s)';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Constant table bound as an identifier (%i); every value bound via prepare(). Atomic unique claim; an ignored duplicate is the expected "already claimed" answer, handled below.
+		$inserted = $this->wpdb->query( $this->wpdb->prepare( $sql, $table, $booking_id, $meta_key, $value ) );
 		// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-		$error = (string) $this->wpdb->last_error;
 		$this->wpdb->suppress_errors( $suppressed );
 
-		if ( false !== $inserted ) {
+		if ( false === $inserted ) {
+			throw StorageException::fromSqlError( esc_html( 'booking meta insert' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
+
+		if ( 1 === $inserted ) {
 			return true;
 		}
 
-		// A FAILED INSERT IS NOT AUTOMATICALLY "ALREADY CLAIMED" (Codex round 3, P1 #9). Only a
-		// duplicate-key error means that; a dead connection, a missing table or a full disk also
-		// return false, and reading those as "someone else has it" makes the caller skip work that
-		// nobody is doing. The conditional UPDATE below is the real discriminator: on a genuine
-		// duplicate it runs and reports; on a broken connection it fails too, and that failure is
-		// raised rather than silently converted into a skip.
-		unset( $error );
+		// Zero affected rows is the expected duplicate. A changed generation may be reclaimed
+		// below; a real statement failure already threw before any further write.
 
 		$sql = "UPDATE {$table} SET meta_value = %s WHERE booking_id = %d AND meta_key = %s AND meta_value <> %s";
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); atomic conditional re-claim.
@@ -197,20 +196,17 @@ final class BookingMetaRepository {
 
 		$suppressed = $this->wpdb->suppress_errors( true );
 		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Custom table is indexed by UNIQUE KEY owner_key (booking_id, meta_key); meta_value is payload for the atomic insert.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic unique claim; a duplicate-key failure is the expected "already leased" answer, handled below.
-		$inserted = $this->wpdb->insert(
-			$table,
-			array(
-				'booking_id' => $booking_id,
-				'meta_key'   => $meta_key,
-				'meta_value' => $stamp,
-			),
-			array( '%d', '%s', '%s' )
-		);
+		$sql = 'INSERT IGNORE INTO %i (booking_id, meta_key, meta_value) VALUES (%d, %s, %s)';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Constant table bound as an identifier (%i); every value bound via prepare(). Atomic unique claim; an ignored duplicate is the expected "already leased" answer, handled below.
+		$inserted = $this->wpdb->query( $this->wpdb->prepare( $sql, $table, $booking_id, $meta_key, $stamp ) );
 		// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 		$this->wpdb->suppress_errors( $suppressed );
 
-		if ( false !== $inserted ) {
+		if ( false === $inserted ) {
+			throw StorageException::fromSqlError( esc_html( 'booking meta insert' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
+
+		if ( 1 === $inserted ) {
 			return true;
 		}
 
@@ -249,27 +245,23 @@ final class BookingMetaRepository {
 
 		$suppressed = $this->wpdb->suppress_errors( true );
 		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Custom table is indexed by UNIQUE KEY owner_key (booking_id, meta_key); meta_value is payload for the atomic insert.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Conditional create; a duplicate-key failure is the expected "already there" answer, discriminated below.
-		$inserted = $this->wpdb->insert(
-			$table,
-			array(
-				'booking_id' => $booking_id,
-				'meta_key'   => $meta_key,
-				'meta_value' => $value,
-			),
-			array( '%d', '%s', '%s' )
-		);
+		$sql = 'INSERT IGNORE INTO %i (booking_id, meta_key, meta_value) VALUES (%d, %s, %s)';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Constant table bound as an identifier (%i); every value bound via prepare(). Conditional create; an ignored duplicate is the expected "already there" answer, discriminated below.
+		$inserted = $this->wpdb->query( $this->wpdb->prepare( $sql, $table, $booking_id, $meta_key, $value ) );
 		// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 		$error = (string) $this->wpdb->last_error;
 		$this->wpdb->suppress_errors( $suppressed );
 
-		if ( false !== $inserted ) {
+		if ( false === $inserted ) {
+			throw StorageException::fromSqlError( esc_html( 'booking meta insert' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
+
+		if ( 1 === $inserted ) {
 			return true;
 		}
 
-		// A FAILED INSERT IS NOT AUTOMATICALLY "ALREADY THERE" (the same discrimination
-		// {@see self::claimKey()} makes): a dead connection or a missing table also returns false.
-		// The row itself answers which happened.
+		// An ignored row is accepted only when the exact unique key exists.
+
 		$sql = "SELECT COUNT(*) FROM {$table} WHERE booking_id = %d AND meta_key = %s";
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 		$existing = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $booking_id, $meta_key ) );

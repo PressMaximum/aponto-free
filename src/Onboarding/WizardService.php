@@ -22,6 +22,7 @@ use Aponto\Rest\Data\ScheduleGateway;
 use Aponto\Rest\Data\ServiceGateway;
 use Aponto\Rest\Data\StaffGateway;
 use Aponto\Support\Clock;
+use Aponto\Support\PersonName;
 use Aponto\Support\Settings;
 
 /**
@@ -42,11 +43,12 @@ final class WizardService {
 	 * Option holding the created booking page id (standalone, so the
 	 * full-replacement settings PUT can never reset it).
 	 */
-	public const BOOKING_PAGE_OPTION = 'aponto_booking_page_id';
+	public const BOOKING_PAGE_OPTION = \Aponto\Support\BookingPage::OPTION;
 
 	/**
 	 * The exact block serialization written into the booking page (asserted by the
-	 * acceptance test).
+	 * acceptance test). `align: wide` is explicit on purpose: the block's own `align`
+	 * default is none since D-R49, and the sidebar layout needs a >=700px container.
 	 */
 	public const BLOCK_MARKUP = '<!-- wp:aponto/booking-form {"align":"wide"} /-->';
 
@@ -57,7 +59,7 @@ final class WizardService {
 	private const MAX_EMAIL = 191;
 
 	/**
-	 * The schema's `staff.name` column width — same mirror, same reason.
+	 * The schema's `staff.first_name` / `staff.last_name` column width — same mirror, same reason.
 	 */
 	private const MAX_NAME = 191;
 
@@ -115,9 +117,20 @@ final class WizardService {
 			'siteTitle'   => Settings::blogName(),
 			'adminEmail'  => (string) get_option( 'admin_email' ),
 			'timezone'    => self::prefillTimezone( (string) wp_timezone_string() ),
-			'dateFormat'  => (string) get_option( 'date_format' ),
-			'timeFormat'  => (string) get_option( 'time_format' ),
-			'weekStart'   => (int) get_option( 'start_of_week' ),
+			// The site's OWN formats (re-test 2026-10-05): the Aponto settings, which default to the
+			// WordPress options until the owner changes them in Settings → Localization. Reading
+			// the WordPress options here labelled the hour pickers "9:00 AM" on a site set to
+			// 14:30 — and, because step 2 posts these three back, re-running the wizard reset the
+			// owner's formats to WordPress's.
+			'dateFormat'  => (string) $this->settings->get( 'date_format' ),
+			'timeFormat'  => (string) $this->settings->get( 'time_format' ),
+			// The same two formats RENDERED for "now" (persona QA 2026-10-05, T-080): the step
+			// used to print the raw PHP codes — "(F j, Y, g:i a)" — to an owner who has never
+			// seen a format string. `wp_date()` so the example is in the site's own language and
+			// timezone, exactly as a confirmation mail would print it.
+			'dateExample' => (string) wp_date( (string) $this->settings->get( 'date_format' ) ),
+			'timeExample' => (string) wp_date( (string) $this->settings->get( 'time_format' ) ),
+			'weekStart'   => (int) $this->settings->get( 'week_starts_on' ),
 			// Prefill the currency from the WP locale (a neutral, worldwide locale→currency map,
 			// USD fallback — Aponto is global, no regional bias); the admin confirms/changes it.
 			'currency'    => Settings::validateCurrency( $this->settings->get( 'currency' ) ),
@@ -127,6 +140,127 @@ final class WizardService {
 				'phone'   => (string) $this->settings->get( 'business.phone' ),
 			),
 			'currentUser' => $this->currentUserPrefill(),
+			// WHAT THE SITE ALREADY HAS (persona QA 2026-10-05, re-test N2). A re-opened wizard
+			// used to show the factory 9–5 week and the WordPress user on steps 3 and 4, and
+			// Continue wrote them over the owner's saved hours and first staff member. Each step
+			// is now seeded from the stored values, and the client posts a step only when the
+			// owner changed it. `null` = nothing stored yet (a first run).
+			'saved'       => array(
+				'business' => '' !== trim( (string) $this->settings->get( 'business.name' ) ),
+				'hours'    => self::hoursPrefill( $this->scheduleGateway()->read( 0, 0, 0 ) ),
+				'staff'    => $this->firstStaffPrefill(),
+				'services' => $this->serviceCount(),
+			),
+		);
+	}
+
+	/**
+	 * The stored business week in the shape the hours step edits, or null when none is stored
+	 * (persona QA 2026-10-05, re-test N2).
+	 *
+	 * The step holds ONE range per day. A stored week with more than one range on a day (a lunch
+	 * break, a split shift — set later in Settings → Business hours) cannot be shown in it, and
+	 * {@see self::saveHours()} REPLACES the whole week: `split` tells the client to leave such a
+	 * week alone instead of flattening it. A weekday with no row, or only the closed marker
+	 * (`0–0`), is closed. Date overrides are not part of the weekly grid.
+	 *
+	 * Static and pure so the rule is unit-testable on the host.
+	 *
+	 * @param array<int, array<string, mixed>> $rows `staff_id = 0` schedule rows.
+	 * @return array{split: bool, days: list<array{weekday: int, open: bool, start: int, end: int}>}|null
+	 */
+	public static function hoursPrefill( array $rows ): ?array {
+		$ranges = array();
+		$seen   = false;
+		foreach ( $rows as $row ) {
+			if ( ! is_array( $row ) || ( null !== ( $row['date_override'] ?? null ) && '' !== $row['date_override'] ) ) {
+				continue;
+			}
+			$weekday = (int) ( $row['weekday'] ?? 0 );
+			if ( $weekday < 1 || $weekday > 7 ) {
+				continue;
+			}
+			$seen  = true;
+			$start = (int) ( $row['start_minute'] ?? 0 );
+			$end   = (int) ( $row['end_minute'] ?? 0 );
+			if ( $end > $start ) {
+				$ranges[ $weekday ][] = array( $start, $end );
+			}
+		}
+		if ( ! $seen ) {
+			return null;
+		}
+
+		$days  = array();
+		$split = false;
+		for ( $weekday = 1; $weekday <= 7; $weekday++ ) {
+			$day = $ranges[ $weekday ] ?? array();
+			if ( count( $day ) > 1 ) {
+				$split = true;
+			}
+			$days[] = array(
+				'weekday' => $weekday,
+				'open'    => array() !== $day,
+				'start'   => array() !== $day ? min( array_column( $day, 0 ) ) : 540,
+				'end'     => array() !== $day ? max( array_column( $day, 1 ) ) : 1020,
+			);
+		}
+
+		return array(
+			'split' => $split,
+			'days'  => $days,
+		);
+	}
+
+	/**
+	 * Whether a posted hours grid is exactly the stored week (re-test N2): saving it again would
+	 * change nothing, so {@see self::saveHours()} does not write. A stored week with split shifts
+	 * never equals a one-range grid.
+	 *
+	 * @param array<mixed>                     $days Posted grid (already validated).
+	 * @param array<int, array<string, mixed>> $rows `staff_id = 0` schedule rows.
+	 */
+	public static function hoursUnchanged( array $days, array $rows ): bool {
+		$stored = self::hoursPrefill( $rows );
+		if ( null === $stored || $stored['split'] ) {
+			return false;
+		}
+		$posted = array();
+		foreach ( $days as $day ) {
+			if ( ! is_array( $day ) ) {
+				return false;
+			}
+			$open                                     = ! empty( $day['open'] );
+			$posted[ (int) ( $day['weekday'] ?? 0 ) ] = $open
+				? array( true, (int) ( $day['start'] ?? 540 ), (int) ( $day['end'] ?? 1020 ) )
+				: array( false, 0, 0 );
+		}
+		foreach ( $stored['days'] as $day ) {
+			$expected = $day['open'] ? array( true, $day['start'], $day['end'] ) : array( false, 0, 0 );
+			if ( ( $posted[ $day['weekday'] ] ?? null ) !== $expected ) {
+				return false;
+			}
+		}
+
+		return 7 === count( $posted );
+	}
+
+	/**
+	 * The first staff member as the staff step edits it, or null when there is none (re-test N2).
+	 *
+	 * @return array{first_name: string, last_name: string, email: string}|null
+	 */
+	private function firstStaffPrefill(): ?array {
+		$id  = $this->firstStaffId();
+		$row = $id > 0 ? $this->staffGateway()->find( $id ) : null;
+		if ( ! is_array( $row ) ) {
+			return null;
+		}
+
+		return array(
+			'first_name' => (string) ( $row['first_name'] ?? '' ),
+			'last_name'  => (string) ( $row['last_name'] ?? '' ),
+			'email'      => (string) ( $row['email'] ?? '' ),
 		);
 	}
 
@@ -163,9 +297,28 @@ final class WizardService {
 	 * start, and the business timezone (the WP site option, the availability
 	 * engine's source). NEVER creates a location (Q2a).
 	 *
+	 * REFUSES the step — writing nothing — when the business name is blank or the phone is not a
+	 * phone (persona QA 2026-10-05, T-086 / T-088). Both used to be stored verbatim: an empty name
+	 * left every email signed by nobody, and `abc not a phone` was printed on the booking form as
+	 * the number to call. The step stays skippable; what it may not do is save values that are
+	 * known to be unusable.
+	 *
 	 * @param array<string, mixed> $data Field values.
+	 * @throws WizardValidationException When the name is blank or a non-blank phone is not a phone number.
 	 */
 	public function saveBusiness( array $data ): void {
+		$fields = array();
+		if ( array_key_exists( 'name', $data ) && '' === trim( sanitize_text_field( is_scalar( $data['name'] ) ? (string) $data['name'] : '' ) ) ) {
+			$fields['name'] = __( 'Enter your business name.', 'aponto' );
+		}
+		if ( array_key_exists( 'phone', $data ) && ! self::phoneAccepted( $data['phone'] ) ) {
+			$fields['phone'] = __( 'Enter a phone number using digits, spaces and + ( ) - . only, or leave it blank.', 'aponto' );
+		}
+		if ( array() !== $fields ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Localized copy for the JSON error payload (WizardPage::handleAjax), never echoed as markup.
+			throw new WizardValidationException( (string) reset( $fields ), $fields );
+		}
+
 		if ( array_key_exists( 'name', $data ) ) {
 			$this->settings->update( 'business.name', (string) $data['name'] );
 		}
@@ -211,6 +364,63 @@ final class WizardService {
 		if ( '' !== $tz && '' === Args::checkTimezone( $tz ) ) {
 			update_option( 'timezone_string', Args::canonicalizeTimezone( $tz ) );
 		}
+	}
+
+	/**
+	 * Whether a posted phone value is acceptable: blank, or a loose phone number (persona QA
+	 * 2026-10-05, T-088).
+	 *
+	 * Deliberately LOOSE — Aponto is a global product and must not encode one country's numbering
+	 * plan: only digits and the separators people actually type (`+ ( ) - .` and spaces), with at
+	 * least five digits. That refuses words and stray characters without refusing a real number in
+	 * any format. Mirrored client-side by `phoneLooksValid()` in `assets/src/wizard/index.js`.
+	 *
+	 * Static and pure (no WordPress) so the rule is unit-testable on the host.
+	 *
+	 * @param mixed $raw Posted value.
+	 */
+	public static function phoneAccepted( mixed $raw ): bool {
+		if ( null === $raw ) {
+			return true;
+		}
+		if ( ! is_scalar( $raw ) ) {
+			return false;
+		}
+		$phone = trim( (string) $raw );
+		if ( '' === $phone ) {
+			return true;
+		}
+		if ( 1 !== preg_match( '/^[0-9+().\-\s]+$/', $phone ) ) {
+			return false;
+		}
+
+		return (int) preg_match_all( '/[0-9]/', $phone ) >= 5;
+	}
+
+	/**
+	 * Why a posted first-service price is unusable, or '' when it is acceptable (persona QA
+	 * 2026-10-05, T-086). Blank means "no price" and is fine.
+	 *
+	 * A negative price used to be clamped to 0 by {@see self::priceToMinor()} and stored as a FREE
+	 * service with no message — the owner typed a number and silently gave the service away. Text
+	 * that is not a number was dropped the same way.
+	 *
+	 * Static and pure (no WordPress beyond `__()`), so the rule is unit-testable on the host.
+	 *
+	 * @param mixed $raw Posted price, in the currency's major unit.
+	 */
+	public static function servicePriceRefusal( mixed $raw ): string {
+		if ( null === $raw || '' === $raw ) {
+			return '';
+		}
+		if ( ! is_scalar( $raw ) || ! is_numeric( $raw ) ) {
+			return __( 'Enter the price as a number, or leave it blank.', 'aponto' );
+		}
+		if ( (float) $raw < 0 ) {
+			return __( 'A price cannot be negative. Leave it blank for a free service.', 'aponto' );
+		}
+
+		return '';
 	}
 
 	/**
@@ -376,6 +586,7 @@ final class WizardService {
 	 *
 	 * @param array<mixed> $days Weekly grid.
 	 * @throws WizardValidationException When a row is unreadable, the grid is not the whole week, or an open day's range is not `0 <= start < end <= 1440`.
+	 * @throws \RuntimeException         When the replacement could not be written (retryable).
 	 */
 	public function saveHours( array $days ): void {
 		// An EMPTY grid is the same silent wipe in its purest form: the step always posts seven
@@ -410,6 +621,12 @@ final class WizardService {
 			throw new WizardValidationException( $message, $fields );
 		}
 
+		// A RE-RUN THAT CHANGES NOTHING WRITES NOTHING (persona QA 2026-10-05, re-test N2): the
+		// posted grid is exactly the stored week, so there is nothing to replace.
+		if ( self::hoursUnchanged( $days, $this->scheduleGateway()->read( 0, 0, 0 ) ) ) {
+			return;
+		}
+
 		// Every row reaching here is readable and in range — both refusals above are unconditional,
 		// so this loop can no longer drop a row from a grid it is about to REPLACE.
 		$rows = array();
@@ -435,7 +652,11 @@ final class WizardService {
 			);
 		}
 
-		$this->scheduleGateway()->replace( 0, 0, 0, $rows );
+		// The replacement is atomic and serialized per scope (persona QA 2026-10-05, T-065): a lost
+		// lock or a rolled-back write is the retryable infrastructure failure, never a silent "saved".
+		if ( ScheduleGateway::REPLACED !== $this->scheduleGateway()->replace( 0, 0, 0, $rows ) ) {
+			throw new \RuntimeException( 'business hours could not be saved' );
+		}
 	}
 
 	/**
@@ -468,31 +689,37 @@ final class WizardService {
 	}
 
 	/**
-	 * The refusal message for the staff name as posted, or '' when it is usable
-	 * (SPEC-P1 §4 step 4).
+	 * The refusal message for one staff name PART as posted, or '' when it is usable
+	 * (SPEC-P1 §4 step 4; name split, founder 2026-10-01, N3, D-R69).
 	 *
-	 * BLANK IS REFUSED even though the step is skippable, because skipping the step means NOT
-	 * POSTING it: the Skip button navigates to the next step and `do=staff` is never sent (and the
-	 * whole-wizard `do=skip` runs {@see self::autoCreateOwnerStaff()}, which never touches an
-	 * existing row). Posting `{"name":""}` is therefore always a real save — and on a re-run it took the
-	 * UPDATE branch below and blanked the existing staff row's name (beta report 2026-08-02). A
-	 * staff row without a name is never legitimate: it is what the calendar, the booking form and
-	 * every notification call the provider.
+	 * BLANK FIRST NAME IS REFUSED even though the step is skippable, because skipping the step
+	 * means NOT POSTING it: the Skip button navigates to the next step and `do=staff` is never sent
+	 * (and the whole-wizard `do=skip` runs {@see self::autoCreateOwnerStaff()}, which never touches
+	 * an existing row). Posting `{"first_name":""}` is therefore always a real save — and on a
+	 * re-run it took the UPDATE branch below and blanked the existing staff row's name (beta report
+	 * 2026-08-02). A staff row without a name is never legitimate: it is what the calendar, the
+	 * booking form and every notification call the provider. The LAST name is optional, exactly as
+	 * on `POST /staff` (a staff member may go by one name).
 	 *
-	 * Same shape, same bound and the SAME msgids as {@see \Aponto\Rest\Args::checkName()}, so the
+	 * Same bound and the SAME msgids as {@see \Aponto\Rest\RequestValidator::namePart()}, so the
 	 * wizard and the staff editor accept exactly the same set of names and say the same thing when
-	 * they refuse.
+	 * they refuse. Measured after the SAME sanitization and normalization that is stored.
 	 *
-	 * @param mixed $raw Raw `name` field as posted.
+	 * @param mixed  $raw  Raw `first_name` / `last_name` field as posted.
+	 * @param string $part `first` (required) or `last` (optional).
 	 * @return string Localized refusal, or '' when acceptable.
 	 */
-	public static function staffNameRefusal( mixed $raw ): string {
-		if ( ! is_scalar( $raw ) ) {
-			return __( 'A name is required.', 'aponto' );
+	public static function staffNameRefusal( mixed $raw, string $part = 'first' ): string {
+		$required = 'last' !== $part;
+		if ( null === $raw ) {
+			return $required ? __( 'A first name is required.', 'aponto' ) : '';
 		}
-		$name = trim( (string) $raw );
+		if ( ! is_scalar( $raw ) ) {
+			return $required ? __( 'A first name is required.', 'aponto' ) : __( 'This field must be text.', 'aponto' );
+		}
+		$name = PersonName::normalize( sanitize_text_field( (string) $raw ) );
 		if ( '' === $name ) {
-			return __( 'A name is required.', 'aponto' );
+			return $required ? __( 'A first name is required.', 'aponto' ) : '';
 		}
 		if ( mb_strlen( $name ) > self::MAX_NAME ) {
 			return __( 'This name is too long.', 'aponto' );
@@ -506,22 +733,29 @@ final class WizardService {
 	 * first staff (Free allows exactly one). No per-staff schedule rows: staff
 	 * inherit the `staff_id = 0` business hours.
 	 *
-	 * @param array<string, mixed> $data `{name, email}`.
+	 * @param array<string, mixed> $data `{first_name, last_name, email}` (name split, D-R69).
 	 * @return int Staff id.
-	 * @throws WizardValidationException When the name is missing/over-long, or a non-blank email is
+	 * @throws WizardValidationException When the first name is missing, a part is over-long, or a non-blank email is
 	 *                                   not a valid address (QA B).
 	 * @throws \RuntimeException When the create lock is contended/lost or the insert failed (retryable; no row exists).
 	 */
 	public function saveStaff( array $data ): int {
-		$refusal = self::staffNameRefusal( $data['name'] ?? '' );
-		if ( '' === $refusal && '' === trim( sanitize_text_field( (string) ( $data['name'] ?? '' ) ) ) ) {
-			// A name that passes the raw check but sanitizes to nothing (markup only) is still
-			// no name — and it is the sanitized value that would have been written.
-			$refusal = __( 'A name is required.', 'aponto' );
+		// Per-field refusals keyed `first_name` / `last_name` — the keys the wizard UI routes back
+		// to its two inputs. A value that sanitizes to nothing (markup only) is no name: the
+		// refusal measures the sanitized, normalized value that would have been written.
+		$errors = array();
+		foreach ( array(
+			'first_name' => 'first',
+			'last_name'  => 'last',
+		) as $field => $part ) {
+			$refusal = self::staffNameRefusal( $data[ $field ] ?? null, $part );
+			if ( '' !== $refusal ) {
+				$errors[ $field ] = $refusal;
+			}
 		}
-		if ( '' !== $refusal ) {
+		if ( array() !== $errors ) {
 			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Localized copy for the JSON error payload (WizardPage::handleAjax), never echoed as markup.
-			throw new WizardValidationException( $refusal, array( 'name' => $refusal ) );
+			throw new WizardValidationException( (string) reset( $errors ), $errors );
 		}
 
 		if ( ! self::staffEmailAccepted( $data['email'] ?? '' ) ) {
@@ -531,11 +765,13 @@ final class WizardService {
 			throw new WizardValidationException( $message, array( 'email' => $message ) );
 		}
 
-		$name   = sanitize_text_field( (string) ( $data['name'] ?? '' ) );
-		$email  = sanitize_email( (string) ( $data['email'] ?? '' ) );
-		$fields = array(
-			'name'  => $name,
-			'email' => $email,
+		$first_name = PersonName::normalize( sanitize_text_field( (string) ( $data['first_name'] ?? '' ) ) );
+		$last_name  = PersonName::normalize( sanitize_text_field( (string) ( $data['last_name'] ?? '' ) ) );
+		$email      = sanitize_email( (string) ( $data['email'] ?? '' ) );
+		$fields     = array(
+			'first_name' => $first_name,
+			'last_name'  => $last_name,
+			'email'      => $email,
 		);
 
 		// On Free the single staff member IS the owner, so the email typed here is where booking
@@ -561,11 +797,12 @@ final class WizardService {
 		// no plan count or entitlement participates in this operation (R2 #6).
 		$outcome = $this->staffGateway()->createFirst(
 			array(
-				'type'     => 'human',
-				'name'     => $name,
-				'email'    => $email,
-				'status'   => 'active',
-				'position' => 1,
+				'type'       => 'human',
+				'first_name' => $first_name,
+				'last_name'  => $last_name,
+				'email'      => $email,
+				'status'     => 'active',
+				'position'   => 1,
 			)
 		);
 		if ( 'created' === $outcome['status'] ) {
@@ -593,8 +830,22 @@ final class WizardService {
 	 *
 	 * @param array<string, mixed> $data `{name, duration, price?}`.
 	 * @return int Service id.
+	 * @throws WizardValidationException When the name is blank or the price is negative / not a number (T-086).
 	 */
 	public function saveService( array $data ): int {
+		$fields = array();
+		if ( '' === trim( sanitize_text_field( is_scalar( $data['name'] ?? null ) ? (string) $data['name'] : '' ) ) ) {
+			$fields['name'] = __( 'Enter a name for the service.', 'aponto' );
+		}
+		$price_refusal = self::servicePriceRefusal( $data['price'] ?? null );
+		if ( '' !== $price_refusal ) {
+			$fields['price'] = $price_refusal;
+		}
+		if ( array() !== $fields ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Localized copy for the JSON error payload (WizardPage::handleAjax), never echoed as markup.
+			throw new WizardValidationException( (string) reset( $fields ), $fields );
+		}
+
 		$service = array(
 			'name'             => sanitize_text_field( (string) ( $data['name'] ?? '' ) ),
 			'duration_minutes' => max( 5, min( 480, (int) ( $data['duration'] ?? 60 ) ) ),
@@ -827,19 +1078,21 @@ final class WizardService {
 		}
 
 		$prefill = $this->currentUserPrefill();
-		$name    = sanitize_text_field( (string) $prefill['name'] );
-		$email   = sanitize_email( (string) $prefill['email'] );
-		if ( '' === $name || '' === $email || false === is_email( $email ) ) {
+		$first   = PersonName::normalize( sanitize_text_field( $prefill['first_name'] ) );
+		$last    = PersonName::normalize( sanitize_text_field( $prefill['last_name'] ) );
+		$email   = sanitize_email( $prefill['email'] );
+		if ( '' === $first || '' === $email || false === is_email( $email ) ) {
 			return;
 		}
 
 		$outcome = $this->staffGateway()->createFirst(
 			array(
-				'type'     => 'human',
-				'name'     => $name,
-				'email'    => $email,
-				'status'   => 'active',
-				'position' => 1,
+				'type'       => 'human',
+				'first_name' => $first,
+				'last_name'  => $last,
+				'email'      => $email,
+				'status'     => 'active',
+				'position'   => 1,
 			)
 		);
 
@@ -930,24 +1183,37 @@ final class WizardService {
 	}
 
 	/**
-	 * The current user's display-name + email prefill for staff #1.
+	 * The current user's name + email prefill for staff #1 (name split, D-R69).
 	 *
-	 * @return array{name:string, email:string}
+	 * The parts come from the WordPress user's own `first_name` / `last_name` profile meta. When
+	 * BOTH are empty — most admin accounts never fill them — the display name (or the login) is
+	 * split with {@see PersonName::split()}: last word → last name, the rest → first name. That
+	 * guess is only a PREFILL the admin sees and can correct; nothing stored is reinterpreted.
+	 *
+	 * @return array{first_name:string, last_name:string, email:string}
 	 */
 	private function currentUserPrefill(): array {
 		$user = wp_get_current_user();
 		if ( ! $user instanceof \WP_User || 0 === (int) $user->ID ) {
 			return array(
-				'name'  => '',
-				'email' => '',
+				'first_name' => '',
+				'last_name'  => '',
+				'email'      => '',
 			);
 		}
 
-		$name = '' !== (string) $user->display_name ? (string) $user->display_name : (string) $user->user_login;
+		$first = PersonName::normalize( (string) get_user_meta( (int) $user->ID, 'first_name', true ) );
+		$last  = PersonName::normalize( (string) get_user_meta( (int) $user->ID, 'last_name', true ) );
+		if ( '' === $first && '' === $last ) {
+			$split = PersonName::split( '' !== (string) $user->display_name ? (string) $user->display_name : (string) $user->user_login );
+			$first = $split['first_name'];
+			$last  = $split['last_name'];
+		}
 
 		return array(
-			'name'  => $name,
-			'email' => (string) $user->user_email,
+			'first_name' => $first,
+			'last_name'  => $last,
+			'email'      => (string) $user->user_email,
 		);
 	}
 

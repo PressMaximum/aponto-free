@@ -1,6 +1,505 @@
 "use strict";
 (globalThis["webpackChunkaponto"] = globalThis["webpackChunkaponto"] || []).push([["admin-chunk-services"],{
 
+/***/ "./assets/src/admin/lib/EditorCard.jsx"
+/*!*********************************************!*\
+  !*** ./assets/src/admin/lib/EditorCard.jsx ***!
+  \*********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   EditorCard: () => (/* binding */ EditorCard)
+/* harmony export */ });
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+/**
+ * One CARD section of a full-page record editor (D-R55).
+ *
+ * The founder's reference is the Settings panel (`settings/SettingsApp.jsx`): a white surface
+ * with a 1px border and a radius, a header holding the panel title and a one-line muted
+ * description, a hairline under the header, then the fields in a padded body. Rather than
+ * reproduce that look a second time, this component renders the SAME thing: the
+ * `@wordpress/components` `Card`/`CardHeader`/`CardBody` trio carrying `.ap-settings-card`,
+ * `.ap-settings-card-title` and `.ap-settings-card-desc`. One card anatomy, one stylesheet,
+ * so a change to the Settings panels lands here too.
+ *
+ * `@wordpress/components` is an EXTERNAL in this build (`wp-components`, already a dependency
+ * of the admin entry because the Settings chunk uses it), so the import costs the lazy chunk
+ * no bytes.
+ *
+ * What this adds on top of a plain Settings card is the editor contract: the card is a real
+ * `<section>` with the anchor id the sticky section nav scrolls to and the IntersectionObserver
+ * watches, and it is labelled by its own heading (`aria-labelledby`) so the landmark is named.
+ * The header can carry a trailing action (Customize, Add time off) at the inline end.
+ *
+ * REUSABLE ON PURPOSE, and reused: the Service editor took the same two steps on 2026-09-21 —
+ * wrap its sections in `EditorCard`, add `ap-editor-cards` to the form element — which closes
+ * the one-release gap D-R55 recorded between the two full-page record editors. Nothing here is
+ * staff-specific. The remaining holdout on this shell is the Premium `multi_location` Location
+ * form, which is owned elsewhere and is single-section.
+ *
+ * @param {Object}          props             Card props.
+ * @param {string}          props.id          Anchor id, e.g. `staff-details`.
+ * @param {string}          props.title       Card title (renders as the section's `h2`).
+ * @param {string}          [props.description] One-line muted description under the title.
+ * @param {import('react').ReactNode} [props.action]   Trailing header control.
+ * @param {string}          [props.className] Extra class on the `<section>`.
+ * @param {string}          [props.bodyClassName] Extra class on the body wrapper — the Service
+ *                                            editor's grid sections need `pd-form-grid` here.
+ * @param {import('react').ReactNode} props.children   Card body.
+ * @return {JSX.Element} The card section.
+ */
+
+
+function EditorCard({
+  id,
+  title,
+  description,
+  action,
+  className,
+  bodyClassName,
+  children
+}) {
+  const headingId = `${id}-heading`;
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("section", {
+    id: id,
+    className: className ? `ap-editor-card ${className}` : 'ap-editor-card',
+    "aria-labelledby": headingId,
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Card, {
+      className: "ap-settings-card",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardHeader, {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+          className: "ap-editor-card-head",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+            className: "ap-editor-card-head-copy",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("h2", {
+              id: headingId,
+              className: "ap-settings-card-title",
+              children: title
+            }), description ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("p", {
+              className: "ap-settings-card-desc",
+              children: description
+            }) : null]
+          }), action || null]
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardBody, {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+          className: bodyClassName ? `pd-editor-section-body ${bodyClassName}` : 'pd-editor-section-body',
+          children: children
+        })
+      })]
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/lib/MultiSelectPopover.jsx"
+/*!*****************************************************!*\
+  !*** ./assets/src/admin/lib/MultiSelectPopover.jsx ***!
+  \*****************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   MultiSelectPopover: () => (/* binding */ MultiSelectPopover)
+/* harmony export */ });
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _multi_select_popover_styles_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./multi-select-popover-styles.js */ "./assets/src/admin/lib/multi-select-popover-styles.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__);
+/**
+ * Reusable multiple selector for bounded local catalogs and REST-backed catalogs.
+ *
+ * The caller owns the selected values and the selected item snapshots. An empty
+ * value is deliberately valid so product surfaces can give it a domain meaning
+ * such as "all services". Dynamic loaders run only while the popover is open,
+ * are debounced, and cannot let an older response replace a newer search.
+ */
+
+
+
+
+
+(0,_multi_select_popover_styles_js__WEBPACK_IMPORTED_MODULE_3__.ensureMultiSelectPopoverStyles)();
+let nextId = 0;
+const defaultItemValue = item => item?.id ?? item?.value;
+const defaultItemLabel = item => String(item?.label ?? item?.name ?? '');
+const defaultItemDescription = item => String(item?.description ?? item?.meta ?? '');
+const itemKey = value => String(value ?? '');
+function mergeItems(localItems, remoteItems, getItemValue) {
+  const merged = new Map();
+  [...localItems, ...remoteItems].forEach(item => {
+    const key = itemKey(getItemValue(item));
+    if (key) {
+      merged.set(key, item);
+    }
+  });
+  return Array.from(merged.values());
+}
+function matchesQuery(item, query, getItemLabel, getItemDescription) {
+  const needle = query.trim().toLocaleLowerCase();
+  if (!needle) {
+    return true;
+  }
+  return `${getItemLabel(item)} ${getItemDescription(item)}`.toLocaleLowerCase().includes(needle);
+}
+
+/**
+ * Render a click-to-open multiple selector with local and optional remote search.
+ *
+ * `loadItems` receives `{ search, perPage }` and may return an item array or a
+ * REST-style `{ items, meta: { has_more } }` envelope. `onChange` receives both
+ * the next value list and all selected item snapshots currently known.
+ *
+ * Two presentation props for a picker that sits INSIDE a list row (D-R64, the Service editor's
+ * "Staff & locations" rows): `hideLabel` keeps `label` as the control's accessible name — the
+ * trigger and the option group stay `aria-labelledby` it, so the name still reads "<label>,
+ * <current value>" — without painting it as a heading above the trigger; `selectionText` replaces
+ * the generic "N items selected" summary when the caller can say it better ("Downtown, Uptown").
+ */
+function MultiSelectPopover({
+  label,
+  value = [],
+  items = [],
+  onChange,
+  loadItems,
+  perPage = 10,
+  debounceMs = 250,
+  getItemValue = defaultItemValue,
+  getItemLabel = defaultItemLabel,
+  getItemDescription = defaultItemDescription,
+  placeholder,
+  searchPlaceholder,
+  emptyText,
+  loadingText,
+  errorText,
+  noSelectionText,
+  selectionText,
+  hideLabel = false,
+  help,
+  validationMessage,
+  disabled = false
+}) {
+  const [id] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(() => `ap-multiselect-${++nextId}`);
+  const [open, setOpen] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  const [query, setQuery] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)('');
+  const [remoteItems, setRemoteItems] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)([]);
+  const [loading, setLoading] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  const [loadError, setLoadError] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  const [hasMore, setHasMore] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  const [retry, setRetry] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(0);
+  const loaderRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useRef)(loadItems);
+  loaderRef.current = loadItems;
+  const safeValue = Array.isArray(value) ? value : [];
+  const safeItems = Array.isArray(items) ? items : [];
+  const safeRemoteItems = Array.isArray(remoteItems) ? remoteItems : [];
+  const selectedKeys = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useMemo)(() => new Set(safeValue.map(itemKey)), [safeValue]);
+  const mergedItems = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useMemo)(() => mergeItems(safeItems, safeRemoteItems, getItemValue), [safeItems, safeRemoteItems, getItemValue]);
+  const visibleItems = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useMemo)(() => mergedItems.filter(item => matchesQuery(item, query, getItemLabel, getItemDescription)), [mergedItems, query, getItemLabel, getItemDescription]);
+  const knownByKey = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useMemo)(() => new Map(mergedItems.map(item => [itemKey(getItemValue(item)), item])), [mergedItems, getItemValue]);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
+    if (!open || typeof loaderRef.current !== 'function') {
+      return undefined;
+    }
+    let active = true;
+    setLoading(true);
+    setLoadError(false);
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await loaderRef.current({
+          search: query.trim(),
+          perPage
+        });
+        if (!active) {
+          return;
+        }
+        const nextItems = Array.isArray(response) ? response : response?.items;
+        setRemoteItems(Array.isArray(nextItems) ? nextItems : []);
+        setHasMore(!Array.isArray(response) && !!response?.meta?.has_more);
+      } catch {
+        if (active) {
+          setLoadError(true);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }, debounceMs);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [open, query, perPage, debounceMs, retry]);
+  const updateSelection = (item, checked) => {
+    const rawValue = getItemValue(item);
+    const key = itemKey(rawValue);
+    const nextValues = checked ? [...safeValue.filter(current => itemKey(current) !== key), rawValue] : safeValue.filter(current => itemKey(current) !== key);
+    const nextByKey = new Map(knownByKey);
+    nextByKey.set(key, item);
+    onChange?.(nextValues, nextValues.map(current => nextByKey.get(itemKey(current))).filter(Boolean));
+  };
+  // Focus moves to the search field BEFORE the selection empties (D-R63 fix round 1, browser QA
+  // B2): Clear used to unmount itself with focus on it, focus fell to <body>, and the Popover's
+  // Escape / focus-outside close stopped firing. The button now also stays mounted (disabled
+  // when there is nothing to clear), so the toolbar does not shift under the pointer either.
+  const searchRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useRef)(null);
+  const clear = () => {
+    searchRef.current?.focus();
+    onChange?.([], []);
+  };
+  const selectionCount = selectedKeys.size;
+  const selectedItem = selectionCount === 1 ? knownByKey.get(Array.from(selectedKeys)[0]) : null;
+  const triggerText = selectionCount === 0 ? noSelectionText || placeholder || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Select items', 'aponto') : selectionText ? selectionText : selectionCount === 1 && selectedItem ? getItemLabel(selectedItem) : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.sprintf)((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__._n)('%d item selected', '%d items selected', selectionCount, 'aponto'), selectionCount);
+  // Escape closes the popover AND returns focus to the trigger (D-R63 fix round 2, a11y): the
+  // focused search field unmounts with the popover, and focus used to fall to <body>. Only on
+  // Escape — a click elsewhere moves focus where the operator clicked.
+  const rootRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useRef)(null);
+  const escaped = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useRef)(false);
+  const toggle = willOpen => {
+    setOpen(willOpen);
+    if (!willOpen) {
+      setQuery('');
+      setLoadError(false);
+      if (escaped.current) {
+        escaped.current = false;
+        rootRef.current?.querySelector('.ap-multiselect__trigger')?.focus();
+      }
+    }
+  };
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+    ref: rootRef,
+    className: `ap-multiselect${validationMessage ? ' has-error' : ''}`,
+    children: [hideLabel ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("span", {
+      className: "ap-multiselect__label screen-reader-text",
+      id: `${id}-label`,
+      children: label
+    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("label", {
+      className: "ap-multiselect__label",
+      id: `${id}-label`,
+      children: label
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Dropdown, {
+      className: "ap-multiselect__dropdown",
+      contentClassName: "ap-multiselect-popover",
+      open: open,
+      onToggle: toggle,
+      focusOnMount: "firstInputElement",
+      popoverProps: {
+        placement: 'bottom-start'
+      },
+      renderToggle: ({
+        isOpen,
+        onToggle
+      }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+        className: "ap-multiselect__trigger",
+        variant: "secondary",
+        disabled: disabled,
+        onClick: onToggle,
+        "aria-expanded": isOpen,
+        "aria-labelledby": `${id}-label ${id}-value`,
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("span", {
+          id: `${id}-value`,
+          className: selectionCount ? '' : 'is-placeholder',
+          children: triggerText
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("svg", {
+          className: "ap-multiselect__chevron",
+          viewBox: "0 0 12 12",
+          focusable: "false",
+          "aria-hidden": "true",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("path", {
+            d: "M2.25 4.25 6 8l3.75-3.75"
+          })
+        })]
+      }),
+      renderContent: () =>
+      /*#__PURE__*/
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- only observes Escape on its way to the Dropdown's own close.
+      (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+        className: "ap-multiselect-popover__inner",
+        onKeyDown: event => {
+          if ('Escape' === event.key) escaped.current = true;
+        },
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+          className: "ap-multiselect-popover__header",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("input", {
+            ref: searchRef,
+            className: "ap-multiselect-popover__search",
+            type: "search",
+            value: query,
+            placeholder: searchPlaceholder || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Search items…', 'aponto'),
+            "aria-label": searchPlaceholder || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Search items', 'aponto'),
+            autoComplete: "off",
+            onChange: event => setQuery(event.target.value)
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+            className: "ap-multiselect-popover__toolbar",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("span", {
+              children: selectionCount ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.sprintf)((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__._n)('%d selected', '%d selected', selectionCount, 'aponto'), selectionCount) : placeholder || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Select items', 'aponto')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+              variant: "link",
+              onClick: clear,
+              disabled: !selectionCount,
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Clear', 'aponto')
+            })]
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+          className: "ap-multiselect-popover__list",
+          role: "group",
+          "aria-labelledby": `${id}-label`,
+          children: [visibleItems.map(item => {
+            const key = itemKey(getItemValue(item));
+            const selected = selectedKeys.has(key);
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("label", {
+              className: `ap-multiselect-popover__item${selected ? ' is-selected' : ''}`,
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("input", {
+                type: "checkbox",
+                checked: selected,
+                onChange: event => updateSelection(item, event.target.checked)
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("span", {
+                className: "ap-multiselect-popover__checkbox",
+                "aria-hidden": "true",
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("svg", {
+                  viewBox: "0 0 16 16",
+                  focusable: "false",
+                  children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("path", {
+                    d: "M3.5 8.5 6.6 11.5 12.7 4.9"
+                  })
+                })
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("span", {
+                className: "ap-multiselect-popover__item-label",
+                children: getItemLabel(item)
+              })]
+            }, key);
+          }), !visibleItems.length && !loading && !loadError ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("p", {
+            className: "ap-multiselect-popover__state",
+            children: emptyText || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('No matching items.', 'aponto')
+          }) : null, loading ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("p", {
+            className: "ap-multiselect-popover__state",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Spinner, {}), loadingText || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Loading…', 'aponto')]
+          }) : null, loadError ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("p", {
+            className: "ap-multiselect-popover__state is-error",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("span", {
+              children: errorText || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Could not load items.', 'aponto')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+              variant: "link",
+              onClick: () => setRetry(current => current + 1),
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Retry', 'aponto')
+            })]
+          }) : null]
+        }), hasMore && !loading ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("p", {
+          className: "ap-multiselect-popover__more",
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.sprintf)((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Showing the first %d matches. Refine your search for more.', 'aponto'), perPage)
+        }) : null]
+      })
+    }), help ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("p", {
+      className: "ap-multiselect__help",
+      children: help
+    }) : null, validationMessage ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("p", {
+      className: "ap-multiselect__error",
+      children: validationMessage
+    }) : null]
+  });
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/lib/assignment-pairs.js"
+/*!**************************************************!*\
+  !*** ./assets/src/admin/lib/assignment-pairs.js ***!
+  \**************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   locationScopeLabel: () => (/* binding */ locationScopeLabel),
+/* harmony export */   memberLocationIds: () => (/* binding */ memberLocationIds),
+/* harmony export */   setMemberLocations: () => (/* binding */ setMemberLocations)
+/* harmony export */ });
+/**
+ * Per-member branch math for the Service editor's "Staff & locations" section (D-R63, SPEC-P1
+ * §1.1.4), over the per-pair wire of `PUT /services/{id}/eligibility` (rest-contract §2.18).
+ *
+ * The rule, in one line: an assigned member is EITHER "Every location" — exactly one wildcard pair
+ * `{ staff_id, location_id: 0 }` — OR a set of branches, one pair per branch. Choosing branches
+ * REPLACES that member's pairs; clearing every branch falls back to the wildcard, so an assigned
+ * member never ends with an empty set (that would silently UN-assign them). Other members' pairs
+ * are never touched, which is what keeps a non-cartesian mapping ("A everywhere, B only at
+ * Uptown") intact through a round-trip.
+ *
+ * Pure and dependency-free: `tests/js` imports it under plain node.
+ */
+
+/**
+ * The branches a member is assigned at, or `[]` for "Every location".
+ *
+ * A member holding a wildcard pair is assigned everywhere, whatever narrower rows sit beside it
+ * (legacy data can hold both), so the wildcard wins and the answer is `[]`.
+ *
+ * @param {Array}  assignments Pairs `{ staff_id, location_id }`.
+ * @param {number} staffId     Member.
+ * @return {number[]} Location ids, ascending; `[]` = every location (or not assigned).
+ */
+function memberLocationIds(assignments, staffId) {
+  const id = Number(staffId);
+  const mine = (assignments || []).filter(pair => Number(pair?.staff_id) === id);
+  if (mine.some(pair => 0 === (Number(pair.location_id) || 0))) {
+    return [];
+  }
+  return [...new Set(mine.map(pair => Number(pair.location_id)))].sort((a, b) => a - b);
+}
+
+/**
+ * Replace one member's pairs with the given branches — or with the wildcard when none are given.
+ *
+ * @param {Array}    assignments Current pairs.
+ * @param {number}   staffId     Member to rewrite (must already be assigned; the checkbox owns
+ *                               assign/unassign).
+ * @param {number[]} locationIds Picked branches; `[]` = every location.
+ * @return {Array} Next pairs.
+ */
+function setMemberLocations(assignments, staffId, locationIds) {
+  const id = Number(staffId);
+  const others = (assignments || []).filter(pair => Number(pair?.staff_id) !== id);
+  const picked = [...new Set((locationIds || []).map(Number).filter(value => value > 0))].sort((a, b) => a - b);
+  if (!picked.length) {
+    return [...others, {
+      staff_id: id,
+      location_id: 0
+    }];
+  }
+  return [...others, ...picked.map(locationId => ({
+    staff_id: id,
+    location_id: locationId
+  }))];
+}
+
+/**
+ * One-line reading of a member's scope for read-only summaries: "Every location", or the branch
+ * names joined with ", " (an id the catalog does not name reads `#N` rather than vanishing).
+ *
+ * @param {number[]} locationIds  From {@see memberLocationIds}.
+ * @param {Array}    locations    Catalog `[ { id, name } ]`.
+ * @param {string}   everyLabel   Translated "Every location".
+ * @return {string} Summary.
+ */
+function locationScopeLabel(locationIds, locations, everyLabel) {
+  if (!locationIds || !locationIds.length) {
+    return everyLabel;
+  }
+  const byId = new Map((locations || []).map(location => [Number(location.id), location.name]));
+  return locationIds.map(locationId => byId.get(Number(locationId)) || `#${locationId}`).join(', ');
+}
+
+/***/ },
+
 /***/ "./assets/src/admin/lib/combobox-options.js"
 /*!**************************************************!*\
   !*** ./assets/src/admin/lib/combobox-options.js ***!
@@ -19,6 +518,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   staffOptions: () => (/* binding */ staffOptions)
 /* harmony export */ });
 /* harmony import */ var _format_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./format.js */ "./assets/src/admin/lib/format.js");
+/* harmony import */ var _shared_person_name_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/person-name.js */ "./assets/src/shared/person-name.js");
 /**
  * Option helpers for the admin `Combobox` (SPEC-P1 §6.7). Framework-free and
  * side-effect-free; the only ambient input is the store currency the shared money
@@ -41,6 +541,7 @@ __webpack_require__.r(__webpack_exports__);
  * that lacked one — services show `duration · price`, staff show their email — which
  * is the secondary line the customer picker already renders.
  */
+
 
 
 /**
@@ -168,9 +669,22 @@ function serviceOptions(items = []) {
 }
 
 /**
+ * The name parts of a person record as typeahead keywords (name split, 2026-10-01). The label is
+ * already the display name, which holds both parts; listing them keeps a search by either part
+ * working even when a record's composed `name` is missing or differs.
+ *
+ * @param {Object} item REST customer / staff item.
+ * @return {Array} Non-empty parts.
+ */
+function nameKeywords(item) {
+  return [item.first_name, item.last_name].filter(Boolean);
+}
+
+/**
  * Staff options. `meta` is the email — the one field that tells two same-named staff
  * apart — and it joins `keywords` exactly like the customer picker's contact details,
- * so what the row shows is also what the typeahead can match.
+ * so what the row shows is also what the typeahead can match. The label is the display name;
+ * the parts ride along.
  *
  * @param {Array} items REST `/staff` items.
  * @return {Array} Combobox options.
@@ -178,26 +692,34 @@ function serviceOptions(items = []) {
 function staffOptions(items = []) {
   return (items || []).map(item => ({
     id: item.id,
-    label: item.name,
+    label: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_1__.displayNameOf)(item),
     meta: item.email || '',
-    keywords: item.email || ''
+    keywords: [...nameKeywords(item), item.email].filter(Boolean).join(' '),
+    first_name: item.first_name || '',
+    last_name: item.last_name || ''
   }));
 }
 
 /**
- * Customer options. `meta` is the secondary line in the entity row; `keywords` adds
- * email + phone to the typeahead (the label alone is the name).
+ * Customer options. `meta` is the secondary line in the entity row; `keywords` adds the name
+ * parts + email + phone to the typeahead (the label is the display name). The parts ride along
+ * for `POST /bookings`, which takes `customer.first_name` / `customer.last_name`.
+ *
+ * An `anonymized` record (erased by a privacy request or the retention sweep) is not offered:
+ * the route refuses it as `customer_id`, and "Deleted customer" is nobody to book for.
  *
  * @param {Array} items REST `/customers` items.
  * @return {Array} Combobox options.
  */
 function customerOptions(items = []) {
-  return (items || []).map(item => ({
+  return (items || []).filter(item => !item.anonymized).map(item => ({
     id: item.id,
-    label: item.name,
+    label: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_1__.displayNameOf)(item),
     meta: item.email || item.phone || '',
-    keywords: [item.email, item.phone].filter(Boolean).join(' '),
-    name: item.name,
+    keywords: [...nameKeywords(item), item.email, item.phone].filter(Boolean).join(' '),
+    name: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_1__.displayNameOf)(item),
+    first_name: item.first_name || '',
+    last_name: item.last_name || '',
     email: item.email,
     phone: item.phone
   }));
@@ -205,1032 +727,1134 @@ function customerOptions(items = []) {
 
 /***/ },
 
-/***/ "./assets/src/admin/modules/catalog.js"
-/*!*********************************************!*\
-  !*** ./assets/src/admin/modules/catalog.js ***!
-  \*********************************************/
+/***/ "./assets/src/admin/lib/editor-guards.js"
+/*!***********************************************!*\
+  !*** ./assets/src/admin/lib/editor-guards.js ***!
+  \***********************************************/
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CATEGORY_META: () => (/* binding */ CATEGORY_META),
-/* harmony export */   CATEGORY_TABS: () => (/* binding */ CATEGORY_TABS),
-/* harmony export */   COMPARE_SECTIONS: () => (/* binding */ COMPARE_SECTIONS),
-/* harmony export */   INCLUDED_CARD_ROUTES: () => (/* binding */ INCLUDED_CARD_ROUTES),
-/* harmony export */   INDUSTRY_LABELS: () => (/* binding */ INDUSTRY_LABELS),
-/* harmony export */   INDUSTRY_OPTIONS: () => (/* binding */ INDUSTRY_OPTIONS),
-/* harmony export */   MODULE_META: () => (/* binding */ MODULE_META),
-/* harmony export */   enablingNeedsReload: () => (/* binding */ enablingNeedsReload),
-/* harmony export */   findModuleRecord: () => (/* binding */ findModuleRecord),
-/* harmony export */   integrationStateLabel: () => (/* binding */ integrationStateLabel),
-/* harmony export */   kindLabel: () => (/* binding */ kindLabel),
-/* harmony export */   moduleAvailable: () => (/* binding */ moduleAvailable),
-/* harmony export */   moduleCardState: () => (/* binding */ moduleCardState),
-/* harmony export */   moduleOpenHref: () => (/* binding */ moduleOpenHref),
-/* harmony export */   moduleSearchText: () => (/* binding */ moduleSearchText),
-/* harmony export */   moduleStateLabel: () => (/* binding */ moduleStateLabel),
-/* harmony export */   moduleToggleAllowed: () => (/* binding */ moduleToggleAllowed),
-/* harmony export */   paymentStateLabel: () => (/* binding */ paymentStateLabel),
-/* harmony export */   upgradeUrl: () => (/* binding */ upgradeUrl)
+/* harmony export */   hashRecord: () => (/* binding */ hashRecord),
+/* harmony export */   useEditorGuards: () => (/* binding */ useEditorGuards)
 /* harmony export */ });
-/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
-/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _filters_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./filters.js */ "./assets/src/admin/modules/filters.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _nav_guard_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./nav-guard.js */ "./assets/src/admin/lib/nav-guard.js");
 /**
- * Presentation catalog + upsell data for the Modules surface (SPEC-P1 §6).
+ * The TWO dirty-editor guards a full-page record editor needs, as one hook (D-R58).
  *
- * The registry (SPEC-P0 §3.2, shipped as `config.modules`) owns the entitlement
- * metadata — category, kind, edition, phase — plus the additive presentation flags
- * `status` (D-R22), `available` (D-R27) and `enabled`/`toggleable` (D-R31). This file
- * owns the display copy (label, one-line description, icon), the card-state mapping and
- * the free-vs-premium comparison matrix.
+ * `routes/Staff.jsx` and `routes/Services.jsx` open their editors with NO guard of any kind —
+ * no `setNavGuard`, no `beforeunload`, not even a question on Cancel — so the header nav, the
+ * WordPress submenu and a hand-edited hash all discarded unsaved edits in silence. That is the
+ * follow-up the founder delegated in
+ * `docs/handoffs/multi-location-slice-1-2-handoff-2026-09-21.md` §4: "Reproduce first; if real,
+ * give Staff (and Service) the same two guards Locations has."
  *
- * Cards + comparison + per-placement UTM links on the Premium cards only; no license
- * field and no fake controls (§6 + Guideline 5/11). The surface stopped being read-only
- * with D-R31: a shipped, toggleable module carries a REAL enable/disable switch, which is
- * the ONE control here and is backed by `PUT /modules/{code}`. Roadmap `phase` stays
- * code/registry-side only — never rendered on production cards
- * (plugin-dashboard-divergence.md §2.7), except the premium-build roadmap label below.
+ * "The same two guards" is the point, so this is the LOCATIONS shape (D-R56, fix rounds 1–3),
+ * extracted rather than copied:
  *
- * COPY STATUS (C1 review fix 3): every user-facing string in this file — module
- * labels/descriptions, comparison rows, upsell wording — is DRAFT copy pending
- * founder approval before GA, and must stay honest: modules ship across the
- * premium roadmap, so no "unlock now" phrasing for not-yet-shipped modules.
- * The UTM base URL below also needs founder confirmation.
+ *   1. **Cross-route** — `lib/nav-guard.js`. `router.js` runs every ROUTE change through it, so
+ *      Bookings / Settings / a WP submenu item for another screen all ask first. The registering
+ *      effect is keyed on the DIRTY FLAG and on stable callbacks, never dependency-free: a
+ *      no-dependency effect re-registers on the re-render the dialog itself causes, so by the time
+ *      the operator answers, the handler being cleared is not the handler that is registered, the
+ *      clear-only-if-still-mine rule makes `clearNavGuard()` a no-op, and "Discard" re-asks
+ *      forever. That bug was shipped once in `LocationEditor` and is not repeated here.
+ *
+ *   2. **Same-route** — router.js's own header reserves this to the route ("Same-route segment
+ *      changes pass through; the owning route component guards its own sub-navigation"). It is a
+ *      RENDER-TIME HOLD plus a MOUNT-LIFETIME listener, and it cannot be anything else: in a real
+ *      browser `router.js`'s `hashchange` listener runs first, the browser takes a microtask
+ *      checkpoint BETWEEN listeners, React flushes, and any listener owned by a re-running effect
+ *      has already been torn down before its turn comes (QA instrumented this for D-R56 round 3;
+ *      jsdom hides it, because a script-dispatched event has no checkpoint between listeners).
+ *      So the hold is what protects the editor — {@link useEditorGuards} simply does not advance
+ *      `shownPath`, and the editor is never unmounted — while the listener exists only to notice
+ *      a SECOND attempt, which produces no prop change at all because the router's own state
+ *      still holds the target.
+ *
+ * WHAT COUNTS AS A SAME-ROUTE EXIT IS THE CALLER'S TO SAY (`isExit`), and that is the one real
+ * difference from Locations. `#locations/{id}` OWNS the Locations editor, so any other
+ * `locations/*` path is an exit. Staff and Services open their editors from LOCAL STATE without
+ * touching the hash (`#staff` stays put while the workspace is on screen), so most same-route
+ * hashes there change no surface and destroy nothing — asking about them would be a dialog for a
+ * navigation that is not happening. Each route names the moves that genuinely replace its open
+ * editor and stays silent about the rest.
+ *
+ * NO MODULE-LEVEL STATE, deliberately (handoff §2): a module bundle is compiled its own copy of
+ * every `assets/src/admin/lib/*` file it imports, so anything kept here would silently split in
+ * two. Everything this hook owns lives in React state and refs, i.e. per mounted component; the
+ * one genuinely shared slot is `nav-guard.js`'s, which already lives on `window.apontoAdmin`.
+ * That is what would let `LocationsRoute` / `LocationEditor` adopt this hook later from inside
+ * a module entry's own lazy chunk — not done in this change, which touches neither file.
  */
 
 
 
-/** Category tabs, in order (SPEC-P1 §6). `all` is the default landing view. */
-const CATEGORY_TABS = [{
-  id: 'all',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('All', 'aponto')
-}, {
-  id: 'booking',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking', 'aponto')
-}, {
-  id: 'payments',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payments', 'aponto')
-}, {
-  id: 'connections',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Connections', 'aponto')
-}, {
-  id: 'site_tools',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Site & Tools', 'aponto')
-}];
+/** Stable empty default, so an omitted `segments` prop does not churn `hashPath`. */
+const NO_SEGMENTS = [];
 
 /**
- * Industry filter options, in display order (D-R21, founder-approved 2026-07-25).
- * The ids are the registry `industries` vocabulary; `all` is the sentinel that
- * both the select's default option and a universal module carry.
- */
-const INDUSTRY_OPTIONS = [{
-  id: _filters_js__WEBPACK_IMPORTED_MODULE_1__.INDUSTRY_ALL,
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('All businesses', 'aponto')
-}, {
-  id: 'beauty',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Beauty & wellness', 'aponto')
-}, {
-  id: 'coaching',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coaching & consulting', 'aponto')
-}, {
-  id: 'fitness',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Fitness & classes', 'aponto')
-}, {
-  id: 'healthcare',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Healthcare', 'aponto')
-}, {
-  id: 'events',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Events & experiences', 'aponto')
-}, {
-  id: 'venues',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Venues & rentals', 'aponto')
-}, {
-  id: 'agencies',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Agencies & web', 'aponto')
-}, {
-  id: 'field_services',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Field services', 'aponto')
-}];
-
-/** Industry id → display label, for the select and the search haystack. */
-const INDUSTRY_LABELS = Object.fromEntries(INDUSTRY_OPTIONS.map(option => [option.id, option.label]));
-
-/** Category display label + fallback icon, keyed by the registry `category`. */
-const CATEGORY_META = {
-  booking: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking', 'aponto'),
-    icon: 'calendar'
-  },
-  payments: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payments', 'aponto'),
-    icon: 'card'
-  },
-  connections: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Connections', 'aponto'),
-    icon: 'plug'
-  },
-  site_tools: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Site & Tools', 'aponto'),
-    icon: 'wrench'
-  }
-};
-
-/** Per-module display copy + icon, keyed by registry code. */
-const MODULE_META = {
-  multi_staff: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple staff', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let several team members take bookings on their own schedules.', 'aponto'),
-    icon: 'users'
-  },
-  calendar_google: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Google Calendar', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Two-way sync so bookings land on staff Google calendars.', 'aponto'),
-    icon: 'calendar'
-  },
-  // A5 / D-R22: Free already ships one fixed 24h email reminder (SPEC-P1 §3.2 addendum
-  // 2026-07-20), so this Premium module means *advanced* reminders — custom offsets,
-  // multi-step sequences, follow-ups. SMS delivery is the separate `sms` module; this copy
-  // must claim neither the basic reminder nor SMS.
-  reminders: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Reminders', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Custom reminder schedules and follow-ups, on top of the built-in 24-hour email.', 'aponto'),
-    icon: 'bell'
-  },
-  calendar_outlook: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Outlook Calendar', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Two-way sync with Outlook and Microsoft 365 calendars.', 'aponto'),
-    icon: 'calendar'
-  },
-  video_links: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Video meeting links', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Auto-create Zoom or Google Meet links for online bookings.', 'aponto'),
-    icon: 'video'
-  },
-  custom_fields: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Custom fields', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Collect extra details on the booking form.', 'aponto'),
-    icon: 'sliders'
-  },
-  csv_import: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV import', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bulk-import customers and bookings from a spreadsheet.', 'aponto'),
-    icon: 'import'
-  },
-  // `deposits` is a separate Premium module (D-R22) — Stripe copy must not promise it. The
-  // sentence names the two facts that decide whether an owner clicks: the customer never leaves
-  // the booking form (D-R38c, inline — not a hosted redirect), and the money lands in the owner's
-  // OWN Stripe account. "Free" is stated because this is the one payment card in the catalog that
-  // is not an upsell.
-  payments_stripe: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Stripe payments', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Take card payments inside the booking form with your own Stripe account. Free.', 'aponto'),
-    icon: 'card'
-  },
-  // Same rule as Stripe above: `deposits` is a separate Premium module, so this copy must not
-  // promise it. Cards are Stripe's — PayPal's card funding is switched off in the widget when
-  // Stripe is present — so the promise here is the PayPal account itself (D-R40).
-  payments_paypal: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('PayPal payments', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let customers pay with their PayPal account at checkout.', 'aponto'),
-    icon: 'card'
-  },
-  deposits: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Deposits', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Require a partial payment to confirm a booking.', 'aponto'),
-    icon: 'coins'
-  },
-  coupons: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coupons', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Offer discount codes at checkout.', 'aponto'),
-    icon: 'tag'
-  },
-  group_capacity: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Group bookings', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Allow several attendees in a single time slot.', 'aponto'),
-    icon: 'people'
-  },
-  resources: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Shared assets', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Book rooms and equipment alongside services.', 'aponto'),
-    icon: 'cube'
-  },
-  recurring: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Recurring bookings', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let customers book repeating appointments.', 'aponto'),
-    icon: 'arrows'
-  },
-  multi_location: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple locations', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Run bookings across several business locations.', 'aponto'),
-    icon: 'pin'
-  },
-  waitlist: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Waitlist', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let customers join a waitlist when slots are full.', 'aponto'),
-    icon: 'hourglass'
-  },
-  sms: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('SMS notifications', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Send confirmations and reminders by text message.', 'aponto'),
-    icon: 'chat'
-  },
-  webhooks: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Webhooks', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Send booking events to external services in real time.', 'aponto'),
-    icon: 'plug'
-  },
-  woo_gateway: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('WooCommerce', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Use WooCommerce as the checkout and payment gateway.', 'aponto'),
-    icon: 'box'
-  },
-  service_catalog: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Service catalog', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Public service pages with descriptions and galleries.', 'aponto'),
-    icon: 'browser'
-  },
-  roles: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Team roles', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Fine-grained permissions for staff and managers.', 'aponto'),
-    icon: 'shield'
-  },
-  white_label: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('White label', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Replace Aponto branding with your own.', 'aponto'),
-    icon: 'palette'
-  },
-  // Free core capability cards (D-R22, 2026-07-27) — P1 capabilities that already ship as
-  // core code. Display entries only; they carry no gate (see the Plan registry docblock).
-  booking_form: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking form', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Gutenberg block and shortcode with styling controls — identical in Free and Premium.', 'aponto'),
-    icon: 'browser'
-  },
-  availability_engine: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Availability engine', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Weekly hours, date overrides, buffers, lead time and timezone-correct slots.', 'aponto'),
-    icon: 'clock'
-  },
-  // The due rule is SPEC-P1 §3.2: confirmed bookings only, and only those still at least
-  // 24h away when the reminder is scheduled — the copy must not promise "every booking".
-  booking_reminder: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('24-hour reminder', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('One automatic email reminder about 24 hours before confirmed bookings.', 'aponto'),
-    icon: 'bell'
-  },
-  email_notifications: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Email notifications', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Event-triggered emails with editable templates and placeholders.', 'aponto'),
-    icon: 'mail'
-  },
-  ics_export: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Calendar links', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('ICS downloads and add-to-Google links on every confirmation.', 'aponto'),
-    icon: 'calendar'
-  },
-  csv_export: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV export', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Export bookings for spreadsheets and reporting.', 'aponto'),
-    icon: 'csv'
-  }
-};
-
-/**
- * Searchable display strings for one module — the `resolveText` seam of
- * `filters.js` (D-R21). Mirrors the mockup haystack: title, description,
- * category label and every industry label.
+ * The default `isExit`: no same-route hash change replaces this route's editor.
  *
- * @param {{code?: string, category?: string, industries?: string[]}} mod Module record.
- * @return {string[]} Searchable strings.
+ * @return {boolean} Always false.
  */
-function moduleSearchText(mod) {
-  const meta = MODULE_META[mod?.code] || {};
-  const category = CATEGORY_META[mod?.category] || {};
-  const industries = Array.isArray(mod?.industries) ? mod.industries : [];
-  return [meta.label, meta.description, category.label, ...industries.map(id => INDUSTRY_LABELS[id])].filter(Boolean);
-}
-
-/** Human label for the module `kind`: integrations vs first-party modules. */
-function kindLabel(kind) {
-  return kind === 'integration' ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Integration', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Module', 'aponto');
+function neverExits() {
+  return false;
 }
 
 /**
- * The integration 4-state, condensed into the card's meta line (extension-surface §4, D-R35).
+ * The record a `{route}/{id}` hash path names, or '' when it names none.
  *
- * The catalog has to answer "what is the NEXT thing to do", and for an integration that is a
- * sequence: paste credentials → connect a staff member → it is serving services. A card that showed
- * only "Integration" made every step of that look identical, so an operator who had saved
- * credentials but connected nobody had no way to tell that from working.
+ * Shared by the routes that need it, so "which record does this hash mean" has one answer. The
+ * routes narrow it further — Services only accepts digits, because its second segment is also
+ * where its tab ids live.
  *
- * `configured` and `connected` stay SEPARATE phrases here for the same reason the server keeps them
- * separate fields (extension-surface §4): "add your credentials" and "now connect someone" are two
- * different instructions, and collapsing them produces one unexplained failure instead of two
- * actionable states.
- *
- * Returns '' for anything that is not an available integration — a locked or unshipped card has
- * nothing true to say about connections, and the boot fields are zeroed for it anyway.
- *
- * NOT FOR PAYMENT MODULES. A gateway is registered `kind: 'integration'` too, but it holds no
- * per-staff connections, so every phrase below would be a lie about it — see `paymentStateLabel()`,
- * and call `moduleStateLabel()` rather than either of them directly.
- *
- * @param {Object} mod Module boot record.
- * @return {string} A meta suffix, or '' when there is nothing to add.
+ * @param {string} path Hash path, without the leading `#`.
+ * @return {string} The second segment, or ''.
  */
-function integrationStateLabel(mod) {
-  if ('integration' !== mod?.kind || true !== mod?.available) {
-    return '';
-  }
-  if (!mod.configured) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Setup needed', 'aponto');
-  }
-  const connected = Number(mod.connected_count) || 0;
-  if (connected < 1) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Configured · no staff connected', 'aponto');
-  }
-  const used = Number(mod.used_count) || 0;
-  const staff = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %d: number of staff members connected to an integration. */
-  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__._n)('%d staff connected', '%d staff connected', connected, 'aponto'), connected);
-  if (used < 1) {
-    return staff;
-  }
-  return staff + ' · ' + (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %d: number of services an integration acts for. */
-  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__._n)('%d service', '%d services', used, 'aponto'), used);
+function hashRecord(path) {
+  const parts = String(path || '').split('/').filter(Boolean);
+  return parts[1] ? String(parts[1]) : '';
 }
 
 /**
- * The card meta suffix for a PAYMENT module (D-R39).
+ * Guard one full-page record editor against both kinds of in-app navigation.
  *
- * A gateway is registered as `kind: 'integration'` — it is somebody else's service reached over
- * HTTP — but it has NO per-staff connections, so the connection phrases above are nonsense for it:
- * "0 staff connected" on a working Stripe account describes a state that cannot exist. The two
- * facts that actually matter are whether the credentials are in place (`configured`) and which
- * Stripe account they point at, and the second one is the reason this exists at all: a site owner
- * who leaves test keys in place sees bookings arrive and no money, and the catalog is the first
- * place that can tell them.
- *
- * `payment_mode` is DERIVED server-side from the key prefix and never stored (D-R39), and it is an
- * ADDITIVE boot field: boot data older than this bundle simply has no such key, which reads as ''
- * and degrades to a bare "Ready" rather than claiming a mode nobody confirmed.
- *
- * `ready` is the second additive field, and it OVERRIDES `configured` (Codex r1 #14). Credentials
- * being present is not the same fact as the gateway being offered: a site whose currency PayPal
- * does not accept, or whose saved webhook id belongs to the other environment, has every field
- * filled in and takes no payments at all. The server computes the whole predicate — the card only
- * reports it — and `null`/absent means "the server did not say", which falls back to the older
- * ladder rather than to a guess in either direction.
- *
- * @param {Object} mod Module boot record.
- * @return {string} A meta suffix, or '' when there is nothing to add.
+ * @param {Object}   options               Hook options.
+ * @param {string[]} [options.segments]    The router's hash segments for this route.
+ * @param {boolean}  [options.dirty]       Whether the OPEN editor holds unsaved edits. False when
+ *                                         no editor is open — the route reports it up from the
+ *                                         editor's own dirty computation.
+ * @param {Function} options.confirm       `confirm( opts )` from `lib/confirm.jsx`. Stable.
+ * @param {Function} options.discardPrompt `() => opts` — the question, in the editor's own words,
+ *                                         so both guards ask it identically. Must be stable
+ *                                         (a module-level function), because it keys the
+ *                                         registering effect.
+ * @param {Function} [options.isExit]      `( nextPath ) => boolean` — whether this same-route move
+ *                                         would replace or unmount the open editor. ONE argument
+ *                                         on purpose (fix round 2): the answer must be decided
+ *                                         against the RECORD THE ROUTE ACTUALLY HAS OPEN, never
+ *                                         against the last path this hook was shown. Browser QA
+ *                                         found the difference the hard way — see the note on
+ *                                         {@link useEditorGuards}'s hold below. Read through a
+ *                                         ref, so its identity may change freely.
+ * @param {Function} [options.onDiscard]   Called synchronously when a confirmed discard leaves
+ *                                         THIS route on screen (the same-route path). The route
+ *                                         must use it to RESET the editor — bumping the key it
+ *                                         renders the editor with is the honest way — because a
+ *                                         discard that leaves the typed text in the form is not a
+ *                                         discard. See the stranding note below.
+ * @return {{shownPath: string, release: () => void}} `shownPath` is the hash path the surface on
+ *         screen corresponds to — the route resolves its deep link / tab from THIS, not from
+ *         `segments`, which is what makes the hold protect anything. `release()` drops the guard
+ *         synchronously and marks the editor as leaving, for the paths the route settles itself
+ *         (Save, a confirmed Cancel): without it the guard would still be registered when the
+ *         close assigns a new hash, and the operator would be asked about a departure they just
+ *         approved.
  */
-function paymentStateLabel(mod) {
-  if (true !== mod?.available) {
-    return '';
-  }
-  if (!mod.configured || false === mod.ready) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Setup needed', 'aponto');
-  }
-  const mode = typeof mod.payment_mode === 'string' ? mod.payment_mode : '';
-  if ('test' === mode) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Ready · Test mode', 'aponto');
-  }
-  if ('live' === mode) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Ready · Live', 'aponto');
-  }
-  return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Ready', 'aponto');
-}
+function useEditorGuards({
+  segments = NO_SEGMENTS,
+  dirty = false,
+  confirm,
+  discardPrompt,
+  isExit = neverExits,
+  onDiscard
+}) {
+  // The operator has answered (or saved) and this editor is on its way out. It stops counting as
+  // dirty from that moment, so the guard cannot RE-REGISTER between the answer and the editor
+  // actually going — which would ask the same question a second time on the very navigation that
+  // was just approved (the D-R56 round-1 guard-lifecycle bug).
+  //
+  // THE LATCH MUST NOT OUTLIVE THE TRANSITION IT WAS SET FOR (fix round 2). Browser QA found a
+  // dirty editor left permanently UNGUARDED and still visibly dirty: a discard was confirmed for
+  // a target that then replaced nothing, the editor never unmounted, so it never reported clean,
+  // so the "drops when clean" rule below never fired. Two things close that off — `leavingFor`,
+  // which retires the latch the moment the surface on screen IS the target it was set for, and
+  // `onDiscard`, which makes the editor genuinely clean again. Either alone would do; together
+  // the stranded state is unreachable, and the worst case if one ever failed is a guard that
+  // re-arms too eagerly rather than an editor that silently loses work.
+  const [leaving, setLeaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const guarded = Boolean(dirty) && !leaving;
+  /** The path the current latch was set for, or null when the caller named none. */
+  const leavingFor = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
 
-/**
- * The card's next-step phrase, whichever kind of module it is.
- *
- * ONE entry point for the meta line so the cards cannot disagree about what a state means, and so
- * the payments branch cannot be reached by accident: it keys on the registry `category`, which is
- * the field that says what a module is FOR, rather than on `kind`, which every remote service
- * shares.
- *
- * @param {Object} mod Module boot record.
- * @return {string} A meta suffix, or '' when there is nothing to add.
- */
-function moduleStateLabel(mod) {
-  return 'payments' === mod?.category ? paymentStateLabel(mod) : integrationStateLabel(mod);
-}
+  /**
+   * Release whatever guard is CURRENTLY registered, whoever registered it.
+   *
+   * Reads the ref, never a closure's own handler: a closure that has been waiting on a dialog
+   * holds a handler the next render already replaced, and `clearNavGuard( stale )` is a no-op
+   * under the only-if-still-mine rule — which is precisely how the round-1 Locations editor
+   * intercepted the navigation the operator had just approved, forever.
+   *
+   * EVERY `release()` must be paired with an unmount or a reset. The route's own close paths
+   * unmount the editor; the same-route discard below resets it through `onDiscard`. A `release()`
+   * with neither leaves an editor holding edits that nothing is guarding.
+   *
+   * @param {string|null} [target] Hash path this release is for, when there is one. The latch
+   *                               retires as soon as that path is the surface on screen.
+   */
+  const guardRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const release = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((target = null) => {
+    if (guardRef.current) {
+      (0,_nav_guard_js__WEBPACK_IMPORTED_MODULE_1__.clearNavGuard)(guardRef.current);
+      guardRef.current = null;
+    }
+    leavingFor.current = 'string' === typeof target ? target : null;
+    setLeaving(true);
+  }, []);
 
-/**
- * The boot-data record for a module code, or null when the catalog has no such entry.
- * ONE lookup for every surface that resolves a code arriving from outside the catalog
- * grid — a hash segment, a card action — so they cannot disagree about what a code means.
- *
- * @param {{modules?: Array}} bootConfig Admin boot config (`lib/config.js`).
- * @param {string}            code       Registry module code.
- * @return {Object|null} Module record.
- */
-function findModuleRecord(bootConfig, code) {
-  const modules = Array.isArray(bootConfig?.modules) ? bootConfig.modules : [];
-  return modules.find(mod => mod?.code === code) || null;
-}
-
-/**
- * Whether a module code is usable on THIS site, read off the boot-data `available`
- * flag the server computed with `Plan::has()` (D-R27). Exported so any route can gate
- * display on the same single truth instead of re-deriving one from `edition`/`status`.
- *
- * Unknown codes and boot data older than this bundle both answer `false` — never
- * claim a capability that cannot be confirmed.
- *
- * @param {{modules?: Array}} bootConfig Admin boot config (`lib/config.js`).
- * @param {string}            code       Registry module code.
- * @return {boolean} Whether the module is available.
- */
-function moduleAvailable(bootConfig, code) {
-  return findModuleRecord(bootConfig, code)?.available === true;
-}
-
-/**
- * Whether this build may switch a module on or off (D-R31).
- *
- * The CLIENT MIRROR of the REST predicate in `ModulesController::isToggleable()`, and it is
- * mirrored for the same reason every UI gate is: to decide what to draw. It decides nothing —
- * the route re-checks all of it, so a card that renders a switch it should not have still cannot
- * write (§5 invariant 3).
- *
- * Deliberately NOT `available`: a module the owner just switched OFF is unavailable, and gating
- * the switch on availability would make disabling a one-way door in the UI exactly as it would in
- * the API. The terms are the ones that survive being turned off — the registry's own
- * `toggleable`, whether the code shipped in this build (`status`), and whether the edition allows
- * it at all.
- *
- * @param {{edition?: string, toggleable?: boolean, status?: string}} mod         Module record from boot data.
- * @param {string}                                                    planEdition Site plan edition.
- * @return {boolean} Whether to render a switch.
- */
-function moduleToggleAllowed(mod, planEdition = 'free') {
-  if (mod?.toggleable !== true || mod?.status !== 'included') {
-    return false;
-  }
-  return mod?.edition !== 'premium' || planEdition === 'premium';
-}
-
-/**
- * Whether switching a module ON has to be followed by a page reload (Codex A2, 2026-09-04).
- *
- * TRUE for an `integration` module being ENABLED, and for nothing else.
- *
- * The reason is server-side and deliberate (rest-contract §2.12b): the boot projection computes
- * `configured`, `connected_count`, `used_count` — and, for a gateway, `payment_mode` — only for
- * `IntegrationRegistry::activeCodes()`, i.e. the modules that were switched ON when the page was
- * built. A module enabled mid-session therefore has no such fields anywhere in this document, and
- * `PUT /modules/{code}` answers `{code, enabled}` rather than a fresh projection. The session store
- * can flip `enabled`/`available` honestly, but it cannot invent state nobody computed — so the card
- * would sit at "Setup needed" and a payments card would report no mode, both of which are lies
- * about a module that may be fully configured.
- *
- * DISABLING never needs one: `applyModuleEnabled()` already makes every surface treat the module as
- * gone, and the stale projection it leaves behind is hidden rather than shown.
- *
- * A capability or engine_flag module keeps today's behaviour — it has no projection to be missing,
- * so reloading would cost the operator their scroll position and their filters for nothing.
- *
- * @param {{kind?: string}} mod  Module boot record.
- * @param {boolean}         next Requested switch position.
- * @return {boolean} Whether to reload after the server confirms.
- */
-function enablingNeedsReload(mod, next) {
-  return true === next && 'integration' === mod?.kind;
-}
-
-/**
- * Card presentation for one module — the honest states of the catalog
- * (D-R22, founder-approved 2026-07-27; keyed on `available` since D-R27;
- * premium-build treatment founder-approved 2026-08-28).
- *
- *   available          → kit `enabled` chrome, the module's own tier badge, a static
- *                        "Included" label and — since D-R31 — a real ON switch where the
- *                        registry says the module is toggleable. NO upgrade link: the site
- *                        already owns this.
- *   available: false,  → kit `disabled` chrome: the Included shape, muted, switch OFF. NO
- *   but toggleable       "Coming soon" and NO upsell — the owner turned this off and can turn
- *                        it back on. Distinguishing it from "planned" is the whole point of
- *                        the state (D-R31): both are `available: false`, but telling someone
- *                        their own choice is a roadmap item is nonsense.
- *   free + planned     → kit `planned` chrome, green Free badge, "Coming soon".
- *                        NO upgrade link: the module WILL be free, so pointing at
- *                        the pricing page would be dishonest.
- *   premium, unshipped → depends on WHO IS LOOKING:
- *                        · FREE build    — unchanged locked card: `planned` chrome, amber
- *                          Premium badge, no status label, per-placement UTM compare link.
- *                        · PREMIUM build — neutral roadmap card: `planned` chrome, a
- *                          NEUTRAL (unamber) Premium label, "Coming soon · {phase}", and
- *                          NO upgrade link at all.
- *
- * WHY THE BUILD MATTERS HERE (founder, 2026-08-28): a paying customer must never be shown
- * plan-marketing chrome. Selling Premium to someone who already bought it is not an upsell,
- * it is noise — and the honest answer to "when do I get this" is the roadmap, not a pricing
- * page. Note this is CHROME SELECTION, not gating: `planEdition` decides how an unavailable
- * module is PRESENTED, while whether it is available at all stays `available`
- * (`Plan::has()`), and REST enforces the real thing. Do not "fix" this into a gate.
- *
- * WHY `available` AND NOT `status` (D-R27): `status` is `Plan::isShipped()`, and that
- * constant is EDITION-BLIND. The moment a premium module ships, a Free build would also
- * report `status: 'included'` for it — and keying the card on that would drop the lock
- * and the upsell for a capability the Free site does not own. `available` is
- * `Plan::has()` for the running build: edition × shipped-ness × the module toggle.
- *
- * A module older than this bundle (boot data with no `available`) reads as unavailable,
- * which is the conservative answer — it never claims a capability is present. An unknown
- * `planEdition` reads as `free`, which keeps the upsell rather than hiding it.
- *
- * @param {{edition?: string, available?: boolean, phase?: string}} mod         Module record from boot data.
- * @param {string}                                                 planEdition Site plan edition (`free`|`premium`).
- * @return {{state: string, tier: ?Object, toggle: boolean, statusLabel: ?string, plannedLabel: ?string, upgrade: boolean}} Card descriptor.
- */
-function moduleCardState(mod, planEdition = 'free') {
-  const premium = mod?.edition === 'premium';
-  const onPremiumBuild = planEdition === 'premium';
-  const tier = premium ? {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Premium', 'aponto'),
-    isPremium: true
-  } : {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Free', 'aponto'),
-    variant: 'free'
-  };
-  const toggle = moduleToggleAllowed(mod, planEdition);
-  if (mod?.available === true) {
-    return {
-      state: 'enabled',
-      tier,
-      toggle,
-      statusLabel: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Included', 'aponto'),
-      plannedLabel: null,
-      upgrade: false
+  // GUARD 1 — CROSS-ROUTE (lib/nav-guard.js, honoured by router.js's `settle()`).
+  //
+  // Keyed on `[ guarded ]` and three stable callbacks, exactly like `settings/SettingsApp.jsx`:
+  // the handler only ASKS A QUESTION, so it never needs a fresh closure over the form, and
+  // re-registering it on every render is the bug, not the safety margin.
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!guarded) {
+      return undefined;
+    }
+    const handler = (proceed, cancel) => {
+      confirm(discardPrompt()).then(ok => {
+        if (!ok) {
+          cancel?.();
+          return;
+        }
+        // Unregister SYNCHRONOUSLY — `leaving` only settles on the next render, and the
+        // resumed hash assignment re-enters the router before that.
+        release();
+        proceed();
+      });
     };
+    guardRef.current = handler;
+    (0,_nav_guard_js__WEBPACK_IMPORTED_MODULE_1__.setNavGuard)(handler);
+    return () => {
+      (0,_nav_guard_js__WEBPACK_IMPORTED_MODULE_1__.clearNavGuard)(handler);
+      if (guardRef.current === handler) {
+        guardRef.current = null;
+      }
+    };
+  }, [guarded, confirm, discardPrompt, release]);
+
+  // GUARD 2, PART 1 — THE RENDER-TIME HOLD.
+  //
+  // `shownPath` is the surface ON SCREEN, and it is STATE: when the incoming segments name a
+  // different same-route path that WOULD replace the open editor, this render simply does not
+  // advance it, so the editor is never unmounted and the form state — the thing being protected —
+  // survives. A clean editor, or a move that replaces nothing, just follows.
+  //
+  // The trigger is the PREVIOUS props value, not `shownPath`: after a decline the router keeps
+  // holding the target, and reacting to that standing disagreement would re-ask on every
+  // unrelated re-render. The JUDGEMENT, though, is `isExit( hashPath )` alone — it is not given
+  // `shownPath`, because deciding against the last path is what browser QA found broken (fix
+  // round 2): Back from `#staff/3` to `#staff` is a non-exit, so the hold advanced `shownPath` to
+  // `staff`, and pressing Forward straight back to `#staff/3` then looked like "another record's
+  // deep link" and asked the operator to discard the record they were already editing. The route
+  // knows which record is open; only that can answer the question.
+  const hashPath = (Array.isArray(segments) ? segments : NO_SEGMENTS).join('/');
+  const [shownPath, setShownPath] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(hashPath);
+  const [pendingPath, setPendingPath] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const previousHash = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(hashPath);
+  // Readable from the mount-lifetime listener below without re-subscribing. Assigned during
+  // render, the same idiom `router.js` uses for its own route mirror.
+  const shownRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(shownPath);
+  shownRef.current = shownPath;
+  const guardedRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(guarded);
+  guardedRef.current = guarded;
+  const isExitRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(isExit);
+  isExitRef.current = isExit;
+  // Read through a ref for the same reason: the route rebuilds this callback whenever the record
+  // it has open changes, and the prompt effect must not be re-keyed by that.
+  const onDiscardRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(onDiscard);
+  onDiscardRef.current = onDiscard;
+  // The target the operator has already refused. Without it, "Keep editing" would be re-asked on
+  // the next render, because the router's own state still points at that target.
+  const declined = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  if (hashPath !== previousHash.current) {
+    previousHash.current = hashPath;
+    if (hashPath !== shownPath) {
+      if (guarded && isExit(hashPath)) {
+        if (declined.current !== hashPath) {
+          // Ask (part 2). Deliberately NOT advancing `shownPath`: the editor stays mounted.
+          setPendingPath(hashPath);
+        }
+      } else {
+        setShownPath(hashPath);
+      }
+    }
   }
 
-  // SWITCHED OFF — not "not built yet". Both are `available: false`, and without this branch a
-  // disabled module falls into the planned/upsell copy below and tells the owner their own
-  // choice is a roadmap item (D-R31). The card keeps the Included shape so flipping the switch
-  // back is obviously the way out; the kit mutes it via the `disabled` state.
-  if (toggle) {
-    return {
-      state: 'disabled',
-      tier,
-      toggle: true,
-      statusLabel: null,
-      plannedLabel: null,
-      upgrade: false
+  // RETIRE THE LATCH (fix round 2). Two independent conditions, because each covers a case the
+  // other cannot: the transition the latch was set for has been APPLIED — the surface on screen
+  // is now that target, so whatever was going to happen has happened — or some editor is
+  // reporting clean again, which is how the paths that name no target (a confirmed Cancel, a
+  // cross-route discard, a Save) retire theirs. Waiting only for the clean report is what left a
+  // dirty editor permanently unguarded when the discard replaced nothing.
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!leaving) {
+      return;
+    }
+    if (!dirty || null !== leavingFor.current && shownPath === leavingFor.current) {
+      leavingFor.current = null;
+      setLeaving(false);
+    }
+  }, [leaving, dirty, shownPath]);
+
+  // GUARD 2, PART 2 — THE PROMPT.
+  //
+  // `pendingPath` IS the latch: it is set once by the hold (or by the listener in part 3), and
+  // while it is non-null neither path can set it again, so two triggers for one move cannot stack
+  // two dialogs. The hash is put back with `replaceState`, which fires no event and therefore
+  // cannot re-enter anything.
+  //
+  // On DISCARD the target is applied here rather than left to the router, because the router's
+  // state very often already holds it — that is how this route heard about the move at all — and
+  // would answer a re-navigation with "already here".
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!pendingPath) {
+      return undefined;
+    }
+    let live = true;
+    window.history.replaceState(null, '', '#' + shownRef.current);
+    confirm(discardPrompt()).then(ok => {
+      if (!live) {
+        return;
+      }
+      if (!ok) {
+        // Stay. The hash is already back; remember the refusal so the standing prop
+        // disagreement does not re-ask on the next render.
+        declined.current = pendingPath;
+        setPendingPath(null);
+        return;
+      }
+      // The latch is named for THIS target, so it retires the moment the target is on screen
+      // — whether or not anything unmounted.
+      release(pendingPath);
+      // DISCARD MEANS DISCARD (fix round 2). Applying the target usually replaces the editor
+      // on its own, but it is not guaranteed to: a hand-edited hash can name a record the
+      // list does not hold (the `per_page: 100` window), and then nothing remounts and the
+      // operator is left looking at the very text they asked to throw away. The route resets
+      // the editor for us, which is also what puts the sub-sections' drafts — work hours,
+      // time off, staff assignments — back where they were.
+      onDiscardRef.current?.();
+      declined.current = null;
+      setShownPath(pendingPath);
+      setPendingPath(null);
+      window.location.hash = pendingPath;
+    });
+    return () => {
+      live = false;
     };
-  }
-  if (premium && onPremiumBuild) {
-    return {
-      state: 'planned',
-      // Deliberately NOT `isPremium`: that flag is what paints the amber "locked/paid"
-      // chrome (kit `tierVariantClass`). The label still names the plan the module
-      // belongs to — a catalog fact — but on neutral chrome, because nothing here is
-      // locked to this viewer.
-      tier: {
-        label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Premium', 'aponto')
-      },
-      toggle: false,
-      statusLabel: null,
-      plannedLabel: comingSoonLabel(mod?.phase),
-      upgrade: false
+  }, [pendingPath, confirm, discardPrompt, release]);
+
+  // GUARD 2, PART 3 — THE REPEATED ATTEMPT.
+  //
+  // Once part 2 has restored the hash, the router's state still holds the target while the URL
+  // says editor — so a SECOND Back (or a second hand-edit to the same hash) produces no prop
+  // change at all and the hold has nothing to react to. This listener is the only thing that can
+  // notice it.
+  //
+  // Registered ONCE for the life of the route (`[]`), never re-registered by a render: that is
+  // exactly the mistake round 2 made, where a re-render tore the listener down before the browser
+  // reached it. Everything it needs is a ref, so there is nothing for a dependency array to
+  // invalidate. It tolerates arriving after the hold has already handled the same event —
+  // `pendingPath` is set, and the updater leaves it alone.
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const onHash = () => {
+      const now = window.location.hash.replace(/^#/, '');
+      if (now === shownRef.current || !guardedRef.current) {
+        return;
+      }
+      // A different ROUTE is `router.js`'s guard (which works); asking here too would prompt
+      // twice for one navigation.
+      if (now.split('/')[0] !== shownRef.current.split('/')[0]) {
+        return;
+      }
+      if (!isExitRef.current(now)) {
+        return;
+      }
+      // A fresh attempt deserves a fresh question, even one the operator refused before.
+      declined.current = null;
+      setPendingPath(current => current || now);
     };
-  }
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
   return {
-    state: 'planned',
-    tier,
-    toggle: false,
-    statusLabel: null,
-    // A locked Premium card carries the compare link instead of a "Coming soon"
-    // label — its answer to "when" is the pricing page, not a status word.
-    plannedLabel: premium ? null : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming soon', 'aponto'),
-    upgrade: premium
+    shownPath,
+    release
   };
 }
-
-/**
- * "Coming soon", with the registry's roadmap phase appended when there is one.
- *
- * PHASE ON A CARD IS A DELIBERATE REVERSAL, scoped to premium builds (founder,
- * 2026-08-28). Production cards previously carried NO phase label at all
- * (plugin-dashboard-divergence.md §2.7 — the registry kept `phase` for docs and upsell
- * planning only), and that still holds for the Free build: a prospect is shown what a
- * plan includes, never a delivery schedule. A paying customer is in a different position
- * — they have already bought the roadmap, so "P2b" is the most honest answer available to
- * "when". It is a bare phase CODE on purpose: it commits to an ordering, not to a date.
- *
- * @param {string} phase Registry roadmap phase (e.g. `P2b`), or empty.
- * @return {string} Card label.
- */
-function comingSoonLabel(phase) {
-  const code = typeof phase === 'string' ? phase.trim() : '';
-  if ('' === code) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming soon', 'aponto');
-  }
-  return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %s: roadmap phase code, e.g. "P2b". */
-  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming soon · %s', 'aponto'), code);
-}
-
-// Roadmap phase (P2a/P3/…) is NOT surfaced on FREE-build cards — production copy shown to a
-// prospect carries no phase labels (divergence audit §2.7); the registry keeps it for docs and
-// upsell planning. The single exception, founder-approved 2026-08-28, is an unshipped premium
-// module on a PREMIUM build, where the phase replaces the upsell link as the honest answer to
-// "when" (see `comingSoonLabel()` above).
-
-/**
- * Free/Included card → the admin surface that ALREADY manages that capability
- * (D-R22 addendum, founder-approved 2026-07-27). An entry renders an internal
- * "Open" link on the card; it is navigation, never an upsell, so it carries no
- * UTM and never leaves the app.
- *
- * THE RULE: a code appears here ONLY when a real, shipped surface exists today.
- * A capability with no destination gets NO link — never a placeholder, never a
- * "coming soon" target, never a link to a page that does not manage it. Half a
- * destination is worse than none: a link that lands the owner somewhere
- * unrelated is exactly the fake affordance §6 / Guideline 5 forbids.
- *
- * Values are canonical hashes as the router spells them (lib/router.js +
- * settings/ia.js). Settings deep links use the full `settings/<parent>/<child>`
- * form, not a legacy alias — `#settings` and `#settings/booking` both resolve,
- * but SettingsRoute silently rewrites them, so linking the alias would make the
- * address bar change under the user.
- *
- *   booking_reminder      → Notifications. The reminder's real on/off switch is
- *   email_notifications      the `booking_reminder_customer` template's enabled
- *                            flag, and every other event email lives on the same
- *                            leaf (settings/ia.js: Notifications is ONE surface).
- *   csv_export            → Bookings, which owns the export action + its filters
- *                            (routes/Bookings.jsx `onExport`).
- *   availability_engine   → Settings → Booking → Policy, the panel described as
- *                            "Availability rules applied to every service"
- *                            (settings/catalog.js PANEL_META.policy): lead time,
- *                            booking window and buffers.
- *   multi_staff           → Staff, which owns staff records, their work hours and
- *                            their time off (D-R28, 2026-08-27). Per-service
- *                            eligibility is edited in the service editor, but Staff
- *                            is where the capability itself is managed. It is also
- *                            the first PREMIUM entry here — the map is keyed on
- *                            "a real surface already manages this", not on edition.
- *
- * DELIBERATELY ABSENT — both would need a placeholder to be listed:
- *   booking_form  — its configuration is the block Inspector (Q11 2026-07-18
- *                   moved form appearance there), which is a post-editor
- *                   surface, not an admin route this hash router can reach.
- *   ics_export    — ICS download / add-to-calendar links are emitted on
- *                   confirmations and emails; there is no admin screen for them.
- */
-const INCLUDED_CARD_ROUTES = {
-  booking_reminder: '#settings/notifications',
-  email_notifications: '#settings/notifications',
-  csv_export: '#bookings',
-  availability_engine: '#settings/booking/policy',
-  multi_staff: '#staff'
-};
-
-/**
- * The in-app destination for an Included card, or '' when it has none.
- *
- * Only an AVAILABLE module gets one (D-R27): a planned capability has nothing to open,
- * and a module the site does not own must keep the compare link as its single action
- * (§6). `available` — not `status` — is the test, for the same reason `moduleCardState`
- * uses it: `status` is edition-blind and would hand a Free build an "Open" link into a
- * premium module's settings.
- *
- * Two destinations, in priority order:
- *   1. `INCLUDED_CARD_ROUTES[code]` — the hand-mapped surface that ALREADY manages the
- *      capability (the D-R22 addendum map above). A capability whose management lives on
- *      an existing screen must land there, not on a generic panel page.
- *   2. `#modules/{code}` — the module's own settings route, for any available module that
- *      declares `has_settings`. That is where its registered panel renders.
- * Anything else gets NO link, which is still the rule: half a destination is worse
- * than none.
- *
- * @param {{code?: string, has_settings?: boolean, available?: boolean}} mod Module record from boot data.
- * @return {string} Canonical hash (e.g. `#bookings`), or '' for no link.
- */
-function moduleOpenHref(mod) {
-  if (mod?.available !== true) {
-    return '';
-  }
-  const mapped = INCLUDED_CARD_ROUTES[mod.code];
-  if (mapped) {
-    return mapped;
-  }
-  return mod?.has_settings === true ? `#modules/${mod.code}` : '';
-}
-const UPGRADE_BASE = 'https://pressmaximum.com/aponto/pricing/';
-
-/**
- * Per-placement upgrade link with UTM tracking (§6). `placement` is the
- * `utm_content`: `modules-{code}` for a card, `menu` for the page-level CTA.
- */
-function upgradeUrl(placement) {
-  const params = new URLSearchParams({
-    utm_source: 'aponto',
-    utm_medium: 'plugin',
-    utm_campaign: 'upsell',
-    utm_content: placement
-  });
-  return `${UPGRADE_BASE}?${params.toString()}`;
-}
-
-/** Free-vs-premium comparison matrix for the CompareTable at the page foot (§6). */
-const COMPARE_SECTIONS = [{
-  id: 'bookings',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bookings', 'aponto'),
-  rows: [{
-    id: 'unlimited',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Unlimited bookings', 'aponto'),
-    free: true,
-    pro: true
-  }, {
-    id: 'staff',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Staff members', 'aponto'),
-    free: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('1', 'aponto'),
-    pro: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Unlimited', 'aponto')
-  }, {
-    id: 'services',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Services & categories', 'aponto'),
-    free: true,
-    pro: true
-  },
-  // D-R43: Free books one business address (General -> Business, `location_id = 0`); named
-  // locations are the Premium `multi_location` module, whose registry `category` is `booking`.
-  {
-    id: 'locations',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple locations', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'group',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Group bookings', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'recurring',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Recurring appointments', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'waitlist',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Waitlist', 'aponto'),
-    free: false,
-    pro: true
-  }]
-}, {
-  id: 'payments',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payments', 'aponto'),
-  rows: [{
-    id: 'manual',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Mark bookings paid / unpaid', 'aponto'),
-    free: true,
-    pro: true
-  },
-  // D-R22: Stripe is a Free module; PayPal stays Premium — the old single "Online
-  // payments (Stripe, PayPal)" row can no longer state one answer. Stripe SHIPPED in P3
-  // (D-R39), so the Free column is a tick: the shipped-truth rule says this table may
-  // never say "Coming" for a capability whose own card on the same screen reads
-  // "Ready" (QA BUG-8).
-  {
-    id: 'stripe',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Stripe payments', 'aponto'),
-    free: true,
-    pro: true
-  }, {
-    id: 'paypal',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('PayPal payments', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'deposits',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Deposits', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'coupons',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coupons', 'aponto'),
-    free: false,
-    pro: true
-  }]
-}, {
-  id: 'connections',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Connections', 'aponto'),
-  rows: [{
-    id: 'email',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Email notifications', 'aponto'),
-    free: true,
-    pro: true
-  },
-  // A5 / D-R22: the fixed 24h email reminder is core Free; only custom schedules
-  // (multi-step, follow-ups) are the Premium `reminders` module.
-  {
-    id: 'reminder',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('24-hour email reminder', 'aponto'),
-    free: true,
-    pro: true
-  }, {
-    id: 'reminders_advanced',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Custom reminder schedules', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'calendar',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Calendar sync (Google, Outlook)', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'sms',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('SMS reminders', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'video',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Video meeting links', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'webhooks',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Webhooks', 'aponto'),
-    free: false,
-    pro: true
-  }]
-}, {
-  id: 'site_tools',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Site & tools', 'aponto'),
-  rows: [{
-    id: 'csv_export',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV export', 'aponto'),
-    free: true,
-    pro: true
-  }, {
-    id: 'csv_import',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV import', 'aponto'),
-    free: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming', 'aponto'),
-    pro: true
-  }, {
-    id: 'service_catalog',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Service catalog pages', 'aponto'),
-    free: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming', 'aponto'),
-    pro: true
-  }, {
-    id: 'roles',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Team roles', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'white_label',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('White label', 'aponto'),
-    free: false,
-    pro: true
-  }]
-}];
 
 /***/ },
 
-/***/ "./assets/src/admin/modules/filters.js"
+/***/ "./assets/src/admin/lib/focus-first-error.js"
+/*!***************************************************!*\
+  !*** ./assets/src/admin/lib/focus-first-error.js ***!
+  \***************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   firstErrorControl: () => (/* binding */ firstErrorControl),
+/* harmony export */   focusFirstError: () => (/* binding */ focusFirstError),
+/* harmony export */   useFocusFirstError: () => (/* binding */ useFocusFirstError)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _ui_jsx__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ui.jsx */ "./assets/src/admin/lib/ui.jsx");
+/**
+ * Take the operator to the first field a save rejected (founder QA 2026-09-21).
+ *
+ * THE BUG THIS ANSWERS. Both full-page record editors set field errors inline and did nothing
+ * else: no scroll, no focus move, no announcement. With the carded layout a long editor is
+ * several screens tall, so pressing Save on a service whose NAME is empty while the viewport sits
+ * on "Booking policy" looked like the button was broken — the error was painted two screens up,
+ * focus stayed on Save, and nothing said a word. That is true of a client-side refusal and of a
+ * server `422` with `data.fields` alike, and it is the same gap in both editors, so it is one
+ * helper rather than two near-copies.
+ *
+ * WHY IT SCROLLS THE CONTROL TO THE CENTRE. The editors sit under a sticky page chrome whose
+ * height is not one number: the WordPress admin bar is 32px on the desktop breakpoint and 46px
+ * at ≤782px, and the sticky section nav adds its own gap. `block: 'center'` is correct at every
+ * one of those heights without a magic constant to keep in sync with the stylesheet, and a
+ * centred field is also simply easier to find than one pinned to the top edge. The cards keep
+ * their `scroll-margin-top` for the section NAV, which is a different job.
+ *
+ * WHY `preventScroll` ON THE FOCUS. `focus()` scrolls the element into view on its own, with no
+ * behaviour or block control, so focusing first and scrolling second makes the browser jump twice
+ * — once instantly, once smoothly, from two different positions. Focus with `preventScroll: true`
+ * and let the explicit scroll be the only movement.
+ */
+
+
+
+/**
+ * The control a field error belongs to, in DOM order.
+ *
+ * Looks for `.has-error` — the class BOTH editors already put on the field wrapper when a key of
+ * `fieldError` is set — and takes the first focusable control inside it. Keying on the rendered
+ * error rather than on the error OBJECT is deliberate: the object's keys are wire names
+ * (`price_minor`, `min_lead_minutes`) that do not always match an input's `name`, while
+ * `.has-error` is by construction exactly the set of fields the operator can see is wrong.
+ *
+ * @param {ParentNode} container Editor root to search.
+ * @return {?HTMLElement} The control, or `null` when nothing is marked.
+ */
+function firstErrorControl(container) {
+  if (!container) {
+    return null;
+  }
+
+  // A real form control first; a BUTTON only as a fallback. The featured-image and avatar
+  // fields are a preview plus a "Choose photo" button and hold no input at all, so without the
+  // fallback a `422` on `avatar_id`/`image_id` would mark a field the operator cannot be sent
+  // to. The order matters: a field that has both (the colour picker has an input AND a Clear
+  // button) must hand back the input.
+  const wrappers = container.querySelectorAll('.has-error');
+  for (const wrapper of wrappers) {
+    const control = wrapper.matches?.('input, select, textarea') ? wrapper : wrapper.querySelector('input, select, textarea') || wrapper.querySelector('button');
+    if (control && !control.disabled) {
+      return control;
+    }
+  }
+  return null;
+}
+
+/**
+ * Scroll to and focus the first rejected field, and say so.
+ *
+ * Safe to call when nothing is marked — it simply answers `false`, so a caller can use the
+ * return value to decide whether it still owes the operator a toast of its own.
+ *
+ * @param {ParentNode} container      Editor root to search.
+ * @param {Function}   [announce]     Called with the announcement string when a field was found.
+ * @param {string}     [message]      Announcement copy.
+ * @return {boolean} Whether a field was found, scrolled to and focused.
+ */
+function focusFirstError(container, announce, message = 'Check the highlighted fields.') {
+  const control = firstErrorControl(container);
+  if (!control) {
+    return false;
+  }
+  control.focus?.({
+    preventScroll: true
+  });
+  control.scrollIntoView?.({
+    behavior: (0,_ui_jsx__WEBPACK_IMPORTED_MODULE_1__.motionScrollBehavior)(),
+    block: 'center'
+  });
+  announce?.(message, 'danger');
+  return true;
+}
+
+/**
+ * Run the focus step after a save has painted its errors, WITHOUT depending on
+ * `requestAnimationFrame` (founder QA 2026-09-21, round 3).
+ *
+ * THE BUG. Both editors scheduled the focus with `requestAnimationFrame`, and an embedded
+ * browser pane — or an ordinary backgrounded tab — THROTTLES rAF, in some states to never. QA
+ * caught `document.activeElement` still on `BODY` after a failed save with the pane hidden: the
+ * error paint happened, the focus never did. rAF is a rendering hint, not a scheduler, and
+ * correctness must not hang on it.
+ *
+ * A React EFFECT is the right instrument and needs no scheduler at all: it runs after the DOM
+ * is committed, which is the only property the caller actually wanted. The `token` is a counter
+ * the save path bumps, so two identical refusals in a row still fire — keying on the error
+ * object would not, because a re-submitted form can produce an equal one.
+ *
+ * @param {number}                    token    Bumped once per refusal; `0` means "never yet".
+ * @param {import('react').RefObject} rootRef  Editor root.
+ * @param {import('react').RefObject} planRef  `{ announce, message }` for this refusal.
+ */
+function useFocusFirstError(token, rootRef, planRef) {
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!token) {
+      return;
+    }
+    const plan = planRef.current || {};
+    if (!focusFirstError(rootRef.current, plan.announce, plan.message)) {
+      plan.fallback?.();
+    }
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/lib/in-flight.js"
+/*!*******************************************!*\
+  !*** ./assets/src/admin/lib/in-flight.js ***!
+  \*******************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   runOnce: () => (/* binding */ runOnce),
+/* harmony export */   useInFlight: () => (/* binding */ useInFlight)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/**
+ * One request per press (persona QA 2026-10-05, T-065 / T-066 / T-067).
+ *
+ * Every Save in the admin disabled its button from a `saving` STATE, and state only reaches the
+ * DOM on the next render. Two taps that land in the same frame — routine on a phone, where a
+ * double tap is ~80 ms — both ran the handler while `saving` still read `false`, so both posted:
+ * two identical services, two identical time-off blocks, business hours stored twice.
+ *
+ * A ref is synchronous. `useInFlight()` returns `run( task )`, which starts `task` only when no
+ * earlier one is still pending and releases when it settles — whether it resolved, rejected,
+ * threw, or returned early without a promise. A refused call returns `undefined` and does nothing:
+ * no request, no toast, no validation pass.
+ *
+ * The `saving` state stays where it was — it is still what paints "Saving…" and the disabled
+ * button — this only closes the window before that paint.
+ */
+
+
+/**
+ * The guard itself, outside React, so it can be unit-tested under plain node.
+ *
+ * @param {{current: boolean}} flag Mutable in-flight flag.
+ * @param {Function}           task The work; may return a promise.
+ * @return {*} What `task` returned (a promise when it was async), or `undefined` when refused.
+ */
+function runOnce(flag, task) {
+  if (flag.current) {
+    return undefined;
+  }
+  flag.current = true;
+  let result;
+  try {
+    result = task();
+  } catch (error) {
+    flag.current = false;
+    throw error;
+  }
+  if (result && typeof result.then === 'function') {
+    const release = () => {
+      flag.current = false;
+    };
+    // Release on either outcome WITHOUT swallowing a rejection the caller may be awaiting.
+    result.then(release, release);
+    return result;
+  }
+  flag.current = false;
+  return result;
+}
+
+/**
+ * @return {Function} `run( task )` — see {@link runOnce}.
+ */
+function useInFlight() {
+  const flag = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(task => runOnce(flag, task), []);
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/lib/multi-select-popover-styles.js"
+/*!*************************************************************!*\
+  !*** ./assets/src/admin/lib/multi-select-popover-styles.js ***!
+  \*************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ensureMultiSelectPopoverStyles: () => (/* binding */ ensureMultiSelectPopoverStyles)
+/* harmony export */ });
+const STYLE_ID = 'aponto-multi-select-popover-styles';
+
+/**
+ * Load the shared selector styles in every independently built admin entry.
+ *
+ * TOKENS, NOT LITERALS (D-R64): the sheet shipped with WP-admin literals (`#fff` surfaces,
+ * `#8c8f94` borders, `#1d2327` text), so under `data-ap-color-scheme="dark"` the trigger, the
+ * search field and the unselected option boxes stayed white on the dark workspace. Every colour now
+ * reads the `--ap-*` role the admin's other controls use (`.pd-select`: surface + border-strong +
+ * text), with the old literal as the fallback so a page with no token scope renders as before.
+ * The popover is portalled to `document.body`, which `lib/theme.js` marks `.ap-token-scope` +
+ * `data-ap-visual="v2"` + the scheme exactly so these roles resolve there too. The selected row
+ * keeps the WP admin theme colour (white on it reads in both schemes).
+ *
+ * WP core's `forms.css` styles `input[type="search"]` / `input[type="checkbox"]` at (0,1,1) — more
+ * specific than a bare class — so the popover's own inputs are addressed as
+ * `.ap-multiselect-popover input.…[type="…"]` (0,3,1), or the search field stays WP-white in the dark
+ * scheme (browser QA 2026-09-28). The option checkbox input is visually hidden; its box is our span.
+ *
+ * The trigger is a `variant="secondary"` Button, and the dark bridge re-colours secondary button
+ * LABELS with the readable accent at (0,6,0) — right for a button, wrong for a field. So the value
+ * text and the chevron carry their own colour here instead of fighting that rule's specificity.
+ */
+function ensureMultiSelectPopoverStyles() {
+  if (typeof document === 'undefined' || document.getElementById(STYLE_ID)) {
+    return;
+  }
+  const style = document.createElement('style');
+  style.id = STYLE_ID;
+  style.textContent = `
+.ap-admin .ap-multiselect{display:flex;min-width:0;flex-direction:column;gap:7px}
+.ap-admin .ap-multiselect__label{font-weight:650}
+.ap-admin .ap-multiselect__dropdown{width:100%}
+.ap-admin .ap-multiselect__trigger.components-button{display:flex;width:100%;min-height:40px;height:auto;justify-content:space-between;gap:12px;padding:7px 10px;border-color:var(--ap-color-border-strong,#8c8f94);background:var(--ap-color-surface,#fff);color:var(--ap-color-text,#1d2327);text-align:left;box-shadow:none}
+.ap-admin .ap-multiselect__trigger.components-button:hover{border-color:var(--ap-color-accent,#2271b1);color:var(--ap-color-text,#1d2327)}
+.ap-admin .ap-multiselect__trigger.components-button:focus-visible{border-color:var(--ap-color-accent,#2271b1);box-shadow:0 0 0 1px var(--ap-color-accent,#2271b1)}
+.ap-admin .ap-multiselect__trigger.components-button:disabled{background:var(--ap-color-surface-subtle,#f6f7f7);color:var(--ap-color-text-soft,#646970)}
+.ap-admin .ap-multiselect__trigger>span{color:var(--ap-color-text,#1d2327)}
+.ap-admin .ap-multiselect__trigger>span.is-placeholder{color:var(--ap-color-text-muted,#646970)}
+.ap-admin .ap-multiselect__trigger.components-button:disabled>span{color:var(--ap-color-text-soft,#646970)}
+.ap-admin .ap-multiselect__chevron{width:12px;height:12px;flex:none;margin-right:1px;fill:none;stroke:var(--ap-color-text,#1d2327);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ap-admin .ap-multiselect__help,.ap-admin .ap-multiselect__error{margin:0;font-size:12px;line-height:1.45}
+.ap-admin .ap-multiselect__help{color:var(--ap-color-text-muted,#646970)}.ap-admin .ap-multiselect__error{color:var(--ap-color-danger,#b32d2e)}
+.ap-admin .ap-multiselect.has-error .ap-multiselect__trigger.components-button{border-color:var(--ap-color-danger,#b32d2e)}
+.ap-multiselect-popover.components-popover{z-index:100001}
+.ap-multiselect-popover .components-popover__content{width:min(380px,calc(100vw - 32px));padding:0;border:1px solid var(--ap-color-border-strong,#c3c4c7);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.16);overflow:hidden;background:var(--ap-color-surface,#fff)}
+.ap-multiselect-popover__inner{max-height:min(420px,calc(100vh - 48px));overflow-y:auto;overscroll-behavior:contain;color:var(--ap-color-text,#1d2327);background:var(--ap-color-surface,#fff)}
+.ap-multiselect-popover__header{position:sticky;z-index:2;top:0;border-bottom:1px solid var(--ap-color-border,#eee);background:var(--ap-color-surface,#fff)}
+.ap-multiselect-popover input.ap-multiselect-popover__search[type="search"]{display:block;width:calc(100% - 24px);min-height:40px;margin:12px;border:1px solid var(--ap-color-border-strong,#8c8f94);border-radius:4px;padding:6px 10px;box-sizing:border-box;background:var(--ap-color-surface,#fff);color:var(--ap-color-text,#1d2327)}
+.ap-multiselect-popover input.ap-multiselect-popover__search[type="search"]::placeholder{color:var(--ap-color-text-soft,#646970)}
+.ap-multiselect-popover input.ap-multiselect-popover__search[type="search"]:focus{border-color:var(--ap-color-accent,#2271b1);box-shadow:0 0 0 1px var(--ap-color-accent,#2271b1);outline:2px solid transparent}
+.ap-multiselect-popover__toolbar{display:flex;min-height:34px;align-items:center;justify-content:space-between;gap:12px;padding:0 12px 8px;color:var(--ap-color-text-muted,#646970);font-size:12px}
+.ap-multiselect-popover__toolbar .components-button{height:auto;min-height:0;padding:0}
+.ap-multiselect-popover__list{padding:5px}
+.ap-multiselect-popover__item{min-height:40px;display:grid;grid-template-columns:18px minmax(0,1fr);gap:9px;align-items:center;padding:0 9px;border-radius:0;color:var(--ap-color-text,#1d2327);cursor:pointer}
+.ap-multiselect-popover__item:hover{background:var(--ap-color-surface-muted,#f0f0f1)}
+.ap-multiselect-popover__item.is-selected{background:var(--wp-admin-theme-color,#3858e9);color:#fff}
+.ap-multiselect-popover__item.is-selected:hover{background:var(--wp-admin-theme-color-darker-10,#2145e6)}
+.ap-multiselect-popover .ap-multiselect-popover__item>input[type="checkbox"]{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0}
+.ap-multiselect-popover__checkbox{width:17px;height:17px;display:grid;place-items:center;border:1px solid var(--ap-color-border-strong,#8c8f94);border-radius:3px;background:var(--ap-color-surface,#fff);color:transparent;box-sizing:border-box}
+.ap-multiselect-popover__checkbox svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ap-multiselect-popover__item.is-selected .ap-multiselect-popover__checkbox{border-color:#fff;background:#fff;color:var(--wp-admin-theme-color,#3858e9)}
+.ap-multiselect-popover__item>input:focus-visible+.ap-multiselect-popover__checkbox{outline:2px solid var(--wp-admin-theme-color,#3858e9);outline-offset:2px}
+.ap-multiselect-popover__item.is-selected>input:focus-visible+.ap-multiselect-popover__checkbox{outline-color:#fff}
+.ap-multiselect-popover__item-label{overflow:hidden;text-overflow:ellipsis;font-weight:550;white-space:nowrap}
+.ap-multiselect-popover__state{display:flex;min-height:52px;align-items:center;justify-content:center;gap:8px;margin:0;padding:12px;color:var(--ap-color-text-muted,#646970);text-align:center}
+.ap-multiselect-popover__state .components-spinner{margin:0}.ap-multiselect-popover__state.is-error{color:var(--ap-color-danger,#b32d2e)}
+.ap-multiselect-popover__state.is-error .components-button{height:auto;min-height:0;padding:0}
+.ap-multiselect-popover__more{margin:0;padding:8px 12px;border-top:1px solid var(--ap-color-border,#eee);color:var(--ap-color-text-muted,#646970);font-size:12px;line-height:1.4}
+`;
+  document.head.appendChild(style);
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/lib/section-nav.js"
 /*!*********************************************!*\
-  !*** ./assets/src/admin/modules/filters.js ***!
+  !*** ./assets/src/admin/lib/section-nav.js ***!
   \*********************************************/
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CATEGORY_ALL: () => (/* binding */ CATEGORY_ALL),
-/* harmony export */   INDUSTRY_ALL: () => (/* binding */ INDUSTRY_ALL),
-/* harmony export */   INDUSTRY_IDS: () => (/* binding */ INDUSTRY_IDS),
-/* harmony export */   filterModules: () => (/* binding */ filterModules),
-/* harmony export */   hasBrowseFilters: () => (/* binding */ hasBrowseFilters),
-/* harmony export */   matchesCategory: () => (/* binding */ matchesCategory),
-/* harmony export */   matchesIndustry: () => (/* binding */ matchesIndustry),
-/* harmony export */   matchesQuery: () => (/* binding */ matchesQuery),
-/* harmony export */   moduleIndustries: () => (/* binding */ moduleIndustries)
+/* harmony export */   activeSectionId: () => (/* binding */ activeSectionId),
+/* harmony export */   crossingLine: () => (/* binding */ crossingLine),
+/* harmony export */   useSectionNav: () => (/* binding */ useSectionNav)
 /* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _ui_jsx__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ui.jsx */ "./assets/src/admin/lib/ui.jsx");
 /**
- * Pure browse-filter logic for the Modules catalog (D-R21, 2026-07-25).
+ * The sticky section nav of the full-page record editors: which item is lit, and how a click
+ * gets you there (founder QA 2026-09-21, corrected after the round-2 browser pass).
  *
- * The Modules screen combines three independent filters with AND: the category
- * tabs, the Industry select and the free-text search box — the same combination
- * the mockup's `filteredModules()` applies (docs/mockups/v4/plugin-dashboard/
- * assets/js/plugin-dashboard.js). Kept framework- and i18n-free so it is unit
- * testable in the node Jest environment; every display string is injected by the
- * caller through `resolveText`.
+ * ROUND 1 replaced an IntersectionObserver whose `rootMargin` band was ~10% of the viewport
+ * tall — several cards are SHORTER than that, so a one-paragraph card could never be
+ * "intersecting" it and never lit at all.
  *
- * The mockup's Status and License selects are deliberately NOT part of this
- * module: D-R21 approved the Industry filter only, and D-R22 (mixed editions and
- * card states in the catalog) did not re-open that scope.
+ * ROUND 2 found the replacement's own bug, and it is worth stating precisely because it is the
+ * kind of thing that looks right in every unit test and is wrong on every real page. The
+ * crossing line was `adminBarHeight() + 48` = **80px**, but a nav click lands a section at
+ * **128px**: `html { scroll-padding-top: 32px }` plus the card's own
+ * `scroll-margin-top: 96px`. So a section was never "crossed" at the exact position a click
+ * put it — the spy disagreed with the scroller by 48px, every time. Measured consequences:
+ * "Staff & locations" never activated on the Service editor, "Work hours" never activated on
+ * the Staff editor, and a click on "Public profile" REVERTED to Details the moment the
+ * optimistic lock expired.
+ *
+ * So the line is no longer a guess. It is read from the very properties the browser uses to
+ * decide where `scrollIntoView` stops — {@see crossingLine} — which means the spy and the
+ * scroller cannot drift apart again, whatever the sticky chrome does next.
+ *
+ * ROUND 3 replaced the tail of that rule. The crossing line was right, but a section whose
+ * `reachY` (the scroll position at which it would cross) exceeds `maxScroll` can NEVER be
+ * reached — the page clamps first — and the `atBottom` + viewport-middle heuristic that was
+ * covering for it was both incomplete and non-monotonic. Measured: on the Service editor at
+ * 1440x900 "Booking policy" never activated at any scroll position, a click on it reverted
+ * ~0.7s later, and at 1440x1300 the bottom clamp jumped from "Public content" straight to
+ * "Staff & locations", skipping "Duration & price" entirely.
+ *
+ * The replacement is one deterministic rule with no heuristics in it: the UNREACHABLE TAIL
+ * SHARES THE FINAL STRETCH OF SCROLL. See {@see activeSectionId}. It guarantees that every nav
+ * item activates, in document order, never backwards, on any viewport height, and it needs no
+ * dead padding at the foot of the page to do it.
+ *
+ * Two more rules earn their place, each from a measured failure:
+ *
+ *  - **A clicked target holds until the OPERATOR scrolls**, not until a timer expires. Releasing
+ *    on `scrollend` alone is what made a click on an unreachable section revert: the smooth
+ *    scroll ends at the clamp, the lock lifts, and the rule answers with whatever is actually on
+ *    the line. User intent is read from `wheel`, `touchmove` and the scrolling keys, plus a
+ *    post-settle guard for anything else (a scrollbar drag).
+ *  - **A page that cannot scroll has no spy.** `maxScroll <= 2` at load lit the LAST item.
  */
 
-/** Sentinel industry id: matches every industry, on a module and as a filter value. */
-const INDUSTRY_ALL = 'all';
 
-/** Sentinel category id used by the "All" tab. */
-const CATEGORY_ALL = 'all';
 
 /**
- * The controlled industry vocabulary (D-R21), in display order. Mirrors the
- * registry's `industries` field; `all` is the sentinel and is not listed here.
- */
-const INDUSTRY_IDS = ['beauty', 'coaching', 'fitness', 'healthcare', 'events', 'venues', 'agencies', 'field_services'];
-
-/**
- * A module's industry tags, defensively normalized. A registry entry that ships
- * without the field (older boot data) reads as untagged.
+ * Slack, in pixels, on the crossing test.
  *
- * @param {{industries?: string[]}} mod Module record.
- * @return {string[]} Industry ids.
+ * Sub-pixel layout, zoom and fractional device ratios mean a section that the scroller put
+ * exactly on the line can measure a hair below it. Without this the section a click just
+ * scrolled to can fail its own crossing test by a quarter of a pixel.
  */
-function moduleIndustries(mod) {
-  return Array.isArray(mod?.industries) ? mod.industries.filter(id => typeof id === 'string') : [];
-}
+const CROSSING_TOLERANCE = 6;
+
+/** Fallback for browsers without `scrollend`: how long a click owns the highlight. */
+const SCROLL_SETTLE_MS = 700;
 
 /**
- * Industry predicate. `all` on either side matches; an untagged module stays
- * visible rather than disappearing from every industry view (forward-compat with
- * a bundle newer than its boot data).
+ * Where a section comes to rest when it is scrolled to, which is the only sensible line for
+ * "this section is now the current one".
  *
- * @param {{industries?: string[]}} mod      Module record.
- * @param {string}                  industry Selected industry id.
- * @return {boolean} Whether the module belongs to the industry.
+ * `scroll-padding-top` belongs to the scrolling element and `scroll-margin-top` to the target;
+ * the browser adds them, and so do we. Both are read from computed style rather than mirrored
+ * as constants, so a stylesheet change moves the nav's idea of "current" with it.
+ *
+ * @param {Element} section The section element.
+ * @return {number} The crossing line in pixels from the top of the viewport.
  */
-function matchesIndustry(mod, industry) {
-  if (!industry || industry === INDUSTRY_ALL) {
-    return true;
+function crossingLine(section) {
+  const view = section?.ownerDocument?.defaultView;
+  if (!view?.getComputedStyle) {
+    return CROSSING_TOLERANCE;
   }
-  const tags = moduleIndustries(mod);
-  if (tags.length === 0) {
-    return true;
-  }
-  return tags.includes(INDUSTRY_ALL) || tags.includes(industry);
+  const padding = parseFloat(view.getComputedStyle(section.ownerDocument.documentElement).scrollPaddingTop);
+  const margin = parseFloat(view.getComputedStyle(section).scrollMarginTop);
+  return (padding || 0) + (margin || 0) + CROSSING_TOLERANCE;
 }
 
 /**
- * Category predicate (the tab strip).
+ * Which section is current, as a pure function of the page geometry.
  *
- * @param {{category?: string}} mod      Module record.
- * @param {string}              category Selected category id.
- * @return {boolean} Whether the module belongs to the category.
- */
-function matchesCategory(mod, category) {
-  return !category || category === CATEGORY_ALL || mod?.category === category;
-}
-
-/**
- * Free-text predicate over the caller-supplied display strings (title,
- * description, category label, industry labels). Matching is case-insensitive
- * substring, like the mockup's haystack.
+ * THE RULE, in two halves.
  *
- * @param {Object}   mod         Module record.
- * @param {string}   query       Raw query string.
- * @param {Function} resolveText `( mod ) => string[]` searchable strings.
- * @return {boolean} Whether the module matches the query.
- */
-function matchesQuery(mod, query, resolveText) {
-  const needle = String(query || '').trim().toLowerCase();
-  if ('' === needle) {
-    return true;
-  }
-  const parts = typeof resolveText === 'function' ? resolveText(mod) : [];
-  const haystack = [mod?.code, ...(Array.isArray(parts) ? parts : [])].filter(part => typeof part === 'string' && '' !== part).join(' ').toLowerCase();
-  return haystack.includes(needle);
-}
-
-/**
- * Apply every active filter with AND, preserving registry order.
+ * **Reachable sections behave exactly as before.** A section's `reachY` is the scroll position
+ * at which its top lands on its own line: `docTop - line`. While `scrollY` has passed a
+ * section's `reachY` and not the next one's, that section is current.
  *
- * @param {Object[]} modules             Module records.
- * @param {Object}   filters             Active filters.
- * @param {string}   [filters.category]  Category id (`all` = no filter).
- * @param {string}   [filters.industry]  Industry id (`all` = no filter).
- * @param {string}   [filters.query]     Free-text query.
- * @param {Function} [resolveText]       `( mod ) => string[]` searchable strings.
- * @return {Object[]} Matching modules.
+ * **The unreachable tail shares the final stretch.** A section whose `reachY` exceeds
+ * `maxScroll` can never come to rest on its line, because the page stops scrolling first — that
+ * is not an edge case, it is every last card on a tall viewport. Since `docTop` increases down
+ * the page and the line is effectively constant, the unreachable sections are always a SUFFIX.
+ * So the remaining scroll from the last reachable section's `reachY` (`y0`) to `maxScroll` is
+ * divided into `tail.length + 1` equal slices: slice 0 belongs to that last reachable section,
+ * slice k to the k-th unreachable one, and the last slice — anything within 2px of the bottom —
+ * always belongs to the final section.
+ *
+ * That is what makes the guarantee total: EVERY item activates, in order, monotonically, at any
+ * viewport height, with no padding added to the document to make room. A degenerate interval
+ * (fewer pixels left than there are slices) falls back to "at the bottom, the last section",
+ * which is the only honest answer when there is no scroll left to divide.
+ *
+ * @param {Array<{id: string, docTop: number, line: number}>} sections Sections in DOM order,
+ *        each with its position in the DOCUMENT and its own crossing line.
+ * @param {Object}  [options]             Rule inputs.
+ * @param {number}  [options.scrollY]     Current scroll position.
+ * @param {number}  [options.maxScroll]   `scrollHeight - innerHeight`, never negative.
+ * @param {?string} [options.clicked]     A target the operator just asked for.
+ * @return {?string} The active section id, or `null` when there are no sections.
  */
-function filterModules(modules, filters = {}, resolveText) {
+function activeSectionId(sections, options = {}) {
   const {
-    category = CATEGORY_ALL,
-    industry = INDUSTRY_ALL,
-    query = ''
-  } = filters;
-  const list = Array.isArray(modules) ? modules : [];
-  return list.filter(mod => matchesCategory(mod, category) && matchesIndustry(mod, industry) && matchesQuery(mod, query, resolveText));
+    scrollY = 0,
+    maxScroll = 0,
+    clicked = null
+  } = options;
+  if (!sections || !sections.length) {
+    return null;
+  }
+
+  // An explicit request beats every derived answer, for as long as the hook holds it.
+  if (clicked && sections.some(section => section.id === clicked)) {
+    return clicked;
+  }
+
+  // Nothing to spy on: every section is on screen at once and no scrolling will change that,
+  // so the honest answer is the first one.
+  if (maxScroll <= 2) {
+    return sections[0].id;
+  }
+  const reach = sections.map(section => section.docTop - section.line);
+
+  // The last section that can actually come to rest on its line. `-1` when none can, which is
+  // a real case on a very tall viewport: then the whole list is the tail.
+  let lastReachable = -1;
+  reach.forEach((y, i) => {
+    if (y <= maxScroll) {
+      lastReachable = i;
+    }
+  });
+
+  // Ordinary crossing, for everything before the shared stretch.
+  let current = -1;
+  for (let i = 0; i <= lastReachable; i++) {
+    if (scrollY >= reach[i]) {
+      current = i;
+    }
+  }
+
+  // Where the shared stretch starts, given the section that anchors it. When that anchor is
+  // itself unreachable — a viewport so tall that not even the first card reaches its line —
+  // the stretch starts at the very top, because there is no crossing to start it from.
+  const startOf = i => reach[i] <= maxScroll ? Math.max(reach[i], 0) : 0;
+  let base = Math.max(lastReachable, 0);
+  let slices = sections.length - base;
+  // A section can be reachable by a single pixel — `reachY` exactly equal to `maxScroll` —
+  // which leaves the tail no room at all and would silently skip it. Widening the stretch one
+  // section at a time until it can actually be divided is what turns the guarantee ("every
+  // item activates") from a near-miss into a fact; it costs the anchor section its dedicated
+  // crossing point, which is the right trade when the alternative is a dead nav entry.
+  while (base > 0 && maxScroll - startOf(base) < slices) {
+    base--;
+    slices++;
+  }
+
+  // No tail to share: every section is reachable and the crossing rule is the whole answer.
+  if (slices <= 1) {
+    return current < 0 ? sections[0].id : sections[current].id;
+  }
+
+  // Still above the shared stretch: the ordinary crossing rule still applies. Guarded on
+  // `base > 0`, because when the stretch starts at the very top there is nothing above it —
+  // and `current` is legitimately `-1` there, since no section has a crossing to pass.
+  if (base > 0 && current < base) {
+    return current < 0 ? sections[0].id : sections[current].id;
+  }
+  const y0 = startOf(base);
+  const span = maxScroll - y0;
+  const atBottom = scrollY >= maxScroll - 2;
+
+  // Fewer pixels left than slices even after widening: there is nothing meaningful to divide,
+  // so the only defensible answers are "the anchor" and, at the bottom, "the last one".
+  if (span < slices) {
+    return atBottom ? sections[sections.length - 1].id : sections[base].id;
+  }
+  if (atBottom) {
+    return sections[sections.length - 1].id;
+  }
+  if (scrollY <= y0) {
+    return sections[base].id;
+  }
+  const step = Math.floor((scrollY - y0) / (span / slices));
+  return sections[base + Math.min(Math.max(step, 0), slices - 1)].id;
 }
 
 /**
- * Whether any filter other than the category tab is narrowing the view — used to
- * decide between "this category is empty" and "clear a filter" copy.
+ * Sticky section nav for one record editor.
  *
- * @param {Object} filters            Active filters.
- * @param {string} [filters.industry] Industry id.
- * @param {string} [filters.query]    Free-text query.
- * @return {boolean} Whether a browse filter is active.
+ * @param {Object}                     options          Hook options.
+ * @param {Array<Array<string>>}       options.anchors  `[ id, label ]` pairs, in DOM order.
+ * @param {import('react').RefObject}  options.bodyRef  Ref to the element holding the sections.
+ * @param {string}                     options.prefix   Anchor id prefix, e.g. `service-`.
+ * @param {boolean}                    [options.ready]  False while the editor is still loading.
+ * @return {{active: string, scrollTo: Function}} The lit anchor id and the click handler.
  */
-function hasBrowseFilters(filters = {}) {
-  const {
-    industry = INDUSTRY_ALL,
-    query = ''
-  } = filters;
-  return industry !== INDUSTRY_ALL || '' !== String(query || '').trim();
+function useSectionNav({
+  anchors,
+  bodyRef,
+  prefix,
+  ready = true
+}) {
+  const [active, setActive] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(anchors[0]?.[0] ?? '');
+  // The target of a click the operator has not yet scrolled away from. A ref, not state: the
+  // scroll listener reads it without re-subscribing on every change.
+  const clicked = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  // Set once the programmatic scroll has settled. From then on ANY scroll movement of more
+  // than a couple of pixels is the operator's, which covers the inputs we cannot observe
+  // directly — a scrollbar drag above all.
+  const armed = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  const lockedAt = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(0);
+  const release = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(() => {});
+  const ids = anchors.map(([id]) => id).join('|');
+  const measure = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    const root = bodyRef.current;
+    if (!root) {
+      return;
+    }
+    const scrollY = window.scrollY;
+    const sections = ids.split('|').filter(Boolean).map(id => {
+      const node = root.querySelector(`#${prefix}${id}`);
+      if (!node) {
+        return null;
+      }
+      // DOCUMENT-relative, because the rule reasons about the scroll position at which
+      // a section would reach its line — a quantity that has to be comparable with
+      // `maxScroll`, and a viewport-relative top is not.
+      return {
+        id,
+        docTop: node.getBoundingClientRect().top + scrollY,
+        line: crossingLine(node)
+      };
+    }).filter(Boolean);
+    const doc = document.documentElement;
+    const next = activeSectionId(sections, {
+      scrollY,
+      maxScroll: Math.max(doc.scrollHeight - window.innerHeight, 0),
+      clicked: clicked.current
+    });
+    if (next) {
+      setActive(next);
+    }
+  }, [bodyRef, ids, prefix]);
+
+  // Drop the click lock and re-derive once. Kept in a ref so every listener registered by
+  // `scrollTo` — and the unmount cleanup — reaches the current version.
+  release.current = () => {
+    clicked.current = null;
+    armed.current = false;
+    measure();
+  };
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!ready) {
+      return undefined;
+    }
+    let frame = 0;
+    const onScroll = () => {
+      // Post-settle guard: the scroll is moving and the programmatic one is over, so this
+      // is the operator. Catches the inputs with no event of their own (scrollbar drag,
+      // a trackpad fling still decelerating, programmatic scrolls from elsewhere).
+      if (clicked.current && armed.current && Math.abs(window.scrollY - lockedAt.current) > 2) {
+        release.current();
+        return;
+      }
+      if (frame) {
+        return;
+      }
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        measure();
+      });
+    };
+    measure();
+    window.addEventListener('scroll', onScroll, {
+      passive: true
+    });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+    };
+  }, [measure, ready]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => () => {
+    clicked.current = null;
+    armed.current = false;
+  }, []);
+
+  /**
+   * Go to a section and light its nav item.
+   *
+   * THE ONE PATH. A nav click and the Service editor's post-create hand-off both come through
+   * here, so they cannot land in two different places again. The scroll itself is deferred to
+   * the next frame because the post-create caller scrolls to a section the same state update
+   * has just revealed — measuring before the next paint measures the OLD layout.
+   *
+   * THE LOCK IS RELEASED BY THE OPERATOR, NOT BY A CLOCK (founder QA 2026-09-21, round 3).
+   * Releasing on `scrollend` alone is exactly what made a click on an unreachable section
+   * revert half a second later: the smooth scroll ends at the page's clamp, the lock lifts,
+   * and the derived answer is whatever is genuinely on the line — which for that section is
+   * never itself. So the lock ends on evidence of INTENT: a wheel, a touch drag, a scrolling
+   * key, or (once the programmatic scroll has settled) any real movement at all.
+   *
+   * @param {string} id Anchor id, without the prefix.
+   */
+  const scrollTo = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(id => {
+    setActive(id);
+    clicked.current = id;
+    armed.current = false;
+    const keys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ', 'Spacebar'];
+    const onKey = event => {
+      if (keys.includes(event.key)) {
+        letGo();
+      }
+    };
+    function letGo() {
+      window.removeEventListener('wheel', letGo);
+      window.removeEventListener('touchmove', letGo);
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('scrollend', arm);
+      release.current();
+    }
+    // Arming does NOT release: the smooth scroll has merely finished, and the operator may
+    // well be looking at exactly where they asked to be. It only says that from here on,
+    // movement means them.
+    function arm() {
+      armed.current = true;
+      lockedAt.current = window.scrollY;
+    }
+    window.addEventListener('wheel', letGo, {
+      once: true,
+      passive: true
+    });
+    window.addEventListener('touchmove', letGo, {
+      once: true,
+      passive: true
+    });
+    window.addEventListener('keydown', onKey);
+    if ('onscrollend' in window) {
+      window.addEventListener('scrollend', arm, {
+        once: true
+      });
+    }
+    // The timer is not a nicety: a browser without `scrollend`, or a scroll that never
+    // starts because the target is already in place, would otherwise never arm the guard.
+    window.setTimeout(arm, SCROLL_SETTLE_MS);
+    window.requestAnimationFrame(() => {
+      // Optional call: `scrollIntoView` is absent in jsdom, and an editor is mounted in
+      // unit tests that exercise the save paths this handler now runs from.
+      bodyRef.current?.querySelector(`#${prefix}${id}`)?.scrollIntoView?.({
+        behavior: (0,_ui_jsx__WEBPACK_IMPORTED_MODULE_1__.motionScrollBehavior)(),
+        block: 'start'
+      });
+    });
+  }, [bodyRef, prefix]);
+  return {
+    active,
+    scrollTo
+  };
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/lib/service-deposit.free.js"
+/*!******************************************************!*\
+  !*** ./assets/src/admin/lib/service-deposit.free.js ***!
+  \******************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   useServiceDeposit: () => (/* binding */ useServiceDeposit)
+/* harmony export */ });
+/** Free owns no service deposit editor or policy writes (D-R41). */
+const NONE = Object.freeze({
+  dirty: false,
+  ready: true,
+  section: null,
+  nav: null,
+  validate: () => {},
+  save: async () => {}
+});
+function useServiceDeposit() {
+  return NONE;
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/lib/upcoming-bookings.js"
+/*!***************************************************!*\
+  !*** ./assets/src/admin/lib/upcoming-bookings.js ***!
+  \***************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   countUpcomingBookings: () => (/* binding */ countUpcomingBookings),
+/* harmony export */   upcomingBookingsNote: () => (/* binding */ upcomingBookingsNote)
+/* harmony export */ });
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./api.js */ "./assets/src/admin/lib/api.js");
+/* harmony import */ var _format_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./format.js */ "./assets/src/admin/lib/format.js");
+/**
+ * How many UPCOMING bookings a change leaves behind (persona QA 2026-10-05, T-075).
+ *
+ * Archiving a service, or un-assigning a staff member from one, never touches bookings that
+ * already exist — but neither dialog said so, and an operator with a full week ahead had to guess
+ * whether those customers had just been cancelled. This reads the count the dialogs quote.
+ *
+ * Two reads of the existing list route, one row each: `total` is the count, and `pending` +
+ * `confirmed` are the only statuses that still hold a slot. BEST-EFFORT by design — a failed read
+ * (no bookings capability, a network blip) answers `null` and the caller simply says nothing
+ * rather than blocking an archive on a courtesy line.
+ */
+
+
+
+
+/**
+ * @param {{service_id?: number, staff_id?: number}} scope Filter for `GET /bookings`.
+ * @return {Promise<?number>} Upcoming pending + confirmed bookings, or null when unknown.
+ */
+async function countUpcomingBookings(scope) {
+  try {
+    const from = (0,_format_js__WEBPACK_IMPORTED_MODULE_2__.toUtcInstant)(Date.now());
+    const totals = await Promise.all(['pending', 'confirmed'].map(status => _api_js__WEBPACK_IMPORTED_MODULE_1__.api.get('/bookings', {
+      ...scope,
+      status,
+      from,
+      per_page: 1
+    }).then(res => Number(res?.total) || 0)));
+    return totals[0] + totals[1];
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * The sentence the dialogs append, or '' when there is nothing to say.
+ *
+ * @param {?number} count Result of {@link countUpcomingBookings}.
+ * @return {string} e.g. "3 upcoming bookings keep their slot."
+ */
+function upcomingBookingsNote(count) {
+  if (!count) {
+    return '';
+  }
+  return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %d: number of upcoming bookings that are not affected by the change. */
+  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__._n)('%d upcoming booking keeps its slot.', '%d upcoming bookings keep their slot.', count, 'aponto'), count);
 }
 
 /***/ },
@@ -1244,7 +1868,11 @@ function hasBrowseFilters(filters = {}) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   ServiceEditor: () => (/* binding */ ServiceEditor),
+/* harmony export */   branchPickerSummary: () => (/* binding */ branchPickerSummary),
+/* harmony export */   discardPrompt: () => (/* binding */ discardPrompt),
 /* harmony export */   eligibilityRows: () => (/* binding */ eligibilityRows),
+/* harmony export */   leadHours: () => (/* binding */ leadHours),
+/* harmony export */   leadMinutes: () => (/* binding */ leadMinutes),
 /* harmony export */   locationScopedStaffIds: () => (/* binding */ locationScopedStaffIds),
 /* harmony export */   toggleStaffAssignment: () => (/* binding */ toggleStaffAssignment)
 /* harmony export */ });
@@ -1257,13 +1885,38 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_catalog_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../modules/catalog.js */ "./assets/src/admin/modules/catalog.js");
 /* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
 /* harmony import */ var _lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/combobox-options.js */ "./assets/src/admin/lib/combobox-options.js");
-/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
-/* harmony import */ var _lib_toast_jsx__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/toast.jsx */ "./assets/src/admin/lib/toast.jsx");
-/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__);
+/* harmony import */ var _lib_branches_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/branches.js */ "./assets/src/admin/lib/branches.js");
+/* harmony import */ var _lib_assignment_pairs_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/assignment-pairs.js */ "./assets/src/admin/lib/assignment-pairs.js");
+/* harmony import */ var _lib_MultiSelectPopover_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/MultiSelectPopover.jsx */ "./assets/src/admin/lib/MultiSelectPopover.jsx");
+/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
+/* harmony import */ var _lib_toast_jsx__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../lib/toast.jsx */ "./assets/src/admin/lib/toast.jsx");
+/* harmony import */ var _lib_EditorCard_jsx__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../lib/EditorCard.jsx */ "./assets/src/admin/lib/EditorCard.jsx");
+/* harmony import */ var _lib_focus_first_error_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../lib/focus-first-error.js */ "./assets/src/admin/lib/focus-first-error.js");
+/* harmony import */ var _lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../lib/field-error.jsx */ "./assets/src/admin/lib/field-error.jsx");
+/* harmony import */ var _lib_section_nav_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../lib/section-nav.js */ "./assets/src/admin/lib/section-nav.js");
+/* harmony import */ var _aponto_admin_service_deposit__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @aponto/admin-service-deposit */ "./assets/src/admin/lib/service-deposit.free.js");
+/* harmony import */ var _lib_in_flight_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ../lib/in-flight.js */ "./assets/src/admin/lib/in-flight.js");
+/* harmony import */ var _lib_upcoming_bookings_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ../lib/upcoming-bookings.js */ "./assets/src/admin/lib/upcoming-bookings.js");
+/* harmony import */ var _lib_page_title_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ../lib/page-title.js */ "./assets/src/admin/lib/page-title.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__);
 /**
- * Service editor (SPEC-P1 §1.1) — full-page, five sections:
+ * Service editor (SPEC-P1 §1.1) — full-page CARD sections (four since persona QA 2026-10-05,
+ * T-074: the empty "Public content" seam card is not rendered until the module ships).
+ *
+ * D-R55 (extended 2026-09-21): the sections are cards with the Settings panel anatomy, rendered
+ * by the shared `lib/EditorCard.jsx`, exactly as the Staff editor's are. Adopting it is the two
+ * steps that component's docblock promised — `ap-editor-cards` on the form, `EditorCard` around
+ * each section — and it closes the "known and deliberate one-release gap" D-R55 recorded, where
+ * the two full-page record editors looked different from each other.
+ *
+ * Nothing about the editor's behaviour moves with it: same five sections in the same order, same
+ * fields in the same order, same anchors (`#service-<id>`) for the sticky nav and the scroll spy,
+ * same validation and the same create-then-edit flow. Each card gains ONE honest description line
+ * saying what an operator uses it for, and the Public-content seam's "Free — coming soon" badge
+ * moves from the old flat header into the card header's trailing `action` slot.
+ *
+ * The five sections:
  *   1. Details            — name*, category (+ quick-create), description, status
  *                           enum (active|draft|archived, Q3), featured image (Q7).
  *   2. Public content     — honest seam for `service_catalog` (free but unbuilt since
@@ -1277,7 +1930,9 @@ __webpack_require__.r(__webpack_exports__);
  *                           (rest-contract §2.18). Editable when `multi_staff` is
  *                           available (D-R28); read-only otherwise, since Free
  *                           auto-links its single staff member and there is nothing
- *                           to choose between.
+ *                           to choose between. With ≥1 active location each assigned
+ *                           member also picks WHERE — "Every location" or specific
+ *                           branches, one pair per branch (D-R63).
  *   5. Booking policy     — min lead / max horizon (nullable overrides, SPEC-P0 §4.2).
  *
  * Create = POST /services; Edit = PATCH /services/{id}. Capacity is hidden (Q6).
@@ -1288,6 +1943,16 @@ __webpack_require__.r(__webpack_exports__);
  * someone is assigned. Creating therefore hands the owner straight to this section instead of
  * dropping them back on the list with a service that silently cannot be booked.
  */
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1310,7 +1975,59 @@ const STATUS_OPTIONS = [{
   label: 'Archived'
 }];
 // R3 — full-page record-editor section nav (mockup .pd-record-editor-page).
-const SECTIONS = [['details', 'Details'], ['public', 'Public content'], ['pricing', 'Duration & price'], ['assignments', 'Staff & locations'], ['policy', 'Booking policy']];
+//
+// These labels are also the CARD TITLES since D-R55 (the same list drives both, so a nav button
+// can never name something the page does not show). One consequence, recorded rather than
+// silently applied: the Public-content section used to head itself "Public content & media"
+// while its nav button said "Public content"; the card title is now the nav's shorter label.
+const SECTIONS = [['details', 'Details'], ['pricing', 'Duration & price'], ['assignments', 'Staff & locations'], ['policy', 'Booking policy']];
+
+/**
+ * The discard question, in ONE place.
+ *
+ * THREE guards ask it now (D-R58; handoff 2026-09-21 §4): this editor's own Cancel,
+ * `routes/Services.jsx`'s cross-route `nav-guard` handler, and the same-route hold in
+ * `lib/editor-guards.js`. Asking it in three sets of words would read as three different features,
+ * which is why `LocationEditor.jsx` exports its own the same way. Module-level, so its identity is
+ * stable enough to key the registering effect.
+ *
+ * @return {Object} `useConfirmDialog` options.
+ */
+function discardPrompt() {
+  return {
+    title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Discard your changes?', 'aponto'),
+    message: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('This service has edits that have not been saved. Leaving now discards them.', 'aponto'),
+    confirmText: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Discard changes', 'aponto'),
+    cancelText: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Keep editing', 'aponto'),
+    destructive: true
+  };
+}
+
+/**
+ * The one-line description under each card title (D-R55 anatomy).
+ *
+ * A function rather than a module-level map because every line goes through `__()`, and a
+ * translated const evaluated at import time would be built before the handle's script
+ * translations are in place. Each line answers "what do I use this card for?" in the operator's
+ * words, not the schema's.
+ *
+ * @param {string} id Section id, as listed in SECTIONS.
+ * @return {string} The card's one-line description.
+ */
+function sectionDescription(id) {
+  switch (id) {
+    case 'details':
+      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('What customers are booking — its name, where it sits in your catalog, and whether it is live.', 'aponto');
+    case 'pricing':
+      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('How long an appointment runs, what it costs, and the gap you keep around it.', 'aponto');
+    case 'assignments':
+      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Who can be booked for this service — with nobody assigned, nobody can book it.', 'aponto');
+    case 'policy':
+      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Per-service overrides for how soon and how far ahead this one can be booked.', 'aponto');
+    default:
+      return '';
+  }
+}
 function blank() {
   return {
     name: '',
@@ -1341,28 +2058,80 @@ function fromDto(dto) {
     buffer_after: dto.buffer_after ?? 0,
     slot_step_minutes: dto.slot_step_minutes ?? '',
     color: dto.color || '',
-    min_lead_minutes: dto.min_lead_minutes ?? '',
+    min_lead_minutes: leadHours(dto.min_lead_minutes),
     max_horizon_days: dto.max_horizon_days ?? ''
   };
+}
+
+/**
+ * A stored per-service lead time (minutes) as the HOURS the field shows (persona QA 2026-10-05,
+ * T-074). The global setting is entered in hours while this override asked for minutes, so "2"
+ * meant two hours on one screen and two minutes on the other. The column, the REST field and the
+ * form key stay `min_lead_minutes`; only what the operator types changed unit.
+ *
+ * @param {?number} minutes Stored minutes, or null/undefined for "use the default".
+ * @return {string|number} Hours for the input, or '' when unset.
+ */
+function leadHours(minutes) {
+  if (minutes === null || minutes === undefined || minutes === '') {
+    return '';
+  }
+  return Math.round(Number(minutes) / 60 * 100) / 100;
+}
+
+/**
+ * The hours typed into the lead-time field as whole stored minutes, or null for blank.
+ *
+ * @param {string|number} hours Field value.
+ * @return {?number} Minutes (may be NaN/negative for the validator to refuse), or null.
+ */
+function leadMinutes(hours) {
+  if (String(hours).trim() === '') {
+    return null;
+  }
+  return Math.round(Number(hours) * 60);
 }
 function numOrNull(value) {
   return String(value).trim() === '' ? null : Number(value);
 }
+
+/**
+ * @param {Object}    props                 Editor props.
+ * @param {string}    props.mode            `create` or `edit`.
+ * @param {Object}    [props.service]       The row the list handed over.
+ * @param {Array}     props.categories      Category options.
+ * @param {Function}  props.onCreateCategory Inline category create.
+ * @param {Function}  props.onClose         Leave the editor.
+ * @param {Function}  props.onSaved         Reload the list.
+ * @param {Function}  [props.onDirtyChange] Report unsaved edits up to the route, which owns both
+ *                                          nav guards (`lib/editor-guards.js`).
+ * @param {Function}  [props.confirm]       `confirm( opts )` from the ROUTE's `useConfirmDialog`,
+ *                                          passed in rather than created here on purpose: this
+ *                                          module also exports the pure eligibility helpers, which
+ *                                          `tests/js/multi-staff.test.js` imports under plain node,
+ *                                          and `lib/confirm.jsx` pulls in `@wordpress/components`.
+ *                                          The route renders the one dialog both guards and this
+ *                                          editor's Cancel share.
+ */
 function ServiceEditor({
   mode,
   service,
   categories,
   onCreateCategory,
   onClose,
-  onSaved
+  onSaved,
+  onDirtyChange,
+  confirm
 }) {
-  const showToast = (0,_lib_toast_jsx__WEBPACK_IMPORTED_MODULE_8__.useToast)();
+  const showToast = (0,_lib_toast_jsx__WEBPACK_IMPORTED_MODULE_11__.useToast)();
   const multiStaff = (0,_modules_catalog_js__WEBPACK_IMPORTED_MODULE_4__.moduleAvailable)(_lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config, 'multi_staff');
   // A service created in THIS editor session (premium create-then-edit, see the file header).
   // Once set, the editor is editing that record: `creating` flips false, so Save becomes a
   // PATCH and the eligibility section — which needs a service id — comes alive.
   const [createdId, setCreatedId] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const creating = mode === 'create' && null === createdId;
+  // The tab title names the record being edited — its SAVED name, not the one being typed.
+  (0,_lib_page_title_js__WEBPACK_IMPORTED_MODULE_19__.usePageTitle)('create' === mode ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('New service', 'aponto') : service?.name);
   const serviceId = service?.id ?? createdId;
   const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(!creating);
   const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
@@ -1371,34 +2140,44 @@ function ServiceEditor({
   // for work hours (a section that silently drops a pending edit on unmount is a data-loss bug).
   const eligibilityRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const [form, setForm] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(creating ? blank : () => service ? fromDto(service) : blank());
+  const deposit = (0,_aponto_admin_service_deposit__WEBPACK_IMPORTED_MODULE_16__.useServiceDeposit)({
+    serviceId,
+    price: form.price,
+    saving
+  });
+  const sections = deposit.nav ? [...SECTIONS.slice(0, 3), deposit.nav, ...SECTIONS.slice(3)] : SECTIONS;
+  // Signature of the fields the SERVER currently holds — anything else is a pending edit. Moved
+  // forward by the fresh GET below and by every successful write, so a save can never leave the
+  // editor permanently "dirty" (which would have the guard ask about edits that are saved).
+  const [baseline, setBaseline] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => JSON.stringify(creating ? blank() : service ? fromDto(service) : blank()));
+  // Pending eligibility edits, as state rather than only through `eligibilityRef` — a ref cannot
+  // re-render the guard that has to act on it. Same fact, same computation, one source.
+  const [eligibilityDirty, setEligibilityDirty] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [fieldError, setFieldError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({});
   const [imageUrl, setImageUrl] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
   const [addingCategory, setAddingCategory] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [newCategory, setNewCategory] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
-  const [active, setActive] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('details');
   const formRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  // A refusal counter plus what to say about it. Bumped by every save that rejects, and read
+  // by the effect below — which runs after the DOM is committed, so it needs no scheduler.
+  // It replaces a `requestAnimationFrame`, which an embedded or backgrounded browser pane
+  // throttles to never: the errors painted and the focus simply never moved (round-3 QA).
+  const [errorToken, setErrorToken] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const errorPlan = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)({});
+  (0,_lib_focus_first_error_js__WEBPACK_IMPORTED_MODULE_13__.useFocusFirstError)(errorToken, formRef, errorPlan);
 
-  // Sticky section-nav scroll spy (mirrors StaffWorkspace). Page-level scroll,
-  // so the observer roots on the viewport.
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (loading || !formRef.current) {
-      return undefined;
-    }
-    const sections = SECTIONS.map(([id]) => formRef.current.querySelector(`#service-${id}`)).filter(Boolean);
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting) setActive(e.target.id.replace('service-', ''));
-      });
-    }, {
-      rootMargin: '-20% 0px -70% 0px',
-      threshold: 0
-    });
-    sections.forEach(s => observer.observe(s));
-    return () => observer.disconnect();
-  }, [loading]);
-  const scrollTo = id => formRef.current?.querySelector(`#service-${id}`)?.scrollIntoView({
-    behavior: (0,_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.motionScrollBehavior)(),
-    block: 'start'
+  // Sticky section nav + scroll spy, shared with the Staff editor (`lib/section-nav.js`).
+  // The IntersectionObserver band this replaces could not select a card shorter than itself,
+  // which on this page meant "Public content" never lit and "Booking policy" was unreachable
+  // (founder QA 2026-09-21).
+  const {
+    active,
+    scrollTo
+  } = (0,_lib_section_nav_js__WEBPACK_IMPORTED_MODULE_15__.useSectionNav)({
+    anchors: sections,
+    bodyRef: formRef,
+    prefix: 'service-',
+    ready: !loading
   });
 
   // Edit: load a fresh copy so the editor never drifts from the list window.
@@ -1410,6 +2189,7 @@ function ServiceEditor({
     _lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api.get(`/services/${service.id}`).then(dto => {
       if (live) {
         setForm(fromDto(dto));
+        setBaseline(JSON.stringify(fromDto(dto)));
         setLoading(false);
       }
     }).catch(() => {
@@ -1421,6 +2201,33 @@ function ServiceEditor({
       live = false;
     };
   }, [creating, service]);
+
+  /**
+   * Whether this editor holds unsaved edits — the fields, a pending staff assignment, or a
+   * new-category name typed into the inline create.
+   *
+   * Reported UP rather than guarded here: `routes/Services.jsx` owns both guards, because it is
+   * the component that decides which surface is on screen (the editor opens from LOCAL STATE
+   * without touching the hash) and it is the one that survives a same-route move. The unmount
+   * report is what makes closing the editor, or discarding onto another record, clear the guard.
+   *
+   * Never while LOADING: the fresh GET has not landed yet, so the form on screen is the list's
+   * row and every difference from it is the server's, not the operator's.
+   */
+  const dirty = !loading && (JSON.stringify(form) !== baseline || eligibilityDirty || deposit.dirty || Boolean(newCategory.trim()));
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => () => onDirtyChange?.(false), [onDirtyChange]);
+
+  // Cancel asks the same question the nav guards ask. It used to close outright: one click, and a
+  // half-filled service was gone with no request, no toast and no way back (handoff §4).
+  const leave = async () => {
+    if (dirty && confirm && !(await confirm(discardPrompt()))) {
+      return;
+    }
+    onClose?.();
+  };
 
   // Resolve the featured-image thumbnail for display (wp.media attachment).
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
@@ -1460,7 +2267,12 @@ function ServiceEditor({
     });
     frame.open();
   };
-  const confirmNewCategory = async () => {
+
+  // One request per press (persona QA 2026-10-05, T-066). `saving` reaches the button only on
+  // the next render — and was set AFTER validation — so two taps in one frame both posted and
+  // "Create service" made two identical services. The ref closes that window synchronously.
+  const once = (0,_lib_in_flight_js__WEBPACK_IMPORTED_MODULE_17__.useInFlight)();
+  const confirmNewCategory = () => once(async () => {
     const name = newCategory.trim();
     if (!name) {
       return;
@@ -1476,8 +2288,8 @@ function ServiceEditor({
     } catch (err) {
       showToast(err.message, 'danger');
     }
-  };
-  const save = async () => {
+  });
+  const saveNow = async () => {
     const errors = {};
     if (!form.name.trim()) {
       errors.name = 'A service name is required.';
@@ -1497,10 +2309,10 @@ function ServiceEditor({
     // The booking-policy overrides mirror their own columns the same way (`min_lead_minutes`
     // int unsigned, `max_horizon_days` smallint unsigned) — told here rather than after a
     // round-trip, and the server's field error lands on the same field when it gets there.
-    const lead = numOrNull(form.min_lead_minutes);
+    const lead = leadMinutes(form.min_lead_minutes);
     if (lead !== null && (!Number.isInteger(lead) || lead < 0 || lead > _lib_format_js__WEBPACK_IMPORTED_MODULE_5__.MAX_LEAD_MINUTES)) {
-      errors.min_lead_minutes = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)(/* translators: %d: the highest allowed lead time in minutes. */
-      (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Lead time must be a whole number of minutes between 0 and %d.', 'aponto'), _lib_format_js__WEBPACK_IMPORTED_MODULE_5__.MAX_LEAD_MINUTES);
+      errors.min_lead_minutes = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)(/* translators: %d: the highest allowed lead time in hours. */
+      (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Lead time must be between 0 and %d hours.', 'aponto'), Math.floor(_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.MAX_LEAD_MINUTES / 60));
     }
     const horizon = numOrNull(form.max_horizon_days);
     if (horizon !== null && (!Number.isInteger(horizon) || horizon < 1 || horizon > _lib_format_js__WEBPACK_IMPORTED_MODULE_5__.MAX_HORIZON_DAYS)) {
@@ -1509,6 +2321,14 @@ function ServiceEditor({
     }
     if (Object.keys(errors).length) {
       setFieldError(errors);
+      // A refusal the operator can act on (founder QA 2026-09-21). The error paint alone
+      // is invisible when the offending field is a card or two off-screen, which the
+      // carded layout made routine — so go there, put the caret in it, and say so.
+      errorPlan.current = {
+        announce: showToast,
+        fallback: () => showToast((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Check the highlighted fields.', 'aponto'), 'danger')
+      };
+      setErrorToken(token => token + 1);
       return;
     }
     setSaving(true);
@@ -1525,12 +2345,28 @@ function ServiceEditor({
       buffer_after: Number(form.buffer_after) || 0,
       slot_step_minutes: numOrNull(form.slot_step_minutes),
       color: form.color ? form.color : null,
-      min_lead_minutes: numOrNull(form.min_lead_minutes),
+      min_lead_minutes: lead,
       max_horizon_days: numOrNull(form.max_horizon_days)
     };
     try {
+      deposit.validate();
       if (creating) {
         const created = await _lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api.post('/services', body);
+        // Remember the created record before the separate policy write, so a retry never creates a duplicate.
+        if (deposit.nav) {
+          setCreatedId(created.id);
+        }
+        try {
+          await deposit.save(created.id);
+        } catch (depositError) {
+          setBaseline(JSON.stringify(form));
+          await onSaved?.();
+          throw new Error((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Service created, but the deposit was not saved: %s', 'aponto'), depositError.message));
+        }
+        // The fields on screen are now the fields the server holds, so the editor stops
+        // counting as dirty and the nav guard unregisters itself. It matters on the premium
+        // create path below, which deliberately does NOT close.
+        setBaseline(JSON.stringify(form));
         // AWAIT the parent reload before closing so the list/quick-view behind the editor
         // is already fresh when it reappears — no stale-price window (r1 item 9; U1 BUG-5).
         await onSaved?.();
@@ -1540,15 +2376,22 @@ function ServiceEditor({
           // the new record and point at the section that fixes it.
           setCreatedId(created.id);
           setSaving(false);
-          showToast(`${body.name} created — now choose who can be booked for it.`);
+          showToast(`${body.name} created — now choose who can be booked for it.`, 'success');
           scrollTo('assignments');
           return;
         }
-        showToast(`${body.name} created.`);
+        showToast(`${body.name} created.`, 'success');
         onClose?.();
         return;
       }
       await _lib_api_js__WEBPACK_IMPORTED_MODULE_2__.api.patch(`/services/${serviceId}`, body);
+      setBaseline(JSON.stringify(form));
+      try {
+        await deposit.save(serviceId);
+      } catch (depositError) {
+        await onSaved?.();
+        throw new Error((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Service saved, but the deposit was not saved: %s', 'aponto'), depositError.message));
+      }
       // This page is ONE continuous form: a pending eligibility edit must be written by the
       // page Save too, or it dies on unmount with no request and no error.
       const eligibility = eligibilityRef.current;
@@ -1565,423 +2408,422 @@ function ServiceEditor({
           return;
         }
       }
-      showToast('Service saved.');
+      showToast('Service saved.', 'success');
       await onSaved?.();
       onClose?.();
     } catch (err) {
       const fields = err.data?.fields;
       if (fields) {
         setFieldError(fields);
+        // Same treatment as the client-side refusal: a server 422 names fields, and the
+        // operator must be taken to the first one rather than left staring at Save.
+        // No announcement from here — the server's own message is toasted below, and it
+        // is more specific than ours; two toasts for one event would be wrong.
+        errorPlan.current = {
+          announce: null
+        };
+        setErrorToken(token => token + 1);
       }
       showToast(err.message, 'danger');
       setSaving(false);
     }
   };
-  const editorHead = strong => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("header", {
+  const save = () => once(saveNow);
+  const editorHead = strong => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("header", {
     className: "pd-record-editor-head",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("h1", {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("h1", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("button", {
         type: "button",
-        onClick: onClose,
+        onClick: leave,
         children: "Services"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
         "aria-hidden": "true",
-        children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_7__.renderIcon)('chevron')
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("strong", {
+        children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_10__.renderIcon)('chevron')
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("strong", {
         children: strong
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("div", {
       className: "pd-record-editor-actions",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("button", {
         className: "pd-button",
         type: "button",
-        onClick: onClose,
+        onClick: leave,
         children: "Cancel"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("button", {
         className: "pd-button primary",
         type: "button",
-        disabled: saving || loading,
+        disabled: saving || loading || !deposit.ready,
         onClick: save,
         children: saving ? 'Saving…' : creating ? 'Create service' : 'Save changes'
       })]
     })]
   });
   if (loading) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("div", {
       className: "pd-page pd-record-editor-page pd-service-editor-page",
-      children: [editorHead('Loading…'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
+      children: [editorHead('Loading…'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("p", {
         className: "pd-editor-note",
         children: "Loading service\u2026"
       })]
     });
   }
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("div", {
     className: "pd-page pd-record-editor-page pd-service-editor-page",
-    children: [editorHead(creating ? 'New service' : form.name || 'Edit service'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+    children: [editorHead(creating ? 'New service' : form.name || 'Edit service'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("div", {
       className: "pd-record-editor-layout",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("aside", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("aside", {
         className: "pd-editor-nav",
         "aria-label": "Service editor sections",
-        children: SECTIONS.map(([id, label]) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
+        children: sections.map(([id, label]) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("button", {
           type: "button",
           className: active === id ? 'is-active' : undefined,
           "aria-current": active === id ? 'true' : undefined,
           onClick: () => scrollTo(id),
           children: label
         }, id))
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("form", {
-        className: "pd-record-editor-form",
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("form", {
+        className: "pd-record-editor-form ap-editor-cards",
         ref: formRef,
         autoComplete: "off",
         onSubmit: e => e.preventDefault(),
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("section", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)(_lib_EditorCard_jsx__WEBPACK_IMPORTED_MODULE_12__.EditorCard, {
           id: "service-details",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("header", {
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("h2", {
-              children: "Details"
-            })
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
-            className: "pd-editor-section-body",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-              className: `pd-compact-field${fieldError.name ? ' has-error' : ''}`,
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("input", {
-                name: "name",
-                value: form.name,
+          title: "Details",
+          description: sectionDescription('details'),
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldClass)('pd-compact-field', fieldError, 'name'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("input", {
+              name: "name",
+              value: form.name,
+              placeholder: " ",
+              required: true,
+              onChange: set('name'),
+              ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldAria)('service', fieldError, 'name')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+              className: "pd-compact-label",
+              children: "Service name"
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.FieldErrors, {
+            prefix: "service",
+            fieldError: fieldError,
+            keys: ['name']
+          }), addingCategory ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("div", {
+            className: "ap-inline-create",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+              className: "pd-compact-field",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("input", {
+                value: newCategory,
                 placeholder: " ",
-                required: true,
-                onChange: set('name')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                className: "pd-compact-label",
-                children: "Service name"
-              })]
-            }), fieldError.name ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
-              className: "ap-field-error",
-              children: fieldError.name
-            }) : null, addingCategory ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
-              className: "ap-inline-create",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-                className: "pd-compact-field",
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("input", {
-                  value: newCategory,
-                  placeholder: " ",
-                  autoFocus: true,
-                  onChange: e => setNewCategory(e.target.value),
-                  onKeyDown: e => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      confirmNewCategory();
-                    }
+                autoFocus: true,
+                onChange: e => setNewCategory(e.target.value),
+                onKeyDown: e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    confirmNewCategory();
                   }
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                  className: "pd-compact-label",
-                  children: "New category name"
-                })]
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
-                className: "pd-button primary sm",
-                type: "button",
-                onClick: confirmNewCategory,
-                children: "Add"
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
-                className: "pd-button sm",
-                type: "button",
-                onClick: () => {
-                  setAddingCategory(false);
-                  setNewCategory('');
-                },
-                children: "Cancel"
-              })]
-            }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-              className: "pd-compact-field pd-compact-select is-filled",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("select", {
-                value: form.category_id,
-                onChange: e => {
-                  if (e.target.value === '__new') {
-                    setAddingCategory(true);
-                  } else {
-                    setForm(f => ({
-                      ...f,
-                      category_id: e.target.value
-                    }));
-                  }
-                },
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("option", {
-                  value: "",
-                  children: "Uncategorized"
-                }), categories.map(c => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("option", {
-                  value: c.id,
-                  children: c.name
-                }, c.id)), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("option", {
-                  value: "__new",
-                  children: "+ New category\u2026"
-                })]
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
+                }
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
                 className: "pd-compact-label",
-                children: "Category"
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
+                children: "New category name"
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("button", {
+              className: "pd-button primary sm",
+              type: "button",
+              onClick: confirmNewCategory,
+              children: "Add"
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("button", {
+              className: "pd-button sm",
+              type: "button",
+              onClick: () => {
+                setAddingCategory(false);
+                setNewCategory('');
+              },
+              children: "Cancel"
+            })]
+          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldClass)('pd-compact-field pd-compact-select is-filled', fieldError, 'category_id'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("select", {
+              value: form.category_id,
+              onChange: e => {
+                if (e.target.value === '__new') {
+                  setAddingCategory(true);
+                } else {
+                  setForm(f => ({
+                    ...f,
+                    category_id: e.target.value
+                  }));
+                }
+              },
+              ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldAria)('service', fieldError, 'category_id'),
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("option", {
+                value: "",
+                children: "Uncategorized"
+              }), categories.map(c => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("option", {
+                value: c.id,
+                children: c.name
+              }, c.id)), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("option", {
+                value: "__new",
+                children: "+ New category\u2026"
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+              className: "pd-compact-label",
+              children: "Category"
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+              className: "pd-field-end-icon",
+              "aria-hidden": "true",
+              children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_10__.renderIcon)('chevronDown')
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.FieldErrors, {
+            prefix: "service",
+            fieldError: fieldError,
+            keys: ['category_id']
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+            className: "pd-compact-field pd-compact-notes",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("textarea", {
+              name: "description",
+              rows: "3",
+              placeholder: " ",
+              value: form.description,
+              onChange: set('description')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+              className: "pd-compact-label",
+              children: "Description"
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("div", {
+            className: "pd-form-grid",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+              className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldClass)('pd-compact-field pd-compact-select is-filled', fieldError, 'status'),
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("select", {
+                value: form.status,
+                onChange: set('status'),
+                ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldAria)('service', fieldError, 'status'),
+                children: STATUS_OPTIONS.map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("option", {
+                  value: s.value,
+                  children: s.label
+                }, s.value))
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+                className: "pd-compact-label",
+                children: "Status"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
                 className: "pd-field-end-icon",
                 "aria-hidden": "true",
-                children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_7__.renderIcon)('chevronDown')
+                children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_10__.renderIcon)('chevronDown')
               })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-              className: "pd-compact-field pd-compact-notes",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("textarea", {
-                name: "description",
-                rows: "3",
-                placeholder: " ",
-                value: form.description,
-                onChange: set('description')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                className: "pd-compact-label",
-                children: "Description"
-              })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
-              className: "pd-form-grid",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-                className: "pd-compact-field pd-compact-select is-filled",
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("select", {
-                  value: form.status,
-                  onChange: set('status'),
-                  children: STATUS_OPTIONS.map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("option", {
-                    value: s.value,
-                    children: s.label
-                  }, s.value))
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                  className: "pd-compact-label",
-                  children: "Status"
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                  className: "pd-field-end-icon",
-                  "aria-hidden": "true",
-                  children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_7__.renderIcon)('chevronDown')
-                })]
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
-                className: "ap-image-field",
-                children: [imageUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("img", {
-                  src: imageUrl,
-                  alt: "",
-                  className: "ap-image-thumb"
-                }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                  className: "ap-image-placeholder",
-                  "aria-hidden": "true",
-                  children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_7__.renderIcon)('image')
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
-                  className: "ap-image-actions",
-                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
-                    className: "pd-button sm",
-                    type: "button",
-                    onClick: pickImage,
-                    children: form.image_id ? 'Change image' : 'Set featured image'
-                  }), form.image_id ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
-                    className: "pd-button text sm",
-                    type: "button",
-                    onClick: () => {
-                      setForm(f => ({
-                        ...f,
-                        image_id: null
-                      }));
-                      setImageUrl('');
-                    },
-                    children: "Remove"
-                  }) : null]
-                })]
-              })]
-            })]
-          })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("section", {
-          id: "service-public",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("header", {
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("h2", {
-              children: "Public content & media"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-              className: "pd-neutral-badge",
-              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Free — coming soon', 'aponto')
-            })]
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("div", {
-            className: "pd-editor-section-body",
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
-              className: "pd-editor-note",
-              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Public title, booking visibility, card summary and gallery are part of the Service catalog module — free, and not built yet. They will appear here once it ships; no placeholder controls until then.', 'aponto')
-            })
-          })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("section", {
-          id: "service-pricing",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("header", {
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("h2", {
-              children: "Duration & price"
-            })
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
-            className: "pd-editor-section-body pd-form-grid",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-              className: `pd-compact-field${fieldError.duration_minutes ? ' has-error' : ''}`,
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("input", {
-                type: "number",
-                min: "5",
-                max: "480",
-                step: "5",
-                value: form.duration_minutes,
-                placeholder: " ",
-                onChange: set('duration_minutes')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                className: "pd-compact-label",
-                children: "Duration (minutes)"
-              })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-              className: `pd-compact-field${fieldError.price_minor ? ' has-error' : ''}`,
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("input", {
-                type: "number",
-                min: "0",
-                max: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.maxPriceMajor)(),
-                step: "any",
-                value: form.price,
-                placeholder: " ",
-                onChange: set('price')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
-                className: "pd-compact-label",
-                children: ["Price (", _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.currency, ")"]
-              })]
-            }), fieldError.duration_minutes ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
-              className: "ap-field-error",
-              style: {
-                gridColumn: '1 / -1'
-              },
-              children: fieldError.duration_minutes
-            }) : null, fieldError.price_minor ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
-              className: "ap-field-error",
-              style: {
-                gridColumn: '1 / -1'
-              },
-              children: fieldError.price_minor
-            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-              className: "pd-compact-field",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("input", {
-                type: "number",
-                min: "0",
-                max: "120",
-                value: form.buffer_before,
-                placeholder: " ",
-                onChange: set('buffer_before')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                className: "pd-compact-label",
-                children: "Buffer before (min)"
-              })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-              className: "pd-compact-field",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("input", {
-                type: "number",
-                min: "0",
-                max: "120",
-                value: form.buffer_after,
-                placeholder: " ",
-                onChange: set('buffer_after')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                className: "pd-compact-label",
-                children: "Buffer after (min)"
-              })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-              className: "pd-compact-field",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("input", {
-                type: "number",
-                min: "5",
-                max: "480",
-                step: "5",
-                value: form.slot_step_minutes,
-                placeholder: " ",
-                onChange: set('slot_step_minutes')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                className: "pd-compact-label",
-                children: "Slot step (blank = global)"
-              })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-              className: "ap-color-field",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                className: "ap-color-label",
-                children: "Colour"
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("span", {
-                className: "ap-color-input",
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("input", {
-                  type: "color",
-                  value: form.color || '#3858e9',
-                  onChange: set('color')
-                }), form.color ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("div", {
+              className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldClass)('ap-image-field', fieldError, 'image_id'),
+              children: [imageUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("img", {
+                src: imageUrl,
+                alt: "",
+                className: "ap-image-thumb"
+              }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+                className: "ap-image-placeholder",
+                "aria-hidden": "true",
+                children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_10__.renderIcon)('image')
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("div", {
+                className: "ap-image-actions",
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("button", {
+                  className: "pd-button sm",
                   type: "button",
+                  onClick: pickImage,
+                  ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldAria)('service', fieldError, 'image_id'),
+                  children: form.image_id ? 'Change image' : 'Set featured image'
+                }), form.image_id ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("button", {
                   className: "pd-button text sm",
-                  onClick: () => setForm(f => ({
-                    ...f,
-                    color: ''
-                  })),
-                  children: "Clear"
-                }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                  className: "pd-editor-note",
-                  children: "Default"
-                })]
+                  type: "button",
+                  onClick: () => {
+                    setForm(f => ({
+                      ...f,
+                      image_id: null
+                    }));
+                    setImageUrl('');
+                  },
+                  children: "Remove"
+                }) : null]
               })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.FieldErrors, {
+              prefix: "service",
+              fieldError: fieldError,
+              keys: ['status', 'image_id'],
+              className: "ap-field-error-row"
             })]
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(EligibilitySection, {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)(_lib_EditorCard_jsx__WEBPACK_IMPORTED_MODULE_12__.EditorCard, {
+          id: "service-pricing",
+          title: "Duration & price",
+          description: sectionDescription('pricing'),
+          bodyClassName: "pd-form-grid",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldClass)('pd-compact-field', fieldError, 'duration_minutes'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("input", {
+              type: "number",
+              min: "5",
+              max: "480",
+              step: "5",
+              value: form.duration_minutes,
+              placeholder: " ",
+              onChange: set('duration_minutes'),
+              ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldAria)('service', fieldError, 'duration_minutes')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+              className: "pd-compact-label",
+              children: "Duration (minutes)"
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldClass)('pd-compact-field', fieldError, 'price_minor'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("input", {
+              type: "number",
+              min: "0",
+              max: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.maxPriceMajor)(),
+              step: "any",
+              value: form.price,
+              placeholder: " ",
+              onChange: set('price'),
+              ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldAria)('service', fieldError, 'price_minor')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("span", {
+              className: "pd-compact-label",
+              children: ["Price (", _lib_config_js__WEBPACK_IMPORTED_MODULE_3__.config.currency, ")"]
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.FieldErrors, {
+            prefix: "service",
+            fieldError: fieldError,
+            keys: ['duration_minutes', 'price_minor'],
+            className: "ap-field-error-row"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldClass)('pd-compact-field', fieldError, 'buffer_before'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("input", {
+              type: "number",
+              min: "0",
+              max: "120",
+              value: form.buffer_before,
+              placeholder: " ",
+              onChange: set('buffer_before'),
+              ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldAria)('service', fieldError, 'buffer_before')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+              className: "pd-compact-label",
+              children: "Buffer before (min)"
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldClass)('pd-compact-field', fieldError, 'buffer_after'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("input", {
+              type: "number",
+              min: "0",
+              max: "120",
+              value: form.buffer_after,
+              placeholder: " ",
+              onChange: set('buffer_after'),
+              ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldAria)('service', fieldError, 'buffer_after')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+              className: "pd-compact-label",
+              children: "Buffer after (min)"
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.FieldErrors, {
+            prefix: "service",
+            fieldError: fieldError,
+            keys: ['buffer_before', 'buffer_after'],
+            className: "ap-field-error-row"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldClass)('pd-compact-field', fieldError, 'slot_step_minutes'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("input", {
+              type: "number",
+              min: "5",
+              max: "480",
+              step: "5",
+              value: form.slot_step_minutes,
+              placeholder: " ",
+              onChange: set('slot_step_minutes'),
+              ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldAria)('service', fieldError, 'slot_step_minutes')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+              className: "pd-compact-label",
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Slot step in minutes (leave blank to use the default)', 'aponto')
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldClass)('ap-color-field', fieldError, 'color'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+              className: "ap-color-label",
+              children: "Colour"
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("span", {
+              className: "ap-color-input",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("input", {
+                type: "color",
+                value: form.color || '#3858e9',
+                onChange: set('color'),
+                ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldAria)('service', fieldError, 'color')
+              }), form.color ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("button", {
+                type: "button",
+                className: "pd-button text sm",
+                onClick: () => setForm(f => ({
+                  ...f,
+                  color: ''
+                })),
+                children: "Clear"
+              }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+                className: "pd-editor-note",
+                children: "Default"
+              })]
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.FieldErrors, {
+            prefix: "service",
+            fieldError: fieldError,
+            keys: ['slot_step_minutes', 'color'],
+            className: "ap-field-error-row"
+          })]
+        }), deposit.section, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(EligibilitySection, {
           serviceId: serviceId,
           editable: multiStaff,
           saveRef: eligibilityRef,
-          showToast: showToast
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("section", {
+          showToast: showToast,
+          onDirtyChange: setEligibilityDirty
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)(_lib_EditorCard_jsx__WEBPACK_IMPORTED_MODULE_12__.EditorCard, {
           id: "service-policy",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("header", {
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("h2", {
-              children: "Booking policy"
-            })
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
-            className: "pd-editor-section-body pd-form-grid",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-              className: `pd-compact-field${fieldError.min_lead_minutes ? ' has-error' : ''}`,
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("input", {
-                type: "number",
-                min: "0",
-                max: _lib_format_js__WEBPACK_IMPORTED_MODULE_5__.MAX_LEAD_MINUTES,
-                step: "1",
-                value: form.min_lead_minutes,
-                placeholder: " ",
-                onChange: set('min_lead_minutes')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                className: "pd-compact-label",
-                children: "Min lead time (min \xB7 blank = global)"
-              })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-              className: `pd-compact-field${fieldError.max_horizon_days ? ' has-error' : ''}`,
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("input", {
-                type: "number",
-                min: "1",
-                max: _lib_format_js__WEBPACK_IMPORTED_MODULE_5__.MAX_HORIZON_DAYS,
-                step: "1",
-                value: form.max_horizon_days,
-                placeholder: " ",
-                onChange: set('max_horizon_days')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                className: "pd-compact-label",
-                children: "Max horizon (days \xB7 blank = global)"
-              })]
-            }), fieldError.min_lead_minutes ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
-              className: "ap-field-error",
-              style: {
-                gridColumn: '1 / -1'
-              },
-              children: fieldError.min_lead_minutes
-            }) : null, fieldError.max_horizon_days ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
-              className: "ap-field-error",
-              style: {
-                gridColumn: '1 / -1'
-              },
-              children: fieldError.max_horizon_days
-            }) : null]
+          title: "Booking policy",
+          description: sectionDescription('policy'),
+          bodyClassName: "pd-form-grid",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldClass)('pd-compact-field', fieldError, 'min_lead_minutes'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("input", {
+              type: "number",
+              min: "0",
+              max: Math.floor(_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.MAX_LEAD_MINUTES / 60),
+              step: "any",
+              value: form.min_lead_minutes,
+              placeholder: " ",
+              onChange: set('min_lead_minutes'),
+              ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldAria)('service', fieldError, 'min_lead_minutes')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+              className: "pd-compact-label",
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Min lead time in hours (leave blank to use the default)', 'aponto')
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+            className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldClass)('pd-compact-field', fieldError, 'max_horizon_days'),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("input", {
+              type: "number",
+              min: "1",
+              max: _lib_format_js__WEBPACK_IMPORTED_MODULE_5__.MAX_HORIZON_DAYS,
+              step: "1",
+              value: form.max_horizon_days,
+              placeholder: " ",
+              onChange: set('max_horizon_days'),
+              ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.fieldAria)('service', fieldError, 'max_horizon_days')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+              className: "pd-compact-label",
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Max horizon in days (leave blank to use the default)', 'aponto')
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_14__.FieldErrors, {
+            prefix: "service",
+            fieldError: fieldError,
+            keys: ['min_lead_minutes', 'max_horizon_days'],
+            className: "ap-field-error-row"
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("footer", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("footer", {
           className: "pd-editor-footer",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("button", {
             className: "pd-button",
             type: "button",
-            onClick: onClose,
+            onClick: leave,
             children: "Cancel"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("button", {
             className: "pd-button primary",
             type: "button",
-            disabled: saving,
+            disabled: saving || !deposit.ready,
             onClick: save,
             children: saving ? 'Saving…' : creating ? 'Create service' : 'Save changes'
           })]
@@ -2064,6 +2906,29 @@ function locationScopedStaffIds(assignments) {
 }
 
 /**
+ * The compact summary a member's branch picker shows on its trigger (D-R64): "Every location" for
+ * the wildcard, the branch names for one or two ("Downtown", "Downtown, Uptown"), a count beyond
+ * that ("3 locations") — the trigger is ~220px wide and sits at the end of the member's row. Names
+ * come from the picker's own items, so an archived branch keeps its "(archived)" suffix here too.
+ *
+ * @param {number[]} ids        The member's branches ({@see memberLocationIds}); `[]` = every one.
+ * @param {Array}    items      Picker items `[ { id, label } ]`.
+ * @param {string}   everyLabel Translated "Every location".
+ * @return {string} Trigger text.
+ */
+function branchPickerSummary(ids, items, everyLabel) {
+  const picked = ids || [];
+  if (!picked.length) {
+    return everyLabel;
+  }
+  if (picked.length > 2) {
+    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)(/* translators: %d: number of locations a staff member is assigned at. */
+    (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__._n)('%d location', '%d locations', picked.length, 'aponto'), picked.length);
+  }
+  return picked.map(id => (items || []).find(item => Number(item.id) === Number(id))?.label || `#${id}`).join(', ');
+}
+
+/**
  * The Staff & locations section.
  *
  * Editable only when `multi_staff` is available (D-R28). Without it the Free plan auto-links its
@@ -2071,13 +2936,15 @@ function locationScopedStaffIds(assignments) {
  * between — the section shows that linked member read-only rather than a control whose every
  * second option the server would refuse with 403 `aponto_plan_limit`.
  *
- * @param {{serviceId: ?number, editable: boolean, saveRef: Object, showToast: Function}} props Section props.
+ * @param {{serviceId: ?number, editable: boolean, saveRef: Object, showToast: Function,
+ *          onDirtyChange: Function}} props Section props.
  */
 function EligibilitySection({
   serviceId,
   editable,
   saveRef,
-  showToast
+  showToast,
+  onDirtyChange
 }) {
   const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(Boolean(serviceId));
   const [staff, setStaff] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
@@ -2088,6 +2955,34 @@ function EligibilitySection({
   const [baseline, setBaseline] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const [query, setQuery] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
   const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  // D-R63: the location catalog, ALL statuses (fix round 1) — an existing pair at a branch archived
+  // since must still read by its name and stay removable; only ACTIVE branches are offered as new
+  // ones. Empty = the section is exactly its pre-D-R63 self (no picker, the "Specific locations"
+  // marker kept for rows it cannot author).
+  const [locations, setLocations] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  // Fix round 3: a catalog that did not load COMPLETELY cannot be told from a smaller one, so the
+  // branch pickers — which write location pairs — are disabled and say why.
+  const [catalogIncomplete, setCatalogIncomplete] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    let live = true;
+    (0,_lib_branches_js__WEBPACK_IMPORTED_MODULE_7__.fetchLocations)().then(({
+      items,
+      complete
+    }) => {
+      if (!live) {
+        return;
+      }
+      if (items.length) {
+        setLocations(items);
+      }
+      if (!complete) {
+        setCatalogIncomplete(true);
+      }
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (!serviceId) {
       setLoading(false);
@@ -2136,6 +3031,12 @@ function EligibilitySection({
     }
   }, [serviceId]);
 
+  // ONE pending-edit signature, read by the page Save (through `saveRef`), by this section's own
+  // button, and by the dirty guards (through `onDirtyChange`). `null` baseline means the GET never
+  // succeeded, so a failed load can neither look dirty nor have the page Save replace a real
+  // assignment set with an empty one.
+  const dirty = null !== baseline && JSON.stringify(eligibilityRows(assignments)) !== baseline;
+
   // Publish the pending edit to ServiceEditor so the page Save can flush it. Re-registered every
   // render so the closure over `assignments` is never stale.
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
@@ -2143,7 +3044,7 @@ function EligibilitySection({
       return undefined;
     }
     const handle = {
-      dirty: null !== baseline && JSON.stringify(eligibilityRows(assignments)) !== baseline,
+      dirty,
       save: () => persist(assignments)
     };
     saveRef.current = handle;
@@ -2153,110 +3054,194 @@ function EligibilitySection({
       }
     };
   });
+
+  // …and report the SAME fact up as state, because a ref cannot re-render the guard that has to
+  // act on it. Keyed, so it does not fire on every render of this section.
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => () => onDirtyChange?.(false), [onDirtyChange]);
   const selected = new Set(assignments.map(pair => Number(pair.staff_id)));
   const locationScoped = locationScopedStaffIds(assignments);
+  const hasBranches = locations.length > 0;
+  // The picker's catalog for one member: every ACTIVE branch (selectable as new), plus any branch
+  // the member is ALREADY assigned at that is not active — named "(archived)", or `#id` if the
+  // catalog lost it — so the pair can be unticked rather than silently kept.
+  const branchItems = ids => [...locations.filter(location => 'active' === location.status).map(location => ({
+    id: location.id,
+    label: location.name
+  })), ...ids.filter(id => !locations.some(location => location.id === id && 'active' === location.status)).map(id => {
+    const known = locations.find(location => location.id === id);
+    return {
+      id,
+      label: known ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)(/* translators: %s: location name. */
+      (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('%s (archived)', 'aponto'), known.name) : `#${id}`
+    };
+  })];
   const options = (0,_lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_6__.staffOptions)(staff);
   const visible = (0,_lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_6__.filterOptions)(options, query);
-  const dirty = null !== baseline && JSON.stringify(eligibilityRows(assignments)) !== baseline;
-  const saveNow = async () => {
+  // Job titles ride the row beside the name (D-R64); the roster carries them, the shared combobox
+  // options do not.
+  const titles = new Map(staff.map(member => [Number(member.id), String(member.title || '').trim()]));
+  const onceSection = (0,_lib_in_flight_js__WEBPACK_IMPORTED_MODULE_17__.useInFlight)();
+  const saveNow = () => onceSection(async () => {
+    // Members this save REMOVES from the service. Their existing bookings are untouched, and
+    // the toast says so (persona QA 2026-10-05, T-075) instead of leaving it to be assumed.
+    const before = new Set((JSON.parse(baseline || '[]') || []).map(pair => Number(pair.staff_id)));
+    const after = new Set(eligibilityRows(assignments).map(pair => pair.staff_id));
+    const removed = [...before].filter(id => !after.has(id));
     try {
       await persist(assignments);
-      showToast('Staff assignments saved.');
+      let kept = 0;
+      if (removed.length) {
+        const counts = await Promise.all(removed.map(staffId => (0,_lib_upcoming_bookings_js__WEBPACK_IMPORTED_MODULE_18__.countUpcomingBookings)({
+          service_id: serviceId,
+          staff_id: staffId
+        })));
+        kept = counts.reduce((sum, count) => sum + (count || 0), 0);
+      }
+      const note = (0,_lib_upcoming_bookings_js__WEBPACK_IMPORTED_MODULE_18__.upcomingBookingsNote)(kept);
+      showToast(note ? `Staff assignments saved. ${note}` : 'Staff assignments saved.', 'success');
     } catch (err) {
       showToast(err.message, 'danger');
     }
-  };
+  });
 
   // The unbookable warning. Any-staff availability resolves through `aponto_staff_services`, so
   // a service with no eligible staff returns NO slots — it goes invisible on the booking form
   // rather than visibly broken, which is exactly why this has to be stated here. Shown in both
   // modes: an empty set is equally unbookable on Free.
   const empty = !loading && null !== baseline && 0 === assignments.length;
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("section", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_lib_EditorCard_jsx__WEBPACK_IMPORTED_MODULE_12__.EditorCard, {
     id: "service-assignments",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("header", {
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("h2", {
-        children: "Staff & locations"
-      })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("div", {
-      className: "pd-editor-section-body",
-      children: !serviceId ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
-        className: "pd-editor-note",
-        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Create the service first — then choose who can be booked for it.', 'aponto')
-      }) : loading ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
-        className: "pd-editor-note",
-        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Loading…', 'aponto')
-      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.Fragment, {
-        children: [empty ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
+    title: "Staff & locations",
+    description: sectionDescription('assignments'),
+    children: !serviceId ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("p", {
+      className: "pd-editor-note",
+      children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Create the service first — then choose who can be booked for it.', 'aponto')
+    }) : loading ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("p", {
+      className: "pd-editor-note",
+      children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Loading…', 'aponto')
+    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.Fragment, {
+      children: [empty ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("p", {
+        className: "ap-field-error",
+        role: "status",
+        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('No staff assigned — this service is not bookable until someone can take it.', 'aponto')
+      }) : null, editable ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.Fragment, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("p", {
+          className: "pd-editor-note",
+          children: hasBranches ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Tick who can be booked for this service; each person takes it at every location unless you pick locations for them.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Choose who can be booked for this service. Anyone you tick here is assigned at every location; staff already limited to specific locations keep that narrower scope, and are marked below.', 'aponto')
+        }), catalogIncomplete ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("p", {
           className: "ap-field-error",
           role: "status",
-          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('No staff assigned — this service is not bookable until someone can take it.', 'aponto')
-        }) : null, editable ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.Fragment, {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
-            className: "pd-editor-note",
-            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Choose who can be booked for this service. Anyone you tick here is assigned at every location; staff already limited to specific locations keep that narrower scope, and are marked below.', 'aponto')
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-            className: "pd-compact-field",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("input", {
-              type: "search",
-              value: query,
-              placeholder: " ",
-              onChange: e => setQuery(e.target.value)
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-              className: "pd-compact-label",
-              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Search staff', 'aponto')
-            })]
-          }), visible.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("ul", {
-            className: "ap-eligibility-list",
-            children: visible.map(option => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
-              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("label", {
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("input", {
-                  type: "checkbox",
-                  checked: selected.has(Number(option.id)),
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Some locations could not be loaded, so where staff work cannot be changed right now. Reload the page to try again.', 'aponto')
+        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+          className: "pd-compact-field",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("input", {
+            type: "search",
+            value: query,
+            placeholder: " ",
+            onChange: e => setQuery(e.target.value)
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+            className: "pd-compact-label",
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Search staff', 'aponto')
+          })]
+        }), visible.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("ul", {
+          className: "ap-eligibility-list",
+          children: visible.map(option => {
+            const id = Number(option.id);
+            const ticked = selected.has(id);
+            const title = titles.get(id);
+            // D-R63: WHERE this member takes the service — only for a TICKED member on a
+            // site with locations. Empty = "Every location" (the wildcard pair); picking
+            // branches replaces their pairs with one per branch, and clearing them all
+            // falls back to the wildcard — an assigned member never ends with no pair
+            // (`lib/assignment-pairs.js`).
+            const branchIds = hasBranches && ticked ? (0,_lib_assignment_pairs_js__WEBPACK_IMPORTED_MODULE_8__.memberLocationIds)(assignments, id) : null;
+            const items = branchIds ? branchItems(branchIds) : null;
+
+            // D-R64: ONE row per member — checkbox · name (+ job title) · email, and the
+            // compact branch picker at the inline end of the same row. The "Locations for
+            // <name>" text is the picker's accessible name, not a heading of its own.
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("li", {
+              className: branchIds ? 'has-picker' : undefined,
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("label", {
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("input", {
+                  className: "pd-table-checkbox",
+                  type: "checkbox"
+                  // Named explicitly (T-078): a tool that reads the control
+                  // rather than its wrapping label announced every member
+                  // as "on".
+                  ,
+                  "aria-label": (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)(/* translators: %s: staff member name. */
+                  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Assign %s', 'aponto'), option.label),
+                  checked: ticked,
                   disabled: saving,
                   onChange: () => setAssignments(current => toggleStaffAssignment(current, option.id))
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                  className: "ap-eligibility-name",
-                  children: option.label
-                }), locationScoped.has(Number(option.id)) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)("span", {
+                  className: "ap-eligibility-who",
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+                    className: "ap-eligibility-name",
+                    children: option.label
+                  }), title ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+                    className: "ap-eligibility-title",
+                    children: title
+                  }) : null, option.meta ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+                    className: "ap-eligibility-meta pd-ltr",
+                    children: option.meta
+                  }) : null]
+                }), !hasBranches && locationScoped.has(id) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
                   className: "ap-eligibility-scope",
                   children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Specific locations', 'aponto')
-                }) : null, option.meta ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                  className: "ap-eligibility-meta pd-ltr",
-                  children: option.meta
                 }) : null]
-              })
-            }, option.id))
-          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
-            className: "pd-editor-note",
-            children: options.length ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('No staff match that search.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('No active staff yet. Add someone on the Staff screen first.', 'aponto')
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("div", {
-            className: "ap-hours-save",
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
-              type: "button",
-              className: "pd-button primary sm",
-              disabled: saving || !dirty,
-              onClick: saveNow,
-              children: saving ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Saving…', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Save assignments', 'aponto')
-            })
-          })]
-        }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.Fragment, {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
-            className: "pd-editor-note",
-            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Your staff member takes every service automatically.', 'aponto')
-          }), assignments.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("ul", {
-            className: "ap-eligibility-list is-readonly",
-            children: [...selected].map(id => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
-              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("span", {
-                className: "ap-eligibility-name",
-                children: options.find(option => Number(option.id) === id)?.label || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)(/* translators: %d: the numeric id of a staff member that could not be resolved to a name. */
-                (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Staff #%d', 'aponto'), id)
-              })
-            }, id))
-          }) : null]
+              }), branchIds ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("div", {
+                className: "ap-eligibility-where",
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_lib_MultiSelectPopover_jsx__WEBPACK_IMPORTED_MODULE_9__.MultiSelectPopover, {
+                  hideLabel: true,
+                  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)(/* translators: %s: staff member name. */
+                  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Locations for %s', 'aponto'), option.label),
+                  value: branchIds,
+                  items: items,
+                  selectionText: branchPickerSummary(branchIds, items, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Every location', 'aponto')),
+                  noSelectionText: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Every location', 'aponto'),
+                  placeholder: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Every location', 'aponto'),
+                  searchPlaceholder: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Search locations…', 'aponto'),
+                  emptyText: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('No matching locations.', 'aponto'),
+                  disabled: saving || catalogIncomplete,
+                  onChange: ids => setAssignments(current => (0,_lib_assignment_pairs_js__WEBPACK_IMPORTED_MODULE_8__.setMemberLocations)(current, option.id, ids))
+                })
+              }) : null]
+            }, option.id);
+          })
+        }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("p", {
+          className: "pd-editor-note",
+          children: options.length ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('No staff match that search.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('No active staff yet. Add someone on the Staff screen first.', 'aponto')
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("div", {
+          className: "ap-hours-save",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("button", {
+            type: "button",
+            className: "pd-button primary sm",
+            disabled: saving || !dirty,
+            onClick: saveNow,
+            children: saving ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Saving…', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Save assignments', 'aponto')
+          })
         })]
-      })
-    })]
+      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.Fragment, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("p", {
+          className: "pd-editor-note",
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Your staff member takes every service automatically.', 'aponto')
+        }), assignments.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("ul", {
+          className: "ap-eligibility-list is-readonly",
+          children: [...selected].map(id => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("li", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)("span", {
+              className: "ap-eligibility-name",
+              children: options.find(option => Number(option.id) === id)?.label || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)(/* translators: %d: the numeric id of a staff member that could not be resolved to a name. */
+              (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Staff #%d', 'aponto'), id)
+            })
+          }, id))
+        }) : null]
+      })]
+    })
   });
 }
 
@@ -2376,7 +3361,7 @@ function ServiceReorder({
       await _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.post('/services/reorder', {
         ids: fullIds
       });
-      showToast('Service order saved.');
+      showToast('Service order saved.', 'success');
       onSaved?.();
     } catch (err) {
       showToast(err.message, 'danger');
@@ -2436,7 +3421,8 @@ function ServiceReorder({
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Services: () => (/* binding */ Services)
+/* harmony export */   Services: () => (/* binding */ Services),
+/* harmony export */   reservedTabCopy: () => (/* binding */ reservedTabCopy)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
@@ -2448,18 +3434,24 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__);
 /* harmony import */ var _lib_api_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/api.js */ "./assets/src/admin/lib/api.js");
-/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
-/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
-/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
-/* harmony import */ var _lib_toast_jsx__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../lib/toast.jsx */ "./assets/src/admin/lib/toast.jsx");
-/* harmony import */ var _lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../lib/confirm.jsx */ "./assets/src/admin/lib/confirm.jsx");
-/* harmony import */ var _lib_InflowWorkspace_jsx__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../lib/InflowWorkspace.jsx */ "./assets/src/admin/lib/InflowWorkspace.jsx");
-/* harmony import */ var _lib_RowMenu_jsx__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../lib/RowMenu.jsx */ "./assets/src/admin/lib/RowMenu.jsx");
-/* harmony import */ var _lib_facets_jsx__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../lib/facets.jsx */ "./assets/src/admin/lib/facets.jsx");
-/* harmony import */ var _ServiceEditor_jsx__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./ServiceEditor.jsx */ "./assets/src/admin/routes/ServiceEditor.jsx");
-/* harmony import */ var _ServiceReorder_jsx__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./ServiceReorder.jsx */ "./assets/src/admin/routes/ServiceReorder.jsx");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__);
+/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
+/* harmony import */ var _lib_in_flight_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/in-flight.js */ "./assets/src/admin/lib/in-flight.js");
+/* harmony import */ var _lib_upcoming_bookings_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/upcoming-bookings.js */ "./assets/src/admin/lib/upcoming-bookings.js");
+/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
+/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
+/* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
+/* harmony import */ var _lib_toast_jsx__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../lib/toast.jsx */ "./assets/src/admin/lib/toast.jsx");
+/* harmony import */ var _lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../lib/confirm.jsx */ "./assets/src/admin/lib/confirm.jsx");
+/* harmony import */ var _lib_InflowWorkspace_jsx__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../lib/InflowWorkspace.jsx */ "./assets/src/admin/lib/InflowWorkspace.jsx");
+/* harmony import */ var _lib_RowMenu_jsx__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ../lib/RowMenu.jsx */ "./assets/src/admin/lib/RowMenu.jsx");
+/* harmony import */ var _lib_facets_jsx__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ../lib/facets.jsx */ "./assets/src/admin/lib/facets.jsx");
+/* harmony import */ var _lib_editor_guards_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ../lib/editor-guards.js */ "./assets/src/admin/lib/editor-guards.js");
+/* harmony import */ var _lib_router_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ../lib/router.js */ "./assets/src/admin/lib/router.js");
+/* harmony import */ var _ServiceEditor_jsx__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./ServiceEditor.jsx */ "./assets/src/admin/routes/ServiceEditor.jsx");
+/* harmony import */ var _ServiceReorder_jsx__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./ServiceReorder.jsx */ "./assets/src/admin/routes/ServiceReorder.jsx");
+/* harmony import */ var _bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ../bookings/dashboard-stats.js */ "./assets/src/admin/bookings/dashboard-stats.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__);
 /**
  * Services route (SPEC-P1 §1.1 / mockup §7.4). Flat list + internal section tabs
  * (Services · Categories · Bundles[Premium] · Extras[Premium], the last two
@@ -2487,6 +3479,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+
+
+
+
+// One line of why, for the pill's tooltip and the quick view (re-test R11).
+
+const NOT_BOOKABLE_REASON = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__.__)('No active staff member is assigned, so customers do not see this service. Assign staff in the service editor.', 'aponto');
 const TABS = [{
   id: 'services',
   label: 'Services'
@@ -2496,12 +3497,34 @@ const TABS = [{
 }, {
   id: 'bundles',
   label: 'Bundles',
-  badge: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__.__)('Premium', 'aponto')
+  reserved: true
 }, {
   id: 'extras',
   label: 'Extras',
-  badge: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__.__)('Premium', 'aponto')
+  reserved: true
 }];
+
+/**
+ * The badge on a reserved (unbuilt) tab, and the sentence under its empty state.
+ *
+ * On a Free site these are honest upsell chrome: the feature will be a Premium module. On a
+ * PREMIUM site the same "Premium" badge read as a second upsell to someone who had already paid,
+ * and "ships with a later Premium module" as a roadmap note in their own product (persona QA
+ * 2026-10-05, T-082) — there it says what is true for them: coming soon. `planEdition` is the
+ * marketing-chrome switch `lib/config.js` documents, not a capability gate.
+ *
+ * @param {string} planEdition `free` or `premium`.
+ * @return {{badge: string, note: string}} Copy for the reserved tabs.
+ */
+function reservedTabCopy(planEdition) {
+  return 'premium' === planEdition ? {
+    badge: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__.__)('Coming soon', 'aponto'),
+    note: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__.__)('Coming soon — there is nothing to set up here yet.', 'aponto')
+  } : {
+    badge: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__.__)('Premium', 'aponto'),
+    note: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__.__)('Ships with a later Premium module — there is nothing to set up here yet.', 'aponto')
+  };
+}
 const STATUS_OPTIONS = [{
   value: 'active',
   label: 'Active'
@@ -2530,17 +3553,39 @@ const FACETS = [{
   type: 'multi',
   options: STATUS_OPTIONS
 }];
-const CATEGORY_FACET_FILTER = (0,_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_15__.recordFacetFilter)('categoryId', 'categoryName');
+const CATEGORY_FACET_FILTER = (0,_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_18__.recordFacetFilter)('categoryId', 'categoryName');
+
+/**
+ * The record a `services/...` hash path names, or '' for the list and for the tab hashes.
+ *
+ * Tab ids are never numeric, so the two segment shapes cannot collide — the same test the deep
+ * link itself uses.
+ *
+ * @param {string} path Hash path, without the leading `#`.
+ * @return {string} Record id, or ''.
+ */
+function deepLinkOf(path) {
+  const second = (0,_lib_editor_guards_js__WEBPACK_IMPORTED_MODULE_19__.hashRecord)(path);
+  return /^\d+$/.test(second) ? second : '';
+}
 function Services({
   segments = [],
   onNavigate
 }) {
-  const showToast = (0,_lib_toast_jsx__WEBPACK_IMPORTED_MODULE_11__.useToast)();
+  const showToast = (0,_lib_toast_jsx__WEBPACK_IMPORTED_MODULE_14__.useToast)();
   const {
     confirm,
     dialog
-  } = (0,_lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_12__.useConfirmDialog)();
-  const initialTab = TABS.some(t => t.id === segments[1]) ? segments[1] : 'services';
+  } = (0,_lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_15__.useConfirmDialog)();
+  // Whether the OPEN editor holds unsaved edits — reported up by `ServiceEditor` from its own
+  // dirty computation (the form, a pending eligibility edit, a half-typed new category), because
+  // this is the component that owns both guards (D-R58). Handoff 2026-09-21 §4: it had none at all.
+  const [editorDirty, setEditorDirty] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  // The LANDING tab, from the landing hash — mount-only, exactly as before the guards existed.
+  // Deliberately not read from `shownPath`: on the first render the two are equal by
+  // construction, and reading the held path would tie a mount-time seed to a navigation guard.
+  const landingTab = segments[1];
+  const initialTab = TABS.some(t => t.id === landingTab) ? landingTab : 'services';
   const [tab, setTab] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialTab);
   const [state, setState] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
     status: 'loading',
@@ -2552,6 +3597,46 @@ function Services({
   const [editor, setEditor] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null); // { mode, service }
   const [inspector, setInspector] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null); // { type:'quickview'|'category', ... }
   const [reorder, setReorder] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  /**
+   * Bumped by a confirmed discard that leaves this route on screen, and part of the editor's
+   * `key`, so the discard actually empties the form (fix round 2). Applying the target usually
+   * replaces the editor by itself; it does not when the target names a record this list does not
+   * hold — a hand-edited hash, or anything past the `per_page: 100` window — and the operator
+   * would be left looking at the very text they asked to throw away, with nothing guarding it. A
+   * remount is also what puts the pending staff assignments back.
+   */
+  const [editorEpoch, setEditorEpoch] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const onDiscard = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => setEditorEpoch(epoch => epoch + 1), []);
+
+  /** The record the editor is open on right now — `new` for a create, '' for the list. */
+  const openRecord = editor ? String(editor.service?.id ?? 'new') : '';
+
+  /**
+   * Which same-route hash moves would REPLACE the open editor (`lib/editor-guards.js`).
+   *
+   * Only a deep link to a DIFFERENT record does: the effect below opens it with a new `key`,
+   * which remounts the editor and takes the unsaved form with it. `#services`,
+   * `#services/categories` and the other tab hashes change no surface while the editor is open —
+   * it is local state and takes over the whole route — so a dialog for them would be a dialog
+   * about nothing, and neither does the deep link of the record ALREADY being edited (fix round
+   * 2: Back to `#services` then Forward to `#services/12` asked the operator to discard the
+   * service they were still editing).
+   */
+  const isExit = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(next => {
+    const target = deepLinkOf(next);
+    return '' !== openRecord && '' !== target && target !== openRecord;
+  }, [openRecord]);
+  const {
+    shownPath,
+    release
+  } = (0,_lib_editor_guards_js__WEBPACK_IMPORTED_MODULE_19__.useEditorGuards)({
+    segments,
+    dirty: editorDirty,
+    confirm,
+    discardPrompt: _ServiceEditor_jsx__WEBPACK_IMPORTED_MODULE_21__.discardPrompt,
+    isExit,
+    onDiscard
+  });
 
   // Returns the reload promise so callers can AWAIT the fresh list before closing an editor —
   // the quick-view panel derives from this state and must never show a stale price after a save
@@ -2609,7 +3694,12 @@ function Services({
   // Applied ONCE per requested id and only after the list has loaded (the editor needs the row
   // DTO). Never closes anything: an id that no longer exists — or an editor the admin closed by
   // hand — leaves the list on screen instead of fighting it.
-  const deepLinkId = /^\d+$/.test(String(segments[1] || '')) ? String(segments[1]) : '';
+  //
+  // Resolved from `shownPath`, NOT from `segments`: that is the whole mechanism of the same-route
+  // hold (`lib/editor-guards.js`). While a dirty editor is on screen the hold does not advance
+  // `shownPath`, so this effect never sees the incoming id and never remounts the editor out from
+  // under the typing.
+  const deepLinkId = deepLinkOf(shownPath);
   const openedDeepLink = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)('');
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if ('' === deepLinkId || openedDeepLink.current === deepLinkId || 'loading' === state.status) {
@@ -2640,9 +3730,14 @@ function Services({
   // reversible status change — NEVER a delete. It keeps the service for history and hides it from
   // new bookings.
   const onArchive = async service => {
+    // Say what happens to the bookings already made (T-075) — nothing, which is exactly what
+    // the dialog used to leave the operator to guess.
+    const note = (0,_lib_upcoming_bookings_js__WEBPACK_IMPORTED_MODULE_10__.upcomingBookingsNote)(await (0,_lib_upcoming_bookings_js__WEBPACK_IMPORTED_MODULE_10__.countUpcomingBookings)({
+      service_id: service.id
+    }));
     const ok = await confirm({
       title: `Archive “${service.name}”?`,
-      message: 'It’s kept for history and hidden from new bookings. You can restore it any time.',
+      message: `It’s kept for history and hidden from new bookings. You can restore it any time.${note ? ` ${note}` : ''}`,
       confirmText: 'Archive',
       destructive: true
     });
@@ -2666,7 +3761,7 @@ function Services({
       await _lib_api_js__WEBPACK_IMPORTED_MODULE_7__.api.patch(`/services/${service.id}`, {
         status: 'active'
       });
-      showToast(`${service.name} restored.`);
+      showToast(`${service.name} restored.`, 'success');
       await load();
     } catch (err) {
       showToast(err.message, 'danger');
@@ -2706,32 +3801,63 @@ function Services({
       }
     }
   };
-  const onDuplicate = async service => {
+
+  // One request per press (persona QA 2026-10-05, T-066): a doubled "Duplicate as draft" made
+  // two copies, exactly as a doubled "Create service" made two services.
+  const once = (0,_lib_in_flight_js__WEBPACK_IMPORTED_MODULE_9__.useInFlight)();
+  const onDuplicate = service => once(async () => {
     try {
       const copy = await _lib_api_js__WEBPACK_IMPORTED_MODULE_7__.api.post(`/services/${service.id}/duplicate`);
-      showToast(`Duplicated “${copy.name}” as draft — activate when ready.`);
+      showToast(`Duplicated “${copy.name}” as draft — activate when ready.`, 'success');
       await load();
     } catch (err) {
       showToast(err.message, 'danger');
     }
-  };
+  });
+
+  // "Services" pressed — header nav or WordPress sidebar — while the editor covers the list
+  // (persona QA 2026-10-05, T-076). The editor is local state, so the hash never moved and the
+  // press used to do nothing. It now does what the editor's own Cancel does: ask about unsaved
+  // edits, then return to the list.
+  (0,_lib_router_js__WEBPACK_IMPORTED_MODULE_20__.useRouteReselect)('services', async () => {
+    if (!editor) {
+      return;
+    }
+    if (editorDirty && !(await confirm((0,_ServiceEditor_jsx__WEBPACK_IMPORTED_MODULE_21__.discardPrompt)()))) {
+      return;
+    }
+    release();
+    setEditor(null);
+  });
 
   // ---- Full-page editor takes over the whole route ----------------------
   if (editor) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_ServiceEditor_jsx__WEBPACK_IMPORTED_MODULE_16__.ServiceEditor, {
-      mode: editor.mode,
-      service: editor.service,
-      categories: state.categories,
-      onCreateCategory: createCategory,
-      onClose: () => setEditor(null),
-      onSaved: load
-    }, `${editor.mode}-${editor.service?.id || 'new'}`);
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.Fragment, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_ServiceEditor_jsx__WEBPACK_IMPORTED_MODULE_21__.ServiceEditor, {
+        mode: editor.mode,
+        service: editor.service,
+        categories: state.categories,
+        onCreateCategory: createCategory
+        // `release()` first: the editor has already asked its own question by the time it
+        // calls back, so a guard still registered here would ask again on the next hash
+        // the operator touches.
+        ,
+        onClose: () => {
+          release();
+          setEditor(null);
+        },
+        onSaved: load,
+        onDirtyChange: setEditorDirty,
+        confirm: confirm
+      }, `${editor.mode}-${openRecord}-${editorEpoch}`), dialog]
+    });
   }
-  const tabStrip = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
+  const reserved = reservedTabCopy(_lib_config_js__WEBPACK_IMPORTED_MODULE_8__.config.planEdition);
+  const tabStrip = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("div", {
     className: "pmdk-section-tabs",
     role: "tablist",
     "aria-label": "Service views",
-    children: TABS.map(t => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("button", {
+    children: TABS.map(t => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("button", {
       type: "button",
       role: "tab",
       "aria-selected": tab === t.id ? 'true' : 'false',
@@ -2739,35 +3865,35 @@ function Services({
         setTab(t.id);
         setReorder(false);
       },
-      children: [t.label, t.badge ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("small", {
+      children: [t.label, t.reserved ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("small", {
         className: "pd-nav-phase is-later",
-        children: t.badge
+        children: reserved.badge
       }) : null]
     }, t.id))
   });
   let panel;
   if (tab === 'categories') {
-    panel = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(CategoriesPanel, {
+    panel = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(CategoriesPanel, {
       state: state,
       confirm: confirm,
       onReload: load,
       showToast: showToast
     });
   } else if (tab === 'bundles' || tab === 'extras') {
-    panel = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
+    panel = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("div", {
       className: "ap-reserved-tab",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
         className: "ap-state-icon",
         "aria-hidden": "true",
-        children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)(tab === 'bundles' ? 'box' : 'tag')
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("h2", {
+        children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)(tab === 'bundles' ? 'box' : 'tag')
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("h2", {
         children: tab === 'bundles' ? 'Bundles' : 'Extras'
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("p", {
-        children: [tab === 'bundles' ? 'Sell packages of multiple services together.' : 'Add-ons customers can attach to a booking.', " ", (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__.__)('Ships with a later Premium module — there is nothing to set up here yet.', 'aponto')]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("p", {
+        children: [tab === 'bundles' ? 'Sell packages of multiple services together.' : 'Add-ons customers can attach to a booking.', " ", reserved.note]
       })]
     });
   } else {
-    panel = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(ServicesPanel, {
+    panel = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(ServicesPanel, {
       state: state,
       reorder: reorder,
       setReorder: setReorder,
@@ -2796,7 +3922,7 @@ function Services({
   // fresh price immediately instead of a stale open-time snapshot (fleet-r1 Fix 9f; finding U1
   // BUG-5). Falls back to the snapshot only if the row is gone (e.g. just deleted).
   const quickViewService = inspector && inspector.type === 'quickview' ? state.services.find(s => s.id === inspector.serviceId) || inspector.service : null;
-  const inspectorNode = inspector ? inspector.type === 'quickview' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(ServiceQuickView, {
+  const inspectorNode = inspector ? inspector.type === 'quickview' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(ServiceQuickView, {
     service: quickViewService,
     categories: state.categories,
     onEdit: () => {
@@ -2807,48 +3933,48 @@ function Services({
       closeInspector();
     },
     onClose: closeInspector
-  }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(CategoryForm, {
+  }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(CategoryForm, {
     mode: inspector.mode,
     category: inspector.category,
     onClose: closeInspector,
     onSaved: load,
     showToast: showToast
   }) : null;
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)(_lib_InflowWorkspace_jsx__WEBPACK_IMPORTED_MODULE_13__.InflowWorkspace, {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_lib_InflowWorkspace_jsx__WEBPACK_IMPORTED_MODULE_16__.InflowWorkspace, {
     widthKey: WIDTH_KEY,
     open: Boolean(inspector),
     label: "Service inspector",
     inspectorLabelledBy: "serviceInspectorTitle",
     inspector: inspectorNode,
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_10__.PageHeader, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_13__.PageHeader, {
       title: "Services",
-      actions: tab === 'services' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("button", {
+      actions: tab === 'services' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("button", {
         className: "pmdk-button primary sm",
         type: "button",
         onClick: () => setEditor({
           mode: 'create'
         }),
-        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('plus'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('plus'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
           children: "New service"
         })]
-      }) : tab === 'categories' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("button", {
+      }) : tab === 'categories' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("button", {
         className: "pmdk-button primary sm",
         type: "button",
         onClick: () => setInspector({
           type: 'category',
           mode: 'create'
         }),
-        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('plus'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('plus'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
           children: "New category"
         })]
       }) : null
-    }), tabStrip, tab === 'services' && staffCount === 0 && state.services.length > 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("p", {
+    }), tabStrip, tab === 'services' && staffCount === 0 && state.services.length > 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("p", {
       className: "ap-list-note ap-staff-gap-note",
       role: "status",
-      children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('alert'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+      children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('alert'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
         className: "ap-staff-gap-text",
         children: "Services can\u2019t be booked until you add a staff member."
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("button", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("button", {
         className: "pd-button text sm",
         type: "button",
         onClick: () => onNavigate?.('staff'),
@@ -2881,16 +4007,17 @@ function ServicesPanel({
     meta: {
       label: 'Service'
     },
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("span", {
       className: "ap-cell-identity",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
         className: "ap-color-dot",
         style: {
           background: info.row.original.color || 'var(--ap-color-border-strong)'
         },
         "aria-hidden": "true"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
         className: "pmdk-cell-value pmdk-cell-strong",
+        title: info.getValue(),
         children: info.getValue()
       })]
     })
@@ -2902,7 +4029,7 @@ function ServicesPanel({
       label: 'Category'
     },
     filterFn: CATEGORY_FACET_FILTER,
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
       className: "pmdk-cell-value pmdk-cell-muted",
       children: info.getValue()
     })
@@ -2914,7 +4041,7 @@ function ServicesPanel({
       label: 'Duration',
       numeric: true
     },
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("span", {
       className: "pmdk-cell-value pmdk-cell-numeric",
       children: [info.getValue(), " min"]
     })
@@ -2926,9 +4053,9 @@ function ServicesPanel({
       label: 'Price',
       numeric: true
     },
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
       className: "pmdk-cell-value pmdk-cell-numeric",
-      children: info.getValue() === null || info.getValue() === undefined ? '—' : (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_8__.money)(info.getValue())
+      children: info.getValue() === null || info.getValue() === undefined ? '—' : (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_11__.money)(info.getValue())
     })
   }), columnHelper.accessor('staffCount', {
     id: 'staff',
@@ -2938,19 +4065,26 @@ function ServicesPanel({
     meta: {
       label: 'Staff'
     },
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("span", {
+    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("span", {
       className: "pmdk-cell-value pmdk-cell-muted",
       children: [info.getValue(), " staff"]
     })
-  }), columnHelper.accessor('status', {
+  }),
+  // An ACTIVE service nobody active is assigned to is not bookable (re-test R11): the public
+  // catalogue leaves it out (T-073), so the pill says that instead of a plain "active".
+  columnHelper.accessor('status', {
     id: 'status',
     header: 'Status',
-    size: 110,
+    size: 130,
     meta: {
       label: 'Status'
     },
-    filterFn: _lib_facets_jsx__WEBPACK_IMPORTED_MODULE_15__.inArrayFilter,
-    cell: info => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+    filterFn: _lib_facets_jsx__WEBPACK_IMPORTED_MODULE_18__.inArrayFilter,
+    cell: info => (0,_bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_23__.serviceNotBookable)(info.row.original) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
+      className: "ap-status-pill is-draft",
+      title: NOT_BOOKABLE_REASON,
+      children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__.__)('Not bookable', 'aponto')
+    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
       className: `ap-status-pill is-${info.getValue()}`,
       children: info.getValue()
     })
@@ -2998,9 +4132,9 @@ function ServicesPanel({
           danger: true
         });
       }
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_lib_RowMenu_jsx__WEBPACK_IMPORTED_MODULE_14__.RowMenu, {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_lib_RowMenu_jsx__WEBPACK_IMPORTED_MODULE_17__.RowMenu, {
         label: `Actions for ${svc.name}`,
-        renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon,
+        renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon,
         items: items,
         onSelect: action => {
           if (action === 'edit') onEdit(svc);else if (action === 'duplicate') onDuplicate(svc);else if (action === 'archive') onArchive(svc);else if (action === 'restore') onRestore(svc);else if (action === 'delete') onDelete(svc);
@@ -3022,9 +4156,9 @@ function ServicesPanel({
     }
   };
   if (reorder && activeCategory) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("section", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("section", {
       className: "pd-data-list pmdk-data-list",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_ServiceReorder_jsx__WEBPACK_IMPORTED_MODULE_17__.ServiceReorder, {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_ServiceReorder_jsx__WEBPACK_IMPORTED_MODULE_22__.ServiceReorder, {
         categoryIdentity: activeCategory,
         services: state.services,
         onCancel: () => setReorder(false),
@@ -3036,34 +4170,34 @@ function ServicesPanel({
       })
     });
   }
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("section", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("section", {
     className: "pd-data-list pmdk-data-list",
     "aria-label": "Services list",
-    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_pressmaximum_dashboard_kit_table__WEBPACK_IMPORTED_MODULE_2__.PMDKDataTable, {
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_pressmaximum_dashboard_kit_table__WEBPACK_IMPORTED_MODULE_2__.PMDKDataTable, {
       columns: columns,
       data: state.services,
       getRowId: row => String(row.id),
       status: state.status === 'ready' && !state.services.length ? 'empty' : state.status,
       states: {
         empty: {
-          icon: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('tag'),
+          icon: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('tag'),
           title: 'No services yet',
           description: 'Create the services customers can book.',
-          action: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("button", {
+          action: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("button", {
             className: "pmdk-button primary sm",
             type: "button",
             onClick: onNew,
-            children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('plus'), "New service"]
+            children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('plus'), "New service"]
           })
         },
         error: {
           title: 'Could not load services',
           description: state.error || '',
-          action: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("button", {
+          action: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("button", {
             className: "pmdk-button sm",
             type: "button",
             onClick: onReload,
-            children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('arrows'), "Retry"]
+            children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('arrows'), "Retry"]
           })
         }
       },
@@ -3071,32 +4205,32 @@ function ServicesPanel({
       onColumnFiltersChange: onFiltersChanged,
       filterBuilder: ({
         table
-      }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_15__.Facets, {
+      }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_18__.Facets, {
         table: table,
         defs: FACETS,
-        renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon
+        renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon
       }),
       activeFilters: ({
         table
-      }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_15__.FacetChips, {
+      }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_18__.FacetChips, {
         table: table,
         defs: FACETS,
-        renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon
+        renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon
       }),
       filterCount: ({
         table
-      }) => (0,_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_15__.facetCount)(table, FACETS),
-      toolbarControls: activeCategory ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("button", {
+      }) => (0,_lib_facets_jsx__WEBPACK_IMPORTED_MODULE_18__.facetCount)(table, FACETS),
+      toolbarControls: activeCategory ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("button", {
         className: "pmdk-toolbar-control",
         type: "button",
         onClick: () => setReorder(true),
-        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('list'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('list'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
           children: "Reorder"
         })]
       }) : null,
       onRowActivate: row => onQuickView(row),
       getRowAriaLabel: row => `Quick view ${row.name}`,
-      renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon,
+      renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon,
       itemsLabel: "services",
       labels: {
         searchPlaceholder: 'Search services…',
@@ -3142,7 +4276,7 @@ function CategoriesPanel({
       await _lib_api_js__WEBPACK_IMPORTED_MODULE_7__.api.patch(`/service-categories/${category.id}`, {
         name: next
       });
-      showToast('Category renamed.');
+      showToast('Category renamed.', 'success');
       onReload();
     } catch (err) {
       showToast(err.message, 'danger');
@@ -3181,7 +4315,7 @@ function CategoriesPanel({
       await _lib_api_js__WEBPACK_IMPORTED_MODULE_7__.api.post('/service-categories/reorder', {
         ids: next
       });
-      showToast('Category order saved.');
+      showToast('Category order saved.', 'success');
       onReload();
     } catch (err) {
       setOrder(state.categories.map(c => c.id));
@@ -3191,7 +4325,7 @@ function CategoriesPanel({
     }
   };
   if (state.status === 'loading') {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("p", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("p", {
       className: "pd-editor-note",
       style: {
         padding: '16px 4px'
@@ -3200,63 +4334,63 @@ function CategoriesPanel({
     });
   }
   if (!state.categories.length) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("div", {
       className: "ap-reserved-tab",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
         className: "ap-state-icon",
         "aria-hidden": "true",
-        children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('tag')
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("h2", {
+        children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('tag')
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("h2", {
         children: "No categories yet"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("p", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("p", {
         children: "Group related services under a category. Services without one show as \u201CUncategorized\u201D."
       })]
     });
   }
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("section", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("section", {
     className: "pd-data-list pmdk-data-list ap-simple-table ap-cat-table",
     "aria-label": "Categories",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("p", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("p", {
       className: "ap-list-note",
       role: "note",
-      children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('list'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+      children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('list'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
         children: "Drag to set the order customers see. Click a name to rename it."
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("div", {
       className: "pmdk-table-wrap",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_dnd_kit_core__WEBPACK_IMPORTED_MODULE_3__.DndContext, {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_dnd_kit_core__WEBPACK_IMPORTED_MODULE_3__.DndContext, {
         sensors: sensors,
         collisionDetection: _dnd_kit_core__WEBPACK_IMPORTED_MODULE_3__.closestCenter,
         onDragEnd: onDragEnd,
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_4__.SortableContext, {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_4__.SortableContext, {
           items: order,
           strategy: _dnd_kit_sortable__WEBPACK_IMPORTED_MODULE_4__.verticalListSortingStrategy,
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("table", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("table", {
             className: "pmdk-table",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("thead", {
-              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("tr", {
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("th", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("thead", {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("tr", {
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("th", {
                   scope: "col",
                   className: "ap-cat-drag-col",
-                  children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+                  children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
                     className: "screen-reader-text",
                     children: "Reorder"
                   })
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("th", {
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("th", {
                   scope: "col",
                   children: "Name"
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("th", {
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("th", {
                   scope: "col",
                   className: "pmdk-amount",
                   children: "Services"
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("th", {
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("th", {
                   scope: "col",
                   className: "pmdk-col-action",
                   children: "Action"
                 })]
               })
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("tbody", {
-              children: order.map(id => byId[id] ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(SortableCategoryRow, {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("tbody", {
+              children: order.map(id => byId[id] ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(SortableCategoryRow, {
                 category: byId[id],
                 editing: editingId === id,
                 busy: savingOrder,
@@ -3302,23 +4436,23 @@ function SortableCategoryRow({
     transition,
     opacity: isDragging ? 0.6 : undefined
   };
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("tr", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("tr", {
     ref: setNodeRef,
     style: style,
     className: isDragging ? 'is-dragging' : undefined,
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("td", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("td", {
       className: "ap-cat-drag",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("button", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("button", {
         type: "button",
         className: "ap-reorder-handle",
         "aria-label": `Reorder ${category.name}`,
         disabled: busy,
         ...attributes,
         ...listeners,
-        children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('moreVertical')
+        children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('moreVertical')
       })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("td", {
-      children: editing ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("input", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("td", {
+      children: editing ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("input", {
         className: "ap-cat-rename-input",
         value: draft
         // eslint-disable-next-line jsx-a11y/no-autofocus
@@ -3336,27 +4470,27 @@ function SortableCategoryRow({
             onCancelRename();
           }
         }
-      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("button", {
+      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("button", {
         type: "button",
         className: "ap-cat-name",
         onClick: onStartRename,
         title: "Click to rename",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
           className: "pmdk-cell-value pmdk-cell-strong",
           children: category.name
         })
       })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("td", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("td", {
       className: "pmdk-amount",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
         className: "pmdk-cell-value pmdk-cell-numeric",
         children: category.count ?? 0
       })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("td", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("td", {
       className: "pmdk-col-action",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_lib_RowMenu_jsx__WEBPACK_IMPORTED_MODULE_14__.RowMenu, {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_lib_RowMenu_jsx__WEBPACK_IMPORTED_MODULE_17__.RowMenu, {
         label: `Actions for ${category.name}`,
-        renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon,
+        renderIcon: _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon,
         items: [{
           action: 'rename',
           label: 'Rename category',
@@ -3384,88 +4518,94 @@ function ServiceQuickView({
   onClose
 }) {
   const category = service.category_id ? categories.find(c => c.id === service.category_id)?.name || UNCATEGORIZED : UNCATEGORIZED;
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.Fragment, {
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("header", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("header", {
       className: "pd-booking-inspector-head pd-booking-editor-head",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("div", {
         className: "pd-booking-inspector-identity",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("h2", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("h2", {
           id: "serviceInspectorTitle",
           children: service.name
         })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("button", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("button", {
         className: "pd-icon-button",
         type: "button",
         "aria-label": "Close service quick view",
         onClick: onClose,
-        children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('close')
+        children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('close')
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("div", {
       className: "pd-booking-inspector-body",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("section", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("section", {
         className: "pd-editor-section",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("div", {
           className: "pd-editor-section-head",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("h3", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("h3", {
             children: "Overview"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+          }), (0,_bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_23__.serviceNotBookable)(service) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
+            className: "ap-status-pill is-draft",
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__.__)('Not bookable', 'aponto')
+          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
             className: `ap-status-pill is-${service.status}`,
             children: service.status
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
+        }), (0,_bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_23__.serviceNotBookable)(service) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("p", {
+          className: "ap-inspector-note",
+          children: NOT_BOOKABLE_REASON
+        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("div", {
           className: "pd-editor-readonly",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
             className: "pd-editor-readonly-label",
             children: "Category"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("strong", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("strong", {
             children: category
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("div", {
           className: "pd-editor-readonly",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
             className: "pd-editor-readonly-label",
             children: "Duration"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("strong", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("strong", {
             children: [service.duration_minutes, " min"]
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("div", {
           className: "pd-editor-readonly",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
             className: "pd-editor-readonly-label",
             children: "Price"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("strong", {
-            children: service.price_minor === null || service.price_minor === undefined ? '—' : (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_8__.money)(service.price_minor)
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("strong", {
+            children: service.price_minor === null || service.price_minor === undefined ? '—' : (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_11__.money)(service.price_minor)
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("div", {
           className: "pd-editor-readonly",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
             className: "pd-editor-readonly-label",
             children: "Eligible staff"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("strong", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("strong", {
             children: [service.staffCount, " staff"]
           })]
         })]
-      }), service.description ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("section", {
+      }), service.description ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("section", {
         className: "pd-editor-section",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("div", {
           className: "pd-editor-section-head",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("h3", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("h3", {
             children: "Description"
           })
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("p", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("p", {
           className: "ap-inspector-note",
           children: service.description
         })]
       }) : null]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("footer", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("footer", {
       className: "pd-drawer-foot pd-booking-inspector-foot",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("div", {
         className: "pd-inspector-foot-actions",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("button", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("button", {
           className: "pd-button primary sm",
           type: "button",
           onClick: onEdit,
-          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('note'), "Edit service"]
+          children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('note'), "Edit service"]
         })
       })
     })]
@@ -3483,7 +4623,8 @@ function CategoryForm({
   const [name, setName] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(category?.name || '');
   const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const creating = mode === 'create';
-  const save = async () => {
+  const once = (0,_lib_in_flight_js__WEBPACK_IMPORTED_MODULE_9__.useInFlight)();
+  const save = () => once(async () => {
     if (!name.trim()) {
       return;
     }
@@ -3493,12 +4634,12 @@ function CategoryForm({
         await _lib_api_js__WEBPACK_IMPORTED_MODULE_7__.api.post('/service-categories', {
           name: name.trim()
         });
-        showToast('Category created.');
+        showToast('Category created.', 'success');
       } else {
         await _lib_api_js__WEBPACK_IMPORTED_MODULE_7__.api.patch(`/service-categories/${category.id}`, {
           name: name.trim()
         });
-        showToast('Category renamed.');
+        showToast('Category renamed.', 'success');
       }
       onSaved?.();
       onClose?.();
@@ -3506,60 +4647,60 @@ function CategoryForm({
       showToast(err.message, 'danger');
       setSaving(false);
     }
-  };
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.Fragment, {
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("header", {
+  });
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("header", {
       className: "pd-booking-inspector-head pd-booking-editor-head",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("div", {
         className: "pd-booking-inspector-identity",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("h2", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("h2", {
           id: "serviceInspectorTitle",
           children: creating ? 'New category' : 'Rename category'
         })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("button", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("button", {
         className: "pd-icon-button",
         type: "button",
         "aria-label": "Close category form",
         onClick: onClose,
-        children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_9__.renderIcon)('close')
+        children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('close')
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("form", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("form", {
       className: "pd-booking-inspector-body pd-compact-editor",
       onSubmit: e => {
         e.preventDefault();
         save();
       },
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("section", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("section", {
         className: "pd-editor-section",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("div", {
           className: "pd-editor-section-head",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("h3", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("h3", {
             children: "Category"
           })
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("label", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("label", {
           className: "pd-compact-field",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("input", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("input", {
             value: name,
             placeholder: " ",
             autoFocus: true,
             required: true,
             onChange: e => setName(e.target.value)
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("span", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("span", {
             className: "pd-compact-label",
             children: "Name"
           })]
         })]
       })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("footer", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("footer", {
       className: "pd-drawer-foot pd-booking-inspector-foot",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)("div", {
         className: "pd-inspector-foot-actions",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("button", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("button", {
           className: "pd-button sm",
           type: "button",
           onClick: onClose,
           children: "Cancel"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("button", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("button", {
           className: "pd-button primary sm",
           type: "button",
           disabled: saving,

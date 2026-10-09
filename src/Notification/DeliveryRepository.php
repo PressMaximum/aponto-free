@@ -54,28 +54,25 @@ final class DeliveryRepository {
 	 * @param string   $last_error_code Initial error marker (e.g. `no_secure_auth_key`).
 	 */
 	public function claim( string $dispatch_key, string $template_key, ?int $booking_id, string $recipient_hash, string $payload_cipher, string $last_error_code = '' ): ?int {
-		$now        = $this->clock->nowSql();
+		$now = $this->clock->nowSql();
+		// A duplicate key is an EXPECTED answer here, so it must not be a statement error: on the
+		// SQLite tier a failed INSERT inside a caller's transaction rolls the WHOLE transaction back
+		// silently (the later COMMIT still "succeeds"), erasing whatever the caller already wrote
+		// (D-R71g). `INSERT IGNORE` answers 0 rows instead; the SQLite drop-in accepts the MySQL
+		// spelling and maps it itself (it cannot parse SQLite's own `INSERT OR IGNORE`).
+		$table      = $this->table();
+		$owner      = null === $booking_id ? 'NULL' : '%d';
+		$sql        = "INSERT IGNORE INTO {$table} ( dispatch_key, template_key, booking_id, recipient_hash, payload_cipher, status, attempts, last_error_code, created_at, updated_at )
+			VALUES ( %s, %s, {$owner}, %s, %s, 'queued', 0, %s, %s, %s )";
+		$args       = null === $booking_id
+			? array( $dispatch_key, $template_key, $recipient_hash, $payload_cipher, mb_substr( $last_error_code, 0, 64 ), $now, $now )
+			: array( $dispatch_key, $template_key, $booking_id, $recipient_hash, $payload_cipher, mb_substr( $last_error_code, 0, 64 ), $now, $now );
 		$suppressed = $this->wpdb->suppress_errors( true );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic unique claim.
-		$result = $this->wpdb->insert(
-			$this->table(),
-			array(
-				'dispatch_key'    => $dispatch_key,
-				'template_key'    => $template_key,
-				'booking_id'      => $booking_id,
-				'recipient_hash'  => $recipient_hash,
-				'payload_cipher'  => $payload_cipher,
-				'status'          => 'queued',
-				'attempts'        => 0,
-				'last_error_code' => mb_substr( $last_error_code, 0, 64 ),
-				'created_at'      => $now,
-				'updated_at'      => $now,
-			),
-			array( '%s', '%s', '%d', '%s', '%s', '%s', '%d', '%s', '%s', '%s' )
-		);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table, verb and NULL literal; values bound via prepare(). Atomic unique claim.
+		$result = $this->wpdb->query( $this->wpdb->prepare( $sql, ...$args ) );
 		$this->wpdb->suppress_errors( $suppressed );
 
-		if ( false === $result ) {
+		if ( 1 !== $result ) {
 			return null;
 		}
 

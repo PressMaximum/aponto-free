@@ -247,7 +247,7 @@ final class Services {
 
 				$service->setOnPersist(
 					function ( \Aponto\Booking\Event\BookingRescheduled $event ): void {
-						$this->notificationDispatcher()->queueRescheduled( $event->booking, $event->notification_policy );
+						$this->notificationDispatcher()->queueRescheduled( $event->booking, $event->notification_policy, $event->previous );
 					}
 				);
 

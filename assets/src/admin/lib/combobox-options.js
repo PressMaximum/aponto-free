@@ -21,6 +21,7 @@
  * is the secondary line the customer picker already renders.
  */
 import { money } from './format.js';
+import { displayNameOf } from '../../shared/person-name.js';
 
 /**
  * Stable listbox key + selection identity for one option.
@@ -151,9 +152,22 @@ export function serviceOptions( items = [] ) {
 }
 
 /**
+ * The name parts of a person record as typeahead keywords (name split, 2026-10-01). The label is
+ * already the display name, which holds both parts; listing them keeps a search by either part
+ * working even when a record's composed `name` is missing or differs.
+ *
+ * @param {Object} item REST customer / staff item.
+ * @return {Array} Non-empty parts.
+ */
+function nameKeywords( item ) {
+	return [ item.first_name, item.last_name ].filter( Boolean );
+}
+
+/**
  * Staff options. `meta` is the email — the one field that tells two same-named staff
  * apart — and it joins `keywords` exactly like the customer picker's contact details,
- * so what the row shows is also what the typeahead can match.
+ * so what the row shows is also what the typeahead can match. The label is the display name;
+ * the parts ride along.
  *
  * @param {Array} items REST `/staff` items.
  * @return {Array} Combobox options.
@@ -161,26 +175,34 @@ export function serviceOptions( items = [] ) {
 export function staffOptions( items = [] ) {
 	return ( items || [] ).map( ( item ) => ( {
 		id: item.id,
-		label: item.name,
+		label: displayNameOf( item ),
 		meta: item.email || '',
-		keywords: item.email || '',
+		keywords: [ ...nameKeywords( item ), item.email ].filter( Boolean ).join( ' ' ),
+		first_name: item.first_name || '',
+		last_name: item.last_name || '',
 	} ) );
 }
 
 /**
- * Customer options. `meta` is the secondary line in the entity row; `keywords` adds
- * email + phone to the typeahead (the label alone is the name).
+ * Customer options. `meta` is the secondary line in the entity row; `keywords` adds the name
+ * parts + email + phone to the typeahead (the label is the display name). The parts ride along
+ * for `POST /bookings`, which takes `customer.first_name` / `customer.last_name`.
+ *
+ * An `anonymized` record (erased by a privacy request or the retention sweep) is not offered:
+ * the route refuses it as `customer_id`, and "Deleted customer" is nobody to book for.
  *
  * @param {Array} items REST `/customers` items.
  * @return {Array} Combobox options.
  */
 export function customerOptions( items = [] ) {
-	return ( items || [] ).map( ( item ) => ( {
+	return ( items || [] ).filter( ( item ) => ! item.anonymized ).map( ( item ) => ( {
 		id: item.id,
-		label: item.name,
+		label: displayNameOf( item ),
 		meta: item.email || item.phone || '',
-		keywords: [ item.email, item.phone ].filter( Boolean ).join( ' ' ),
-		name: item.name,
+		keywords: [ ...nameKeywords( item ), item.email, item.phone ].filter( Boolean ).join( ' ' ),
+		name: displayNameOf( item ),
+		first_name: item.first_name || '',
+		last_name: item.last_name || '',
 		email: item.email,
 		phone: item.phone,
 	} ) );

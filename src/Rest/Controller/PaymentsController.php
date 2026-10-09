@@ -401,10 +401,15 @@ final class PaymentsController implements Controller {
 			$amount = (int) $raw_amount;
 		}
 
+		$transaction_id = $request->get_param( 'transaction_id' );
+		if ( null !== $transaction_id && ( ! is_int( $transaction_id ) || $transaction_id < 1 ) ) {
+			return Errors::validation( array( 'transaction_id' => __( 'Choose a valid payment transaction.', 'aponto' ) ) );
+		}
+
 		$reason = mb_substr( sanitize_textarea_field( (string) ( $request->get_param( 'reason' ) ?? '' ) ), 0, 1000 );
 
 		try {
-			$result = $this->services->paymentService()->refund( $booking_id, $amount, 'admin:' . get_current_user_id(), $reason );
+			$result = $this->services->paymentService()->refund( $booking_id, $amount, 'admin:' . get_current_user_id(), $reason, $transaction_id );
 		} catch ( PaymentException $exception ) {
 			return Errors::fromDomain( $exception );
 		} catch ( DomainException $exception ) {
@@ -446,6 +451,7 @@ final class PaymentsController implements Controller {
 
 		return array(
 			'id'           => (int) ( $row['id'] ?? 0 ),
+			'parent_id'    => isset( $row['parent_id'] ) ? (int) $row['parent_id'] : null,
 			'kind'         => (string) ( $row['kind'] ?? '' ),
 			'status'       => (string) ( $row['status'] ?? '' ),
 			'amount_minor' => (int) ( $row['amount_minor'] ?? 0 ),

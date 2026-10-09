@@ -83,6 +83,32 @@ final class PaymentDispatcher {
 	}
 
 	/**
+	 * The smallest amount a gateway can charge in a currency, in minor units (D-R71a P2).
+	 *
+	 * Optional verb with a neutral initial value `0` (not the driver-missing error): a driver that does
+	 * not answer declares no minimum. Asked on the booking-form path, so drivers answer from constants —
+	 * never with HTTP. Negative or non-integer answers count as no minimum.
+	 *
+	 * @param string $code     Module code (allow-listed by the registry).
+	 * @param string $currency ISO currency code.
+	 */
+	public static function minAmount( string $code, string $currency ): int {
+		if ( ! PaymentRegistry::isActive( $code ) ) {
+			return 0;
+		}
+
+		/**
+		 * Filter the minimum chargeable amount of a payment driver.
+		 *
+		 * @param int    $minimum  Minimum in minor units (initial value `0`).
+		 * @param string $currency ISO currency code.
+		 */
+		$minimum = apply_filters( PaymentRegistry::verbHook( 'min_amount', $code ), 0, strtoupper( $currency ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Built by PaymentRegistry::verbHook(), which prefixes `aponto_payment_` and allow-lists the code.
+
+		return is_int( $minimum ) && $minimum > 0 ? $minimum : 0;
+	}
+
+	/**
 	 * Dispatch `client_config` — the browser-side configuration a gateway's own JS needs BEFORE any
 	 * order exists (K, extension-surface §5b.2).
 	 *

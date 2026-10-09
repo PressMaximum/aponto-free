@@ -35,11 +35,13 @@ import {
 	Flex,
 	FlexItem,
 } from '@wordpress/components';
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import { wizardPost } from './api.js';
+import { normalizePart } from '../shared/person-name.js';
 import { StepShell } from './ui.jsx';
 import { DoneStep, dashboardUrl } from './DoneStep.jsx';
 import { STEPS, WizardHeader } from './Chrome.jsx';
+import { groupTimezones, currencyLabel, phoneLooksValid, priceProblem, hoursSeed, stepNeedsSave } from './options.js';
 
 const BOOT =
 	( typeof window !== 'undefined' && window.apontoWizard ) || {
@@ -159,17 +161,25 @@ export function Wizard() {
 		currency: prefill.currency || 'USD',
 	} );
 
-	const [ hours, setHours ] = useState( () => {
-		const map = {};
-		for ( let iso = 1; iso <= 7; iso++ ) {
-			map[ iso ] = { open: iso <= 5, start: 540, end: 1020 };
-		}
-		return map;
-	} );
+	// WHAT THE SITE ALREADY HAS (persona QA 2026-10-05, re-test N2). A re-opened wizard showed the
+	// factory 9–5 week and the WordPress user, and Continue wrote them over the owner's saved
+	// hours and first staff member. Steps 3 and 4 are seeded from the stored values instead, and a
+	// step is posted only when the owner changed it (`stepNeedsSave`) — clicking through a
+	// re-opened wizard writes nothing. A stored week with split shifts cannot be shown in this
+	// one-range-per-day grid, so the step then only says where those hours are edited.
+	const saved = prefill.saved || {};
+	const seededHours = useMemo( () => hoursSeed( saved.hours ), [] );
+	const [ hours, setHours ] = useState( seededHours.map );
 
-	const [ staff, setStaff ] = useState( {
-		name: ( prefill.currentUser && prefill.currentUser.name ) || '',
-		email: ( prefill.currentUser && prefill.currentUser.email ) || '',
+	// Name split (2026-10-01): the server prefills the WordPress user's `first_name` /
+	// `last_name` meta (falling back to a split of the display name) and the step saves the parts.
+	const [ staff, setStaff ] = useState( () => {
+		const person = saved.staff || prefill.currentUser || {};
+		return {
+			first_name: person.first_name || '',
+			last_name: person.last_name || '',
+			email: person.email || '',
+		};
 	} );
 
 	const [ service, setService ] = useState( {
@@ -178,6 +188,17 @@ export function Wizard() {
 		price: '',
 	} );
 
+	// What each step opened with, and whether that came from the site's stored values. Updated
+	// when a step is saved, so Back → Continue does not post the same values twice.
+	const seeds = useRef( null );
+	if ( null === seeds.current ) {
+		seeds.current = {
+			business: { stored: true === saved.business, values: business },
+			hours: { stored: seededHours.stored, values: hours },
+			staff: { stored: Boolean( saved.staff ), values: staff },
+		};
+	}
+
 	// Timezone menu from the IANA list; keep the prefilled value selectable even when it is not in
 	// it — the same rule the currency menu below uses. A site that never picked a city prefills a
 	// raw UTC OFFSET (`+07:00`), which is not an IANA identifier, and a `<select>` whose value
@@ -185,16 +206,10 @@ export function Wizard() {
 	// name a country the business is not in. Offset 0 is normalized to `UTC` server-side
 	// (WizardService::prefillTimezone); any other offset stays visible AS the offset, so the owner
 	// sees what their site actually has and picks a city on purpose.
-	const tzOptions = useMemo( () => {
-		const zones = BOOT.timezones || [];
-		const selected = prefill.timezone || '';
-		const list =
-			selected && ! zones.includes( selected ) ? [ selected, ...zones ] : zones;
-		return list.map( ( z ) => ( {
-			label: /^[+-]/.test( z ) ? `UTC${ z }` : z,
-			value: z,
-		} ) );
-	}, [] );
+	//
+	// Grouped by region (persona QA 2026-10-05, T-089): one flat list of ~420 identifiers made
+	// the owner scroll past two continents to find their own city.
+	const tzChoices = useMemo( () => groupTimezones( BOOT.timezones || [], prefill.timezone || '' ), [] );
 
 	// Currency menu from the neutral global list; keep the prefilled code selectable even if it is
 	// not in the curated list (the store accepts any valid 3-letter code).
@@ -205,7 +220,10 @@ export function Wizard() {
 			selected && ! codes.includes( selected )
 				? [ selected, ...codes ]
 				: codes;
-		return list.map( ( c ) => ( { label: c, value: c } ) );
+		// "USD — US Dollar", named by the browser in the admin's own language (T-089): a bare
+		// three-letter code is a guess for anyone who does not already know theirs.
+		const locale = ( typeof document !== 'undefined' && document.documentElement.lang ) || 'en';
+		return list.map( ( c ) => ( { label: currencyLabel( c, locale ), value: c } ) );
 	}, [] );
 
 	const dayOrder = useMemo(
@@ -277,17 +295,46 @@ export function Wizard() {
 	// Continue button used to be the ONLY sign of that, with nothing on the field to say why
 	// (beta report 2026-08-02); the server refuses the same value with the same message now, and
 	// skipping the step still posts nothing at all rather than posting a blank.
-	const staffNameError = useMemo( () => {
-		const name = ( staff.name || '' ).trim();
-		if ( '' === name ) {
-			return __( 'A name is required.', 'aponto' );
+	//
+	// The SERVER's rule, per part: `first_name` is required, `last_name` is optional, and each is
+	// at most 191 characters after the same normalization the server stores (trimmed, inner
+	// whitespace collapsed). Counted in code points, as `mb_strlen` counts them.
+	// Step 2 refusals the owner can see BEFORE pressing Continue (persona QA 2026-10-05, T-086 /
+	// T-088): an empty business name and "abc not a phone" were both saved verbatim. Client-side
+	// they hold the commit and say why; the server refuses them on its own
+	// (`WizardService::saveBusiness()`), which is what `fieldErrors` carries.
+	const businessNameError = '' === ( business.name || '' ).trim() ? __( 'Enter your business name.', 'aponto' ) : '';
+	const businessPhoneError = phoneLooksValid( business.phone )
+		? ''
+		: __( 'Enter a phone number using digits, spaces and + ( ) - . only, or leave it blank.', 'aponto' );
+
+	// Step 5: a negative price used to become a FREE service without a word (T-086).
+	const servicePriceError = ( () => {
+		const problem = priceProblem( service.price );
+		if ( 'negative' === problem ) {
+			return __( 'A price cannot be negative. Leave it blank for a free service.', 'aponto' );
 		}
-		if ( name.length > MAX_FIELD ) {
+		return 'nan' === problem ? __( 'Enter the price as a number, or leave it blank.', 'aponto' ) : '';
+	} )();
+
+	const staffFirstNameError = useMemo( () => {
+		const first = normalizePart( staff.first_name );
+		if ( '' === first ) {
+			return __( 'A first name is required.', 'aponto' );
+		}
+		if ( [ ...first ].length > MAX_FIELD ) {
 			return __( 'This name is too long.', 'aponto' );
 		}
 
 		return '';
-	}, [ staff.name ] );
+	}, [ staff.first_name ] );
+	const staffLastNameError = useMemo( () => {
+		if ( [ ...normalizePart( staff.last_name ) ].length > MAX_FIELD ) {
+			return __( 'This name is too long.', 'aponto' );
+		}
+
+		return '';
+	}, [ staff.last_name ] );
 
 	// QA B — a staff email is where every booking notification for this staff member lands, so a
 	// typo is lost mail. Blank stays allowed (the field is optional and the whole step is skippable);
@@ -343,7 +390,16 @@ export function Wizard() {
 		persistStep( 0 );
 	}
 
+	// One request per press (persona QA 2026-10-05, T-066 family). `saving` disables the buttons
+	// only from the NEXT render, so two taps in one frame both posted — and the service step is a
+	// create. The ref is synchronous; every request path below takes it and releases it.
+	const inFlight = useRef( false );
+
 	async function save( doAction, payload, next ) {
+		if ( inFlight.current ) {
+			return false;
+		}
+		inFlight.current = true;
 		setSaving( true );
 		setError( '' );
 		setFieldErrors( {} );
@@ -353,17 +409,44 @@ export function Wizard() {
 				setIndex( next );
 				persistStep( next );
 			}
+			return true;
 		} catch ( e ) {
 			setError( e.message );
 			// A refused step names its fields (SPEC-P1 §4); every other failure carries none, and
 			// the notice alone is the right report for those.
 			setFieldErrors( e && e.fields ? e.fields : {} );
+			return false;
 		} finally {
+			inFlight.current = false;
 			setSaving( false );
 		}
 	}
 
+	/**
+	 * Continue on a step that edits stored values: post it only when it changed (re-test N2).
+	 *
+	 * @param {string} key      Step key in `seeds`.
+	 * @param {*}      current  The values on screen.
+	 * @param {string} doAction Wizard action.
+	 * @param {Object} payload  Request payload.
+	 * @param {number} next     Step index to advance to.
+	 */
+	async function commitStep( key, current, doAction, payload, next ) {
+		const seed = seeds.current[ key ];
+		if ( ! stepNeedsSave( seed.stored, seed.values, current ) ) {
+			go( next );
+			return;
+		}
+		if ( await save( doAction, payload, next ) ) {
+			seeds.current[ key ] = { stored: true, values: current };
+		}
+	}
+
 	async function skipWizard() {
+		if ( inFlight.current ) {
+			return;
+		}
+		inFlight.current = true;
 		setSaving( true );
 		setError( '' );
 		try {
@@ -383,6 +466,7 @@ export function Wizard() {
 		} catch ( e ) {
 			setError( e.message );
 		} finally {
+			inFlight.current = false;
 			setSaving( false );
 		}
 	}
@@ -393,6 +477,10 @@ export function Wizard() {
 	 * exact dead-button symptom this step was reported for.
 	 */
 	async function createPage() {
+		if ( inFlight.current ) {
+			return;
+		}
+		inFlight.current = true;
 		setSaving( true );
 		setError( '' );
 		try {
@@ -409,6 +497,7 @@ export function Wizard() {
 		} catch ( e ) {
 			setError( e.message );
 		} finally {
+			inFlight.current = false;
 			setSaving( false );
 		}
 	}
@@ -420,6 +509,10 @@ export function Wizard() {
 	 * cursor is deliberately left alone so a later re-entry from Settings still resumes (C10).
 	 */
 	async function finishSetup() {
+		if ( inFlight.current ) {
+			return;
+		}
+		inFlight.current = true;
 		setSaving( true );
 		setError( '' );
 		try {
@@ -433,6 +526,7 @@ export function Wizard() {
 		} catch ( e ) {
 			setError( e.message );
 		} finally {
+			inFlight.current = false;
 			setSaving( false );
 		}
 	}
@@ -615,9 +709,11 @@ export function Wizard() {
 										<FlexItem>
 											<Button
 												variant="primary"
-												disabled={ saving }
+												disabled={ saving || '' !== businessNameError || '' !== businessPhoneError }
 												onClick={ () =>
-													save(
+													commitStep(
+														'business',
+														business,
 														'business',
 														{
 															name: business.name,
@@ -648,11 +744,17 @@ export function Wizard() {
 								__next40pxDefaultSize
 								label={ __( 'Business name', 'aponto' ) }
 								value={ business.name }
-								onChange={ ( v ) =>
-									setBusiness( { ...business, name: v } )
-								}
+								onChange={ ( v ) => {
+									setBusiness( { ...business, name: v } );
+									setFieldErrors( {} );
+								} }
 								__nextHasNoMarginBottom
 							/>
+							{ '' !== ( businessNameError || fieldErrors.name || '' ) && (
+								<p className="aponto-wizard-field-error">
+									{ businessNameError || fieldErrors.name }
+								</p>
+							) }
 							{ /* A TEXTAREA, like Settings.
 							     `business.address` is declared with the textarea control in
 							     src/Support/Settings.php and reaches the settings screen through that
@@ -677,26 +779,49 @@ export function Wizard() {
 							<TextControl
 								__next40pxDefaultSize
 								label={ __( 'Phone', 'aponto' ) }
+								type="tel"
 								value={ business.phone }
-								onChange={ ( v ) =>
-									setBusiness( { ...business, phone: v } )
-								}
+								onChange={ ( v ) => {
+									setBusiness( { ...business, phone: v } );
+									setFieldErrors( {} );
+								} }
 								__nextHasNoMarginBottom
 							/>
+							{ '' !== ( businessPhoneError || fieldErrors.phone || '' ) && (
+								<p className="aponto-wizard-field-error">
+									{ businessPhoneError || fieldErrors.phone }
+								</p>
+							) }
 							<SelectControl
 								__next40pxDefaultSize
 								label={ __( 'Timezone', 'aponto' ) }
+								// No hard-coded business noun (D-R52; persona QA T-059): this
+								// said "your studio’s" to a hair salon and a medical clinic.
 								help={ __(
-									'Bookings are shown to each visitor in their own timezone; this is your studio’s.',
+									'Bookings are shown to each visitor in their own timezone; this is the local time at the business.',
 									'aponto'
 								) }
 								value={ business.timezone }
-								options={ tzOptions }
 								onChange={ ( v ) =>
 									setBusiness( { ...business, timezone: v } )
 								}
 								__nextHasNoMarginBottom
-							/>
+							>
+								{ tzChoices.loose.map( ( o ) => (
+									<option key={ o.value } value={ o.value }>
+										{ o.label }
+									</option>
+								) ) }
+								{ tzChoices.groups.map( ( group ) => (
+									<optgroup key={ group.label } label={ group.label }>
+										{ group.options.map( ( o ) => (
+											<option key={ o.value } value={ o.value }>
+												{ o.label }
+											</option>
+										) ) }
+									</optgroup>
+								) ) }
+							</SelectControl>
 							<SelectControl
 								__next40pxDefaultSize
 								label={ __( 'Currency', 'aponto' ) }
@@ -712,15 +837,23 @@ export function Wizard() {
 								__nextHasNoMarginBottom
 							/>
 							<p className="aponto-wizard-muted aponto-wizard-formats">
-								{ sprintf(
-									/* translators: 1: date format, 2: time format. */
-									__(
-										'Date and time formats (%1$s, %2$s) and week start are confirmed from WordPress.',
+								{ /* An EXAMPLE, rendered by the server in the site's language (T-080).
+								     This printed the raw PHP codes — "(F j, Y, g:i a)". Boot data
+								     older than this bundle has no example and names no format. */ }
+								{ prefill.dateExample && prefill.timeExample
+									? sprintf(
+										/* translators: 1: today's date in the site's date format, 2: the current time in the site's time format. */
+										__(
+											'Dates and times will look like this: %1$s, %2$s. The format and the week start come from WordPress; you can change them later in Settings.',
+											'aponto'
+										),
+										prefill.dateExample,
+										prefill.timeExample
+									)
+									: __(
+										'The date and time format and the week start come from WordPress; you can change them later in Settings.',
 										'aponto'
-									),
-									prefill.dateFormat || '',
-									prefill.timeFormat || ''
-								) }
+									) }
 							</p>
 						</StepShell>
 					) }
@@ -755,9 +888,11 @@ export function Wizard() {
 										<FlexItem>
 											<Button
 												variant="primary"
-												disabled={ saving || hasHourErrors }
+												disabled={ saving || ( ! seededHours.split && hasHourErrors ) }
 												onClick={ () =>
-													save(
+													seededHours.split ? go( 3 ) : commitStep(
+														'hours',
+														hours,
 														'hours',
 														{
 															days: Object.keys(
@@ -787,7 +922,15 @@ export function Wizard() {
 							{ /* C8 — the same "apply the first open day's hours everywhere"
 							     shortcut the admin SPA's WeeklyHoursGrid puts ABOVE its grid.
 							     Same position, same wording, same semantics. */ }
-							{ openDays.length >= 2 && (
+							{ seededHours.split && (
+								<p className="aponto-wizard-muted">
+									{ __(
+										'Your business hours are already set, with more than one range on some days. This step keeps them as they are — change them in Settings → Business hours.',
+										'aponto'
+									) }
+								</p>
+							) }
+							{ ! seededHours.split && openDays.length >= 2 && (
 								<div className="aponto-wizard-hours-toolbar">
 									<Button
 										className="aponto-wizard-hours-apply"
@@ -805,7 +948,7 @@ export function Wizard() {
 									</Button>
 								</div>
 							) }
-							{ dayOrder.map( ( iso ) => {
+							{ ( seededHours.split ? [] : dayOrder ).map( ( iso ) => {
 								const day = hours[ iso ];
 								const dayName = weekdayName( iso );
 								// The client's own check first; the server's message for this day
@@ -859,6 +1002,14 @@ export function Wizard() {
 														<div className="aponto-wizard-hours-time">
 															<SelectControl
 																__next40pxDefaultSize
+																// The two selects of a row had no name at all (T-078):
+																// a screen reader announced "combo box, 9:00 AM" seven
+																// times over.
+																aria-label={ sprintf(
+																	/* translators: %s: weekday name. */
+																	__( '%s opens at', 'aponto' ),
+																	dayName
+																) }
 																value={ String( day.start ) }
 																options={ timeOptions }
 																onChange={ ( v ) =>
@@ -882,6 +1033,11 @@ export function Wizard() {
 														<div className="aponto-wizard-hours-time">
 															<SelectControl
 																__next40pxDefaultSize
+																aria-label={ sprintf(
+																	/* translators: %s: weekday name. */
+																	__( '%s closes at', 'aponto' ),
+																	dayName
+																) }
 																value={ String( day.end ) }
 																options={ timeOptions }
 																onChange={ ( v ) =>
@@ -915,6 +1071,17 @@ export function Wizard() {
 									</div>
 								);
 							} ) }
+							{ /* One range per day is all this step asks for — but nothing said a
+							     lunch break or a split shift can be added afterwards, so an owner with
+							     6–11 and 15–20 saved only the morning (persona QA 2026-10-05, T-087). */ }
+							{ ! seededHours.split && (
+								<p className="aponto-wizard-muted">
+									{ __(
+										'Lunch breaks and split shifts: add more hours per day later in Settings → Business hours.',
+										'aponto'
+									) }
+								</p>
+							) }
 						</StepShell>
 					) }
 
@@ -957,14 +1124,18 @@ export function Wizard() {
 												variant="primary"
 												disabled={
 													saving ||
-													'' !== staffNameError ||
+													'' !== staffFirstNameError ||
+													'' !== staffLastNameError ||
 													'' !== staffEmailError
 												}
 												onClick={ () =>
-													save(
+													commitStep(
+														'staff',
+														staff,
 														'staff',
 														{
-															name: staff.name,
+															first_name: normalizePart( staff.first_name ),
+															last_name: normalizePart( staff.last_name ),
 															email: staff.email,
 														},
 														4
@@ -980,19 +1151,36 @@ export function Wizard() {
 						>
 							<TextControl
 								__next40pxDefaultSize
-								label={ __( 'Name', 'aponto' ) }
-								value={ staff.name }
+								label={ __( 'First name', 'aponto' ) }
+								autoComplete="given-name"
+								value={ staff.first_name }
 								onChange={ ( v ) => {
-									setStaff( { ...staff, name: v } );
+									setStaff( { ...staff, first_name: v } );
 									// The server's verdict described the value that was just
 									// replaced — drop it as soon as the founder edits the field.
 									setFieldErrors( {} );
 								} }
 								__nextHasNoMarginBottom
 							/>
-							{ '' !== ( staffNameError || fieldErrors.name || '' ) && (
+							{ '' !== ( staffFirstNameError || fieldErrors.first_name || '' ) && (
 								<p className="aponto-wizard-field-error">
-									{ staffNameError || fieldErrors.name }
+									{ staffFirstNameError || fieldErrors.first_name }
+								</p>
+							) }
+							<TextControl
+								__next40pxDefaultSize
+								label={ __( 'Last name', 'aponto' ) }
+								autoComplete="family-name"
+								value={ staff.last_name }
+								onChange={ ( v ) => {
+									setStaff( { ...staff, last_name: v } );
+									setFieldErrors( {} );
+								} }
+								__nextHasNoMarginBottom
+							/>
+							{ '' !== ( staffLastNameError || fieldErrors.last_name || '' ) && (
+								<p className="aponto-wizard-field-error">
+									{ staffLastNameError || fieldErrors.last_name }
 								</p>
 							) }
 							<TextControl
@@ -1046,7 +1234,7 @@ export function Wizard() {
 										<FlexItem>
 											<Button
 												variant="primary"
-												disabled={ saving || ! service.name }
+												disabled={ saving || ! service.name.trim() || '' !== servicePriceError }
 												onClick={ () =>
 													save(
 														'service',
@@ -1073,11 +1261,37 @@ export function Wizard() {
 								label={ __( 'Service name', 'aponto' ) }
 								placeholder={ __( 'e.g. Haircut', 'aponto' ) }
 								value={ service.name }
-								onChange={ ( v ) =>
-									setService( { ...service, name: v } )
-								}
+								onChange={ ( v ) => {
+									setService( { ...service, name: v } );
+									setFieldErrors( {} );
+								} }
 								__nextHasNoMarginBottom
 							/>
+							{ /* Re-test N11: with an empty name the button is held disabled (the rule every
+							     commit in this wizard follows) and NOTHING said why. The reason sits under
+							     the field now — a hint, not an error, because the step opens empty. */ }
+							{ fieldErrors.name ? (
+								<p className="aponto-wizard-field-error">{ fieldErrors.name }</p>
+							) : null }
+							{ ! fieldErrors.name && ! service.name.trim() ? (
+								<p className="aponto-wizard-muted">
+									{ __( 'Enter a name for the service to create it, or skip this step.', 'aponto' ) }
+								</p>
+							) : null }
+							{ Number( saved.services ) > 0 ? (
+								<p className="aponto-wizard-muted">
+									{ sprintf(
+										/* translators: %d: number of services the site already has. */
+										_n(
+											'You already have %d service. Create another here, or skip this step.',
+											'You already have %d services. Create another here, or skip this step.',
+											Number( saved.services ),
+											'aponto'
+										),
+										Number( saved.services )
+									) }
+								</p>
+							) : null }
 							<SelectControl
 								__next40pxDefaultSize
 								label={ __( 'Duration', 'aponto' ) }
@@ -1097,14 +1311,28 @@ export function Wizard() {
 							/>
 							<TextControl
 								__next40pxDefaultSize
-								label={ __( 'Price (optional)', 'aponto' ) }
+								// The currency the owner picked two steps ago, in the label (T-086):
+								// a bare "Price" field does not say what the number is a price IN.
+								label={ sprintf(
+									/* translators: %s: currency code, e.g. USD. */
+									__( 'Price in %s (optional)', 'aponto' ),
+									business.currency
+								) }
 								type="number"
+								min="0"
+								step="any"
 								value={ service.price }
-								onChange={ ( v ) =>
-									setService( { ...service, price: v } )
-								}
+								onChange={ ( v ) => {
+									setService( { ...service, price: v } );
+									setFieldErrors( {} );
+								} }
 								__nextHasNoMarginBottom
 							/>
+							{ '' !== ( servicePriceError || fieldErrors.price || '' ) && (
+								<p className="aponto-wizard-field-error">
+									{ servicePriceError || fieldErrors.price }
+								</p>
+							) }
 						</StepShell>
 					) }
 

@@ -65,6 +65,35 @@ module.exports = {
 					? 'assets/src/pro/payments_paypal/form-registry.js'
 					: 'assets/src/form/lib/payment-gateways.free.js'
 			),
+			// Coupons are Premium-owned (D-R67) and wp.org forbids paid implementation in the
+			// Free zip (D-R41): the widget's apply/quote seam and the booking editor's coupon
+			// control resolve to inert Free stubs here. The Free dist leak scan
+			// (build/scripts/build-dist.mjs) fails if coupon quote code reaches it anyway.
+			'@aponto/form-coupons$': path.resolve(
+				__dirname,
+				plan === 'premium'
+					? 'assets/src/pro/coupons/form/form-coupons.jsx'
+					: 'assets/src/form/lib/coupons.free.js'
+			),
+			'@aponto/form-balance$': path.resolve( __dirname, plan === 'premium' ? 'assets/src/pro/deposits/form-balance.jsx' : 'assets/src/form/lib/balance.free.js' ),
+			'@aponto/form-payment-choice$': path.resolve(
+				__dirname,
+				plan === 'premium'
+					? 'assets/src/pro/deposits/form-payment-choice.jsx'
+					: 'assets/src/form/lib/payment-choice.free.js'
+			),
+			'@aponto/admin-service-deposit$': path.resolve(
+				__dirname,
+				plan === 'premium'
+					? 'assets/src/pro/deposits/service-deposit.jsx'
+					: 'assets/src/admin/lib/service-deposit.free.js'
+			),
+			'@aponto/admin-booking-coupon$': path.resolve(
+				__dirname,
+				plan === 'premium'
+					? 'assets/src/pro/coupons/admin/booking-coupon.jsx'
+					: 'assets/src/admin/lib/booking-coupon.free.js'
+			),
 		},
 	},
 	entry: {
@@ -78,6 +107,21 @@ module.exports = {
 		admin: './assets/src/admin/index.js',
 		...freeModuleEntries,
 		...( plan === 'premium' ? proModuleEntries : {} ),
+	},
+	module: {
+		...defaultConfig.module,
+		rules: [
+			// The booking widget's shadow stylesheet is a JS module of template literals, so its
+			// CSS comments ship to every visitor inside `form.js` and count against the 10 KB gz
+			// CSS bar. Strip them at build time — in BOTH variants and for both entries that
+			// import the module (`form`, `form-editor`) — rather than writing the source tersely.
+			// JS comments and code are untouched; see `scripts/shadow-css.cjs`.
+			{
+				test: /assets[\\/]src[\\/]form[\\/]styles\.js$/,
+				use: [ require.resolve( './scripts/shadow-css-loader.cjs' ) ],
+			},
+			...( defaultConfig.module ? defaultConfig.module.rules : [] ),
+		],
 	},
 	output: {
 		...defaultConfig.output,
@@ -116,6 +160,21 @@ module.exports = {
 					priority: -10,
 					reuseExistingChunk: true,
 					name: 'admin-chunk-vendor',
+				},
+				// …and a MODULE ENTRY's lazy chunk (`module-chunk-*`, D-R56) gets its OWN vendor
+				// chunk. Every entry carries its own webpack runtime, so a node_modules package
+				// reached from both the admin graph and a module entry's graph cannot actually be
+				// shared between them — folding both into one `admin-chunk-vendor` only means the
+				// admin SPA downloads the module screen's dependencies as well (measured 2026-09-21:
+				// 3.9 -> 39.3 KB gz on premium, none of it reachable from `admin.js`). Higher priority
+				// than `defaultVendors` so a module chunk's vendors land here; a package both sides
+				// need is emitted twice, which is simply what two separate runtimes cost.
+				moduleVendors: {
+					test: /[\\/]node_modules[\\/]/,
+					chunks: ( chunk ) => 'string' === typeof chunk.name && chunk.name.startsWith( 'module-chunk-' ),
+					priority: -5,
+					reuseExistingChunk: true,
+					name: 'module-chunk-vendor',
 				},
 			},
 		},

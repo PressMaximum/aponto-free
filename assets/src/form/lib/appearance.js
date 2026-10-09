@@ -8,6 +8,18 @@
  * stylesheet, so the widget stays self-contained and never depends on the
  * dashboard-kit token sheet.
  *
+ * `maxWidth` (D-R49) is the same kind of override for the layout token
+ * `--ap-layout-max`: set on the host, inherited by `.ap-wrap` — the element that
+ * carries both the cap and the container query, so the query keeps measuring the
+ * capped card.
+ *
+ * Two public `--ap-*` inputs are NOT block attributes and are set by the HOST
+ * page when it needs them: `--ap-layout-max` above, and `--ap-sticky-offset`
+ * (default `0px`, D-R52) — how much vertical room the host theme's own sticky
+ * header takes, so the staff profile dialog opens clear of it. Nothing in this
+ * module writes the second one; it is documented here because this is where the
+ * public custom-property API is described.
+ *
  * `colorScheme` is the fourth (additive) appearance attribute. It is NOT a CSS
  * variable — it becomes the `data-ap-color-scheme` attribute on the host element,
  * which selects the shadow stylesheet's opt-in dark token preset. The public
@@ -151,6 +163,32 @@ export function sanitizeRadius( value ) {
 	return '4px';
 }
 
+/** Bounds of the per-block card width cap, in px (D-R49). */
+export const MAX_WIDTH_MIN = 480;
+export const MAX_WIDTH_MAX = 1140;
+/** The stylesheet's own `--ap-layout-max` (D-R49). */
+export const MAX_WIDTH_DEFAULT = 960;
+
+/**
+ * Sanitize the `maxWidth` appearance attribute to an integer px value clamped to
+ * `480..1140`, or null when it is not a number at all (the stylesheet default
+ * then applies). Numbers only — never a CSS string — so nothing can be injected
+ * through the block attribute.
+ *
+ * @param {*} value Raw attribute value.
+ * @return {?number} Clamped integer px, or null.
+ */
+export function sanitizeMaxWidth( value ) {
+	const n =
+		typeof value === 'string' && /^\d+(\.\d+)?$/.test( value.trim() )
+			? parseFloat( value )
+			: value;
+	if ( typeof n !== 'number' || ! isFinite( n ) ) {
+		return null;
+	}
+	return Math.max( MAX_WIDTH_MIN, Math.min( MAX_WIDTH_MAX, Math.floor( n ) ) );
+}
+
 /**
  * Supported color schemes. There is deliberately NO `auto`/`system` value: the
  * block is the single source of truth for the public form's skin (founder ruling
@@ -177,6 +215,26 @@ export function sanitizeColorScheme( value ) {
 }
 
 /**
+ * Card elevation steps (founder review 2026-09-30): `flat` is the hairline frame with no
+ * shadow; `sm`/`md`/`lg` are borderless shadow steps. `sm` is the default.
+ */
+export const SHADOWS = [ 'flat', 'sm', 'md', 'lg' ];
+
+/**
+ * Resolve the `data-ap-shadow` host attribute from the appearance object. Like the colour
+ * scheme it is an attribute, not a custom property: the shadow stylesheet maps each step to
+ * its token with `:host([data-ap-shadow="…"])`.
+ *
+ * @param {Object} appearance `{shadow?}` from data-props.
+ * @return {string} One of {@link SHADOWS}.
+ */
+export function resolveShadow( appearance ) {
+	const v = ( appearance || {} ).shadow;
+	const s = typeof v === 'string' ? v.trim().toLowerCase() : '';
+	return SHADOWS.includes( s ) ? s : 'sm';
+}
+
+/**
  * Resolve the `data-ap-color-scheme` host attribute from the appearance object.
  *
  * @param {Object} appearance `{colorScheme?}` from data-props.
@@ -194,7 +252,7 @@ export function resolveColorScheme( appearance ) {
  * to the shadow stylesheet defaults. `colorScheme` is deliberately NOT part of this
  * map — it is an attribute, not a custom property (see {@link resolveColorScheme}).
  *
- * @param {Object} appearance `{accent?, onAccent?, radius?}` from data-props.
+ * @param {Object} appearance `{accent?, onAccent?, radius?, maxWidth?}` from data-props.
  * @return {Object<string,string>} CSS custom properties to set on the host.
  */
 export function resolveAppearanceVars( appearance ) {
@@ -221,6 +279,11 @@ export function resolveAppearanceVars( appearance ) {
 
 	if ( a.radius !== undefined && a.radius !== null && a.radius !== '' ) {
 		out[ '--ap-radius-control' ] = sanitizeRadius( a.radius );
+	}
+
+	const maxWidth = sanitizeMaxWidth( a.maxWidth );
+	if ( maxWidth !== null ) {
+		out[ '--ap-layout-max' ] = maxWidth + 'px';
 	}
 
 	return out;

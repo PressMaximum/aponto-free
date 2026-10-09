@@ -127,8 +127,10 @@ final class Installer {
 	public static function maybeUpgrade(): void {
 		global $wpdb;
 
-		$migrator       = new Migrator( $wpdb );
-		$behind         = $migrator->currentVersion() < Migrator::SCHEMA_VERSION;
+		$migrator = new Migrator( $wpdb );
+		// "Behind" includes a database at the target number whose SHAPE this code never verified
+		// (D-R67q) — the pre-merge coupon branch's schema 11/12.
+		$behind         = $migrator->currentVersion() < Migrator::SCHEMA_VERSION || ! Migrator::shapeCurrent();
 		$has_error      = false !== get_option( Migrator::ERROR_OPTION, false );
 		$module_pending = $migrator->hasPendingModuleMigrations();
 		// A partial template seed (process died / insert failed mid-upgrade) re-triggers the install

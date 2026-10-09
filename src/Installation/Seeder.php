@@ -164,7 +164,7 @@ final class Seeder {
 				'recipient'     => 'customer',
 				'trigger_event' => 'created',
 				'subject'       => 'We received your booking — {service_name}',
-				'body'          => "Hi {customer_name},\n\nWe received your booking for {service_name} on {booking_date} at {booking_time}.\n\nYour reference is {order_code}.\nManage your booking: {manage_link}\n\n{business_name}",
+				'body'          => "Hi {customer_first_name},\n\nWe received your booking for {service_name} on {booking_date} at {booking_time}.\n\nYour reference is {order_code}.\nManage your booking: {manage_link}\n\n{payment_summary}\n\n{business_name}",
 				'enabled'       => 1,
 			),
 			array(
@@ -172,7 +172,7 @@ final class Seeder {
 				'recipient'     => 'customer',
 				'trigger_event' => 'confirmed',
 				'subject'       => 'Your booking is confirmed — {service_name}',
-				'body'          => "Hi {customer_name},\n\nYour booking for {service_name} with {staff_name} on {booking_date} at {booking_time} is confirmed.\n\nReference: {order_code}\nManage your booking: {manage_link}\n\n{business_name}",
+				'body'          => "Hi {customer_first_name},\n\nYour booking for {service_name} with {staff_name} on {booking_date} at {booking_time} is confirmed.\n\nReference: {order_code}\nManage your booking: {manage_link}\n\n{payment_summary}\n\n{business_name}",
 				'enabled'       => 1,
 			),
 			array(
@@ -180,7 +180,7 @@ final class Seeder {
 				'recipient'     => 'customer',
 				'trigger_event' => 'rescheduled',
 				'subject'       => 'Your booking was rescheduled — {service_name}',
-				'body'          => "Hi {customer_name},\n\nYour booking for {service_name} has been rescheduled to {booking_date} at {booking_time}.\n\nReference: {order_code}\nManage your booking: {manage_link}\n\n{business_name}",
+				'body'          => "Hi {customer_first_name},\n\nYour booking for {service_name} has been rescheduled to {booking_date} at {booking_time}.\n\nReference: {order_code}\nManage your booking: {manage_link}\n\n{payment_summary}\n\n{business_name}",
 				'enabled'       => 1,
 			),
 			array(
@@ -193,7 +193,7 @@ final class Seeder {
 				// The manage link opens the permanently READ-ONLY cancelled view (D-R25 revocation
 				// semantics), so the customer can still see what was cancelled — hence "View", not
 				// "Manage".
-				'body'          => "Hi {customer_name},\n\nYour booking for {service_name} on {booking_date} at {booking_time} has been cancelled.\n\nReference: {order_code}\nView your booking: {manage_link}\n\nBook again: {booking_page_link}\n\n{business_name}",
+				'body'          => "Hi {customer_first_name},\n\nYour booking for {service_name} on {booking_date} at {booking_time} has been cancelled.\n\nReference: {order_code}\nView your booking: {manage_link}\n\nBook again: {booking_page_link}\n\n{payment_summary}\n\n{business_name}",
 				'enabled'       => 1,
 			),
 			array(
@@ -201,7 +201,7 @@ final class Seeder {
 				'recipient'     => 'customer',
 				'trigger_event' => 'completed',
 				'subject'       => 'Thank you for visiting {business_name}',
-				'body'          => "Hi {customer_name},\n\nThank you for choosing {service_name}. We hope to see you again.\n\n{business_name}",
+				'body'          => "Hi {customer_first_name},\n\nThank you for choosing {service_name}. We hope to see you again.\n\n{payment_summary}\n\n{business_name}",
 				'enabled'       => 0,
 			),
 			array(
@@ -213,7 +213,7 @@ final class Seeder {
 				'recipient'     => 'customer',
 				'trigger_event' => 'reminder',
 				'subject'       => 'Reminder: your booking for {service_name} is coming up',
-				'body'          => "Hi {customer_name},\n\nThis is a reminder for your booking for {service_name} on {booking_date} at {booking_time}.\n\nReference: {order_code}\nManage your booking: {manage_link}\n\n{business_name}",
+				'body'          => "Hi {customer_first_name},\n\nThis is a reminder for your booking for {service_name} on {booking_date} at {booking_time}.\n\nReference: {order_code}\nManage your booking: {manage_link}\n\n{payment_summary}\n\n{business_name}",
 				'enabled'       => 1,
 			),
 			array(
@@ -229,7 +229,7 @@ final class Seeder {
 				'recipient'     => 'customer',
 				'trigger_event' => 'no_show',
 				'subject'       => 'We missed you at {business_name}',
-				'body'          => "Hi {customer_name},\n\nWe had you down for {service_name} on {booking_date} at {booking_time}, but we did not get to see you.\n\nReference: {order_code}\n\nBook again: {booking_page_link}\n\n{business_name}",
+				'body'          => "Hi {customer_first_name},\n\nWe had you down for {service_name} on {booking_date} at {booking_time}, but we did not get to see you.\n\nReference: {order_code}\n\nBook again: {booking_page_link}\n\n{payment_summary}\n\n{business_name}",
 				'enabled'       => 0,
 			),
 			array(
@@ -250,7 +250,7 @@ final class Seeder {
 				'recipient'     => 'customer',
 				'trigger_event' => 'payment_pending',
 				'subject'       => 'Complete your payment — {service_name}',
-				'body'          => "Hi {customer_name},\n\nWe are holding your appointment for {service_name} on {booking_date} at {booking_time}, but we have not received your payment yet.\n\nAmount due: {amount_due}\nReference: {order_code}\nPlease complete your payment by {payment_deadline}\nPay now: {payment_link}\nManage your booking: {manage_link}\n\nIf we do not receive it in time the slot is released automatically.\n\n{business_name}",
+				'body'          => "Hi {customer_first_name},\n\nWe are holding your appointment for {service_name} on {booking_date} at {booking_time}, but we have not received your payment yet.\n\nAmount due: {amount_due}\nReference: {order_code}\nPlease complete your payment by {payment_deadline}\nPay now: {payment_link}\nManage your booking: {manage_link}\n\nIf we do not receive it in time the slot is released automatically.\n\n{payment_summary}\n\n{business_name}",
 				'enabled'       => 1,
 			),
 			array(
@@ -262,7 +262,7 @@ final class Seeder {
 				'recipient'     => 'customer',
 				'trigger_event' => 'refund',
 				'subject'       => 'Your refund is on its way — {service_name}',
-				'body'          => "Hi {customer_name},\n\nWe have refunded {refund_amount} for your booking of {service_name} on {booking_date}.\n\nReference: {order_code}\nPayment status: {payment_status}\n\nDepending on your bank, it can take a few days for the money to appear.\n\n{business_name}",
+				'body'          => "Hi {customer_first_name},\n\nWe have refunded {refund_amount} for your booking of {service_name} on {booking_date}.\n\nReference: {order_code}\nPayment status: {payment_status}\n\nDepending on your bank, it can take a few days for the money to appear.\n\n{payment_summary}\n\n{business_name}",
 				'enabled'       => 0,
 			),
 			array(
@@ -298,7 +298,7 @@ final class Seeder {
 				'subject'       => 'New booking for you — {service_name}',
 				// Phone rides its own line so it self-strips when the customer left none, exactly
 				// as in the admin template (Placeholders optional-line contract).
-				'body'          => "Hi {staff_name},\n\nA new booking was added to your calendar.\n\nService: {service_name}\nWhen: {booking_date} {booking_time}\nCustomer: {customer_name} ({customer_email})\nPhone: {customer_phone}\nReference: {order_code}",
+				'body'          => "Hi {staff_first_name},\n\nA new booking was added to your calendar.\n\nService: {service_name}\nWhen: {booking_date} {booking_time}\nCustomer: {customer_name} ({customer_email})\nPhone: {customer_phone}\nReference: {order_code}",
 				'enabled'       => 1,
 			),
 			array(
@@ -307,7 +307,7 @@ final class Seeder {
 				'trigger_event' => 'cancelled',
 				// The Reason line drops itself when no cancellation reason was given.
 				'subject'       => 'Booking cancelled — {service_name}',
-				'body'          => "Hi {staff_name},\n\nA booking was removed from your calendar.\n\nService: {service_name}\nWhen: {booking_date} {booking_time}\nCustomer: {customer_name}\nReference: {order_code}\nReason: {cancel_reason}",
+				'body'          => "Hi {staff_first_name},\n\nA booking was removed from your calendar.\n\nService: {service_name}\nWhen: {booking_date} {booking_time}\nCustomer: {customer_name}\nReference: {order_code}\nReason: {cancel_reason}",
 				'enabled'       => 1,
 			),
 		);
@@ -326,33 +326,33 @@ final class Seeder {
 	public static function translatableDefaults(): array {
 		return array(
 			__( 'We received your booking — {service_name}', 'aponto' ),
-			__( "Hi {customer_name},\n\nWe received your booking for {service_name} on {booking_date} at {booking_time}.\n\nYour reference is {order_code}.\nManage your booking: {manage_link}\n\n{business_name}", 'aponto' ),
+			__( "Hi {customer_first_name},\n\nWe received your booking for {service_name} on {booking_date} at {booking_time}.\n\nYour reference is {order_code}.\nManage your booking: {manage_link}\n\n{payment_summary}\n\n{business_name}", 'aponto' ),
 			__( 'Your booking is confirmed — {service_name}', 'aponto' ),
-			__( "Hi {customer_name},\n\nYour booking for {service_name} with {staff_name} on {booking_date} at {booking_time} is confirmed.\n\nReference: {order_code}\nManage your booking: {manage_link}\n\n{business_name}", 'aponto' ),
+			__( "Hi {customer_first_name},\n\nYour booking for {service_name} with {staff_name} on {booking_date} at {booking_time} is confirmed.\n\nReference: {order_code}\nManage your booking: {manage_link}\n\n{payment_summary}\n\n{business_name}", 'aponto' ),
 			__( 'Your booking was rescheduled — {service_name}', 'aponto' ),
-			__( "Hi {customer_name},\n\nYour booking for {service_name} has been rescheduled to {booking_date} at {booking_time}.\n\nReference: {order_code}\nManage your booking: {manage_link}\n\n{business_name}", 'aponto' ),
+			__( "Hi {customer_first_name},\n\nYour booking for {service_name} has been rescheduled to {booking_date} at {booking_time}.\n\nReference: {order_code}\nManage your booking: {manage_link}\n\n{payment_summary}\n\n{business_name}", 'aponto' ),
 			__( 'Your booking was cancelled — {service_name}', 'aponto' ),
-			__( "Hi {customer_name},\n\nYour booking for {service_name} on {booking_date} at {booking_time} has been cancelled.\n\nReference: {order_code}\nView your booking: {manage_link}\n\nBook again: {booking_page_link}\n\n{business_name}", 'aponto' ),
+			__( "Hi {customer_first_name},\n\nYour booking for {service_name} on {booking_date} at {booking_time} has been cancelled.\n\nReference: {order_code}\nView your booking: {manage_link}\n\nBook again: {booking_page_link}\n\n{payment_summary}\n\n{business_name}", 'aponto' ),
 			__( 'Thank you for visiting {business_name}', 'aponto' ),
-			__( "Hi {customer_name},\n\nThank you for choosing {service_name}. We hope to see you again.\n\n{business_name}", 'aponto' ),
+			__( "Hi {customer_first_name},\n\nThank you for choosing {service_name}. We hope to see you again.\n\n{payment_summary}\n\n{business_name}", 'aponto' ),
 			__( 'Reminder: your booking for {service_name} is coming up', 'aponto' ),
-			__( "Hi {customer_name},\n\nThis is a reminder for your booking for {service_name} on {booking_date} at {booking_time}.\n\nReference: {order_code}\nManage your booking: {manage_link}\n\n{business_name}", 'aponto' ),
+			__( "Hi {customer_first_name},\n\nThis is a reminder for your booking for {service_name} on {booking_date} at {booking_time}.\n\nReference: {order_code}\nManage your booking: {manage_link}\n\n{payment_summary}\n\n{business_name}", 'aponto' ),
 			__( 'We missed you at {business_name}', 'aponto' ),
-			__( "Hi {customer_name},\n\nWe had you down for {service_name} on {booking_date} at {booking_time}, but we did not get to see you.\n\nReference: {order_code}\n\nBook again: {booking_page_link}\n\n{business_name}", 'aponto' ),
+			__( "Hi {customer_first_name},\n\nWe had you down for {service_name} on {booking_date} at {booking_time}, but we did not get to see you.\n\nReference: {order_code}\n\nBook again: {booking_page_link}\n\n{payment_summary}\n\n{business_name}", 'aponto' ),
 			__( 'New booking — {service_name}', 'aponto' ),
 			__( "A new booking was made.\n\nService: {service_name}\nStaff: {staff_name}\nWhen: {booking_date} {booking_time}\nCustomer: {customer_name} ({customer_email})\nPhone: {customer_phone}\nReference: {order_code}", 'aponto' ),
 			__( 'Booking cancelled — {service_name}', 'aponto' ),
 			__( "A booking was cancelled.\n\nService: {service_name}\nWhen: {booking_date} {booking_time}\nCustomer: {customer_name} ({customer_email})\nReference: {order_code}\nReason: {cancel_reason}", 'aponto' ),
 			__( 'Complete your payment — {service_name}', 'aponto' ),
-			__( "Hi {customer_name},\n\nWe are holding your appointment for {service_name} on {booking_date} at {booking_time}, but we have not received your payment yet.\n\nAmount due: {amount_due}\nReference: {order_code}\nPlease complete your payment by {payment_deadline}\nPay now: {payment_link}\nManage your booking: {manage_link}\n\nIf we do not receive it in time the slot is released automatically.\n\n{business_name}", 'aponto' ),
+			__( "Hi {customer_first_name},\n\nWe are holding your appointment for {service_name} on {booking_date} at {booking_time}, but we have not received your payment yet.\n\nAmount due: {amount_due}\nReference: {order_code}\nPlease complete your payment by {payment_deadline}\nPay now: {payment_link}\nManage your booking: {manage_link}\n\nIf we do not receive it in time the slot is released automatically.\n\n{payment_summary}\n\n{business_name}", 'aponto' ),
 			__( 'Your refund is on its way — {service_name}', 'aponto' ),
-			__( "Hi {customer_name},\n\nWe have refunded {refund_amount} for your booking of {service_name} on {booking_date}.\n\nReference: {order_code}\nPayment status: {payment_status}\n\nDepending on your bank, it can take a few days for the money to appear.\n\n{business_name}", 'aponto' ),
+			__( "Hi {customer_first_name},\n\nWe have refunded {refund_amount} for your booking of {service_name} on {booking_date}.\n\nReference: {order_code}\nPayment status: {payment_status}\n\nDepending on your bank, it can take a few days for the money to appear.\n\n{payment_summary}\n\n{business_name}", 'aponto' ),
 			__( 'New booking for you — {service_name}', 'aponto' ),
-			__( "Hi {staff_name},\n\nA new booking was added to your calendar.\n\nService: {service_name}\nWhen: {booking_date} {booking_time}\nCustomer: {customer_name} ({customer_email})\nPhone: {customer_phone}\nReference: {order_code}", 'aponto' ),
+			__( "Hi {staff_first_name},\n\nA new booking was added to your calendar.\n\nService: {service_name}\nWhen: {booking_date} {booking_time}\nCustomer: {customer_name} ({customer_email})\nPhone: {customer_phone}\nReference: {order_code}", 'aponto' ),
 			// NOTE: the staff cancellation subject is byte-identical to the admin one, so it is a
 			// single msgid and appears only once in this list. `translatableDefaults()` is a POT
 			// anchor, not a per-template mirror — the equality test compares SETS for that reason.
-			__( "Hi {staff_name},\n\nA booking was removed from your calendar.\n\nService: {service_name}\nWhen: {booking_date} {booking_time}\nCustomer: {customer_name}\nReference: {order_code}\nReason: {cancel_reason}", 'aponto' ),
+			__( "Hi {staff_first_name},\n\nA booking was removed from your calendar.\n\nService: {service_name}\nWhen: {booking_date} {booking_time}\nCustomer: {customer_name}\nReference: {order_code}\nReason: {cancel_reason}", 'aponto' ),
 		);
 	}
 }

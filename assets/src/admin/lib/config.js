@@ -44,15 +44,23 @@ export const config = {
 		timeFormat: raw.settings?.timeFormat || 'g:i a',
 		phoneField: raw.settings?.phoneField || 'optional',
 	},
+	// The CURRENT user's saved workspace layouts (D-R74, rest-contract §2.23). `null` = nothing saved, so
+	// the defaults apply; `lib/table-preferences.js` owns reading and writing it.
+	preferences: {
+		bookingsTable: raw.preferences?.bookingsTable && typeof raw.preferences.bookingsTable === 'object' ? raw.preferences.bookingsTable : null,
+	},
 	caps: {
 		bookings: raw.caps?.bookings !== false,
 		services: Boolean( raw.caps?.services ),
 		staff: Boolean( raw.caps?.staff ),
 		settings: Boolean( raw.caps?.settings ),
+		media: Boolean( raw.caps?.media ),
 	},
 	// Business-hours weekly rows (staff_id=0 scope) — boot data because no REST
 	// route reads the business scope yet (see AdminPage::businessWeekly()).
 	businessHours: Array.isArray( raw.businessHours ) ? raw.businessHours : [],
+	// D-R79: an enabled payment module is the site's exclusive checkout (ready or not).
+	paymentExclusive: Boolean( raw.paymentExclusive ),
 	// Booking page the wizard created (readiness card), or null.
 	bookingPage: raw.bookingPage && typeof raw.bookingPage === 'object' ? raw.bookingPage : null,
 	wizardUrl: raw.wizardUrl || '',

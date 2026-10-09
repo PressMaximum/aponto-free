@@ -30,7 +30,7 @@ final class CustomerGateway {
 	/**
 	 * Selectable columns in DTO order (never includes the internal `email_norm`).
 	 */
-	private const COLUMNS = 'id, name, email, phone, wp_user_id, note, created_at';
+	private const COLUMNS = 'id, first_name, last_name, email, phone, wp_user_id, note, created_at';
 
 	/**
 	 * Construct the gateway.
@@ -54,7 +54,8 @@ final class CustomerGateway {
 	 * List customers with a search and pagination, newest first.
 	 *
 	 * Search haystack (rest-contract §2.10, 2026-07-18): name + email + phone +
-	 * internal note.
+	 * internal note. "Name" is `first_name`, `last_name` and their concatenation, engine-branched
+	 * (name split, D-R69 / D-R54), so "Jane Doe" still matches.
 	 *
 	 * @param string $search   Search term (already sanitized).
 	 * @param int    $page     Page (>=1).
@@ -68,11 +69,8 @@ final class CustomerGateway {
 
 		if ( '' !== $search ) {
 			$like      = '%' . $this->wpdb->esc_like( $search ) . '%';
-			$where_sql = ' WHERE ( name LIKE %s OR email LIKE %s OR phone LIKE %s OR note LIKE %s )';
-			$params[]  = $like;
-			$params[]  = $like;
-			$params[]  = $like;
-			$params[]  = $like;
+			$where_sql = ' WHERE ( ' . PersonNameSearch::clause( $this->wpdb ) . ' OR email LIKE %s OR phone LIKE %s OR note LIKE %s )';
+			$params    = array_merge( PersonNameSearch::args( $like ), array( $like, $like, $like ) );
 		}
 
 		$count_sql = "SELECT COUNT(*) FROM {$table}{$where_sql}";
@@ -131,9 +129,15 @@ final class CustomerGateway {
 	 * window function either. Only the `timezone` expression differs; the counts, the blocking
 	 * status filter and the grouping are identical, and the MySQL statement is untouched.
 	 *
+	 * `cancelled_count` and `last_active_booking` (persona QA 2026-10-05, T-051, additive) ride the
+	 * same grouped statement as two more conditional aggregates: the number of bookings currently
+	 * `cancelled`, and the most recent start among the bookings that are NOT cancelled. The existing
+	 * `bookings_count` / `last_booking` keep their meaning (every booking); the admin list uses the
+	 * new pair so a customer who only ever cancelled does not read as a regular.
+	 *
 	 * @param list<int> $ids Customer ids on the current page.
 	 * @param string    $now Current instant as an `Y-m-d H:i:s` UTC string.
-	 * @return array<int, array{bookings_count:int, upcoming:int, last_booking:string, timezone:string, no_show_count:int}>
+	 * @return array<int, array{bookings_count:int, upcoming:int, last_booking:string, timezone:string, no_show_count:int, cancelled_count:int, last_active_booking:string}>
 	 */
 	public function aggregatesFor( array $ids, string $now ): array {
 		$ids = array_values( array_unique( array_filter( array_map( 'intval', $ids ) ) ) );
@@ -150,6 +154,8 @@ final class CustomerGateway {
 				COUNT(*) AS bookings_count,
 				SUM(CASE WHEN status IN ({$status_in}) AND start_datetime_utc >= %s THEN 1 ELSE 0 END) AS upcoming,
 				SUM(CASE WHEN status = 'no_show' THEN 1 ELSE 0 END) AS no_show_count,
+				SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_count,
+				MAX(CASE WHEN status <> 'cancelled' THEN start_datetime_utc ELSE NULL END) AS last_active_booking,
 				MAX(start_datetime_utc) AS last_booking,
 				SUBSTRING_INDEX(GROUP_CONCAT(customer_timezone ORDER BY start_datetime_utc DESC SEPARATOR '\n'), '\n', 1) AS timezone
 			FROM {$bookings}
@@ -161,6 +167,8 @@ final class CustomerGateway {
 					COUNT(*) AS bookings_count,
 					SUM(CASE WHEN b.status IN ({$status_in}) AND b.start_datetime_utc >= %s THEN 1 ELSE 0 END) AS upcoming,
 					SUM(CASE WHEN b.status = 'no_show' THEN 1 ELSE 0 END) AS no_show_count,
+					SUM(CASE WHEN b.status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_count,
+					MAX(CASE WHEN b.status <> 'cancelled' THEN b.start_datetime_utc ELSE NULL END) AS last_active_booking,
 					MAX(b.start_datetime_utc) AS last_booking,
 					(
 						SELECT b2.customer_timezone
@@ -181,11 +189,13 @@ final class CustomerGateway {
 		$out = array();
 		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
 			$out[ (int) $row['customer_id'] ] = array(
-				'bookings_count' => (int) $row['bookings_count'],
-				'upcoming'       => (int) $row['upcoming'],
-				'last_booking'   => (string) ( $row['last_booking'] ?? '' ),
-				'timezone'       => (string) ( $row['timezone'] ?? '' ),
-				'no_show_count'  => (int) ( $row['no_show_count'] ?? 0 ),
+				'bookings_count'      => (int) $row['bookings_count'],
+				'upcoming'            => (int) $row['upcoming'],
+				'last_booking'        => (string) ( $row['last_booking'] ?? '' ),
+				'timezone'            => (string) ( $row['timezone'] ?? '' ),
+				'no_show_count'       => (int) ( $row['no_show_count'] ?? 0 ),
+				'cancelled_count'     => (int) ( $row['cancelled_count'] ?? 0 ),
+				'last_active_booking' => (string) ( $row['last_active_booking'] ?? '' ),
 			);
 		}
 
@@ -236,10 +246,15 @@ final class CustomerGateway {
 	 *
 	 * @param int                  $id   Customer id.
 	 * @param array<string, mixed> $data Column => value (must include `email_norm`).
+	 * @throws \Aponto\Database\StorageException On write failure.
 	 */
 	public function update( int $id, array $data ): void {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin update.
-		$this->wpdb->update( $this->table(), $data, array( 'id' => $id ), $this->formats( $data ), array( '%d' ) );
+		$result = $this->wpdb->update( $this->table(), $data, array( 'id' => $id ), $this->formats( $data ), array( '%d' ) );
+		if ( false === $result ) {
+			$failure = \Aponto\Database\StorageException::fromWpdb( $this->wpdb, esc_html( 'update entity' ) );
+			throw $failure;
+		}
 	}
 
 	/**

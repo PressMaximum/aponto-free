@@ -45,11 +45,20 @@ final class BookingManagePage {
 	 */
 	public const QUERY_VAR = 'aponto_manage_token';
 
+	/** Registered switch for the standalone balance checkout. */
+	public const BALANCE_QUERY_VAR = 'aponto_balance_view';
+
 	/**
 	 * Query var the BOOKING PAGE reads to resume an unpaid hold. Lives here, beside the token it
 	 * carries, so the email placeholder, the manage page's button and the widget all name it once.
 	 */
 	public const RESUME_QUERY_VAR = 'aponto_resume';
+
+	/**
+	 * Query var the BOOKING PAGE reads to open the form on one service (D-R71t). An integer
+	 * service id, read by the widget only (`startingService()` in `assets/src/form/app.jsx`).
+	 */
+	public const SERVICE_QUERY_VAR = 'service_id';
 
 	/**
 	 * URL path prefix for the pretty permalink (`/{prefix}/{token}`).
@@ -64,7 +73,7 @@ final class BookingManagePage {
 	/**
 	 * Bump when the rewrite rule changes so a deploy re-flushes without needing reactivation.
 	 */
-	private const REWRITE_VERSION = '2';
+	private const REWRITE_VERSION = '3';
 
 	/**
 	 * Optional injected service graph (test seam); null builds the production graph lazily.
@@ -93,6 +102,11 @@ final class BookingManagePage {
 	 * validation stays in the controller's `lookupActive()` (strict 43-char regex).
 	 */
 	public static function addRewriteRules(): void {
+		add_rewrite_rule(
+			'^' . self::ROUTE_PREFIX . '/([^/]+)/balance/?$',
+			'index.php?' . self::QUERY_VAR . '=$matches[1]&' . self::BALANCE_QUERY_VAR . '=1',
+			'top'
+		);
 		add_rewrite_rule(
 			'^' . self::ROUTE_PREFIX . '/([^/]+)/?$',
 			'index.php?' . self::QUERY_VAR . '=$matches[1]',
@@ -181,6 +195,7 @@ final class BookingManagePage {
 	 */
 	public function registerQueryVar( array $vars ): array {
 		$vars[] = self::QUERY_VAR;
+		$vars[] = self::BALANCE_QUERY_VAR;
 
 		return $vars;
 	}
@@ -223,6 +238,11 @@ final class BookingManagePage {
 			return null;
 		}
 
+		// This read-only page never interprets a POST as a cancellation request.
+		if ( '1' === (string) get_query_var( self::BALANCE_QUERY_VAR ) ) {
+			return $this->handle( $token, 'balance' );
+		}
+
 		$method = isset( $_SERVER['REQUEST_METHOD'] )
 			? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) )
 			: 'GET';
@@ -252,7 +272,7 @@ final class BookingManagePage {
 	 * response. Never performs PHP header or output side effects.
 	 *
 	 * @param string $token  Raw manage token.
-	 * @param string $intent One of `view`, `confirm`, `cancel`.
+	 * @param string $intent One of `view`, `confirm`, `cancel`, `balance`.
 	 * @param string $reason Optional cancellation reason (cancel intent).
 	 * @param string $nonce  Nonce value (cancel intent).
 	 */
@@ -266,10 +286,18 @@ final class BookingManagePage {
 			return $this->page( 404, $this->renderNotFound() );
 		}
 
+		if ( 'balance' === $intent ) {
+			$registrar = new BlockRegistrar( $this->services()->settings() );
+			$inner     = '<p><a class="ap-meta" href="' . esc_url( self::manageUrl( $token ) ) . '">' . esc_html__( 'Back to booking', 'aponto' ) . '</a></p>';
+			$inner    .= $registrar->renderBalanceCheckout( $token );
+
+			return new PageResponse( 200, self::headers(), $this->document( $inner, __( 'Pay remaining balance', 'aponto' ) ) );
+		}
+
 		// B4 (U4): a CANCELLED booking renders a PERMANENT read-only view for every intent — never
 		// the cancel flow — so the link in a cancellation email keeps showing the booking's details
 		// instead of the short-lived 404 it used to decay into. Invalid/unknown tokens still 404
-		// above (enumeration resistance unchanged); completed tokens stay terminal → 404.
+		// above (enumeration resistance unchanged); completed deposit tokens remain readable for balance settlement (D-R71c).
 		if ( 'cancelled' === (string) ( $booking['status'] ?? '' ) ) {
 			return $this->page( 200, $this->renderCancelled( $booking ) );
 		}
@@ -412,7 +440,65 @@ final class BookingManagePage {
 			return __( 'Too many attempts right now. Please wait a moment and try again.', 'aponto' );
 		}
 
-		return __( 'We could not cancel this booking. Please try again or contact the business.', 'aponto' );
+		return $this->withContact( __( 'We could not cancel this booking. Please try again or contact the business.', 'aponto' ) );
+	}
+
+	/**
+	 * A "contact the business" sentence followed by HOW (persona QA 2026-10-05, T-064).
+	 *
+	 * The page told customers to contact the business and gave them nothing to do it with. The
+	 * phone is the public `business.phone`; the email is the Reply-To the site set for its
+	 * customer mail (`notifications.reply_to`) — the address it already asks customers to write
+	 * to. `business.email` is the owner's alert inbox and is never printed here. With neither
+	 * configured the sentence is returned unchanged.
+	 *
+	 * @param string $sentence Translated sentence.
+	 */
+	private function withContact( string $sentence ): string {
+		$settings = $this->services()->settings();
+		$parts    = array();
+		$phone    = trim( (string) $settings->get( 'business.phone' ) );
+		$email    = trim( (string) $settings->get( 'notifications.reply_to' ) );
+		if ( '' !== $phone ) {
+			/* translators: %s: the business phone number. */
+			$parts[] = sprintf( __( 'Phone: %s', 'aponto' ), $phone );
+		}
+		if ( '' !== $email && false !== is_email( $email ) ) {
+			/* translators: %s: the business email address. */
+			$parts[] = sprintf( __( 'Email: %s', 'aponto' ), $email );
+		}
+
+		return array() === $parts ? $sentence : $sentence . ' ' . implode( ' · ', $parts );
+	}
+
+	/**
+	 * The name this page signs with: the business name, or the site title when none is set
+	 * (persona QA 2026-10-05, T-064 — the footer used to show the WordPress site title).
+	 */
+	private function brandName(): string {
+		$name = trim( (string) $this->services()->settings()->get( 'business.name' ) );
+
+		return '' !== $name ? $name : \Aponto\Support\Settings::blogName();
+	}
+
+	/**
+	 * The end time of the appointment, marked when it falls on the day after the start in the
+	 * timezone both instants are shown in (persona QA 2026-10-05, final check): "11:45 pm →
+	 * 12:00 am (+1 day)", as the booking form, the cart and the order pages print it. The date on
+	 * the page is the START date, so an unmarked "12:00 am" read as the night before.
+	 *
+	 * @param \DateTimeImmutable $start       Start, already in the display timezone.
+	 * @param \DateTimeImmutable $end         End, in the same timezone.
+	 * @param string             $time_format Site time format.
+	 */
+	public static function endTime( \DateTimeImmutable $start, \DateTimeImmutable $end, string $time_format ): string {
+		$time = $end->format( $time_format );
+		if ( $start->format( 'Y-m-d' ) === $end->format( 'Y-m-d' ) ) {
+			return $time;
+		}
+
+		/* translators: %s: appointment end time that falls on the following day, e.g. "1:00 AM (+1 day)". */
+		return sprintf( __( '%s (+1 day)', 'aponto' ), $time );
 	}
 
 	/**
@@ -442,33 +528,74 @@ final class BookingManagePage {
 		$time_format = (string) $settings->get( 'time_format' );
 
 		$location_name = (string) ( $b['location']['name'] ?? '' );
-		$order         = is_array( $b['order'] ?? null ) ? $b['order'] : array();
+		// The branch ADDRESS (D-R62), printed under the meta line like the widget's confirmation —
+		// but only for a real branch (`location.id > 0`, rest-contract §3.3). At `id = 0` the
+		// DTO carries the business fallback, and a page with no branches renders exactly as it
+		// did before this line existed.
+		$location_address = (int) ( $b['location']['id'] ?? 0 ) > 0
+			? trim( (string) ( $b['location']['address'] ?? '' ) )
+			: '';
+		$order            = is_array( $b['order'] ?? null ) ? $b['order'] : array();
 
-		// Studio-time parity (fleet-r1 Fix 9b): when the visitor is viewing in a different timezone
-		// than the studio, show the appointment in the studio's own clock too — the same "… at the
-		// studio" line the booking form and the confirmation email carry.
+		// Business-time parity (fleet-r1 Fix 9b): when the visitor is viewing in a different timezone
+		// than the business, show the appointment in the business's own clock too — the same line
+		// the booking form and the confirmation email carry. It carries the business DATE as well
+		// when that is a different day (persona QA 2026-10-05, T-058), through the same helper the
+		// email uses, so the two can never disagree about which day the visit is on.
 		$business_zone      = $this->safeZone( (string) ( $b['business_timezone'] ?? '' ) );
 		$show_business_time = null !== $start && $business_zone->getName() !== $zone->getName();
-		$business_time      = $show_business_time ? $start->setTimezone( $business_zone )->format( $time_format ) : '';
+		$business_time      = $show_business_time
+			? NotificationContext::secondaryMoment(
+				$start->format( $date_format ),
+				$start->setTimezone( $business_zone )->format( $date_format ),
+				$start->setTimezone( $business_zone )->format( $time_format )
+			)
+			: '';
 		$business_tz_label  = $show_business_time ? \Aponto\Rest\Support\TimezoneLabel::label( $business_zone, $start ) : '';
+		$payment_status     = (string) ( $order['payment_status'] ?? 'none' );
+		$is_deposit         = \Aponto\Payments\OrderAmounts::isDeposit( $order );
+		$currency           = (string) ( $order['currency'] ?? '' );
+		$net_collected      = (int) ( $order['net_collected_minor'] ?? 0 );
+		// A deposit that was PARTLY refunded (D-R71): the stored `partial` alone reads like "deposit
+		// paid", and the net figure would print "$80" for a $90 deposit with $10 back. Show what was
+		// paid and what came back instead. A fully refunded deposit keeps its own `refunded` state.
+		$refunded_minor = $is_deposit && 'partial' === $payment_status ? max( 0, (int) ( $order['refunded_minor'] ?? 0 ) ) : 0;
 
 		return array(
-			'status'            => (string) ( $b['status'] ?? '' ),
-			'service'           => (string) ( $b['service']['name'] ?? '' ),
-			'staff'             => (string) ( $b['staff']['name'] ?? '' ),
-			'location_name'     => $location_name,
-			'tz_label'          => (string) ( $b['timezone_label'] ?? '' ),
-			'date'              => null !== $start ? $start->format( $date_format ) : '',
-			'time_start'        => null !== $start ? $start->format( $time_format ) : '',
-			'time_end'          => null !== $end ? $end->format( $time_format ) : '',
-			'tile_day'          => null !== $start ? $start->format( 'j' ) : '',
-			'tile_month'        => null !== $start ? $start->format( 'M' ) : '',
-			'total'             => $this->formatMoney( (int) ( $order['total_minor'] ?? 0 ), (string) ( $order['currency'] ?? '' ) ),
-			'can_cancel'        => (bool) ( $b['can_cancel'] ?? false ),
-			'deadline'          => null !== $deadline ? $deadline->format( $date_format . ' · ' . $time_format ) : '',
-			'business_time'     => $business_time,
-			'business_tz_label' => $business_tz_label,
-			'hold_deadline'     => $this->holdDeadline( $order, $zone, $time_format ),
+			'status'               => (string) ( $b['status'] ?? '' ),
+			'service'              => (string) ( $b['service']['name'] ?? '' ),
+			'staff'                => (string) ( $b['staff']['name'] ?? '' ),
+			'location_name'        => $location_name,
+			'location_address'     => $location_address,
+			'tz_label'             => (string) ( $b['timezone_label'] ?? '' ),
+			'date'                 => null !== $start ? $start->format( $date_format ) : '',
+			'time_start'           => null !== $start ? $start->format( $time_format ) : '',
+			'time_end'             => null !== $end ? ( null !== $start ? self::endTime( $start, $end, $time_format ) : $end->format( $time_format ) ) : '',
+			'tile_day'             => null !== $start ? $start->format( 'j' ) : '',
+			'tile_month'           => null !== $start ? $start->format( 'M' ) : '',
+			'deposit'              => $is_deposit,
+			'deposit_label'        => 'deposit_paid' === ( $order['payment_state_reason'] ?? '' ) ? __( 'Deposit paid', 'aponto' ) : __( 'Amount paid', 'aponto' ),
+			// Gross for a partly refunded deposit (net + refunded), the net collected otherwise.
+			'deposit_paid'         => $this->formatMoney( $net_collected + $refunded_minor, $currency, true ),
+			// '' unless a deposit was partly refunded.
+			'deposit_refunded'     => $refunded_minor > 0 ? $this->formatMoney( $refunded_minor, $currency, true ) : '',
+			'balance_due'          => $this->formatMoney( (int) ( $order['balance_due_minor'] ?? 0 ), (string) ( $order['currency'] ?? '' ), true ),
+			'total'                => $this->formatMoney( (int) ( $order['total_minor'] ?? 0 ), (string) ( $order['currency'] ?? '' ) ),
+			'can_cancel'           => (bool) ( $b['can_cancel'] ?? false ),
+			'deadline'             => null !== $deadline ? $deadline->format( $date_format . ' · ' . $time_format ) : '',
+			'business_time'        => $business_time,
+			'business_tz_label'    => $business_tz_label,
+			'hold_deadline'        => $this->holdDeadline( $order, $zone, $time_format ),
+			// The payment is being verified outside this site: no deadline, nothing to pay here.
+			'payment_verifying'    => 'pending' === (string) ( $order['payment_status'] ?? '' ) && true === ( $order['payment_verifying'] ?? false ),
+			// The other two placed-and-unpaid states (re-test N2 / N7): `on_site` = the customer pays
+			// at the appointment, `offline` = the customer still has to pay (a bank transfer); ''
+			// for everything else. `payment_instructions` is the gateway's "how to pay" page, or ''.
+			'payment_due'          => self::paymentDue( $order ),
+			'payment_instructions' => 'offline' === self::paymentDue( $order ) && is_string( $order['payment_instructions_url'] ?? null ) ? (string) $order['payment_instructions_url'] : '',
+			// Money the customer handed over (T-056 / T-064): `paid`, `partial` (partly refunded)
+			// or `refunded`; '' for everything else.
+			'payment_settled'      => in_array( $payment_status, array( 'paid', 'partial', 'refunded' ), true ) ? $payment_status : '',
 		);
 	}
 
@@ -486,7 +613,9 @@ final class BookingManagePage {
 	 * @param string               $time_format Site time format.
 	 */
 	private function holdDeadline( array $order, \DateTimeZone $zone, string $time_format ): string {
-		if ( 'pending' !== (string) ( $order['payment_status'] ?? '' ) ) {
+		// A placed order is not a checkout hold: no deadline, and no "Pay now" into a checkout that
+		// is over — whether its payment is being verified, is due offline, or is taken on site.
+		if ( 'pending' !== (string) ( $order['payment_status'] ?? '' ) || true === ( $order['payment_verifying'] ?? false ) || '' !== self::paymentDue( $order ) ) {
 			return '';
 		}
 		$deadline = $this->instant( (string) ( $order['hold_expires_at'] ?? '' ) );
@@ -501,6 +630,25 @@ final class BookingManagePage {
 	}
 
 	/**
+	 * How an unpaid, PLACED order is still to be paid, from the booking DTO's
+	 * `order.payment_state_reason` (re-test N2 / N7): `on_site` (at the appointment), `offline` (by
+	 * the customer, outside this site) or '' — including for every order that is not pending.
+	 *
+	 * @param array<string, mixed> $order Order block from the booking DTO.
+	 */
+	private static function paymentDue( array $order ): string {
+		if ( 'pending' !== (string) ( $order['payment_status'] ?? '' ) ) {
+			return '';
+		}
+		$reason = (string) ( $order['payment_state_reason'] ?? '' );
+		if ( 'cash_on_delivery' === $reason ) {
+			return 'on_site';
+		}
+
+		return 'awaiting_offline_payment' === $reason ? 'offline' : '';
+	}
+
+	/**
 	 * Render the read-only detail view (with an optional notice banner).
 	 *
 	 * @param string               $token  Raw manage token.
@@ -508,16 +656,31 @@ final class BookingManagePage {
 	 * @param string               $notice Optional error notice.
 	 */
 	private function renderDetail( string $token, array $b, string $notice ): string {
-		$vm      = $this->viewModel( $b );
-		$is_past = ! $vm['can_cancel'] && in_array( $vm['status'], array( 'pending', 'confirmed' ), true );
+		$vm = $this->viewModel( $b );
+		// A payment being verified outside this site closes online cancellation for its own reason,
+		// and gets its own sentence below rather than the cancel-deadline policy message.
+		$verifying = (bool) $vm['payment_verifying'] && ! $vm['can_cancel'];
+		// An order the customer still has to pay OFFLINE closes online cancellation for the same kind
+		// of reason (a transfer may be in transit), and gets the same contact sentence. An order paid
+		// at the appointment does not: it follows the ordinary cancellation policy, so past the
+		// deadline it gets the ordinary policy message below.
+		$due       = (string) $vm['payment_due'];
+		$due_locks = 'offline' === $due && ! $vm['can_cancel'];
+		$is_past   = ! $verifying && ! $due_locks && ! $vm['can_cancel'] && in_array( $vm['status'], array( 'pending', 'confirmed' ), true );
 
 		$html  = '<div class="ap-card">';
 		$html .= '<div class="ap-head"><h1>' . esc_html__( 'Your appointment', 'aponto' ) . '</h1>' . $this->statusPill( (string) $vm['status'] ) . '</div>';
 		$html .= $this->tile( $vm );
 
+		if ( ! empty( $vm['deposit'] ) ) {
+			$html .= '<div class="ap-line"><span>' . esc_html( (string) $vm['deposit_label'] ) . '</span><span>' . esc_html( (string) $vm['deposit_paid'] ) . '</span></div>';
+			$html .= '<div class="ap-line"><span>' . esc_html__( 'Balance due', 'aponto' ) . '</span><span>' . esc_html( (string) $vm['balance_due'] ) . '</span></div>';
+			$html .= '<p>' . esc_html__( 'The deposit is not refunded automatically if you cancel.', 'aponto' ) . '</p>';
+		}
 		if ( '' !== $vm['total'] ) {
 			$html .= '<div class="ap-line"><span>' . esc_html__( 'Total', 'aponto' ) . '</span><span>' . esc_html( (string) $vm['total'] ) . '</span></div>';
 		}
+		$html .= $this->paymentLine( $vm );
 
 		// A LIVE unpaid hold outranks the ordinary "waiting for confirmation" note: the booking is
 		// not waiting on the business, it is waiting on the customer, and the only useful thing this
@@ -553,8 +716,43 @@ final class BookingManagePage {
 		}
 		if ( '' !== $pay_url ) {
 			$html .= '<div class="ap-foot"><a class="ap-btn" href="' . esc_url( $pay_url ) . '">' . esc_html__( 'Pay now', 'aponto' ) . '</a></div>';
+		} elseif ( ! $has_hold && 'offline' === $due ) {
+			// PLACED, AND THE CUSTOMER STILL HAS TO PAY (re-test N7). This state used to read "Your
+			// payment is being verified. You do not need to do anything." to somebody who had paid
+			// nothing. Gateway-neutral: how to pay lives on the gateway's own page, linked when it
+			// gave one.
+			$html .= $this->banner(
+				'warn',
+				__( 'Your booking is reserved. Payment is still due.', 'aponto' ),
+				'pending' === $vm['status']
+					? __( 'We confirm your booking once your payment has arrived.', 'aponto' )
+					: ''
+			);
+			if ( '' !== (string) $vm['payment_instructions'] ) {
+				$html .= '<div class="ap-foot"><a class="ap-btn" href="' . esc_url( (string) $vm['payment_instructions'] ) . '">' . esc_html__( 'View payment instructions', 'aponto' ) . '</a></div>';
+			}
+		} elseif ( ! $has_hold && 'on_site' === $due ) {
+			// PAY AT THE APPOINTMENT (re-test N2): nothing was paid and nothing is being verified.
+			$html .= $this->banner(
+				'pending' === $vm['status'] ? 'warn' : 'info',
+				__( 'You will pay at your appointment.', 'aponto' ),
+				'pending' === $vm['status']
+					? __( 'We will email you when the business confirms your booking.', 'aponto' )
+					: ''
+			);
+		} elseif ( ! $has_hold && (bool) $vm['payment_verifying'] && 'pending' === $vm['status'] ) {
+			// The order is placed and the business is confirming the money (a bank transfer, say).
+			// Nothing is asked of the customer and no release time is promised.
+			$html .= $this->banner( 'warn', __( 'Your payment is being verified.', 'aponto' ), __( 'You do not need to do anything. We will email you when the business confirms it.', 'aponto' ) );
 		} elseif ( ! $has_hold && 'pending' === $vm['status'] ) {
 			$html .= $this->banner( 'warn', __( 'Waiting for confirmation.', 'aponto' ), __( 'We will email you when the business responds.', 'aponto' ) );
+		}
+
+		$balance_url = ! empty( $b['balance']['eligible'] ) || ! empty( $b['balance']['has_attempt'] )
+			? self::balanceUrl( $token )
+			: '';
+		if ( '' !== $balance_url ) {
+			$html .= '<div class="ap-foot"><a class="ap-btn" href="' . esc_url( $balance_url ) . '">' . esc_html__( 'Pay remaining balance', 'aponto' ) . '</a></div>';
 		}
 
 		if ( '' !== $notice ) {
@@ -566,7 +764,7 @@ final class BookingManagePage {
 			$html .= $this->banner(
 				'warn',
 				__( 'This booking can no longer be cancelled online.', 'aponto' ),
-				__( 'Online cancellation has closed for this booking. Please contact the business to make changes.', 'aponto' )
+				$this->withContact( __( 'Online cancellation has closed for this booking. Please contact the business to make changes.', 'aponto' ) )
 			);
 		}
 
@@ -576,9 +774,10 @@ final class BookingManagePage {
 		if ( '' !== $google ) {
 			$html .= '<a class="ap-btn ghost" href="' . esc_url( $google ) . '" target="_blank" rel="noopener nofollow noreferrer">' . esc_html__( 'Add to Google', 'aponto' ) . '</a>';
 		}
-		// Reschedule by the customer is a Premium seam (D3) — a truthful badge, not a control. The
-		// customer-facing page never leaks the internal phase code (fleet-r1 Fix 7; finding U3 BUG-07).
-		$html .= '<span class="ap-btn ghost is-disabled" aria-disabled="true">' . esc_html__( 'Reschedule', 'aponto' ) . ' <span class="ap-phase">' . esc_html__( 'Premium', 'aponto' ) . '</span></span>';
+		// Customer self-reschedule is not built, so nothing is rendered here in EITHER edition
+		// (D-R76; persona QA 2026-10-05, T-063): the customer is not the buyer, and a disabled
+		// "Reschedule · Premium" badge sold nothing and read as broken. This is the slot the real
+		// control takes when the feature ships.
 
 		if ( (bool) $vm['can_cancel'] ) {
 			$html .= '<a class="ap-btn danger" href="' . esc_url( self::manageUrl( $token, array( 'confirm' => 'cancel' ) ) ) . '">' . esc_html__( 'Cancel booking', 'aponto' ) . '</a>';
@@ -591,6 +790,10 @@ final class BookingManagePage {
 				esc_html__( 'Free to cancel online until %s.', 'aponto' ),
 				esc_html( (string) $vm['deadline'] )
 			) . '</p>';
+		} elseif ( $verifying ) {
+			$html .= '<p class="ap-fineprint">' . esc_html( $this->withContact( __( 'To change or cancel this booking while your payment is being verified, please contact the business.', 'aponto' ) ) ) . '</p>';
+		} elseif ( $due_locks ) {
+			$html .= '<p class="ap-fineprint">' . esc_html( $this->withContact( __( 'To change or cancel this booking, please contact the business.', 'aponto' ) ) ) . '</p>';
 		}
 
 		$html .= '</div>';
@@ -615,6 +818,10 @@ final class BookingManagePage {
 		if ( '' !== $notice ) {
 			$html .= $this->banner( 'warn', $notice, '' );
 		}
+		// SAID BEFORE THEY CONFIRM (persona QA 2026-10-05, T-056): cancelling a paid booking never
+		// refunds anything by itself (D-R71k), and the customer has to know that while they can
+		// still keep the appointment.
+		$html .= $this->refundNotice( $vm, false );
 		$html .= '<form class="ap-form" method="post" action="' . esc_url( self::manageUrl( $token ) ) . '">';
 		$html .= '<label class="ap-label" for="aponto-reason">' . esc_html__( 'Reason', 'aponto' ) . ' <span class="ap-muted">' . esc_html__( '(optional)', 'aponto' ) . '</span></label>';
 		$html .= '<textarea class="ap-textarea" id="aponto-reason" name="aponto_reason" rows="3" placeholder="' . esc_attr__( 'Tell the business why you are cancelling', 'aponto' ) . '"></textarea>';
@@ -641,9 +848,86 @@ final class BookingManagePage {
 		$html .= '<div class="ap-head"><h1>' . esc_html__( 'Your appointment', 'aponto' ) . '</h1>' . $this->statusPill( 'cancelled' ) . '</div>';
 		$html .= $this->tile( $vm, true );
 		$html .= $this->banner( 'info', __( 'This appointment was cancelled.', 'aponto' ), __( 'A confirmation has been emailed to you.', 'aponto' ) );
+		$html .= $this->refundNotice( $vm, true );
+
+		// "Book again" (T-064): the public booking page, when the site has a published one.
+		$again = NotificationContext::bookingPageUrl();
+		if ( '' !== $again ) {
+			$html .= '<div class="ap-foot"><a class="ap-btn ghost" href="' . esc_url( $again ) . '">' . esc_html__( 'Book again', 'aponto' ) . '</a></div>';
+		}
 		$html .= '</div>';
 
 		return $html;
+	}
+
+	/**
+	 * The "Payment" line of the detail view (persona QA 2026-10-05, T-064): the page showed a total
+	 * and never said whether it had been paid. '' unless money was handed over.
+	 *
+	 * @param array<string, string|bool> $vm View model.
+	 */
+	private function paymentLine( array $vm ): string {
+		$labels = array(
+			'paid'     => __( 'Paid', 'aponto' ),
+			'partial'  => __( 'Partially refunded', 'aponto' ),
+			'refunded' => __( 'Refunded', 'aponto' ),
+		);
+		$state  = (string) ( $vm['payment_settled'] ?? '' );
+		if ( ! isset( $labels[ $state ] ) ) {
+			return '';
+		}
+		// A deposit order already shows its own paid / balance lines. Its stored `partial` means
+		// "deposit paid" unless the ledger recorded a refund (D-R71): a real partial refund states
+		// the refunded amount; an unrefunded deposit never reads "Partially refunded".
+		if ( ! empty( $vm['deposit'] ) && 'partial' === $state ) {
+			$refunded = (string) ( $vm['deposit_refunded'] ?? '' );
+
+			return '' === $refunded
+				? ''
+				: '<div class="ap-line"><span>' . esc_html( __( 'Refunded', 'aponto' ) ) . '</span><span>' . esc_html( $refunded ) . '</span></div>';
+		}
+
+		return '<div class="ap-line"><span>' . esc_html( __( 'Payment', 'aponto' ) ) . '</span><span>' . esc_html( $labels[ $state ] ) . '</span></div>';
+	}
+
+	/**
+	 * What cancelling means for money already paid (persona QA 2026-10-05, T-056).
+	 *
+	 * Core never refunds on a cancellation (D-R71k), whatever took the payment — so the page says
+	 * exactly that, and that the business will be in touch. It does not promise a refund. '' when
+	 * nothing was paid; a fully refunded order is simply reported as refunded.
+	 *
+	 * @param array<string, string|bool> $vm        View model.
+	 * @param bool                       $cancelled Whether the booking is already cancelled.
+	 */
+	private function refundNotice( array $vm, bool $cancelled ): string {
+		$state = (string) ( $vm['payment_settled'] ?? '' );
+		if ( '' === $state ) {
+			return '';
+		}
+		if ( 'refunded' === $state ) {
+			return $cancelled ? $this->banner( 'info', __( 'Your payment was refunded.', 'aponto' ), '' ) : '';
+		}
+
+		$total    = ! empty( $vm['deposit'] ) ? (string) $vm['deposit_paid'] : (string) $vm['total'];
+		$refunded = ! empty( $vm['deposit'] ) ? (string) ( $vm['deposit_refunded'] ?? '' ) : '';
+		if ( ( 'partial' === $state && empty( $vm['deposit'] ) ) || '' === $total ) {
+			$title = __( 'This booking has been paid for.', 'aponto' );
+		} elseif ( '' !== $refunded ) {
+			/* translators: 1: formatted amount the customer paid, e.g. "$90.00"; 2: formatted amount refunded, e.g. "$10.00". */
+			$title = sprintf( __( 'You paid %1$s for this booking and %2$s has been refunded.', 'aponto' ), $total, $refunded );
+		} else {
+			/* translators: %s: formatted amount the customer paid, e.g. "$70.36". */
+			$title = sprintf( __( 'You paid %s for this booking.', 'aponto' ), $total );
+		}
+
+		return $this->banner(
+			'warn',
+			$title,
+			$cancelled
+				? $this->withContact( __( 'Your payment has not been refunded automatically. The business will contact you about any refund.', 'aponto' ) )
+				: $this->withContact( __( 'Cancelling does not refund your payment automatically. The business will contact you about any refund.', 'aponto' ) )
+		);
 	}
 
 	/**
@@ -685,8 +969,8 @@ final class BookingManagePage {
 		if ( '' !== (string) ( $vm['business_time'] ?? '' ) ) {
 			$html .= '<span class="ap-studio-time">' . esc_html(
 				sprintf(
-				/* translators: 1: time at the business, 2: the business time-zone label. */
-					__( 'That’s %1$s at the studio · %2$s', 'aponto' ),
+				/* translators: 1: the appointment in the business's own timezone — a time, or "date, time" when it falls on another day, 2: the business time-zone label. */
+					__( 'Local time at the business: %1$s · %2$s', 'aponto' ),
 					(string) $vm['business_time'],
 					(string) $vm['business_tz_label']
 				)
@@ -694,6 +978,10 @@ final class BookingManagePage {
 		}
 		if ( array() !== $meta ) {
 			$html .= '<span class="ap-meta">' . esc_html( implode( ' · ', $meta ) ) . '</span>';
+		}
+		if ( '' !== (string) ( $vm['location_address'] ?? '' ) ) {
+			// Same muted style as the meta line (no new CSS); the class suffix is a test hook.
+			$html .= '<span class="ap-meta ap-location-address">' . esc_html( (string) $vm['location_address'] ) . '</span>';
 		}
 		$html .= '</div></div>';
 
@@ -789,6 +1077,43 @@ final class BookingManagePage {
 	}
 
 	/**
+	 * Standalone balance checkout, independent of the configured booking page.
+	 *
+	 * @param string $token Raw manage token.
+	 */
+	public static function balanceUrl( string $token ): string {
+		if ( '' === $token ) {
+			return '';
+		}
+		if ( '' === (string) get_option( 'permalink_structure', '' ) ) {
+			return self::manageUrl( $token, array( self::BALANCE_QUERY_VAR => '1' ) );
+		}
+
+		return home_url( '/' . self::ROUTE_PREFIX . '/' . rawurlencode( $token ) . '/balance' );
+	}
+
+	/**
+	 * The booking-page URL, optionally opening on one service (`?service_id={id}`, D-R71t), or
+	 * '' when the site has no published booking page ({@see NotificationContext::bookingPageUrl()}).
+	 *
+	 * The parameter only chooses the service the form STARTS on: the widget looks the id up in the
+	 * public catalogue (an unknown, inactive or hidden id is ignored), a block `serviceId` preset
+	 * wins over it, and the visitor can still go back and choose another service. It carries no
+	 * capability, which is why it may ride the query string — unlike the resume token above.
+	 *
+	 * @param int         $service_id Service to start on; zero or less adds no parameter.
+	 * @param string|null $page Booking-page URL to build from; null reads the configured page.
+	 */
+	public static function bookingUrl( int $service_id = 0, ?string $page = null ): string {
+		$page = (string) strtok( $page ?? NotificationContext::bookingPageUrl(), '#' );
+		if ( '' === $page || $service_id <= 0 ) {
+			return $page;
+		}
+
+		return $page . ( str_contains( $page, '?' ) ? '&' : '?' ) . self::SERVICE_QUERY_VAR . '=' . $service_id;
+	}
+
+	/**
 	 * The ICS download URL for a token.
 	 *
 	 * @param string $token Raw manage token.
@@ -838,27 +1163,25 @@ final class BookingManagePage {
 	 *
 	 * @param int    $minor    Minor units.
 	 * @param string $currency ISO currency code.
+	 * @param bool   $show_zero Show zero for ledger amounts instead of hiding a free total.
 	 */
-	private function formatMoney( int $minor, string $currency ): string {
-		if ( 0 === $minor || '' === $currency ) {
+	private function formatMoney( int $minor, string $currency, bool $show_zero = false ): string {
+		if ( ( 0 === $minor && ! $show_zero ) || '' === $currency ) {
 			return '';
 		}
 
-		$decimals = \Aponto\Support\Settings::currencyExponent( $currency );
-		$amount   = $minor / ( 10 ** $decimals );
-
 		// Match the booking form's `Intl.NumberFormat` currency output (e.g. "€90.00", not
 		// "EUR 90.00") via ext-intl when available, so both surfaces render money identically
-		// (fleet-r1 Fix 9c; finding U3 BUG-08). Fall back to the ISO code + localized number.
-		if ( class_exists( '\NumberFormatter' ) ) {
-			$formatter = new \NumberFormatter( get_locale(), \NumberFormatter::CURRENCY );
-			$formatted = $formatter->formatCurrency( $amount, $currency );
-			if ( is_string( $formatted ) && '' !== $formatted ) {
-				return $formatted;
-			}
+		// (fleet-r1 Fix 9c; finding U3 BUG-08). The formatter is shared with the cancellation mail's
+		// note ({@see \Aponto\Rest\Support\Format::moneyDisplay()}). Fall back to the ISO code +
+		// localized number.
+		$formatted = \Aponto\Rest\Support\Format::moneyDisplay( $minor, $currency );
+		if ( null !== $formatted ) {
+			return $formatted;
 		}
+		$decimals = \Aponto\Support\Settings::currencyExponent( $currency );
 
-		return $currency . ' ' . number_format_i18n( $amount, $decimals );
+		return $currency . ' ' . number_format_i18n( $minor / ( 10 ** $decimals ), $decimals );
 	}
 
 	/**
@@ -898,12 +1221,14 @@ final class BookingManagePage {
 	 * Wrap inner HTML in the standalone document shell (own head, own stylesheet — no theme).
 	 *
 	 * @param string $inner Escaped inner HTML.
+	 * @param string $title Optional document title.
 	 */
-	private function document( string $inner ): string {
+	private function document( string $inner, string $title = '' ): string {
 		$lang = esc_attr( (string) get_bloginfo( 'language' ) );
 		$dir  = is_rtl() ? ' dir="rtl"' : '';
-		// Decoded once, escaped once — an "&" site title never renders as "&amp;amp;" (Fix 3).
-		$site = esc_html( \Aponto\Support\Settings::blogName() );
+		// Decoded once, escaped once — an "&" site title never renders as "&amp;amp;" (Fix 3). The
+		// business name when one is set, the site title otherwise (T-064).
+		$site = esc_html( $this->brandName() );
 
 		$html  = '<!doctype html>';
 		$html .= '<html lang="' . $lang . '"' . $dir . '>';
@@ -912,7 +1237,7 @@ final class BookingManagePage {
 		$html .= '<meta name="viewport" content="width=device-width, initial-scale=1">';
 		$html .= '<meta name="robots" content="noindex, nofollow">';
 		$html .= '<meta name="referrer" content="no-referrer">';
-		$html .= '<title>' . esc_html__( 'Manage your booking', 'aponto' ) . '</title>';
+		$html .= '<title>' . esc_html( '' !== $title ? $title : __( 'Manage your booking', 'aponto' ) ) . '</title>';
 		$html .= $this->styleLink();
 		$html .= '</head>';
 		$html .= '<body class="ap-manage"><main class="ap-shell">';

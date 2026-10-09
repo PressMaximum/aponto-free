@@ -57,6 +57,18 @@ export function notifiedSuffix( notification ) {
 }
 
 /**
+ * The toast tone of a status change (D-R64): `success` when the booking moved to a state the
+ * operator asked to REACH — confirmed, completed, or back to pending (Restore) — and the neutral
+ * `default` when it was stopped or did not happen (cancelled, no-show).
+ *
+ * @param {string} next Target status (wire value).
+ * @return {string} `success` or `default`.
+ */
+export function statusTone( next ) {
+	return 'confirmed' === next || 'completed' === next || 'pending' === next ? 'success' : 'default';
+}
+
+/**
  * The whole toast for a status change made from the list.
  *
  * @param {string} customer     Customer name.

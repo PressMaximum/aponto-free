@@ -1,6 +1,40 @@
 "use strict";
 (globalThis["webpackChunkaponto"] = globalThis["webpackChunkaponto"] || []).push([["admin-chunk-booking-editor"],{
 
+/***/ "./assets/src/admin/bookings/form-answers.js"
+/*!***************************************************!*\
+  !*** ./assets/src/admin/bookings/form-answers.js ***!
+  \***************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   customFieldValue: () => (/* binding */ customFieldValue)
+/* harmony export */ });
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+/**
+ * Booking-form answers as the booking drawer prints them. Kept apart from the editor so the rule
+ * is unit-testable without mounting it.
+ */
+
+
+/**
+ * A booking-form answer as the drawer prints it (persona QA 2026-10-05, T-046): a ticked checkbox
+ * is stored as `1`, which is not an answer a person reads — it is "Yes".
+ *
+ * @param {{type?: string, value: string}} field Answer from the detail DTO.
+ * @return {string} Display value.
+ */
+function customFieldValue(field) {
+  if ('checkbox' === field?.type) {
+    return '1' === String(field.value) ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Yes', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('No', 'aponto');
+  }
+  return field?.value ?? '';
+}
+
+/***/ },
+
 /***/ "./assets/src/admin/lib/Combobox.jsx"
 /*!*******************************************!*\
   !*** ./assets/src/admin/lib/Combobox.jsx ***!
@@ -229,6 +263,224 @@ function Combobox({
 
 /***/ },
 
+/***/ "./assets/src/admin/lib/booking-activity.js"
+/*!**************************************************!*\
+  !*** ./assets/src/admin/lib/booking-activity.js ***!
+  \**************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ACTIVITY_LABELS: () => (/* binding */ ACTIVITY_LABELS),
+/* harmony export */   activityActor: () => (/* binding */ activityActor),
+/* harmony export */   activityLabel: () => (/* binding */ activityLabel),
+/* harmony export */   activityReason: () => (/* binding */ activityReason),
+/* harmony export */   cancellationReason: () => (/* binding */ cancellationReason)
+/* harmony export */ });
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _payment_status_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./payment-status.js */ "./assets/src/admin/lib/payment-status.js");
+/**
+ * Booking activity trail presentation — the labels, the actor and the reasons the inspector shows
+ * for `GET /bookings/{id}` `activities[]` (first-run QA D08).
+ *
+ * The trail used to print raw enum strings (`status_changed`, `public`), and a customer's
+ * cancellation reason — stored in the activity `meta` — was visible nowhere in the admin. Every
+ * key the backend writes is pinned to a label by `tests/js/booking-activity.test.js`, which scans
+ * `src/` for the keys handed to `ActivityRepository::log()`.
+ *
+ * Pure: no React, no REST.
+ */
+
+
+
+/**
+ * Activity-trail labels. The payment actions (D-R38) are logged by `PaymentService`, mostly with
+ * `initiated_by = gateway:{code}` or `system`, so without a label here the trail rendered raw enum
+ * strings on exactly the rows an operator reads when money is in question.
+ *
+ * `payment_received_after_expiry` keeps its own wording on purpose: money that landed after the
+ * hold lapsed is RECORDED, never allowed to resurrect the appointment (D-R38h), and the trail is
+ * the only place that distinction is visible.
+ *
+ * `confirmed` … `no_show` are not written as actions today (a status move is `status_changed`
+ * with `meta.to`); they stay so an older trail still reads.
+ */
+const ACTIVITY_LABELS = {
+  created: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking created', 'aponto'),
+  status_changed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Status changed', 'aponto'),
+  confirmed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Confirmed', 'aponto'),
+  cancelled: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Cancelled', 'aponto'),
+  completed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Completed', 'aponto'),
+  rescheduled: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Rescheduled', 'aponto'),
+  no_show: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Marked as no-show', 'aponto'),
+  deleted: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking deleted', 'aponto'),
+  payment_received: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payment received', 'aponto'),
+  payment_received_after_expiry: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payment received after the hold expired', 'aponto'),
+  payment_status_changed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payment status changed', 'aponto'),
+  // Deposits and remaining balance (D-R71).
+  balance_recorded_onsite: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Balance recorded on site', 'aponto'),
+  balance_refunded_onsite: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('On-site refund recorded', 'aponto'),
+  balance_paid_online: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Balance paid online', 'aponto'),
+  balance_record_reversed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Balance record reversed', 'aponto'),
+  deposit_bypassed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Deposit bypassed', 'aponto'),
+  coupon_changed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coupon changed', 'aponto'),
+  payment_hold_expired: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payment hold expired', 'aponto'),
+  hold_released: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payment hold released', 'aponto'),
+  hold_released_admin_confirmed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payment hold released — confirmed by an admin', 'aponto'),
+  refund: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Refunded', 'aponto'),
+  // An administrator reviewed an unfinished refund at the external checkout and allowed refunds again.
+  refund_review_cleared: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Refund review cleared', 'aponto'),
+  // QA run 2 BUG-3: a gateway that refused this order's amount or currency outright. Readiness
+  // cannot warn about it — it is asked without an order — so the booking's own trail is where the
+  // operator finds out that, say, PayPal has no minor unit for HUF and the price needs rounding.
+  payment_refused: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Gateway refused this amount', 'aponto'),
+  // External checkout (D-R71): the gateway's own checkout collected the customer, settled the
+  // final total, or decided nothing was owed. Logged by `PaymentService` as `gateway:{code}`.
+  checkout_customer_attached: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Customer details received from checkout', 'aponto'),
+  payment_quote_finalized: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Checkout total confirmed', 'aponto'),
+  payment_not_required: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('No payment required', 'aponto'),
+  notification_deferred_payment: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Confirmation email waits for payment', 'aponto'),
+  notification_suppressed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Email not sent', 'aponto'),
+  notification_suppressed_flood: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Email not sent — too many in a short time', 'aponto')
+};
+
+/** What a `status_changed` row reads as, keyed by the status it moved TO. */
+const STATUS_CHANGE_LABELS = {
+  pending: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Set to pending', 'aponto'),
+  confirmed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Confirmed', 'aponto'),
+  completed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Completed', 'aponto'),
+  cancelled: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Cancelled', 'aponto'),
+  no_show: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Marked as no-show', 'aponto')
+};
+
+/**
+ * The trail label for one activity.
+ *
+ * @param {{action: string, meta?: Object}} activity Adapted activity row.
+ * @return {string} Label.
+ */
+function activityLabel(activity) {
+  const {
+    action,
+    meta = {}
+  } = activity || {};
+  if ('status_changed' === action) {
+    // A cancelled booking put back is a RESTORE (the editor offers it as "Pending (restore)").
+    if ('pending' === meta.to && 'cancelled' === meta.from) {
+      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Restored to pending', 'aponto');
+    }
+    return STATUS_CHANGE_LABELS[meta.to] || ACTIVITY_LABELS.status_changed;
+  }
+  if (ACTIVITY_LABELS[action]) {
+    return ACTIVITY_LABELS[action];
+  }
+  // A key this build does not know yet (a newer module): readable, not an enum.
+  const words = String(action || '').replace(/_/g, ' ').trim();
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : '';
+}
+
+/**
+ * Who did it, from the `initiated_by` descriptor (`public`, `customer`, `system`, `admin`,
+ * `admin:{user_id}`, `gateway:{code}`).
+ *
+ * @param {string} initiatedBy Raw descriptor.
+ * @return {string} Display text, '' for none.
+ */
+function activityActor(initiatedBy) {
+  const raw = String(initiatedBy || '');
+  if ('' === raw) {
+    return '';
+  }
+  const [kind, detail = ''] = raw.split(':');
+  switch (kind) {
+    case 'public':
+      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking form', 'aponto');
+    case 'customer':
+      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Customer', 'aponto');
+    case 'system':
+      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('System', 'aponto');
+    case 'admin':
+      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Admin', 'aponto');
+    case 'gateway':
+      {
+        const named = (0,_payment_status_js__WEBPACK_IMPORTED_MODULE_1__.gatewayLabel)(detail) !== '—' ? (0,_payment_status_js__WEBPACK_IMPORTED_MODULE_1__.gatewayLabel)(detail) : (0,_payment_status_js__WEBPACK_IMPORTED_MODULE_1__.gatewayLabel)(`payments_${detail}`);
+        return '—' !== named ? named : detail;
+      }
+    default:
+      return raw;
+  }
+}
+
+/**
+ * The free-text reason recorded with an activity (a status change's `meta.reason`), trimmed.
+ *
+ * @param {{meta?: Object}} activity Adapted activity row.
+ * @return {string} Reason, or ''.
+ */
+function activityReason(activity) {
+  const reason = activity?.meta?.reason;
+  return 'string' === typeof reason ? reason.trim() : '';
+}
+
+/**
+ * The reason given with the LATEST move to `cancelled`, or '' — a restored-then-cancelled booking
+ * shows the reason for the cancellation that is in force.
+ *
+ * @param {Array<Object>} activities Adapted activity rows, oldest first.
+ * @return {string} Reason, or ''.
+ */
+function cancellationReason(activities) {
+  const rows = Array.isArray(activities) ? activities : [];
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const row = rows[i];
+    if ('status_changed' === row?.action && 'cancelled' === row.meta?.to) {
+      return activityReason(row);
+    }
+  }
+  return '';
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/lib/booking-coupon.free.js"
+/*!*****************************************************!*\
+  !*** ./assets/src/admin/lib/booking-coupon.free.js ***!
+  \*****************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   useBookingCoupon: () => (/* binding */ useBookingCoupon)
+/* harmony export */ });
+/**
+ * Booking-editor order-adjustment controls owned by the Free edition: none.
+ *
+ * Selected at build time through the `@aponto/admin-booking-coupon` alias
+ * (webpack.config.js); Premium resolves its module under `assets/src/pro/`.
+ * This file ships in the wp.org ZIP, so it stays inert (D-R41): an existing
+ * order's discount snapshot is still displayed read-only by BookingEditor.jsx
+ * itself, but nothing here can quote, apply or edit one.
+ */
+
+const NONE = Object.freeze({
+  createQuote: null,
+  createCode: '',
+  createBlocker: () => '',
+  handleCreateError: () => false,
+  createControl: null,
+  renderEditControl: () => null
+});
+
+/**
+ * @return {Object} Inert adjustment state (no hooks are called).
+ */
+function useBookingCoupon() {
+  return NONE;
+}
+
+/***/ },
+
 /***/ "./assets/src/admin/lib/combobox-options.js"
 /*!**************************************************!*\
   !*** ./assets/src/admin/lib/combobox-options.js ***!
@@ -247,6 +499,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   staffOptions: () => (/* binding */ staffOptions)
 /* harmony export */ });
 /* harmony import */ var _format_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./format.js */ "./assets/src/admin/lib/format.js");
+/* harmony import */ var _shared_person_name_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/person-name.js */ "./assets/src/shared/person-name.js");
 /**
  * Option helpers for the admin `Combobox` (SPEC-P1 §6.7). Framework-free and
  * side-effect-free; the only ambient input is the store currency the shared money
@@ -269,6 +522,7 @@ __webpack_require__.r(__webpack_exports__);
  * that lacked one — services show `duration · price`, staff show their email — which
  * is the secondary line the customer picker already renders.
  */
+
 
 
 /**
@@ -396,9 +650,22 @@ function serviceOptions(items = []) {
 }
 
 /**
+ * The name parts of a person record as typeahead keywords (name split, 2026-10-01). The label is
+ * already the display name, which holds both parts; listing them keeps a search by either part
+ * working even when a record's composed `name` is missing or differs.
+ *
+ * @param {Object} item REST customer / staff item.
+ * @return {Array} Non-empty parts.
+ */
+function nameKeywords(item) {
+  return [item.first_name, item.last_name].filter(Boolean);
+}
+
+/**
  * Staff options. `meta` is the email — the one field that tells two same-named staff
  * apart — and it joins `keywords` exactly like the customer picker's contact details,
- * so what the row shows is also what the typeahead can match.
+ * so what the row shows is also what the typeahead can match. The label is the display name;
+ * the parts ride along.
  *
  * @param {Array} items REST `/staff` items.
  * @return {Array} Combobox options.
@@ -406,26 +673,34 @@ function serviceOptions(items = []) {
 function staffOptions(items = []) {
   return (items || []).map(item => ({
     id: item.id,
-    label: item.name,
+    label: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_1__.displayNameOf)(item),
     meta: item.email || '',
-    keywords: item.email || ''
+    keywords: [...nameKeywords(item), item.email].filter(Boolean).join(' '),
+    first_name: item.first_name || '',
+    last_name: item.last_name || ''
   }));
 }
 
 /**
- * Customer options. `meta` is the secondary line in the entity row; `keywords` adds
- * email + phone to the typeahead (the label alone is the name).
+ * Customer options. `meta` is the secondary line in the entity row; `keywords` adds the name
+ * parts + email + phone to the typeahead (the label is the display name). The parts ride along
+ * for `POST /bookings`, which takes `customer.first_name` / `customer.last_name`.
+ *
+ * An `anonymized` record (erased by a privacy request or the retention sweep) is not offered:
+ * the route refuses it as `customer_id`, and "Deleted customer" is nobody to book for.
  *
  * @param {Array} items REST `/customers` items.
  * @return {Array} Combobox options.
  */
 function customerOptions(items = []) {
-  return (items || []).map(item => ({
+  return (items || []).filter(item => !item.anonymized).map(item => ({
     id: item.id,
-    label: item.name,
+    label: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_1__.displayNameOf)(item),
     meta: item.email || item.phone || '',
-    keywords: [item.email, item.phone].filter(Boolean).join(' '),
-    name: item.name,
+    keywords: [...nameKeywords(item), item.email, item.phone].filter(Boolean).join(' '),
+    name: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_1__.displayNameOf)(item),
+    first_name: item.first_name || '',
+    last_name: item.last_name || '',
     email: item.email,
     phone: item.phone
   }));
@@ -442,6 +717,9 @@ function customerOptions(items = []) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   locationRowValue: () => (/* binding */ locationRowValue),
+/* harmony export */   locationSelectOptions: () => (/* binding */ locationSelectOptions),
+/* harmony export */   locationToSend: () => (/* binding */ locationToSend),
+/* harmony export */   rescheduleStaffOptions: () => (/* binding */ rescheduleStaffOptions),
 /* harmony export */   staffRowValue: () => (/* binding */ staffRowValue)
 /* harmony export */ });
 /**
@@ -485,1160 +763,108 @@ function locationRowValue({
   return businessAddress || 'No location';
 }
 
-/***/ },
-
-/***/ "./assets/src/admin/modules/catalog.js"
-/*!*********************************************!*\
-  !*** ./assets/src/admin/modules/catalog.js ***!
-  \*********************************************/
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CATEGORY_META: () => (/* binding */ CATEGORY_META),
-/* harmony export */   CATEGORY_TABS: () => (/* binding */ CATEGORY_TABS),
-/* harmony export */   COMPARE_SECTIONS: () => (/* binding */ COMPARE_SECTIONS),
-/* harmony export */   INCLUDED_CARD_ROUTES: () => (/* binding */ INCLUDED_CARD_ROUTES),
-/* harmony export */   INDUSTRY_LABELS: () => (/* binding */ INDUSTRY_LABELS),
-/* harmony export */   INDUSTRY_OPTIONS: () => (/* binding */ INDUSTRY_OPTIONS),
-/* harmony export */   MODULE_META: () => (/* binding */ MODULE_META),
-/* harmony export */   enablingNeedsReload: () => (/* binding */ enablingNeedsReload),
-/* harmony export */   findModuleRecord: () => (/* binding */ findModuleRecord),
-/* harmony export */   integrationStateLabel: () => (/* binding */ integrationStateLabel),
-/* harmony export */   kindLabel: () => (/* binding */ kindLabel),
-/* harmony export */   moduleAvailable: () => (/* binding */ moduleAvailable),
-/* harmony export */   moduleCardState: () => (/* binding */ moduleCardState),
-/* harmony export */   moduleOpenHref: () => (/* binding */ moduleOpenHref),
-/* harmony export */   moduleSearchText: () => (/* binding */ moduleSearchText),
-/* harmony export */   moduleStateLabel: () => (/* binding */ moduleStateLabel),
-/* harmony export */   moduleToggleAllowed: () => (/* binding */ moduleToggleAllowed),
-/* harmony export */   paymentStateLabel: () => (/* binding */ paymentStateLabel),
-/* harmony export */   upgradeUrl: () => (/* binding */ upgradeUrl)
-/* harmony export */ });
-/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
-/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _filters_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./filters.js */ "./assets/src/admin/modules/filters.js");
 /**
- * Presentation catalog + upsell data for the Modules surface (SPEC-P1 §6).
+ * Options for the booking editor's Location `<select>` (D-R63): "No location" (`0`, labelled with
+ * the business name — the place a no-location booking actually happens) first, then the ACTIVE
+ * branches in catalog order. A booking already sitting at a branch the active catalog does not list
+ * (archived since) keeps its own entry, so the control never claims the booking is somewhere else.
  *
- * The registry (SPEC-P0 §3.2, shipped as `config.modules`) owns the entitlement
- * metadata — category, kind, edition, phase — plus the additive presentation flags
- * `status` (D-R22), `available` (D-R27) and `enabled`/`toggleable` (D-R31). This file
- * owns the display copy (label, one-line description, icon), the card-state mapping and
- * the free-vs-premium comparison matrix.
+ * Only ever called with ≥1 active location: with none, the editor renders the read-only row it
+ * always has, which is what keeps Free byte-identical.
  *
- * Cards + comparison + per-placement UTM links on the Premium cards only; no license
- * field and no fake controls (§6 + Guideline 5/11). The surface stopped being read-only
- * with D-R31: a shipped, toggleable module carries a REAL enable/disable switch, which is
- * the ONE control here and is backed by `PUT /modules/{code}`. Roadmap `phase` stays
- * code/registry-side only — never rendered on production cards
- * (plugin-dashboard-divergence.md §2.7), except the premium-build roadmap label below.
- *
- * COPY STATUS (C1 review fix 3): every user-facing string in this file — module
- * labels/descriptions, comparison rows, upsell wording — is DRAFT copy pending
- * founder approval before GA, and must stay honest: modules ship across the
- * premium roadmap, so no "unlock now" phrasing for not-yet-shipped modules.
- * The UTM base URL below also needs founder confirmation.
+ * @param {Object} args
+ * @param {Array}  args.locations      Active catalog `[ { id, name } ]`.
+ * @param {number} [args.currentId]    The booking's own location id (edit), `0`/absent on create.
+ * @param {string} [args.currentName]  Its resolved name, for the archived case.
+ * @param {string} [args.businessName] Site business name.
+ * @param {string} args.noLocation     Translated "No location".
+ * @return {Array} `[ { id, label } ]`.
  */
-
-
-
-/** Category tabs, in order (SPEC-P1 §6). `all` is the default landing view. */
-const CATEGORY_TABS = [{
-  id: 'all',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('All', 'aponto')
-}, {
-  id: 'booking',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking', 'aponto')
-}, {
-  id: 'payments',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payments', 'aponto')
-}, {
-  id: 'connections',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Connections', 'aponto')
-}, {
-  id: 'site_tools',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Site & Tools', 'aponto')
-}];
-
-/**
- * Industry filter options, in display order (D-R21, founder-approved 2026-07-25).
- * The ids are the registry `industries` vocabulary; `all` is the sentinel that
- * both the select's default option and a universal module carry.
- */
-const INDUSTRY_OPTIONS = [{
-  id: _filters_js__WEBPACK_IMPORTED_MODULE_1__.INDUSTRY_ALL,
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('All businesses', 'aponto')
-}, {
-  id: 'beauty',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Beauty & wellness', 'aponto')
-}, {
-  id: 'coaching',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coaching & consulting', 'aponto')
-}, {
-  id: 'fitness',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Fitness & classes', 'aponto')
-}, {
-  id: 'healthcare',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Healthcare', 'aponto')
-}, {
-  id: 'events',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Events & experiences', 'aponto')
-}, {
-  id: 'venues',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Venues & rentals', 'aponto')
-}, {
-  id: 'agencies',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Agencies & web', 'aponto')
-}, {
-  id: 'field_services',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Field services', 'aponto')
-}];
-
-/** Industry id → display label, for the select and the search haystack. */
-const INDUSTRY_LABELS = Object.fromEntries(INDUSTRY_OPTIONS.map(option => [option.id, option.label]));
-
-/** Category display label + fallback icon, keyed by the registry `category`. */
-const CATEGORY_META = {
-  booking: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking', 'aponto'),
-    icon: 'calendar'
-  },
-  payments: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payments', 'aponto'),
-    icon: 'card'
-  },
-  connections: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Connections', 'aponto'),
-    icon: 'plug'
-  },
-  site_tools: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Site & Tools', 'aponto'),
-    icon: 'wrench'
+function locationSelectOptions({
+  locations,
+  currentId = 0,
+  currentName = '',
+  businessName = '',
+  noLocation
+}) {
+  const options = [{
+    id: 0,
+    label: businessName ? `${noLocation} · ${businessName}` : noLocation
+  }];
+  (locations || []).forEach(location => options.push({
+    id: location.id,
+    label: location.name
+  }));
+  const current = Number(currentId) || 0;
+  if (current && !options.some(option => option.id === current)) {
+    options.push({
+      id: current,
+      label: currentName || `#${current}`
+    });
   }
-};
+  return options;
+}
 
-/** Per-module display copy + icon, keyed by registry code. */
-const MODULE_META = {
-  multi_staff: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple staff', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let several team members take bookings on their own schedules.', 'aponto'),
-    icon: 'users'
-  },
-  calendar_google: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Google Calendar', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Two-way sync so bookings land on staff Google calendars.', 'aponto'),
-    icon: 'calendar'
-  },
-  // A5 / D-R22: Free already ships one fixed 24h email reminder (SPEC-P1 §3.2 addendum
-  // 2026-07-20), so this Premium module means *advanced* reminders — custom offsets,
-  // multi-step sequences, follow-ups. SMS delivery is the separate `sms` module; this copy
-  // must claim neither the basic reminder nor SMS.
-  reminders: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Reminders', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Custom reminder schedules and follow-ups, on top of the built-in 24-hour email.', 'aponto'),
-    icon: 'bell'
-  },
-  calendar_outlook: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Outlook Calendar', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Two-way sync with Outlook and Microsoft 365 calendars.', 'aponto'),
-    icon: 'calendar'
-  },
-  video_links: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Video meeting links', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Auto-create Zoom or Google Meet links for online bookings.', 'aponto'),
-    icon: 'video'
-  },
-  custom_fields: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Custom fields', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Collect extra details on the booking form.', 'aponto'),
-    icon: 'sliders'
-  },
-  csv_import: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV import', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bulk-import customers and bookings from a spreadsheet.', 'aponto'),
-    icon: 'import'
-  },
-  // `deposits` is a separate Premium module (D-R22) — Stripe copy must not promise it. The
-  // sentence names the two facts that decide whether an owner clicks: the customer never leaves
-  // the booking form (D-R38c, inline — not a hosted redirect), and the money lands in the owner's
-  // OWN Stripe account. "Free" is stated because this is the one payment card in the catalog that
-  // is not an upsell.
-  payments_stripe: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Stripe payments', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Take card payments inside the booking form with your own Stripe account. Free.', 'aponto'),
-    icon: 'card'
-  },
-  // Same rule as Stripe above: `deposits` is a separate Premium module, so this copy must not
-  // promise it. Cards are Stripe's — PayPal's card funding is switched off in the widget when
-  // Stripe is present — so the promise here is the PayPal account itself (D-R40).
-  payments_paypal: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('PayPal payments', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let customers pay with their PayPal account at checkout.', 'aponto'),
-    icon: 'card'
-  },
-  deposits: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Deposits', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Require a partial payment to confirm a booking.', 'aponto'),
-    icon: 'coins'
-  },
-  coupons: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coupons', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Offer discount codes at checkout.', 'aponto'),
-    icon: 'tag'
-  },
-  group_capacity: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Group bookings', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Allow several attendees in a single time slot.', 'aponto'),
-    icon: 'people'
-  },
-  resources: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Shared assets', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Book rooms and equipment alongside services.', 'aponto'),
-    icon: 'cube'
-  },
-  recurring: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Recurring bookings', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let customers book repeating appointments.', 'aponto'),
-    icon: 'arrows'
-  },
-  multi_location: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple locations', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Run bookings across several business locations.', 'aponto'),
-    icon: 'pin'
-  },
-  waitlist: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Waitlist', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let customers join a waitlist when slots are full.', 'aponto'),
-    icon: 'hourglass'
-  },
-  sms: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('SMS notifications', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Send confirmations and reminders by text message.', 'aponto'),
-    icon: 'chat'
-  },
-  webhooks: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Webhooks', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Send booking events to external services in real time.', 'aponto'),
-    icon: 'plug'
-  },
-  woo_gateway: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('WooCommerce', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Use WooCommerce as the checkout and payment gateway.', 'aponto'),
-    icon: 'box'
-  },
-  service_catalog: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Service catalog', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Public service pages with descriptions and galleries.', 'aponto'),
-    icon: 'browser'
-  },
-  roles: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Team roles', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Fine-grained permissions for staff and managers.', 'aponto'),
-    icon: 'shield'
-  },
-  white_label: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('White label', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Replace Aponto branding with your own.', 'aponto'),
-    icon: 'palette'
-  },
-  // Free core capability cards (D-R22, 2026-07-27) — P1 capabilities that already ship as
-  // core code. Display entries only; they carry no gate (see the Plan registry docblock).
-  booking_form: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking form', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Gutenberg block and shortcode with styling controls — identical in Free and Premium.', 'aponto'),
-    icon: 'browser'
-  },
-  availability_engine: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Availability engine', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Weekly hours, date overrides, buffers, lead time and timezone-correct slots.', 'aponto'),
-    icon: 'clock'
-  },
-  // The due rule is SPEC-P1 §3.2: confirmed bookings only, and only those still at least
-  // 24h away when the reminder is scheduled — the copy must not promise "every booking".
-  booking_reminder: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('24-hour reminder', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('One automatic email reminder about 24 hours before confirmed bookings.', 'aponto'),
-    icon: 'bell'
-  },
-  email_notifications: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Email notifications', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Event-triggered emails with editable templates and placeholders.', 'aponto'),
-    icon: 'mail'
-  },
-  ics_export: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Calendar links', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('ICS downloads and add-to-Google links on every confirmation.', 'aponto'),
-    icon: 'calendar'
-  },
-  csv_export: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV export', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Export bookings for spreadsheets and reporting.', 'aponto'),
-    icon: 'csv'
+/**
+ * The `location_id` a booking write should carry for a picked location (D-R63): `undefined` for
+ * `0` on CREATE, so a site with no branch picked sends the exact pre-D-R63 body; on a MOVE the
+ * target is returned whenever it differs from where the booking already is (`0` included — moving
+ * a booking back to "no location" is a real move), else `undefined` (nothing to move).
+ *
+ * @param {number}  picked   Picked location id.
+ * @param {?number} [current] The booking's current location (edit); omit on create.
+ * @return {number|undefined} Value to send, or undefined to omit the key.
+ */
+function locationToSend(picked, current) {
+  const next = Number(picked) || 0;
+  if (current === undefined || current === null) {
+    return next > 0 ? next : undefined;
   }
-};
-
-/**
- * Searchable display strings for one module — the `resolveText` seam of
- * `filters.js` (D-R21). Mirrors the mockup haystack: title, description,
- * category label and every industry label.
- *
- * @param {{code?: string, category?: string, industries?: string[]}} mod Module record.
- * @return {string[]} Searchable strings.
- */
-function moduleSearchText(mod) {
-  const meta = MODULE_META[mod?.code] || {};
-  const category = CATEGORY_META[mod?.category] || {};
-  const industries = Array.isArray(mod?.industries) ? mod.industries : [];
-  return [meta.label, meta.description, category.label, ...industries.map(id => INDUSTRY_LABELS[id])].filter(Boolean);
-}
-
-/** Human label for the module `kind`: integrations vs first-party modules. */
-function kindLabel(kind) {
-  return kind === 'integration' ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Integration', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Module', 'aponto');
+  return next !== (Number(current) || 0) ? next : undefined;
 }
 
 /**
- * The integration 4-state, condensed into the card's meta line (extension-surface §4, D-R35).
+ * Options for the "Edit time" Staff `<select>` (D-R78): the ACTIVE staff members assigned to the
+ * booking's service at the picked location — a pair at that location or the wildcard `0`, the same
+ * terms the engine's eligibility read applies — in catalog order. The booking's own staff member
+ * always keeps an entry (archived or unassigned since), so the control never claims the booking
+ * belongs to somebody else.
  *
- * The catalog has to answer "what is the NEXT thing to do", and for an integration that is a
- * sequence: paste credentials → connect a staff member → it is serving services. A card that showed
- * only "Integration" made every step of that look identical, so an operator who had saved
- * credentials but connected nobody had no way to tell that from working.
+ * `assignments === null` means the eligibility read was not available (it needs the services
+ * capability): every active member is offered, and the server refuses an ineligible pick.
  *
- * `configured` and `connected` stay SEPARATE phrases here for the same reason the server keeps them
- * separate fields (extension-surface §4): "add your credentials" and "now connect someone" are two
- * different instructions, and collapsing them produces one unexplained failure instead of two
- * actionable states.
- *
- * Returns '' for anything that is not an available integration — a locked or unshipped card has
- * nothing true to say about connections, and the boot fields are zeroed for it anyway.
- *
- * NOT FOR PAYMENT MODULES. A gateway is registered `kind: 'integration'` too, but it holds no
- * per-staff connections, so every phrase below would be a lie about it — see `paymentStateLabel()`,
- * and call `moduleStateLabel()` rather than either of them directly.
- *
- * @param {Object} mod Module boot record.
- * @return {string} A meta suffix, or '' when there is nothing to add.
+ * @param {Object}     args
+ * @param {Array}      args.staff         Active staff options `[ { id, label } ]`.
+ * @param {?Array}     args.assignments   Pairs `{ staff_id, location_id }` of the service, or null.
+ * @param {number}     [args.locationId]  Picked location (`0` = none).
+ * @param {number}     [args.currentId]   The booking's own staff id.
+ * @param {string}     [args.currentName] Its name, for a member the list no longer carries.
+ * @return {Array} `[ { id, label } ]`.
  */
-function integrationStateLabel(mod) {
-  if ('integration' !== mod?.kind || true !== mod?.available) {
-    return '';
+function rescheduleStaffOptions({
+  staff,
+  assignments,
+  locationId = 0,
+  currentId = 0,
+  currentName = ''
+}) {
+  const place = Number(locationId) || 0;
+  const eligible = null === assignments || undefined === assignments ? null : new Set(assignments.filter(pair => {
+    const at = Number(pair?.location_id) || 0;
+    return 0 === at || at === place;
+  }).map(pair => Number(pair.staff_id)));
+  const options = (staff || []).filter(member => null === eligible || eligible.has(Number(member.id))).map(member => ({
+    id: Number(member.id),
+    label: member.label
+  }));
+  const current = Number(currentId) || 0;
+  if (current && !options.some(option => option.id === current)) {
+    options.unshift({
+      id: current,
+      label: currentName || `#${current}`
+    });
   }
-  if (!mod.configured) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Setup needed', 'aponto');
-  }
-  const connected = Number(mod.connected_count) || 0;
-  if (connected < 1) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Configured · no staff connected', 'aponto');
-  }
-  const used = Number(mod.used_count) || 0;
-  const staff = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %d: number of staff members connected to an integration. */
-  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__._n)('%d staff connected', '%d staff connected', connected, 'aponto'), connected);
-  if (used < 1) {
-    return staff;
-  }
-  return staff + ' · ' + (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %d: number of services an integration acts for. */
-  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__._n)('%d service', '%d services', used, 'aponto'), used);
-}
-
-/**
- * The card meta suffix for a PAYMENT module (D-R39).
- *
- * A gateway is registered as `kind: 'integration'` — it is somebody else's service reached over
- * HTTP — but it has NO per-staff connections, so the connection phrases above are nonsense for it:
- * "0 staff connected" on a working Stripe account describes a state that cannot exist. The two
- * facts that actually matter are whether the credentials are in place (`configured`) and which
- * Stripe account they point at, and the second one is the reason this exists at all: a site owner
- * who leaves test keys in place sees bookings arrive and no money, and the catalog is the first
- * place that can tell them.
- *
- * `payment_mode` is DERIVED server-side from the key prefix and never stored (D-R39), and it is an
- * ADDITIVE boot field: boot data older than this bundle simply has no such key, which reads as ''
- * and degrades to a bare "Ready" rather than claiming a mode nobody confirmed.
- *
- * `ready` is the second additive field, and it OVERRIDES `configured` (Codex r1 #14). Credentials
- * being present is not the same fact as the gateway being offered: a site whose currency PayPal
- * does not accept, or whose saved webhook id belongs to the other environment, has every field
- * filled in and takes no payments at all. The server computes the whole predicate — the card only
- * reports it — and `null`/absent means "the server did not say", which falls back to the older
- * ladder rather than to a guess in either direction.
- *
- * @param {Object} mod Module boot record.
- * @return {string} A meta suffix, or '' when there is nothing to add.
- */
-function paymentStateLabel(mod) {
-  if (true !== mod?.available) {
-    return '';
-  }
-  if (!mod.configured || false === mod.ready) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Setup needed', 'aponto');
-  }
-  const mode = typeof mod.payment_mode === 'string' ? mod.payment_mode : '';
-  if ('test' === mode) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Ready · Test mode', 'aponto');
-  }
-  if ('live' === mode) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Ready · Live', 'aponto');
-  }
-  return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Ready', 'aponto');
-}
-
-/**
- * The card's next-step phrase, whichever kind of module it is.
- *
- * ONE entry point for the meta line so the cards cannot disagree about what a state means, and so
- * the payments branch cannot be reached by accident: it keys on the registry `category`, which is
- * the field that says what a module is FOR, rather than on `kind`, which every remote service
- * shares.
- *
- * @param {Object} mod Module boot record.
- * @return {string} A meta suffix, or '' when there is nothing to add.
- */
-function moduleStateLabel(mod) {
-  return 'payments' === mod?.category ? paymentStateLabel(mod) : integrationStateLabel(mod);
-}
-
-/**
- * The boot-data record for a module code, or null when the catalog has no such entry.
- * ONE lookup for every surface that resolves a code arriving from outside the catalog
- * grid — a hash segment, a card action — so they cannot disagree about what a code means.
- *
- * @param {{modules?: Array}} bootConfig Admin boot config (`lib/config.js`).
- * @param {string}            code       Registry module code.
- * @return {Object|null} Module record.
- */
-function findModuleRecord(bootConfig, code) {
-  const modules = Array.isArray(bootConfig?.modules) ? bootConfig.modules : [];
-  return modules.find(mod => mod?.code === code) || null;
-}
-
-/**
- * Whether a module code is usable on THIS site, read off the boot-data `available`
- * flag the server computed with `Plan::has()` (D-R27). Exported so any route can gate
- * display on the same single truth instead of re-deriving one from `edition`/`status`.
- *
- * Unknown codes and boot data older than this bundle both answer `false` — never
- * claim a capability that cannot be confirmed.
- *
- * @param {{modules?: Array}} bootConfig Admin boot config (`lib/config.js`).
- * @param {string}            code       Registry module code.
- * @return {boolean} Whether the module is available.
- */
-function moduleAvailable(bootConfig, code) {
-  return findModuleRecord(bootConfig, code)?.available === true;
-}
-
-/**
- * Whether this build may switch a module on or off (D-R31).
- *
- * The CLIENT MIRROR of the REST predicate in `ModulesController::isToggleable()`, and it is
- * mirrored for the same reason every UI gate is: to decide what to draw. It decides nothing —
- * the route re-checks all of it, so a card that renders a switch it should not have still cannot
- * write (§5 invariant 3).
- *
- * Deliberately NOT `available`: a module the owner just switched OFF is unavailable, and gating
- * the switch on availability would make disabling a one-way door in the UI exactly as it would in
- * the API. The terms are the ones that survive being turned off — the registry's own
- * `toggleable`, whether the code shipped in this build (`status`), and whether the edition allows
- * it at all.
- *
- * @param {{edition?: string, toggleable?: boolean, status?: string}} mod         Module record from boot data.
- * @param {string}                                                    planEdition Site plan edition.
- * @return {boolean} Whether to render a switch.
- */
-function moduleToggleAllowed(mod, planEdition = 'free') {
-  if (mod?.toggleable !== true || mod?.status !== 'included') {
-    return false;
-  }
-  return mod?.edition !== 'premium' || planEdition === 'premium';
-}
-
-/**
- * Whether switching a module ON has to be followed by a page reload (Codex A2, 2026-09-04).
- *
- * TRUE for an `integration` module being ENABLED, and for nothing else.
- *
- * The reason is server-side and deliberate (rest-contract §2.12b): the boot projection computes
- * `configured`, `connected_count`, `used_count` — and, for a gateway, `payment_mode` — only for
- * `IntegrationRegistry::activeCodes()`, i.e. the modules that were switched ON when the page was
- * built. A module enabled mid-session therefore has no such fields anywhere in this document, and
- * `PUT /modules/{code}` answers `{code, enabled}` rather than a fresh projection. The session store
- * can flip `enabled`/`available` honestly, but it cannot invent state nobody computed — so the card
- * would sit at "Setup needed" and a payments card would report no mode, both of which are lies
- * about a module that may be fully configured.
- *
- * DISABLING never needs one: `applyModuleEnabled()` already makes every surface treat the module as
- * gone, and the stale projection it leaves behind is hidden rather than shown.
- *
- * A capability or engine_flag module keeps today's behaviour — it has no projection to be missing,
- * so reloading would cost the operator their scroll position and their filters for nothing.
- *
- * @param {{kind?: string}} mod  Module boot record.
- * @param {boolean}         next Requested switch position.
- * @return {boolean} Whether to reload after the server confirms.
- */
-function enablingNeedsReload(mod, next) {
-  return true === next && 'integration' === mod?.kind;
-}
-
-/**
- * Card presentation for one module — the honest states of the catalog
- * (D-R22, founder-approved 2026-07-27; keyed on `available` since D-R27;
- * premium-build treatment founder-approved 2026-08-28).
- *
- *   available          → kit `enabled` chrome, the module's own tier badge, a static
- *                        "Included" label and — since D-R31 — a real ON switch where the
- *                        registry says the module is toggleable. NO upgrade link: the site
- *                        already owns this.
- *   available: false,  → kit `disabled` chrome: the Included shape, muted, switch OFF. NO
- *   but toggleable       "Coming soon" and NO upsell — the owner turned this off and can turn
- *                        it back on. Distinguishing it from "planned" is the whole point of
- *                        the state (D-R31): both are `available: false`, but telling someone
- *                        their own choice is a roadmap item is nonsense.
- *   free + planned     → kit `planned` chrome, green Free badge, "Coming soon".
- *                        NO upgrade link: the module WILL be free, so pointing at
- *                        the pricing page would be dishonest.
- *   premium, unshipped → depends on WHO IS LOOKING:
- *                        · FREE build    — unchanged locked card: `planned` chrome, amber
- *                          Premium badge, no status label, per-placement UTM compare link.
- *                        · PREMIUM build — neutral roadmap card: `planned` chrome, a
- *                          NEUTRAL (unamber) Premium label, "Coming soon · {phase}", and
- *                          NO upgrade link at all.
- *
- * WHY THE BUILD MATTERS HERE (founder, 2026-08-28): a paying customer must never be shown
- * plan-marketing chrome. Selling Premium to someone who already bought it is not an upsell,
- * it is noise — and the honest answer to "when do I get this" is the roadmap, not a pricing
- * page. Note this is CHROME SELECTION, not gating: `planEdition` decides how an unavailable
- * module is PRESENTED, while whether it is available at all stays `available`
- * (`Plan::has()`), and REST enforces the real thing. Do not "fix" this into a gate.
- *
- * WHY `available` AND NOT `status` (D-R27): `status` is `Plan::isShipped()`, and that
- * constant is EDITION-BLIND. The moment a premium module ships, a Free build would also
- * report `status: 'included'` for it — and keying the card on that would drop the lock
- * and the upsell for a capability the Free site does not own. `available` is
- * `Plan::has()` for the running build: edition × shipped-ness × the module toggle.
- *
- * A module older than this bundle (boot data with no `available`) reads as unavailable,
- * which is the conservative answer — it never claims a capability is present. An unknown
- * `planEdition` reads as `free`, which keeps the upsell rather than hiding it.
- *
- * @param {{edition?: string, available?: boolean, phase?: string}} mod         Module record from boot data.
- * @param {string}                                                 planEdition Site plan edition (`free`|`premium`).
- * @return {{state: string, tier: ?Object, toggle: boolean, statusLabel: ?string, plannedLabel: ?string, upgrade: boolean}} Card descriptor.
- */
-function moduleCardState(mod, planEdition = 'free') {
-  const premium = mod?.edition === 'premium';
-  const onPremiumBuild = planEdition === 'premium';
-  const tier = premium ? {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Premium', 'aponto'),
-    isPremium: true
-  } : {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Free', 'aponto'),
-    variant: 'free'
-  };
-  const toggle = moduleToggleAllowed(mod, planEdition);
-  if (mod?.available === true) {
-    return {
-      state: 'enabled',
-      tier,
-      toggle,
-      statusLabel: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Included', 'aponto'),
-      plannedLabel: null,
-      upgrade: false
-    };
-  }
-
-  // SWITCHED OFF — not "not built yet". Both are `available: false`, and without this branch a
-  // disabled module falls into the planned/upsell copy below and tells the owner their own
-  // choice is a roadmap item (D-R31). The card keeps the Included shape so flipping the switch
-  // back is obviously the way out; the kit mutes it via the `disabled` state.
-  if (toggle) {
-    return {
-      state: 'disabled',
-      tier,
-      toggle: true,
-      statusLabel: null,
-      plannedLabel: null,
-      upgrade: false
-    };
-  }
-  if (premium && onPremiumBuild) {
-    return {
-      state: 'planned',
-      // Deliberately NOT `isPremium`: that flag is what paints the amber "locked/paid"
-      // chrome (kit `tierVariantClass`). The label still names the plan the module
-      // belongs to — a catalog fact — but on neutral chrome, because nothing here is
-      // locked to this viewer.
-      tier: {
-        label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Premium', 'aponto')
-      },
-      toggle: false,
-      statusLabel: null,
-      plannedLabel: comingSoonLabel(mod?.phase),
-      upgrade: false
-    };
-  }
-  return {
-    state: 'planned',
-    tier,
-    toggle: false,
-    statusLabel: null,
-    // A locked Premium card carries the compare link instead of a "Coming soon"
-    // label — its answer to "when" is the pricing page, not a status word.
-    plannedLabel: premium ? null : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming soon', 'aponto'),
-    upgrade: premium
-  };
-}
-
-/**
- * "Coming soon", with the registry's roadmap phase appended when there is one.
- *
- * PHASE ON A CARD IS A DELIBERATE REVERSAL, scoped to premium builds (founder,
- * 2026-08-28). Production cards previously carried NO phase label at all
- * (plugin-dashboard-divergence.md §2.7 — the registry kept `phase` for docs and upsell
- * planning only), and that still holds for the Free build: a prospect is shown what a
- * plan includes, never a delivery schedule. A paying customer is in a different position
- * — they have already bought the roadmap, so "P2b" is the most honest answer available to
- * "when". It is a bare phase CODE on purpose: it commits to an ordering, not to a date.
- *
- * @param {string} phase Registry roadmap phase (e.g. `P2b`), or empty.
- * @return {string} Card label.
- */
-function comingSoonLabel(phase) {
-  const code = typeof phase === 'string' ? phase.trim() : '';
-  if ('' === code) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming soon', 'aponto');
-  }
-  return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %s: roadmap phase code, e.g. "P2b". */
-  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming soon · %s', 'aponto'), code);
-}
-
-// Roadmap phase (P2a/P3/…) is NOT surfaced on FREE-build cards — production copy shown to a
-// prospect carries no phase labels (divergence audit §2.7); the registry keeps it for docs and
-// upsell planning. The single exception, founder-approved 2026-08-28, is an unshipped premium
-// module on a PREMIUM build, where the phase replaces the upsell link as the honest answer to
-// "when" (see `comingSoonLabel()` above).
-
-/**
- * Free/Included card → the admin surface that ALREADY manages that capability
- * (D-R22 addendum, founder-approved 2026-07-27). An entry renders an internal
- * "Open" link on the card; it is navigation, never an upsell, so it carries no
- * UTM and never leaves the app.
- *
- * THE RULE: a code appears here ONLY when a real, shipped surface exists today.
- * A capability with no destination gets NO link — never a placeholder, never a
- * "coming soon" target, never a link to a page that does not manage it. Half a
- * destination is worse than none: a link that lands the owner somewhere
- * unrelated is exactly the fake affordance §6 / Guideline 5 forbids.
- *
- * Values are canonical hashes as the router spells them (lib/router.js +
- * settings/ia.js). Settings deep links use the full `settings/<parent>/<child>`
- * form, not a legacy alias — `#settings` and `#settings/booking` both resolve,
- * but SettingsRoute silently rewrites them, so linking the alias would make the
- * address bar change under the user.
- *
- *   booking_reminder      → Notifications. The reminder's real on/off switch is
- *   email_notifications      the `booking_reminder_customer` template's enabled
- *                            flag, and every other event email lives on the same
- *                            leaf (settings/ia.js: Notifications is ONE surface).
- *   csv_export            → Bookings, which owns the export action + its filters
- *                            (routes/Bookings.jsx `onExport`).
- *   availability_engine   → Settings → Booking → Policy, the panel described as
- *                            "Availability rules applied to every service"
- *                            (settings/catalog.js PANEL_META.policy): lead time,
- *                            booking window and buffers.
- *   multi_staff           → Staff, which owns staff records, their work hours and
- *                            their time off (D-R28, 2026-08-27). Per-service
- *                            eligibility is edited in the service editor, but Staff
- *                            is where the capability itself is managed. It is also
- *                            the first PREMIUM entry here — the map is keyed on
- *                            "a real surface already manages this", not on edition.
- *
- * DELIBERATELY ABSENT — both would need a placeholder to be listed:
- *   booking_form  — its configuration is the block Inspector (Q11 2026-07-18
- *                   moved form appearance there), which is a post-editor
- *                   surface, not an admin route this hash router can reach.
- *   ics_export    — ICS download / add-to-calendar links are emitted on
- *                   confirmations and emails; there is no admin screen for them.
- */
-const INCLUDED_CARD_ROUTES = {
-  booking_reminder: '#settings/notifications',
-  email_notifications: '#settings/notifications',
-  csv_export: '#bookings',
-  availability_engine: '#settings/booking/policy',
-  multi_staff: '#staff'
-};
-
-/**
- * The in-app destination for an Included card, or '' when it has none.
- *
- * Only an AVAILABLE module gets one (D-R27): a planned capability has nothing to open,
- * and a module the site does not own must keep the compare link as its single action
- * (§6). `available` — not `status` — is the test, for the same reason `moduleCardState`
- * uses it: `status` is edition-blind and would hand a Free build an "Open" link into a
- * premium module's settings.
- *
- * Two destinations, in priority order:
- *   1. `INCLUDED_CARD_ROUTES[code]` — the hand-mapped surface that ALREADY manages the
- *      capability (the D-R22 addendum map above). A capability whose management lives on
- *      an existing screen must land there, not on a generic panel page.
- *   2. `#modules/{code}` — the module's own settings route, for any available module that
- *      declares `has_settings`. That is where its registered panel renders.
- * Anything else gets NO link, which is still the rule: half a destination is worse
- * than none.
- *
- * @param {{code?: string, has_settings?: boolean, available?: boolean}} mod Module record from boot data.
- * @return {string} Canonical hash (e.g. `#bookings`), or '' for no link.
- */
-function moduleOpenHref(mod) {
-  if (mod?.available !== true) {
-    return '';
-  }
-  const mapped = INCLUDED_CARD_ROUTES[mod.code];
-  if (mapped) {
-    return mapped;
-  }
-  return mod?.has_settings === true ? `#modules/${mod.code}` : '';
-}
-const UPGRADE_BASE = 'https://pressmaximum.com/aponto/pricing/';
-
-/**
- * Per-placement upgrade link with UTM tracking (§6). `placement` is the
- * `utm_content`: `modules-{code}` for a card, `menu` for the page-level CTA.
- */
-function upgradeUrl(placement) {
-  const params = new URLSearchParams({
-    utm_source: 'aponto',
-    utm_medium: 'plugin',
-    utm_campaign: 'upsell',
-    utm_content: placement
-  });
-  return `${UPGRADE_BASE}?${params.toString()}`;
-}
-
-/** Free-vs-premium comparison matrix for the CompareTable at the page foot (§6). */
-const COMPARE_SECTIONS = [{
-  id: 'bookings',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bookings', 'aponto'),
-  rows: [{
-    id: 'unlimited',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Unlimited bookings', 'aponto'),
-    free: true,
-    pro: true
-  }, {
-    id: 'staff',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Staff members', 'aponto'),
-    free: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('1', 'aponto'),
-    pro: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Unlimited', 'aponto')
-  }, {
-    id: 'services',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Services & categories', 'aponto'),
-    free: true,
-    pro: true
-  },
-  // D-R43: Free books one business address (General -> Business, `location_id = 0`); named
-  // locations are the Premium `multi_location` module, whose registry `category` is `booking`.
-  {
-    id: 'locations',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple locations', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'group',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Group bookings', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'recurring',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Recurring appointments', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'waitlist',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Waitlist', 'aponto'),
-    free: false,
-    pro: true
-  }]
-}, {
-  id: 'payments',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payments', 'aponto'),
-  rows: [{
-    id: 'manual',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Mark bookings paid / unpaid', 'aponto'),
-    free: true,
-    pro: true
-  },
-  // D-R22: Stripe is a Free module; PayPal stays Premium — the old single "Online
-  // payments (Stripe, PayPal)" row can no longer state one answer. Stripe SHIPPED in P3
-  // (D-R39), so the Free column is a tick: the shipped-truth rule says this table may
-  // never say "Coming" for a capability whose own card on the same screen reads
-  // "Ready" (QA BUG-8).
-  {
-    id: 'stripe',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Stripe payments', 'aponto'),
-    free: true,
-    pro: true
-  }, {
-    id: 'paypal',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('PayPal payments', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'deposits',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Deposits', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'coupons',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coupons', 'aponto'),
-    free: false,
-    pro: true
-  }]
-}, {
-  id: 'connections',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Connections', 'aponto'),
-  rows: [{
-    id: 'email',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Email notifications', 'aponto'),
-    free: true,
-    pro: true
-  },
-  // A5 / D-R22: the fixed 24h email reminder is core Free; only custom schedules
-  // (multi-step, follow-ups) are the Premium `reminders` module.
-  {
-    id: 'reminder',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('24-hour email reminder', 'aponto'),
-    free: true,
-    pro: true
-  }, {
-    id: 'reminders_advanced',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Custom reminder schedules', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'calendar',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Calendar sync (Google, Outlook)', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'sms',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('SMS reminders', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'video',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Video meeting links', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'webhooks',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Webhooks', 'aponto'),
-    free: false,
-    pro: true
-  }]
-}, {
-  id: 'site_tools',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Site & tools', 'aponto'),
-  rows: [{
-    id: 'csv_export',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV export', 'aponto'),
-    free: true,
-    pro: true
-  }, {
-    id: 'csv_import',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV import', 'aponto'),
-    free: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming', 'aponto'),
-    pro: true
-  }, {
-    id: 'service_catalog',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Service catalog pages', 'aponto'),
-    free: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming', 'aponto'),
-    pro: true
-  }, {
-    id: 'roles',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Team roles', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'white_label',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('White label', 'aponto'),
-    free: false,
-    pro: true
-  }]
-}];
-
-/***/ },
-
-/***/ "./assets/src/admin/modules/filters.js"
-/*!*********************************************!*\
-  !*** ./assets/src/admin/modules/filters.js ***!
-  \*********************************************/
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CATEGORY_ALL: () => (/* binding */ CATEGORY_ALL),
-/* harmony export */   INDUSTRY_ALL: () => (/* binding */ INDUSTRY_ALL),
-/* harmony export */   INDUSTRY_IDS: () => (/* binding */ INDUSTRY_IDS),
-/* harmony export */   filterModules: () => (/* binding */ filterModules),
-/* harmony export */   hasBrowseFilters: () => (/* binding */ hasBrowseFilters),
-/* harmony export */   matchesCategory: () => (/* binding */ matchesCategory),
-/* harmony export */   matchesIndustry: () => (/* binding */ matchesIndustry),
-/* harmony export */   matchesQuery: () => (/* binding */ matchesQuery),
-/* harmony export */   moduleIndustries: () => (/* binding */ moduleIndustries)
-/* harmony export */ });
-/**
- * Pure browse-filter logic for the Modules catalog (D-R21, 2026-07-25).
- *
- * The Modules screen combines three independent filters with AND: the category
- * tabs, the Industry select and the free-text search box — the same combination
- * the mockup's `filteredModules()` applies (docs/mockups/v4/plugin-dashboard/
- * assets/js/plugin-dashboard.js). Kept framework- and i18n-free so it is unit
- * testable in the node Jest environment; every display string is injected by the
- * caller through `resolveText`.
- *
- * The mockup's Status and License selects are deliberately NOT part of this
- * module: D-R21 approved the Industry filter only, and D-R22 (mixed editions and
- * card states in the catalog) did not re-open that scope.
- */
-
-/** Sentinel industry id: matches every industry, on a module and as a filter value. */
-const INDUSTRY_ALL = 'all';
-
-/** Sentinel category id used by the "All" tab. */
-const CATEGORY_ALL = 'all';
-
-/**
- * The controlled industry vocabulary (D-R21), in display order. Mirrors the
- * registry's `industries` field; `all` is the sentinel and is not listed here.
- */
-const INDUSTRY_IDS = ['beauty', 'coaching', 'fitness', 'healthcare', 'events', 'venues', 'agencies', 'field_services'];
-
-/**
- * A module's industry tags, defensively normalized. A registry entry that ships
- * without the field (older boot data) reads as untagged.
- *
- * @param {{industries?: string[]}} mod Module record.
- * @return {string[]} Industry ids.
- */
-function moduleIndustries(mod) {
-  return Array.isArray(mod?.industries) ? mod.industries.filter(id => typeof id === 'string') : [];
-}
-
-/**
- * Industry predicate. `all` on either side matches; an untagged module stays
- * visible rather than disappearing from every industry view (forward-compat with
- * a bundle newer than its boot data).
- *
- * @param {{industries?: string[]}} mod      Module record.
- * @param {string}                  industry Selected industry id.
- * @return {boolean} Whether the module belongs to the industry.
- */
-function matchesIndustry(mod, industry) {
-  if (!industry || industry === INDUSTRY_ALL) {
-    return true;
-  }
-  const tags = moduleIndustries(mod);
-  if (tags.length === 0) {
-    return true;
-  }
-  return tags.includes(INDUSTRY_ALL) || tags.includes(industry);
-}
-
-/**
- * Category predicate (the tab strip).
- *
- * @param {{category?: string}} mod      Module record.
- * @param {string}              category Selected category id.
- * @return {boolean} Whether the module belongs to the category.
- */
-function matchesCategory(mod, category) {
-  return !category || category === CATEGORY_ALL || mod?.category === category;
-}
-
-/**
- * Free-text predicate over the caller-supplied display strings (title,
- * description, category label, industry labels). Matching is case-insensitive
- * substring, like the mockup's haystack.
- *
- * @param {Object}   mod         Module record.
- * @param {string}   query       Raw query string.
- * @param {Function} resolveText `( mod ) => string[]` searchable strings.
- * @return {boolean} Whether the module matches the query.
- */
-function matchesQuery(mod, query, resolveText) {
-  const needle = String(query || '').trim().toLowerCase();
-  if ('' === needle) {
-    return true;
-  }
-  const parts = typeof resolveText === 'function' ? resolveText(mod) : [];
-  const haystack = [mod?.code, ...(Array.isArray(parts) ? parts : [])].filter(part => typeof part === 'string' && '' !== part).join(' ').toLowerCase();
-  return haystack.includes(needle);
-}
-
-/**
- * Apply every active filter with AND, preserving registry order.
- *
- * @param {Object[]} modules             Module records.
- * @param {Object}   filters             Active filters.
- * @param {string}   [filters.category]  Category id (`all` = no filter).
- * @param {string}   [filters.industry]  Industry id (`all` = no filter).
- * @param {string}   [filters.query]     Free-text query.
- * @param {Function} [resolveText]       `( mod ) => string[]` searchable strings.
- * @return {Object[]} Matching modules.
- */
-function filterModules(modules, filters = {}, resolveText) {
-  const {
-    category = CATEGORY_ALL,
-    industry = INDUSTRY_ALL,
-    query = ''
-  } = filters;
-  const list = Array.isArray(modules) ? modules : [];
-  return list.filter(mod => matchesCategory(mod, category) && matchesIndustry(mod, industry) && matchesQuery(mod, query, resolveText));
-}
-
-/**
- * Whether any filter other than the category tab is narrowing the view — used to
- * decide between "this category is empty" and "clear a filter" copy.
- *
- * @param {Object} filters            Active filters.
- * @param {string} [filters.industry] Industry id.
- * @param {string} [filters.query]    Free-text query.
- * @return {boolean} Whether a browse filter is active.
- */
-function hasBrowseFilters(filters = {}) {
-  const {
-    industry = INDUSTRY_ALL,
-    query = ''
-  } = filters;
-  return industry !== INDUSTRY_ALL || '' !== String(query || '').trim();
-}
-
-/***/ },
-
-/***/ "./assets/src/admin/modules/module-state.js"
-/*!**************************************************!*\
-  !*** ./assets/src/admin/modules/module-state.js ***!
-  \**************************************************/
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   applyModuleEnabled: () => (/* binding */ applyModuleEnabled),
-/* harmony export */   getModules: () => (/* binding */ getModules),
-/* harmony export */   resetModuleState: () => (/* binding */ resetModuleState),
-/* harmony export */   subscribeModules: () => (/* binding */ subscribeModules),
-/* harmony export */   useModules: () => (/* binding */ useModules)
-/* harmony export */ });
-/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
-/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
-/* harmony import */ var _catalog_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./catalog.js */ "./assets/src/admin/modules/catalog.js");
-/**
- * Live module records for the whole SPA session (D-R31 fix, 2026-08-29).
- *
- * WHY THIS EXISTS. The catalog's toggle first kept its optimistic result in route-local
- * `useState` inside `ModulesApp`, layered over the static `config.modules` boot snapshot. That
- * works exactly as long as the route stays mounted — and the Modules section is precisely where
- * it does not: hash-navigating to a panel unmounts `ModulesApp`, the state dies with it, and
- * every consumer falls back to the boot snapshot until a full document reload. Two real symptom
- * pairs came out of that, both reported from the assembled preview:
- *
- *   - disable a module → open a panel → go back to `#modules`: the card reads Enabled again,
- *     AND the disabled module's panel route still mounts its editor, which then fetches a route
- *     the server has stopped serving and shows a raw `rest_no_route` banner;
- *   - enable a module → open its panel without reloading: the route insists the module "is not
- *     available on this site".
- *
- * The state was never wrong — it was scoped to the wrong lifetime. It belongs to the SESSION,
- * not to a route, so it lives here: a module-level singleton, the same house idiom as
- * `lib/nav-guard.js` and `lib/module-panels.js`. No context, no new dependency.
- *
- * A fresh document load re-seeds from boot data, which the server already computes correctly —
- * this store only has to keep the CURRENT page honest between reloads.
- */
-
-
-
-
-/**
- * Session records, seeded lazily from boot data.
- *
- * @type {Array|null}
- */
-let records = null;
-
-/** @type {Set<Function>} */
-const listeners = new Set();
-
-/** The live records, seeding from the boot snapshot on first read. */
-function getModules() {
-  if (records === null) {
-    records = Array.isArray(_lib_config_js__WEBPACK_IMPORTED_MODULE_1__.config.modules) ? _lib_config_js__WEBPACK_IMPORTED_MODULE_1__.config.modules.slice() : [];
-  }
-  return records;
-}
-
-/**
- * Apply a module's new switch position to the session view.
- *
- * `available` moves WITH `enabled` — but only for a module this build may actually toggle. That
- * flag is `Plan::has()` server-side, and the user switch is one of its terms; the other terms
- * (edition, shipped-ness) cannot change without a reload, so for a toggle-eligible module
- * `available` reduces to `enabled`. Deriving it here is what makes the card, the subnav and the
- * panel route's availability gate agree instantly, since all three key on `available`.
- *
- * A module that is NOT toggle-eligible keeps its boot `available` untouched: nothing in this
- * session can legitimately change it.
- *
- * @param {string}  code    Module code.
- * @param {boolean} enabled New switch position.
- */
-function applyModuleEnabled(code, enabled) {
-  records = getModules().map(mod => {
-    if (mod?.code !== code) {
-      return mod;
-    }
-    const eligible = (0,_catalog_js__WEBPACK_IMPORTED_MODULE_2__.moduleToggleAllowed)(mod, _lib_config_js__WEBPACK_IMPORTED_MODULE_1__.config.planEdition);
-    return {
-      ...mod,
-      enabled,
-      available: eligible ? enabled : mod.available
-    };
-  });
-  listeners.forEach(listener => listener(records));
-}
-
-/**
- * Subscribe to session changes.
- *
- * @param {Function} listener Called with the new records.
- * @return {Function} Unsubscribe.
- */
-function subscribeModules(listener) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-/**
- * The live records, re-rendering the caller when they change.
- *
- * Every module surface reads through this — the catalog cards, the section subnav and the panel
- * route's availability gate — so they cannot disagree about a module's state within a session.
- *
- * @return {Array} Module records.
- */
-function useModules() {
-  const [state, setState] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(getModules);
-  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => subscribeModules(setState), []);
-  return state;
-}
-
-/** Drop the session view so the next read re-seeds from boot data. Test seam only. */
-function resetModuleState() {
-  records = null;
-  listeners.clear();
+  return options;
 }
 
 /***/ },
@@ -1651,38 +877,52 @@ function resetModuleState() {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   BookingEditor: () => (/* binding */ BookingEditor)
+/* harmony export */   BookingEditor: () => (/* binding */ BookingEditor),
+/* harmony export */   customerFieldErrors: () => (/* binding */ customerFieldErrors)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _pressmaximum_dashboard_kit_primitives__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @pressmaximum/dashboard-kit/primitives */ "./node_modules/@pressmaximum/dashboard-kit/build/primitives/index.mjs");
-/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
-/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _lib_api_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/api.js */ "./assets/src/admin/lib/api.js");
-/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
-/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
-/* harmony import */ var _lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/booking-adapter.js */ "./assets/src/admin/lib/booking-adapter.js");
-/* harmony import */ var _lib_editor_rows_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/editor-rows.js */ "./assets/src/admin/lib/editor-rows.js");
-/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
-/* harmony import */ var _lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/notification-outcome.js */ "./assets/src/admin/lib/notification-outcome.js");
-/* harmony import */ var _lib_toast_jsx__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/toast.jsx */ "./assets/src/admin/lib/toast.jsx");
-/* harmony import */ var _lib_Combobox_jsx__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../lib/Combobox.jsx */ "./assets/src/admin/lib/Combobox.jsx");
-/* harmony import */ var _lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../lib/combobox-options.js */ "./assets/src/admin/lib/combobox-options.js");
-/* harmony import */ var _modules_catalog_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../modules/catalog.js */ "./assets/src/admin/modules/catalog.js");
-/* harmony import */ var _modules_module_state_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../modules/module-state.js */ "./assets/src/admin/modules/module-state.js");
-/* harmony import */ var _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../lib/payment-status.js */ "./assets/src/admin/lib/payment-status.js");
-/* harmony import */ var _lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../lib/lazy.jsx */ "./assets/src/admin/lib/lazy.jsx");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__);
+/* harmony import */ var _lib_external_order_sync_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../lib/external-order-sync.js */ "./assets/src/admin/lib/external-order-sync.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _pressmaximum_dashboard_kit_primitives__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @pressmaximum/dashboard-kit/primitives */ "./node_modules/@pressmaximum/dashboard-kit/build/primitives/index.mjs");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _lib_api_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/api.js */ "./assets/src/admin/lib/api.js");
+/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
+/* harmony import */ var _lib_format_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/format.js */ "./assets/src/admin/lib/format.js");
+/* harmony import */ var _lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/booking-adapter.js */ "./assets/src/admin/lib/booking-adapter.js");
+/* harmony import */ var _lib_booking_activity_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/booking-activity.js */ "./assets/src/admin/lib/booking-activity.js");
+/* harmony import */ var _lib_page_title_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/page-title.js */ "./assets/src/admin/lib/page-title.js");
+/* harmony import */ var _lib_editor_rows_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/editor-rows.js */ "./assets/src/admin/lib/editor-rows.js");
+/* harmony import */ var _lib_branches_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../lib/branches.js */ "./assets/src/admin/lib/branches.js");
+/* harmony import */ var _lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../lib/icon.jsx */ "./assets/src/admin/lib/icon.jsx");
+/* harmony import */ var _lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../lib/field-error.jsx */ "./assets/src/admin/lib/field-error.jsx");
+/* harmony import */ var _shared_person_name_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../../shared/person-name.js */ "./assets/src/shared/person-name.js");
+/* harmony import */ var _lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../lib/notification-outcome.js */ "./assets/src/admin/lib/notification-outcome.js");
+/* harmony import */ var _lib_toast_jsx__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../lib/toast.jsx */ "./assets/src/admin/lib/toast.jsx");
+/* harmony import */ var _lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ../lib/confirm.jsx */ "./assets/src/admin/lib/confirm.jsx");
+/* harmony import */ var _lib_Combobox_jsx__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ../lib/Combobox.jsx */ "./assets/src/admin/lib/Combobox.jsx");
+/* harmony import */ var _lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ../lib/combobox-options.js */ "./assets/src/admin/lib/combobox-options.js");
+/* harmony import */ var _modules_catalog_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ../modules/catalog.js */ "./assets/src/admin/modules/catalog.js");
+/* harmony import */ var _modules_module_state_js__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ../modules/module-state.js */ "./assets/src/admin/modules/module-state.js");
+/* harmony import */ var _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ../lib/payment-status.js */ "./assets/src/admin/lib/payment-status.js");
+/* harmony import */ var _bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ../bookings/dashboard-stats.js */ "./assets/src/admin/bookings/dashboard-stats.js");
+/* harmony import */ var _bookings_form_answers_js__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! ../bookings/form-answers.js */ "./assets/src/admin/bookings/form-answers.js");
+/* harmony import */ var _lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! ../lib/lazy.jsx */ "./assets/src/admin/lib/lazy.jsx");
+/* harmony import */ var _aponto_admin_booking_coupon__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @aponto/admin-booking-coupon */ "./assets/src/admin/lib/booking-coupon.free.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__);
 /**
  * In-flow booking editor (SPEC-P1 §1.4 / mockup §6.7). One shell, one domain
  * order: Customer → Services & items → Schedule → Order → Internal notes (+ Activity
  * in edit). Non-modal: the list stays interactive (no backdrop/body-lock/focus-trap).
  *
- * - Create: customer-first, availability-driven `Available start time` (no past),
- *   derived read-only end, create-as-draft (default_booking_status). POST /bookings.
+ * - Create: customer-first, availability-driven `Available start time` — the FRONT-DESK
+ *   window (D-R77): no customer lead time, today's starts from the start of the business
+ *   day; a new customer needs only a first name (no email = no customer mail) — derived
+ *   read-only end, create-as-draft (default_booking_status). POST /bookings.
  * - Edit: Customer/Service/schedule read-only; `Edit time` = reschedule sub-flow
- *   (PUT /bookings/{id}/reschedule); Order snapshot + manual Paid/Unpaid
+ *   (PUT /bookings/{id}/reschedule), which on a multi-staff site may also move the booking
+ *   to another eligible staff member (D-R78); Order snapshot + manual Paid/Unpaid
  *   (PATCH payment_status, none|paid, Q9); Save commits status(+notify)+internal
  *   note (PATCH); Cancel is a destructive confirm in the footer overflow; status
  *   follows the single-source transition matrix; Notify default-on per transition.
@@ -1709,35 +949,42 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+
+
+
+
+
+
+// Edition-resolved (webpack alias, D-R41 ownership): Premium's coupon controls, or
+// Free's inert stub. The read-only discount snapshot below is neutral core display.
+
+
 // The refund dialog is the rarest surface in the app and entirely self-contained, so it
 // loads on the click that opens it rather than riding in `admin.js` (AGENTS §6 budget; the
 // P3 handoff §4 debt item). `lazySurface` supplies the Spinner and the retry line.
 
-const RefundDialog = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_16__.lazySurface)(() => __webpack_require__.e(/*! import() | admin-chunk-refund-dialog */ "admin-chunk-refund-dialog").then(__webpack_require__.bind(__webpack_require__, /*! ./RefundDialog.jsx */ "./assets/src/admin/routes/RefundDialog.jsx")), {
+const RefundDialog = (0,_lib_lazy_jsx__WEBPACK_IMPORTED_MODULE_25__.lazySurface)(() => __webpack_require__.e(/*! import() | admin-chunk-refund-dialog */ "admin-chunk-refund-dialog").then(__webpack_require__.bind(__webpack_require__, /*! ./RefundDialog.jsx */ "./assets/src/admin/routes/RefundDialog.jsx")), {
   pick: 'RefundDialog',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Loading refund form…', 'aponto')
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Loading refund form…', 'aponto')
 });
 
-// R1 — the booking DTOs carry `location_id` only (no name), so resolve names via
-// one session-cached catalog fetch shared by every editor open (never per-booking).
-let locationNamesPromise = null;
-function loadLocationNames() {
-  if (!locationNamesPromise) {
-    locationNamesPromise = _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.get('/locations', {
-      status: 'all',
-      per_page: 100
-    }).then(res => {
-      const map = {};
-      (res.items || []).forEach(item => {
-        map[item.id] = item.name;
-      });
-      return map;
-    }).catch(() => {
-      locationNamesPromise = null;
-      return {};
-    });
-  }
-  return locationNamesPromise;
+/**
+ * The notification half of a reschedule toast (D-R63 fix round 2), through the SAME helper the
+ * status and cancel toasts use. The reschedule response carries no delivery outcome, so this reports
+ * the INTENT — "queued" when the box was ticked, "not notified" when it was not — never "notified".
+ *
+ * @param {boolean} notify The Notify checkbox.
+ * @return {string} Suffix beginning with a space.
+ */
+function rescheduleSuffix(notify) {
+  return (0,_lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_15__.notifiedSuffix)(notify ? 'queued' : 'suppressed');
+}
+
+/** A loaded booking's own location id (`0` for none or before the detail lands). */
+function d0LocationId(detail) {
+  return Number(detail?.locationId) || 0;
 }
 const LABELS = {
   pending: 'Pending',
@@ -1756,25 +1003,106 @@ const TRANSITIONS = {
   cancelled: ['pending'],
   no_show: ['confirmed']
 };
-const TZ = _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.business.timezone;
+const TZ = _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.business.timezone;
 function nextStatuses(status) {
   return TRANSITIONS[status] || [];
+}
+
+/**
+ * The Location picker (D-R63) — shown in place of the read-only row whenever the site has ≥1
+ * ACTIVE location. A labelled native `<select>` in the compact-field chrome the Status select uses,
+ * so it needs no new CSS and reads correctly RTL.
+ */
+function LocationSelect({
+  value,
+  options,
+  onChange,
+  disabled = false
+}) {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
+    className: "pd-compact-field pd-compact-select is-filled",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("select", {
+      name: "location",
+      value: value,
+      disabled: disabled,
+      onChange: e => onChange(Number(e.target.value) || 0),
+      children: options.map(option => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("option", {
+        value: option.id,
+        children: option.label
+      }, option.id))
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
+      className: "pd-compact-label",
+      children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Location', 'aponto')
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
+      className: "pd-field-end-icon",
+      "aria-hidden": "true",
+      children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('chevronDown')
+    })]
+  });
+}
+
+/**
+ * The "Edit time" Staff picker (D-R78) — the Location select's chrome, so it needs no new CSS.
+ * Rendered only on a multi-staff site with somebody else to move the booking to.
+ */
+function StaffSelect({
+  value,
+  options,
+  onChange
+}) {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
+    className: "pd-compact-field pd-compact-select is-filled",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("select", {
+      name: "staff",
+      value: value,
+      onChange: e => onChange(Number(e.target.value) || 0),
+      children: options.map(option => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("option", {
+        value: option.id,
+        children: option.label
+      }, option.id))
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
+      className: "pd-compact-label",
+      children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Staff', 'aponto')
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
+      className: "pd-field-end-icon",
+      "aria-hidden": "true",
+      children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('chevronDown')
+    })]
+  });
 }
 function Readonly({
   label,
   value,
   hint
 }) {
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
     className: "pd-editor-readonly",
     title: hint || undefined,
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
       className: "pd-editor-readonly-label",
       children: label
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("strong", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("strong", {
       children: value
     })]
   });
+}
+
+/**
+ * The new-customer field errors inside a `POST /bookings` 422 (`data.fields`), with the
+ * `customer.` prefix dropped so they key the inputs directly (name split, 2026-10-01).
+ *
+ * @param {?Object} fields Server field errors.
+ * @return {Object} Errors by `first_name` / `last_name` / `email` / `phone`.
+ */
+function customerFieldErrors(fields) {
+  const out = {};
+  for (const key of ['first_name', 'last_name', 'email', 'phone']) {
+    const message = fields?.[`customer.${key}`];
+    if (message) {
+      out[key] = message;
+    }
+  }
+  return out;
 }
 
 /**
@@ -1795,20 +1123,31 @@ function NotifyRow({
   onChange,
   label = 'Notify customer'
 }) {
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
     className: "ap-inspector-notify-row",
-    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
       className: "pd-notify-toggle",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("input", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("input", {
         className: "pd-table-checkbox",
         type: "checkbox",
         checked: checked,
         onChange: e => onChange(e.target.checked)
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
         children: label
       })]
     })
   });
+}
+
+/**
+ * Neutral read-only label for an order's discount snapshot (shown in both editions).
+ *
+ * @param {string} code Snapshot code, possibly empty.
+ * @return {string} Label.
+ */
+function discountLabel(code) {
+  /* translators: %s: discount code recorded on the order. */
+  return code ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.sprintf)((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Discount (%s)', 'aponto'), code) : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Discount', 'aponto');
 }
 
 /**
@@ -1822,14 +1161,14 @@ function InspectorMoreMenu({
   cancellable,
   onCancel
 }) {
-  const rootRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const handlerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(onCancel);
+  const rootRef = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(null);
+  const handlerRef = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(onCancel);
   handlerRef.current = onCancel;
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
     if (!rootRef.current) {
       return undefined;
     }
-    const controller = (0,_pressmaximum_dashboard_kit_primitives__WEBPACK_IMPORTED_MODULE_1__.createMenu)(rootRef.current, {
+    const controller = (0,_pressmaximum_dashboard_kit_primitives__WEBPACK_IMPORTED_MODULE_2__.createMenu)(rootRef.current, {
       onSelect: item => {
         if (item.getAttribute('data-action') === 'cancel') {
           handlerRef.current?.();
@@ -1838,10 +1177,10 @@ function InspectorMoreMenu({
     });
     return () => controller.destroy();
   }, []);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
     className: "pd-inspector-more-menu",
     ref: rootRef,
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
       className: "pd-button sm icon-only",
       type: "button",
       "data-menu-trigger": true,
@@ -1849,17 +1188,18 @@ function InspectorMoreMenu({
       "aria-expanded": "false",
       "aria-label": "More appointment actions",
       title: "More appointment actions",
-      children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('more')
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+      children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('more')
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
       role: "menu",
       "aria-label": "More appointment actions",
       hidden: true,
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("button", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("button", {
         type: "button",
         role: "menuitem",
+        className: "is-danger",
         "data-action": "cancel",
         disabled: !cancellable,
-        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('prohibit'), "Cancel booking"]
+        children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('prohibit'), "Cancel booking"]
       })
     })]
   });
@@ -1871,81 +1211,172 @@ function BookingEditor({
   initialAction = null,
   prefill = null,
   onClose,
+  onCancel,
   onChanged
 }) {
-  const showToast = (0,_lib_toast_jsx__WEBPACK_IMPORTED_MODULE_10__.useToast)();
+  // A create the operator ABANDONS (Cancel / ×) may return them where they came from — the
+  // Calendar's slot click, D-R63 fix round 2; a SAVE still just closes.
+  const abandon = mode === 'create' && onCancel || onClose;
+  const showToast = (0,_lib_toast_jsx__WEBPACK_IMPORTED_MODULE_16__.useToast)();
   const creating = mode === 'create';
-  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(!creating);
-  const [error, setError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [detail, setDetail] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(!creating);
+  const [error, setError] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null);
+  const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  const [detail, setDetail] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null);
+  (0,_lib_page_title_js__WEBPACK_IMPORTED_MODULE_9__.usePageTitle)(creating ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('New booking', 'aponto') : detail?.order?.code ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.sprintf)(/* translators: %s: order reference, e.g. AP-7Q2F4. */(0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Booking %s', 'aponto'), detail.order.code) : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Booking', 'aponto'));
 
   // Edit-mode form state.
-  const [status, setStatus] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
-  const [notify, setNotify] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
-  const [internalNote, setInternalNote] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
-  const [confirm, setConfirm] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null); // 'cancel' | 'complete' | 'no-show'
-  const [forceReason, setForceReason] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
-  const [reschedule, setReschedule] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialAction === 'reschedule');
-  const [locationName, setLocationName] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
-  const [refundOpen, setRefundOpen] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [refunding, setRefunding] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [status, setStatus] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)('');
+  const [notify, setNotify] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(true);
+  const [internalNote, setInternalNote] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)('');
+  const [confirm, setConfirm] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null); // 'cancel' | 'complete' | 'no-show'
+  // The one action a gateway may attach to its external order record (server-computed copy).
+  const {
+    confirm: askConfirm,
+    dialog: confirmDialog
+  } = (0,_lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_17__.useConfirmDialog)();
+  const [externalBusy, setExternalBusy] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  const [forceReason, setForceReason] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)('');
+  // "Complete anyway" / "Mark anyway" pressed with the required reason empty (persona QA
+  // 2026-10-05, S2-87): the button used to be disabled, so the press did nothing and said nothing.
+  const [reasonMissing, setReasonMissing] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  // A refused action stays ON the drawer, not only in a toast that is gone in a few seconds
+  // (S2-70: a cancel the server refused with a perfectly good reason looked like nothing happened).
+  const [actionError, setActionError] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)('');
+  //
+  // Inline ONLY (re-test N8): the same sentence used to go out as a toast too, and on a phone the
+  // toast sat on top of the inline message and of the buttons under it until it faded. Every
+  // view of this drawer renders `actionError` (`role="alert"`), so nothing is lost.
+  const fail = message => {
+    setActionError(message || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('That could not be done. Try again.', 'aponto'));
+  };
+  // ONE action at a time, guarded SYNCHRONOUSLY (S2-84): `saving` is React state, so a second tap
+  // landing before the re-render still saw an enabled button — two reschedules, two mails. Every
+  // commit in this drawer goes through `once()`.
+  const busyRef = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(false);
+  const once = action => async (...args) => {
+    if (busyRef.current) {
+      return undefined;
+    }
+    busyRef.current = true;
+    setActionError('');
+    try {
+      return await action(...args);
+    } finally {
+      busyRef.current = false;
+    }
+  };
+  const [reschedule, setReschedule] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(initialAction === 'reschedule');
+  const [refundOpen, setRefundOpen] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  const [refunding, setRefunding] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  const [balanceBusy, setBalanceBusy] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  const balancePrompted = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(false);
   // SESSION module records, not the boot snapshot: a gateway switched off from the Modules screen
   // moments ago must take its Refund action away NOW. Reading `config.modules` here left the
   // button on screen until a full document reload, one click away from a `409
   // aponto_payment_unavailable` — the same lifetime bug `modules/module-state.js` was written for.
-  const modules = (0,_modules_module_state_js__WEBPACK_IMPORTED_MODULE_14__.useModules)();
+  const modules = (0,_modules_module_state_js__WEBPACK_IMPORTED_MODULE_21__.useModules)();
 
   // Create-mode form state.
-  const [catalog, setCatalog] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
+  const [catalog, setCatalog] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)({
     services: [],
     staff: [],
     customers: []
   });
-  const [addNew, setAddNew] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [customer, setCustomer] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const [newCustomer, setNewCustomer] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
-    name: '',
+  const [addNew, setAddNew] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  const [customer, setCustomer] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null);
+  const [newCustomer, setNewCustomer] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)({
+    first_name: '',
+    last_name: '',
     email: '',
     phone: ''
   });
-  const [service, setService] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const [staff, setStaff] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const [createStatus, setCreateStatus] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(_lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.settings.defaultBookingStatus || 'pending');
+  // Inline errors for the new-customer fields, keyed by the `POST /bookings` 422 keys with the
+  // `customer.` prefix dropped (`first_name`, `last_name`, `email`, `phone`).
+  const [customerError, setCustomerError] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)({});
+  const [service, setService] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null);
+  const [staff, setStaff] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null);
+  const [createStatus, setCreateStatus] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(_lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.settings.defaultBookingStatus || 'pending');
+
+  // D-R78 — "Edit time" may move the booking to another staff member. `moveStaff` is the picked id
+  // (0 = the booking's own, until its detail lands); the roster is read once, when the panel
+  // opens on a multi-staff site: the active members and, where the operator may read it, the
+  // service's eligibility pairs (`null` = not readable → every active member is offered and the
+  // server refuses an ineligible one).
+  const [moveStaff, setMoveStaff] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(0);
+  const [roster, setRoster] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null); // null | { staff: [], assignments: ?[] }
+
+  // D-R63 — where the booking happens. `allLocations` is the WHOLE catalog, every status, read ONCE
+  // per editor (fix round 2: it replaced a second, session-cached all-status read that named the
+  // read-only row): the ACTIVE branches are the choices, and every name — the read-only row's, an
+  // archived current branch's — comes from the same list. No active branch = the read-only row.
+  // `place` is the picked id for BOTH modes: the create target, or the edit move target (seeded
+  // from the booking once its detail lands).
+  const [allLocations, setLocations] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)([]);
+  const locations = (0,_lib_branches_js__WEBPACK_IMPORTED_MODULE_11__.activeLocations)(allLocations);
+  // A calendar slot clicked in a BRANCH view arrives with that branch (D-R63 fix round 1).
+  const [place, setPlace] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(() => creating && Number(prefill?.locationId) || 0);
+  // Fix round 3: an INCOMPLETE catalog (a failed page, the page ceiling) is not an empty one — a
+  // create could otherwise land at "no location" on a site with branches, and a move could offer a
+  // partial list. Location writes wait for a complete read, with Retry.
+  const [catalogStatus, setCatalogStatus] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)('loading'); // loading | complete | incomplete
+  const catalogIncomplete = 'incomplete' === catalogStatus;
+  const loadCatalog = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(() => {
+    let live = true;
+    setCatalogStatus('loading');
+    (0,_lib_branches_js__WEBPACK_IMPORTED_MODULE_11__.fetchLocations)().then(({
+      items,
+      complete
+    }) => {
+      if (!live) {
+        return;
+      }
+      if (items.length) {
+        setLocations(items);
+      }
+      setCatalogStatus(complete ? 'complete' : 'incomplete');
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(loadCatalog, [loadCatalog]);
 
   // Shared schedule state (create + reschedule share the availability picker).
   // A calendar free-slot click prefills the create date + preferred start; the
   // preferred slot is only kept once availability confirms it exists.
-  const [date, setDate] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(creating && prefill?.date || _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.business.today);
-  const [slots, setSlots] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-  const [slotsLoading, setSlotsLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [selectedSlot, setSelectedSlot] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(creating && prefill?.startUtc || '');
-  const closeRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [date, setDate] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(creating && prefill?.date || _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.business.today);
+  const [slots, setSlots] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)([]);
+  const [slotsLoading, setSlotsLoading] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  const [selectedSlot, setSelectedSlot] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(creating && prefill?.startUtc || '');
+  const closeRef = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(null);
 
   // Load edit detail. `reloadDetail` is the same fetch WITHOUT the initial-action side effect and
   // without the loading curtain: a refund has to re-read the order (its status, its transactions
   // and what is left to refund all move at once), and re-mounting the whole editor to do that
   // would throw away the status/internal-note edits sitting in the form.
-  const reloadDetail = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+  const reloadDetail = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(() => {
     if (creating || !bookingId) {
       return Promise.resolve();
     }
-    return _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.get(`/bookings/${bookingId}`).then(res => setDetail((0,_lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_6__.bookingDetailToEditor)(res))).catch(() => {});
+    return _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.get(`/bookings/${bookingId}`).then(res => setDetail((0,_lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_7__.bookingDetailToEditor)(res))).catch(() => {});
   }, [creating, bookingId]);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
     if (creating || !bookingId) {
       return;
     }
     let live = true;
     setLoading(true);
-    _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.get(`/bookings/${bookingId}`).then(res => {
+    _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.get(`/bookings/${bookingId}`).then(res => {
       if (!live) {
         return;
       }
-      const model = (0,_lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_6__.bookingDetailToEditor)(res);
+      const model = (0,_lib_booking_adapter_js__WEBPACK_IMPORTED_MODULE_7__.bookingDetailToEditor)(res);
       setDetail(model);
       setStatus(model.status);
       setInternalNote(model.internalNote);
+      setPlace(Number(model.locationId) || 0);
+      setMoveStaff(Number(model.staffId) || 0);
       setDate(model.date);
       setLoading(false);
       if (initialAction === 'cancel') {
@@ -1962,37 +1393,22 @@ function BookingEditor({
     };
   }, [creating, bookingId, initialAction]);
 
-  // R1 — resolve the real location name for the read-only row (edit mode only;
-  // one cached catalog fetch per session, nothing per-booking).
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (creating || !detail?.locationId) {
-      return undefined;
-    }
-    let live = true;
-    loadLocationNames().then(map => {
-      if (live) setLocationName(map[detail.locationId] || '');
-    });
-    return () => {
-      live = false;
-    };
-  }, [creating, detail]);
-
   // Load create catalogs.
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
     if (!creating) {
       return;
     }
-    Promise.all([_lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.get('/services', {
+    Promise.all([_lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.get('/services', {
       status: 'active',
       per_page: 100
     }).catch(() => ({
       items: []
-    })), _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.get('/staff', {
+    })), _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.get('/staff', {
       status: 'active',
       per_page: 100
     }).catch(() => ({
       items: []
-    })), _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.get('/customers', {
+    })), _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.get('/customers', {
       per_page: 100
     }).catch(() => ({
       items: []
@@ -2000,11 +1416,11 @@ function BookingEditor({
       // Option identity is the record id, never the name (`combobox-options.js`):
       // same-named services/staff/customers must stay distinct rows so the
       // service_id/staff_id submitted below is the record the user clicked.
-      const staffCatalog = (0,_lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_12__.staffOptions)(stf.items);
+      const staffCatalog = (0,_lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_19__.staffOptions)(stf.items);
       setCatalog({
-        services: (0,_lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_12__.serviceOptions)(svc.items),
+        services: (0,_lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_19__.serviceOptions)(svc.items),
         staff: staffCatalog,
-        customers: (0,_lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_12__.customerOptions)(cust.items)
+        customers: (0,_lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_19__.customerOptions)(cust.items)
       });
 
       // Calendar hand-off (D-R28, Codex review): a free slot clicked on ONE staff member's
@@ -2012,7 +1428,7 @@ function BookingEditor({
       // create fall through to any-staff availability and land the booking on somebody else.
       // A prefilled id the catalog does not carry (e.g. an archived member) selects nothing —
       // better an empty field than a record the admin cannot actually pick.
-      const preselected = (0,_lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_12__.findOptionById)(staffCatalog, prefill?.staffId);
+      const preselected = (0,_lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_19__.findOptionById)(staffCatalog, prefill?.staffId);
       if (preselected) {
         setStaff(preselected);
       }
@@ -2022,7 +1438,7 @@ function BookingEditor({
     // would re-fetch all three catalogs and stamp the staff field back over an admin's own change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [creating]);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
     closeRef.current?.focus({
       preventScroll: true
     });
@@ -2030,30 +1446,61 @@ function BookingEditor({
 
   // Availability for create + reschedule. Uses the real engine (public availability).
   const activeServiceId = creating ? service?.id : detail?.serviceId;
-  const activeStaffId = creating ? staff?.id : detail?.staffId;
-  const durationMinutes = creating ? service?.duration || _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.settings.slotStep : detail ? Math.round((new Date(detail.endUtc) - new Date(detail.startUtc)) / 60000) : _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.settings.slotStep;
-  const loadSlots = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+  const ownStaffId = Number(detail?.staffId) || 0;
+  const activeStaffId = creating ? staff?.id : moveStaff || ownStaffId || undefined;
+  // Another member's grid is theirs alone (D-R78): the booking is not on it, so there is nothing
+  // of its own to step aside and its current start is offered only if that member is free then.
+  const onOwnStaff = creating || !ownStaffId || activeStaffId === ownStaffId;
+  const durationMinutes = creating ? service?.duration || _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.settings.slotStep : detail ? Math.round((new Date(detail.endUtc) - new Date(detail.startUtc)) / 60000) : _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.settings.slotStep;
+  const createCustomerEmail = addNew ? newCustomer.email : customer?.email || '';
+  // Order adjustments (Premium coupons, D-R67b). The server re-quotes inside reserve, so a
+  // create quote is display-only; the booking POST carries the CODE, never an amount.
+  const adjust = (0,_aponto_admin_booking_coupon__WEBPACK_IMPORTED_MODULE_26__.useBookingCoupon)({
+    creating,
+    available: (0,_modules_catalog_js__WEBPACK_IMPORTED_MODULE_20__.moduleAvailable)({
+      modules
+    }, 'coupons'),
+    serviceId: service?.id || null,
+    customerEmail: createCustomerEmail,
+    detail,
+    reloadDetail,
+    onChanged,
+    showToast
+  });
+  const loadSlots = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(() => {
     if (!activeServiceId || !date) {
       setSlots([]);
       return;
     }
     setSlotsLoading(true);
-    _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.get('/public/availability', {
+    _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.get('/public/availability', {
       service_id: activeServiceId,
       staff_id: activeStaffId || undefined,
+      // D-R63: the times are the picked BRANCH's (its weight-5 hours, its clock). Omitted at
+      // `0`, so a site with no branch picked asks exactly what it asked before.
+      location_id: place > 0 ? place : undefined,
       from_date: date,
       to_date: date,
-      tz: TZ
+      tz: TZ,
+      // Edit time (persona QA 2026-10-05, T-043): the booking being moved must not block its
+      // own neighbouring starts. Honoured server-side only for a signed-in booking manager.
+      exclude_booking_id: !creating && detail?.id && onOwnStaff ? detail.id : undefined,
+      // New booking (D-R77): the front desk records a walk-in or a phone call, so the customer
+      // lead time and horizon do not apply and today's earlier starts are offered. Honoured
+      // server-side only for a signed-in booking manager; working hours and busy time still apply.
+      front_desk: creating ? 1 : undefined
     }).then(res => {
+      const current = !creating && detail ? detail.startUtc : '';
       const list = (res.slots || []).map(s => ({
         startUtc: s.start_utc,
-        label: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.timeLabel)(s.start_utc, TZ)
+        label: s.start_utc === current ? `${(0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.timeLabel)(s.start_utc, TZ)} (current)` : (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.timeLabel)(s.start_utc, TZ)
       }));
-      // Reschedule: keep the current start selectable even though it is "occupied".
-      if (!creating && detail && !list.some(s => s.startUtc === detail.startUtc)) {
+      // Reschedule: keep the current start selectable even when the grid does not offer it
+      // (it is in the past, or the hours changed since it was booked).
+      if (current && onOwnStaff && !list.some(s => s.startUtc === current)) {
         list.unshift({
-          startUtc: detail.startUtc,
-          label: `${(0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.timeLabel)(detail.startUtc, TZ)} (current)`
+          startUtc: current,
+          label: `${(0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.timeLabel)(current, TZ)} (current)`
         });
       }
       setSlots(list);
@@ -2063,30 +1510,125 @@ function BookingEditor({
       setSlots([]);
       setSlotsLoading(false);
     });
-  }, [activeServiceId, activeStaffId, date, creating, detail]);
+  }, [activeServiceId, activeStaffId, onOwnStaff, place, date, creating, detail]);
   const wantSlots = creating || reschedule;
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
     if (wantSlots) {
       loadSlots();
     }
   }, [wantSlots, loadSlots]);
+
+  // D-R78: the staff roster for "Edit time" — multi-staff sites only, so the Free single profile
+  // makes no request and renders nothing new.
+  const multiStaff = (0,_modules_catalog_js__WEBPACK_IMPORTED_MODULE_20__.moduleAvailable)({
+    modules
+  }, 'multi_staff');
+  const rosterServiceId = !creating && reschedule && multiStaff ? detail?.serviceId : null;
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
+    if (!rosterServiceId) {
+      return undefined;
+    }
+    let live = true;
+    Promise.all([_lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.get('/staff', {
+      status: 'active',
+      per_page: 100
+    }).catch(() => ({
+      items: []
+    })), _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.get(`/services/${rosterServiceId}/eligibility`).catch(() => null)]).then(([stf, eligibility]) => {
+      if (live) {
+        setRoster({
+          staff: (0,_lib_combobox_options_js__WEBPACK_IMPORTED_MODULE_19__.staffOptions)(stf.items),
+          assignments: Array.isArray(eligibility?.assignments) ? eligibility.assignments : null
+        });
+      }
+    });
+    return () => {
+      live = false;
+    };
+  }, [rosterServiceId]);
+  const staffChoices = roster ? (0,_lib_editor_rows_js__WEBPACK_IMPORTED_MODULE_10__.rescheduleStaffOptions)({
+    staff: roster.staff,
+    assignments: roster.assignments,
+    locationId: place,
+    currentId: ownStaffId,
+    currentName: row?.staff || ''
+  }) : [];
+  // A picked member who is not assigned at the branch now selected falls back to the booking's own.
+  const moveStaffValid = !roster || moveStaff === ownStaffId || staffChoices.some(option => option.id === moveStaff);
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
+    if (!moveStaffValid) {
+      setMoveStaff(ownStaffId);
+    }
+  }, [moveStaffValid, ownStaffId]);
   const derivedEnd = (() => {
     if (!selectedSlot) {
       return '';
     }
     const end = new Date(new Date(selectedSlot).getTime() + durationMinutes * 60000).toISOString();
-    return `${(0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.timeLabel)(selectedSlot, TZ)} – ${(0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.timeLabel)(end, TZ)}`;
+    return `${(0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.timeLabel)(selectedSlot, TZ)} – ${(0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.timeLabel)(end, TZ)}`;
   })();
+  const createSubtotal = Number(service?.price || 0);
+  const createQuote = adjust.createQuote;
+  const createDiscount = Number(createQuote?.discount_minor || 0);
+  const createTotal = createQuote ? Number(createQuote.total_minor || 0) : createSubtotal;
+
+  // D-R63: the picker's options, or null when the site has no active location — then every mode
+  // renders exactly what it rendered before (the read-only row / nothing on create).
+  // R1 — the booking DTOs carry `location_id` only; its NAME comes from the catalog. A current
+  // branch archived since stays in the select, marked "(archived)" like the Services picker marks
+  // one, so the booking can be viewed and moved AWAY; no other archived branch is offered.
+  const currentLocation = creating ? null : allLocations.find(location => location.id === d0LocationId(detail));
+  const locationName = currentLocation?.name || '';
+  const locationOptions = locations.length ? (0,_lib_editor_rows_js__WEBPACK_IMPORTED_MODULE_10__.locationSelectOptions)({
+    locations,
+    currentId: creating ? 0 : d0LocationId(detail),
+    currentName: currentLocation && 'active' !== currentLocation.status ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.sprintf)(/* translators: %s: location name. */
+    (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('%s (archived)', 'aponto'), locationName) : locationName,
+    businessName: _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.business.name,
+    noLocation: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('No location', 'aponto')
+  }) : null;
+  const reschedulable = !creating && ('pending' === detail?.status || 'confirmed' === detail?.status);
+  const catalogNotice = catalogIncomplete ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("p", {
+    className: "ap-field-error",
+    role: "status",
+    children: [creating ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The locations could not be loaded, so this booking cannot be placed yet.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The locations could not be loaded, so the location cannot be changed right now.', 'aponto'), ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
+      type: "button",
+      className: "pd-button text sm",
+      onClick: loadCatalog,
+      children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Retry', 'aponto')
+    })]
+  }) : null;
 
   // ---- Actions -----------------------------------------------------------
-  const submitCreate = async () => {
-    const chosen = addNew ? newCustomer : customer ? {
-      name: customer.name,
-      email: customer.email,
+  const submitCreateAction = async () => {
+    // D-R77 (front desk): a NEW customer needs a first name only — the last name, the email and the
+    // phone are optional, and no email means no customer mail. A PICKED record is sent by its id
+    // (`customer_id`) and used as stored, which is what lets a customer with no email be rebooked.
+    const chosen = addNew ? {
+      first_name: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_14__.normalizePart)(newCustomer.first_name),
+      last_name: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_14__.normalizePart)(newCustomer.last_name),
+      email: newCustomer.email.trim(),
+      phone: newCustomer.phone
+    } : customer ? {
+      id: customer.id,
+      first_name: customer.first_name || '',
+      last_name: customer.last_name || '',
+      email: customer.email || '',
       phone: customer.phone
     } : null;
-    if (!chosen || !chosen.name || !chosen.email) {
-      showToast('A customer name and email are required.', 'danger');
+    if (addNew) {
+      const missing = {};
+      if (!chosen.first_name) {
+        missing.first_name = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Enter the first name.', 'aponto');
+      }
+      setCustomerError(missing);
+      if (Object.keys(missing).length) {
+        showToast((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('A customer first name is required.', 'aponto'), 'danger');
+        return;
+      }
+    }
+    if (!chosen) {
+      showToast((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Choose a customer or add a new one.', 'aponto'), 'danger');
       return;
     }
     if (!service?.id) {
@@ -2097,37 +1639,70 @@ function BookingEditor({
       showToast('Choose an available start time.', 'danger');
       return;
     }
+    const adjustBlocker = adjust.createBlocker();
+    if (adjustBlocker) {
+      showToast(adjustBlocker, 'danger');
+      return;
+    }
     setSaving(true);
     try {
       const body = {
         service_id: service.id,
         start_utc: selectedSlot,
-        customer: {
-          name: chosen.name,
-          email: chosen.email,
-          phone: chosen.phone || ''
-        },
         tz: TZ,
         status: createStatus,
         notify
       };
+      if (chosen.id) {
+        body.customer_id = chosen.id;
+      } else {
+        body.customer = {
+          first_name: chosen.first_name,
+          last_name: chosen.last_name,
+          email: chosen.email,
+          phone: chosen.phone || ''
+        };
+      }
+      if (adjust.createCode) {
+        body.coupon_code = adjust.createCode;
+      }
       if (staff?.id) {
         body.staff_id = staff.id;
       }
-      const res = await _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.post('/bookings', body);
-      showToast(`Booking created for ${chosen.name} · ${res.booking?.order?.code || ''}`.trim());
+      // D-R63: `POST /bookings` has always taken `location_id`; sent only for a picked branch.
+      const locationId = (0,_lib_editor_rows_js__WEBPACK_IMPORTED_MODULE_10__.locationToSend)(place);
+      if (undefined !== locationId) {
+        body.location_id = locationId;
+      }
+      const res = await _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.post('/bookings', body);
+      showToast(`Booking created for ${(0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_14__.displayName)(chosen.first_name, chosen.last_name)} · ${res.booking?.order?.code || ''}`.trim(), 'success');
       onChanged?.();
       onClose?.();
     } catch (err) {
-      showToast(err.message, 'danger');
+      adjust.handleCreateError(err);
+      setCustomerError(customerFieldErrors(err.data?.fields));
+      fail(err.message);
       setSaving(false);
     }
   };
-  const saveEdit = async () => {
+
+  // D-R71e: cancelling a booking paid through an external checkout (WooCommerce) asks the admin
+  // how much to refund, instead of closing — the refund itself runs through the gateway.
+  const refundAfterCancel = () => !!detail?.order?.externalOrder && ('paid' === detail.order.paymentStatus || 'partial' === detail.order.paymentStatus) && detail.order.refundableMinor > 0;
+  const promptRefund = async () => {
+    setSaving(false);
+    await reloadDetail();
+    setRefundOpen(true);
+  };
+  const saveEditAction = async () => {
     if (!detail) {
       return;
     }
     const statusChanged = status !== detail.status;
+    if (statusChanged && status === 'completed' && detail.order.balanceDueMinor > 0 && detail.order.payableNowMinor < detail.order.totalMinor && !balancePrompted.current) {
+      setConfirm('balance');
+      return;
+    }
     const noteChanged = internalNote !== detail.internalNote;
     // Complete-before-end requires a forced confirmation + reason (into Activity).
     if (statusChanged && status === 'completed' && Date.now() < new Date(detail.endUtc).getTime() && confirm !== 'complete') {
@@ -2141,11 +1716,55 @@ function BookingEditor({
       setConfirm('no-show');
       return;
     }
-    if (!statusChanged && !noteChanged) {
+    // The forced move needs its reason (S2-87): say so instead of doing nothing.
+    if (statusChanged && (status === 'completed' && confirm === 'complete' || status === 'no_show' && confirm === 'no-show') && !forceReason.trim()) {
+      setReasonMissing(true);
+      return;
+    }
+    // D-R63: a location MOVE is a reschedule to the same start and staff at the new branch
+    // (rest-contract §2.9 addendum) — the server re-checks the slot, the staff member's
+    // assignment and the hours THERE, which a PATCH field would not.
+    const moveTo = (0,_lib_editor_rows_js__WEBPACK_IMPORTED_MODULE_10__.locationToSend)(place, d0LocationId(detail));
+    if (!statusChanged && !noteChanged && undefined === moveTo) {
       showToast('No changes to save.');
       return;
     }
     setSaving(true);
+    const moved = undefined !== moveTo;
+    if (moved) {
+      let res;
+      try {
+        // `notify` from the Notify checkbox (browser QA B3): the reschedule route honours it
+        // like POST/PATCH (rest-contract §2.9 addendum), so an unticked box emails no one.
+        res = await _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.put(`/bookings/${detail.id}/reschedule`, {
+          start_utc: detail.startUtc,
+          staff_id: detail.staffId,
+          location_id: moveTo,
+          notify
+        });
+      } catch (err) {
+        fail(err.message);
+        setSaving(false);
+        return;
+      }
+      // The move LANDED — adopt it from the reschedule's own response, synchronously in this
+      // handler, never from a background re-read (D-R63 fix round 1): if the PATCH below fails,
+      // the next Save must see the booking already at its new branch and send NO second
+      // reschedule (a resend bumps the ICS sequence and emails the customer again).
+      const landed = res?.booking;
+      setDetail(current => ({
+        ...current,
+        locationId: Number(landed?.location_id ?? moveTo) || 0,
+        icsSequence: landed?.ics_sequence ?? current.icsSequence
+      }));
+      if (!statusChanged && !noteChanged) {
+        const syncNotice = (0,_lib_external_order_sync_js__WEBPACK_IMPORTED_MODULE_0__.externalSyncNotice)(res?.external_order);
+        showToast(syncNotice || `${(0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Booking moved.', 'aponto')}${rescheduleSuffix(notify)}`, syncNotice ? 'default' : 'success');
+        onChanged?.();
+        onClose?.();
+        return;
+      }
+    }
     try {
       const body = {};
       if (statusChanged) {
@@ -2159,113 +1778,228 @@ function BookingEditor({
       if (noteChanged) {
         body.internal_note = internalNote;
       }
-      const res = await _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.patch(`/bookings/${detail.id}`, body);
-      showToast(statusChanged ? `Marked ${(LABELS[status] || status).toLowerCase()}.${(0,_lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_9__.notifiedSuffix)(res?.notification)}` : 'Internal note saved.');
+      const res = await _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.patch(`/bookings/${detail.id}`, body);
+      const syncNotice = (0,_lib_external_order_sync_js__WEBPACK_IMPORTED_MODULE_0__.externalSyncNotice)(res?.external_order);
+      showToast(syncNotice || (statusChanged ? `Marked ${(LABELS[status] || status).toLowerCase()}.${(0,_lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_15__.notifiedSuffix)(res?.notification)}` : 'Internal note saved.'), syncNotice ? 'default' : statusChanged ? (0,_lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_15__.statusTone)(status) : 'success');
       onChanged?.();
+      if (statusChanged && 'cancelled' === status && refundAfterCancel()) {
+        await promptRefund();
+        return;
+      }
       onClose?.();
     } catch (err) {
-      showToast(err.message, 'danger');
+      // A move that landed before this failure is real: say so, and let the list show it.
+      fail(moved ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.sprintf)(/* translators: %s: the reason the other changes could not be saved. */
+      (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The booking was moved, but the other changes were not saved: %s', 'aponto'), err.message) : err.message);
+      if (moved) {
+        onChanged?.();
+      }
       setSaving(false);
       setConfirm(null);
     }
   };
-  const doCancel = async () => {
+  const doCancelAction = async () => {
     setSaving(true);
     try {
-      const res = await _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.patch(`/bookings/${detail.id}`, {
+      const res = await _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.patch(`/bookings/${detail.id}`, {
         status: 'cancelled',
         notify
       });
-      showToast(`Booking cancelled.${(0,_lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_9__.notifiedSuffix)(res?.notification)}`);
+      const syncNotice = (0,_lib_external_order_sync_js__WEBPACK_IMPORTED_MODULE_0__.externalSyncNotice)(res?.external_order);
+      // A cancellation only stops something: never the `success` tone (D-R64).
+      showToast(syncNotice || `Booking cancelled.${(0,_lib_notification_outcome_js__WEBPACK_IMPORTED_MODULE_15__.notifiedSuffix)(res?.notification)}`);
       onChanged?.();
+      if (refundAfterCancel()) {
+        await promptRefund();
+        return;
+      }
       onClose?.();
     } catch (err) {
-      showToast(err.message, 'danger');
+      fail(err.message);
       setSaving(false);
     }
   };
-  const doReschedule = async () => {
-    if (!selectedSlot) {
+
+  // "Confirm new time" with the slot (and the branch) still the booking's own is not a reschedule
+  // (persona QA 2026-10-05, T-042): it used to bump the calendar sequence and mail the customer
+  // that the booking "was rescheduled" to the same time. No change → no request; the server
+  // answers such a request as a no-op too.
+  // D-R78: another staff member at the same time IS a change (the server's no-op guard compares
+  // staff too).
+  const staffMoved = !!detail && !!activeStaffId && activeStaffId !== ownStaffId;
+  const rescheduleUnchanged = !!detail && selectedSlot === detail.startUtc && place === d0LocationId(detail) && !staffMoved;
+  const doRescheduleAction = async () => {
+    if (!selectedSlot || rescheduleUnchanged) {
       return;
     }
     setSaving(true);
     try {
-      await _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.put(`/bookings/${detail.id}/reschedule`, {
+      // `notify` from the checkbox on EVERY reschedule (fix round 2): the route defaults to true,
+      // so leaving it out used to email the customer whatever the box said.
+      const body = {
         start_utc: selectedSlot,
-        staff_id: detail.staffId
-      });
-      showToast('Booking rescheduled. Customer notified.');
+        staff_id: activeStaffId || detail.staffId,
+        notify
+      };
+      // D-R63: the new time may come with a new branch; the slots above were drawn there.
+      const moveTo = (0,_lib_editor_rows_js__WEBPACK_IMPORTED_MODULE_10__.locationToSend)(place, d0LocationId(detail));
+      if (undefined !== moveTo) {
+        body.location_id = moveTo;
+      }
+      const res = await _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.put(`/bookings/${detail.id}/reschedule`, body);
+      const syncNotice = (0,_lib_external_order_sync_js__WEBPACK_IMPORTED_MODULE_0__.externalSyncNotice)(res?.external_order);
+      // A staff-only change claims nothing about the customer: whether they are mailed is the
+      // server's rule (D-R78), and the reschedule response carries no delivery outcome.
+      const staffOnly = staffMoved && selectedSlot === detail.startUtc && undefined === moveTo;
+      showToast(syncNotice || (staffOnly ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Booking moved to another staff member.', 'aponto') : `Booking rescheduled.${rescheduleSuffix(notify)}`), syncNotice ? 'default' : 'success');
       onChanged?.();
       onClose?.();
     } catch (err) {
-      showToast(err.message, 'danger');
+      fail(err.message);
       setSaving(false);
     }
   };
-  const togglePaid = async () => {
+
+  // Generic: core names no gateway and knows no route. The label, the confirmation text and the
+  // path all come from the order's own gateway module; the adapter only admits a path under it.
+  const runExternalActionAction = async () => {
+    const action = detail?.order?.externalOrder?.action;
+    if (!action || externalBusy) {
+      return;
+    }
+    if (!(await askConfirm({
+      title: action.label,
+      message: action.confirm,
+      confirmText: action.label
+    }))) {
+      return;
+    }
+    setExternalBusy(true);
+    try {
+      const res = await _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.post(action.path, {});
+      await reloadDetail();
+      showToast(res && typeof res.message === 'string' && res.message || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Done.', 'aponto'), 'success');
+      onChanged?.();
+    } catch (err) {
+      fail(err.message);
+    } finally {
+      setExternalBusy(false);
+    }
+  };
+  const togglePaidAction = async () => {
     const nextPaid = detail.order.paymentStatus !== 'paid';
     try {
-      await _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.patch(`/bookings/${detail.id}`, {
+      await _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.patch(`/bookings/${detail.id}`, {
         payment_status: nextPaid ? 'paid' : 'none'
       });
       // Re-read rather than patching the local copy: a manual `paid` also RELEASES a live hold
       // server-side (D-R38i), so the order that comes back can differ from the one this branch
       // would have written by hand.
       await reloadDetail();
-      showToast(nextPaid ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Marked as paid.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Marked unpaid.', 'aponto'));
+      showToast(nextPaid ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Marked as paid.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Marked unpaid.', 'aponto'), nextPaid ? 'success' : 'default');
       onChanged?.();
     } catch (err) {
-      showToast(err.message, 'danger');
+      fail(err.message);
     }
   };
-  const doRefund = async ({
+  const recordBalance = async (reverse = false) => {
+    setBalanceBusy(true);
+    try {
+      if (reverse) await _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.del(`/bookings/${detail.id}/balance`);else await _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.post(`/bookings/${detail.id}/balance`, {});
+      await reloadDetail();
+      onChanged?.();
+      showToast(reverse ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Balance record reversed.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Balance recorded as paid on site.', 'aponto'), 'success');
+      return true;
+    } catch (err) {
+      showToast(err.message, 'danger');
+      return false;
+    } finally {
+      setBalanceBusy(false);
+    }
+  };
+  const doRefundAction = async ({
     amountMinor,
-    reason
+    reason,
+    transactionId,
+    idempotency,
+    onsite
   }) => {
     setRefunding(true);
     try {
-      const res = await _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.post(`/bookings/${detail.id}/refund`, {
+      const res = onsite ? await _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.post(`/bookings/${detail.id}/balance/refund`, {
+        amount_minor: amountMinor
+      }, {
+        'X-Aponto-Idempotency': idempotency
+      }) : await _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.post(`/bookings/${detail.id}/refund`, {
         amount_minor: amountMinor,
-        reason
+        reason,
+        ...(transactionId ? {
+          transaction_id: transactionId
+        } : {})
       });
       const txn = res?.transaction || {};
       // A `pending` refund has moved NO money yet (D-R38a(6)) — it only reserves the amount — so
       // the toast must not say the customer has been refunded.
-      showToast('pending' === txn.status ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Refund requested — the gateway is still processing it.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.sprintf)(/* translators: %s: refunded amount, already formatted as money. */
-      (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Refunded %s.', 'aponto'), (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.money)(txn.amount_minor || amountMinor, txn.currency || detail.order.currency, detail.order.currencyExponent)));
+      showToast('pending' === txn.status ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Refund requested — the gateway is still processing it.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.sprintf)(/* translators: %s: refunded amount, already formatted as money. */
+      onsite ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('On-site refund of %s recorded.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Refunded %s.', 'aponto'), (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.money)(txn.amount_minor || amountMinor, txn.currency || detail.order.currency, detail.order.currencyExponent)),
+      // D-R64: a refund that LANDED is the thing the operator asked for; a pending one is not
+      // done yet, so it stays neutral.
+      'pending' === txn.status ? 'default' : 'success');
       setRefundOpen(false);
       await reloadDetail();
       onChanged?.();
     } catch (err) {
-      showToast(refundErrorMessage(err, detail.order.gateway), 'danger');
+      fail(refundErrorMessage(err, detail.order.gateway));
     } finally {
       setRefunding(false);
     }
   };
+  const submitCreate = once(submitCreateAction);
+  const saveEdit = once(saveEditAction);
+  const doCancel = once(doCancelAction);
+  const doReschedule = once(doRescheduleAction);
+  const runExternalAction = once(runExternalActionAction);
+  const togglePaid = once(togglePaidAction);
+  const doRefund = once(doRefundAction);
 
   // ---- Render ------------------------------------------------------------
-  const header = title => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("header", {
+  const errorText = actionError ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
+    className: "ap-field-error",
+    role: "alert",
+    children: actionError
+  }) : null;
+  // The same padded band the Notify choice sits in, directly above the commit buttons.
+  const errorBand = errorText ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
+    className: "ap-inspector-notify-row",
+    children: errorText
+  }) : null;
+  const reasonError = reasonMissing ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
+    className: "ap-field-error",
+    role: "alert",
+    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Enter a reason — it is recorded in the activity log.', 'aponto')
+  }) : null;
+  const header = title => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("header", {
     className: "pd-booking-inspector-head pd-booking-editor-head",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
       className: "pd-booking-inspector-identity",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h2", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h2", {
         id: "bookingInspectorTitle",
         children: title
       })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
       className: "pd-icon-button",
       type: "button",
       ref: closeRef,
       "aria-label": "Close booking editor",
-      onClick: onClose,
-      children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('close')
+      onClick: abandon,
+      children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('close')
     })]
   });
   if (loading) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.Fragment, {
-      children: [header('Booking'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.Fragment, {
+      children: [header('Booking'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
         className: "pd-booking-inspector-body",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("p", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
           className: "pd-editor-note",
           children: "Loading\u2026"
         })
@@ -2273,16 +2007,16 @@ function BookingEditor({
     });
   }
   if (error) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.Fragment, {
-      children: [header('Booking'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.Fragment, {
+      children: [header('Booking'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
         className: "pd-booking-inspector-body",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("p", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
           className: "pd-editor-note",
           children: error
         })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("footer", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("footer", {
         className: "pd-drawer-foot pd-booking-inspector-foot",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
           className: "pd-button sm",
           type: "button",
           onClick: onClose,
@@ -2294,62 +2028,74 @@ function BookingEditor({
 
   // Reschedule sub-flow (edit).
   if (!creating && reschedule) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.Fragment, {
-      children: [header('Edit time'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("form", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.Fragment, {
+      children: [header('Edit time'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("form", {
         className: "pd-booking-inspector-body pd-compact-editor",
         autoComplete: "off",
         onSubmit: e => e.preventDefault(),
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("section", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("section", {
           className: "pd-editor-section",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
             className: "pd-editor-section-head",
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h3", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h3", {
               children: "Reschedule"
             })
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(Readonly, {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
             label: "Service",
             value: row?.service || `Service #${detail.serviceId}`,
             hint: "Cancel & rebook to change the service"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
+          }), locationOptions ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(LocationSelect, {
+            value: place,
+            options: locationOptions,
+            onChange: setPlace,
+            disabled: catalogIncomplete
+          }) : null, locationOptions ? catalogNotice : null, staffChoices.length > 1 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(StaffSelect, {
+            value: activeStaffId || ownStaffId,
+            options: staffChoices,
+            onChange: setMoveStaff
+          }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
             className: "pd-compact-field is-filled",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("input", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("input", {
               type: "date",
               name: "date",
               value: date,
-              min: _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.business.today,
+              min: _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.business.today,
               onChange: e => setDate(e.target.value),
               required: true
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
               className: "pd-compact-label",
               children: "Date"
             })]
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(SlotSelect, {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(SlotSelect, {
             slots: slots,
             loading: slotsLoading,
             value: selectedSlot,
             onChange: setSelectedSlot
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(Readonly, {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
             label: "Ends",
-            value: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+            value: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
               className: "pd-ltr",
               children: derivedEnd || '—'
             })
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("p", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
             className: "pd-editor-note",
-            children: _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.businessTimeLine
+            children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.businessTimeLineAt)(selectedSlot || (date ? `${date}T12:00:00Z` : ''))
           })]
         })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("footer", {
+      }), errorBand, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(NotifyRow, {
+        checked: notify,
+        onChange: setNotify
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("footer", {
         className: "pd-drawer-foot pd-booking-inspector-foot",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
           className: "pd-button sm",
           type: "button",
           onClick: () => setReschedule(false),
           children: "Cancel"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
           className: "pd-button primary sm",
           type: "button",
-          disabled: !selectedSlot || saving,
+          disabled: !selectedSlot || saving || rescheduleUnchanged,
           onClick: doReschedule,
           children: saving ? 'Saving…' : 'Confirm new time'
         })]
@@ -2357,160 +2103,207 @@ function BookingEditor({
     });
   }
   if (creating) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.Fragment, {
-      children: [header('New booking'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("form", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.Fragment, {
+      children: [header('New booking'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("form", {
         className: "pd-booking-inspector-body pd-compact-editor",
         autoComplete: "off",
         onSubmit: e => e.preventDefault(),
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("section", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("section", {
           className: "pd-editor-section",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
             className: "pd-editor-section-head",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h3", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h3", {
               children: "Customer"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
               type: "button",
               className: "pd-section-action",
               onClick: () => setAddNew(v => !v),
               children: addNew ? 'Use existing' : 'Add new'
             })]
-          }), addNew ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+          }), addNew ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
             className: "pd-editor-alternate-fields",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
-              className: "pd-compact-field",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("input", {
-                name: "customer",
-                value: newCustomer.name,
-                placeholder: " ",
-                required: true,
-                onChange: e => setNewCustomer(c => ({
-                  ...c,
-                  name: e.target.value
-                }))
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
-                className: "pd-compact-label",
-                children: "Full name"
-              })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
               className: "pd-field-grid",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
-                className: "pd-compact-field",
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("input", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
+                className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_13__.fieldClass)('pd-compact-field', customerError, 'first_name'),
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("input", {
+                  name: "customer_first_name",
+                  autoComplete: "off",
+                  value: newCustomer.first_name,
+                  placeholder: " ",
+                  required: true,
+                  ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_13__.fieldAria)('booking-customer', customerError, 'first_name'),
+                  onChange: e => setNewCustomer(c => ({
+                    ...c,
+                    first_name: e.target.value
+                  }))
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
+                  className: "pd-compact-label",
+                  children: "First name"
+                })]
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
+                className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_13__.fieldClass)('pd-compact-field', customerError, 'last_name'),
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("input", {
+                  name: "customer_last_name",
+                  autoComplete: "off",
+                  value: newCustomer.last_name,
+                  placeholder: " ",
+                  ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_13__.fieldAria)('booking-customer', customerError, 'last_name'),
+                  onChange: e => setNewCustomer(c => ({
+                    ...c,
+                    last_name: e.target.value
+                  }))
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
+                  className: "pd-compact-label",
+                  children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Last name (optional)', 'aponto')
+                })]
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_13__.FieldErrors, {
+              prefix: "booking-customer",
+              fieldError: customerError,
+              keys: ['first_name', 'last_name']
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
+              className: "pd-field-grid",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
+                className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_13__.fieldClass)('pd-compact-field', customerError, 'email'),
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("input", {
                   type: "email",
                   name: "email",
                   value: newCustomer.email,
                   placeholder: " ",
+                  ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_13__.fieldAria)('booking-customer', customerError, 'email'),
                   onChange: e => setNewCustomer(c => ({
                     ...c,
                     email: e.target.value
                   }))
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
                   className: "pd-compact-label",
-                  children: "Email"
+                  children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Email (optional)', 'aponto')
                 })]
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
-                className: "pd-compact-field",
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("input", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
+                className: (0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_13__.fieldClass)('pd-compact-field', customerError, 'phone'),
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("input", {
                   className: "pd-ltr",
                   name: "phone",
                   value: newCustomer.phone,
                   placeholder: " ",
+                  ...(0,_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_13__.fieldAria)('booking-customer', customerError, 'phone'),
                   onChange: e => setNewCustomer(c => ({
                     ...c,
                     phone: e.target.value
                   }))
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
                   className: "pd-compact-label",
                   children: "Phone"
                 })]
               })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(_lib_field_error_jsx__WEBPACK_IMPORTED_MODULE_13__.FieldErrors, {
+              prefix: "booking-customer",
+              fieldError: customerError,
+              keys: ['email', 'phone']
             })]
-          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_lib_Combobox_jsx__WEBPACK_IMPORTED_MODULE_11__.Combobox, {
+          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(_lib_Combobox_jsx__WEBPACK_IMPORTED_MODULE_18__.Combobox, {
             name: "customer",
             label: "Search customer",
             selected: customer,
             entity: true,
             options: catalog.customers,
             onSelect: setCustomer
-          })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("section", {
+          }), (addNew ? !newCustomer.email.trim() : customer && !customer.email) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
+            className: "pd-editor-note",
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('No email: the customer gets no confirmation or reminders.', 'aponto')
+          }) : null]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("section", {
           className: "pd-editor-section",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
             className: "pd-editor-section-head",
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h3", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h3", {
               children: "Services & items"
             })
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("p", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
             className: "pd-editor-note",
-            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Products & extras arrive with the Premium extras module.', 'aponto')
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_lib_Combobox_jsx__WEBPACK_IMPORTED_MODULE_11__.Combobox, {
+            children: _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.planEdition === 'premium' ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Products & extras are coming soon.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Products & extras arrive with the Premium extras module.', 'aponto')
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(_lib_Combobox_jsx__WEBPACK_IMPORTED_MODULE_18__.Combobox, {
             name: "service",
             label: "Service",
             selected: service,
             options: catalog.services,
             onSelect: setService
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("section", {
+        }), locationOptions || catalogIncomplete ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("section", {
           className: "pd-editor-section",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
             className: "pd-editor-section-head",
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h3", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h3", {
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Location', 'aponto')
+            })
+          }), locationOptions ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(LocationSelect, {
+            value: place,
+            options: locationOptions,
+            onChange: setPlace,
+            disabled: catalogIncomplete
+          }) : null, catalogNotice]
+        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("section", {
+          className: "pd-editor-section",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
+            className: "pd-editor-section-head",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h3", {
               children: "Schedule"
             })
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
             className: "pd-field-grid",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
               className: "pd-compact-field is-filled",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("input", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("input", {
                 type: "date",
                 name: "date",
                 value: date,
-                min: _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.business.today,
+                min: _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.business.today,
                 onChange: e => setDate(e.target.value),
                 required: true
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
                 className: "pd-compact-label",
                 children: "Date"
               })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
               className: "pd-compact-field pd-compact-select is-filled",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("select", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("select", {
                 name: "status",
                 value: createStatus,
                 onChange: e => setCreateStatus(e.target.value),
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("option", {
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("option", {
                   value: "pending",
                   children: "Pending"
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("option", {
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("option", {
                   value: "confirmed",
                   children: "Confirmed"
                 })]
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
                 className: "pd-compact-label",
                 children: "Status"
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
                 className: "pd-field-end-icon",
                 "aria-hidden": "true",
-                children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('chevronDown')
+                children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('chevronDown')
               })]
             })]
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(SlotSelect, {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(SlotSelect, {
             slots: slots,
             loading: slotsLoading,
             value: selectedSlot,
             onChange: setSelectedSlot,
             disabled: !service,
-            emptyLabel: service ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('No available times', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Pick a service to see times', 'aponto')
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(Readonly, {
+            emptyLabel: service ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('No available times', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Pick a service to see times', 'aponto')
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
             label: "Ends",
-            value: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+            value: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
               className: "pd-ltr",
               children: derivedEnd || 'Select a start time'
             })
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("p", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
             className: "pd-editor-note",
-            children: _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.businessTimeLine
-          }), catalog.staff.length > 1 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_lib_Combobox_jsx__WEBPACK_IMPORTED_MODULE_11__.Combobox, {
+            children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.businessTimeLineAt)(selectedSlot || (date ? `${date}T12:00:00Z` : ''))
+          }), catalog.staff.length > 1 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(_lib_Combobox_jsx__WEBPACK_IMPORTED_MODULE_18__.Combobox, {
             name: "staff",
             label: "Staff",
             selected: staff,
@@ -2518,41 +2311,72 @@ function BookingEditor({
             onSelect: setStaff,
             required: false
           }) : null]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("section", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("section", {
           className: "pd-editor-section",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
             className: "pd-editor-section-head",
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h3", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h3", {
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Order', 'aponto')
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("dl", {
+            className: "pd-value-summary",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dt", {
+                children: service?.label || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Service', 'aponto')
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dd", {
+                children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.money)(createSubtotal)
+              })]
+            }), createDiscount > 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
+              className: "is-discount",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dt", {
+                children: discountLabel(createQuote.code)
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("dd", {
+                children: ["\u2212", (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.money)(createDiscount)]
+              })]
+            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
+              className: "is-total",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dt", {
+                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Total', 'aponto')
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dd", {
+                children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.money)(createTotal)
+              })]
+            })]
+          }), adjust.createControl]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("section", {
+          className: "pd-editor-section",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
+            className: "pd-editor-section-head",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h3", {
               children: "Internal notes"
             })
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
             className: "pd-compact-field pd-compact-notes",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("textarea", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("textarea", {
               name: "note",
               rows: "3",
               placeholder: " ",
               value: internalNote,
               onChange: e => setInternalNote(e.target.value)
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
               className: "pd-compact-label",
               children: "Visible to staff only"
             })]
           })]
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(NotifyRow, {
+      }), errorBand, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(NotifyRow, {
         checked: notify,
         onChange: setNotify
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("footer", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("footer", {
         className: "pd-drawer-foot pd-booking-inspector-foot",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
           className: "pd-button sm",
           type: "button",
-          onClick: onClose,
+          onClick: abandon,
           children: "Cancel"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
           className: "pd-button primary sm",
           type: "button",
-          disabled: saving,
+          disabled: saving || 'complete' !== catalogStatus,
           onClick: submitCreate,
           children: saving ? 'Saving…' : 'Create booking'
         })]
@@ -2563,290 +2387,453 @@ function BookingEditor({
   // ---- Edit mode ---------------------------------------------------------
   const d = detail;
   const total = d.order.totalMinor;
+  const subtotal = d.order.subtotalMinor;
+  const discount = d.order.discountMinor;
   const tzDiffers = d.customerTimezone && d.customerTimezone !== TZ;
   const statusOptions = [...new Set([d.status, ...nextStatuses(d.status).filter(s => s !== 'cancelled')])];
   // R1 — read-only Staff + Location rows (V1). Staff name comes from the booking
   // row DTO; the location NAME resolves from the cached locations catalog when a
   // real location is set, and `location_id = 0` reads "No location · <business
   // address>" (the wildcard: the booking runs at the business address).
-  const staffValue = (0,_lib_editor_rows_js__WEBPACK_IMPORTED_MODULE_7__.staffRowValue)(row);
-  const locationValue = (0,_lib_editor_rows_js__WEBPACK_IMPORTED_MODULE_7__.locationRowValue)({
+  const staffValue = (0,_lib_editor_rows_js__WEBPACK_IMPORTED_MODULE_10__.staffRowValue)(row);
+  const locationValue = (0,_lib_editor_rows_js__WEBPACK_IMPORTED_MODULE_10__.locationRowValue)({
     locationId: d.locationId,
     locationName,
     rowLocation: row?.location,
-    businessAddress: _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.business.address
+    businessAddress: _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.business.address
   });
 
   // ---- Order / payment presentation (D-R38) ------------------------------
   const transactions = d.order.transactions || [];
-  const payment = (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_15__.paymentBadge)(d.order.paymentStatus, {
+  const payment = (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__.paymentBadge)(d.order.paymentReason, {
     holdExpiresAt: d.order.holdExpiresAt,
+    holdDeadlineApplies: d.order.holdDeadlineApplies,
+    paymentStateReason: d.order.paymentStateReason,
     // Business time, like every other instant in this editor (§5 invariant 6): a hold deadline
     // rendered in the viewer's own zone reads differently for the owner and their agency.
-    formatTime: utc => (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.timeLabel)(utc, TZ)
+    formatTime: utc => (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.timeLabel)(utc, TZ)
   });
   // The manual switch survives only where the server still accepts it: an order NO gateway has
   // touched. `transactions.length === 0` is the client mirror of `hasAnyCharge()` — a refund row
   // cannot exist without the charge it refunds.
   const manualAllowed = ('none' === d.order.paymentStatus || 'paid' === d.order.paymentStatus) && 0 === transactions.length;
+  const couponEditable = ('pending' === d.status || 'confirmed' === d.status) && 'none' === d.order.paymentStatus && !d.order.gateway && 0 === transactions.length;
   // Refunding needs the gateway module to be ACTIVE, not merely to have been used: disabling a
   // module retains its data and takes its actions away (D-R31 / `409 aponto_payment_unavailable`).
-  const gatewayLive = !!d.order.gateway && (0,_modules_catalog_js__WEBPACK_IMPORTED_MODULE_13__.moduleAvailable)({
+  const gatewayLive = !!d.order.gateway && (0,_modules_catalog_js__WEBPACK_IMPORTED_MODULE_20__.moduleAvailable)({
     modules
   }, d.order.gateway);
-  const refundable = ('paid' === d.order.paymentStatus || 'partial' === d.order.paymentStatus) && gatewayLive;
-  const gatewayMissing = !!d.order.gateway && !gatewayLive && ('paid' === d.order.paymentStatus || 'partial' === d.order.paymentStatus);
-  const refundBlocked = d.order.refundableMinor < 1 || d.order.refundPending;
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.Fragment, {
-    children: [header('Edit booking'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("form", {
+  const externalRefund = d.order.refundManagement;
+  const refundable = !externalRefund && (d.order.refundableCharges ? d.order.refundableCharges.some(charge => charge.available && charge.refundable_minor > 0 && (0,_modules_catalog_js__WEBPACK_IMPORTED_MODULE_20__.moduleAvailable)({
+    modules
+  }, charge.gateway)) : ('paid' === d.order.paymentStatus || 'partial' === d.order.paymentStatus) && gatewayLive);
+  const gatewayMissing = !externalRefund && !!d.order.gateway && !gatewayLive && ('paid' === d.order.paymentStatus || 'partial' === d.order.paymentStatus);
+  const onsite = transactions.find(t => t.kind === 'onsite' && t.status === 'succeeded');
+  const deposit = d.order.payableNowMinor > 0 && d.order.payableNowMinor < total;
+  const canRecord = d.order.canRecordOnsiteBalance ?? (deposit && d.order.paymentStatus === 'partial' && d.order.balanceDueMinor > 0 && !onsite && !d.order.refundPending);
+  const canReverse = d.order.canReverseOnsiteBalance ?? (onsite && !transactions.some(t => ['refund', 'onsite_refund'].includes(t.kind) && t.id > onsite.id));
+  const refundBlocked = d.order.refundableMinor < 1 || d.order.refundPending || d.order.balancePending;
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.Fragment, {
+    children: [header(/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.Fragment, {
+      children: ["Edit booking ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("span", {
+        className: "pd-ltr",
+        children: ["#", d.id]
+      })]
+    })), confirmDialog, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("form", {
       className: "pd-booking-inspector-body pd-compact-editor",
       autoComplete: "off",
       onSubmit: e => e.preventDefault(),
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("section", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("section", {
         className: "pd-editor-section",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
           className: "pd-editor-section-head",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h3", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h3", {
             children: "Customer"
           })
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(Readonly, {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
           label: "Customer",
           value: row?.customer || `Customer #${d.customerId}`,
           hint: "Cancel & rebook to change the customer"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(Readonly, {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
           label: "Contact",
-          value: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+          value: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
             className: "pd-ltr",
             children: `${row?.email || 'No email'} · ${row?.phone || 'No phone'}`
           })
-        })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("section", {
+        }), d.billingAddress ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
+          label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Billing address', 'aponto'),
+          value: d.billingAddress
+        }) : null]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("section", {
         className: "pd-editor-section",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
           className: "pd-editor-section-head",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h3", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h3", {
             children: "Services & items"
           })
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(Readonly, {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
           label: "Service",
-          value: `${row?.service || 'Service'} · ${(0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.money)(total, d.order.currency, d.order.currencyExponent)}`,
+          value: `${row?.service || 'Service'} · ${(0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.money)(subtotal, d.order.currency, d.order.currencyExponent)}`,
           hint: "Cancel & rebook to change the service"
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("section", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("section", {
         className: "pd-editor-section",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
           className: "pd-editor-section-head",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h3", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h3", {
             children: "Schedule"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("button", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("button", {
             type: "button",
             className: "pd-section-action",
             onClick: () => {
               setReschedule(true);
               setSelectedSlot(d.startUtc);
             },
-            children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('calendar'), "Edit time"]
+            children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('calendar'), "Edit time"]
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(Readonly, {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
           label: "Date & time",
-          value: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("span", {
+          value: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("span", {
             className: "pd-ltr",
             children: [d.dateLabel, " \xB7 ", d.start, "\u2013", d.end]
           })
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("p", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("p", {
           className: "pd-editor-note",
-          children: [_lib_config_js__WEBPACK_IMPORTED_MODULE_4__.businessTimeLine, tzDiffers ? ` · Customer time ${d.timezone}` : '']
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(Readonly, {
+          children: [(0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.businessTimeLineAt)(d.startUtc), tzDiffers ? ` · Customer time ${d.timezone}` : '']
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
           label: "Staff",
           value: staffValue
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(Readonly, {
+        }), locationOptions ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.Fragment, {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(LocationSelect, {
+            value: place,
+            options: locationOptions,
+            onChange: setPlace,
+            disabled: !reschedulable || catalogIncomplete
+          }), catalogNotice, place !== d0LocationId(d) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
+            className: "pd-editor-note",
+            children: notify ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Saving moves this booking to the new location at the same time and notifies the customer, like a reschedule.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Saving moves this booking to the new location at the same time. The customer is not notified.', 'aponto')
+          }) : null]
+        }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
           label: "Location",
           value: locationValue
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
           className: "pd-compact-field pd-compact-select is-filled",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("select", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("select", {
             name: "status",
             value: status,
             onChange: e => setStatus(e.target.value),
-            children: statusOptions.map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("option", {
+            children: statusOptions.map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("option", {
               value: s,
               children: d.status === 'cancelled' && s === 'pending' ? 'Pending (restore)' : d.status === 'no_show' && s === 'confirmed' ? 'Confirmed (undo no-show)' : LABELS[s]
             }, s))
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
             className: "pd-compact-label",
             children: "Status"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
             className: "pd-field-end-icon",
             "aria-hidden": "true",
-            children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('chevronDown')
+            children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('chevronDown')
           })]
-        })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("section", {
+        }), 'cancelled' === d.status && (0,_lib_booking_activity_js__WEBPACK_IMPORTED_MODULE_8__.cancellationReason)(d.activities) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
+          label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Cancellation reason', 'aponto'),
+          value: (0,_lib_booking_activity_js__WEBPACK_IMPORTED_MODULE_8__.cancellationReason)(d.activities)
+        }) : null]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("section", {
         className: "pd-editor-section",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
           className: "pd-editor-section-head",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h3", {
-            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Order', 'aponto')
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h3", {
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Order', 'aponto')
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
             className: `pd-status ap-pay-${payment.tone}`,
             title: payment.title,
             children: payment.label
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(Readonly, {
+        }), (0,_bookings_dashboard_stats_js__WEBPACK_IMPORTED_MODULE_23__.needsRefundReview)(d) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("p", {
+          className: "pd-editor-note",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("strong", {
+            children: _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__.REFUND_REVIEW_LABEL
+          }), ` — ${(0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('this booking is cancelled, but its payment was not refunded. Cancelling does not refund automatically.', 'aponto')}`]
+        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
           label: "Order",
-          value: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+          value: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
             className: "pd-ltr",
             children: d.order.code || '—'
           })
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("dl", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("dl", {
           className: "pd-value-summary",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("dt", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dt", {
               children: row?.service || 'Service'
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("dd", {
-              children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.money)(total, d.order.currency, d.order.currencyExponent)
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dd", {
+              children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.money)(subtotal, d.order.currency, d.order.currencyExponent)
             })]
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("dt", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dt", {
               children: "Products & extras"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("dd", {
-              children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.money)(0, d.order.currency, d.order.currencyExponent)
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dd", {
+              children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.money)(0, d.order.currency, d.order.currencyExponent)
             })]
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+          }), discount > 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
+            className: "is-discount",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dt", {
+              children: discountLabel(d.order.couponCode)
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("dd", {
+              children: ["\u2212", (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.money)(discount, d.order.currency, d.order.currencyExponent)]
+            })]
+          }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
             className: "is-total",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("dt", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dt", {
               children: "Total"
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("dd", {
-              children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.money)(total, d.order.currency, d.order.currencyExponent)
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dd", {
+              children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.money)(total, d.order.currency, d.order.currencyExponent)
             })]
           })]
-        }), d.order.gateway ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(Readonly, {
-          label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Payment method', 'aponto'),
-          value: (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_15__.gatewayLabel)(d.order.gateway)
-        }) : null, transactions.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(TransactionList, {
+        }), deposit ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("dl", {
+          className: "pd-value-summary",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dt", {
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Deposit', 'aponto')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dd", {
+              children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.money)(d.order.payableNowMinor, d.order.currency, d.order.currencyExponent)
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dt", {
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Collected', 'aponto')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dd", {
+              children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.money)(d.order.netCollectedMinor, d.order.currency, d.order.currencyExponent)
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
+            className: "is-total",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dt", {
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Balance due', 'aponto')
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("dd", {
+              children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.money)(d.order.balanceDueMinor, d.order.currency, d.order.currencyExponent)
+            })]
+          })]
+        }) : null, adjust.renderEditControl(d, couponEditable), d.order.gateway ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
+          label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Payment method', 'aponto'),
+          value: d.order.externalOrder?.paymentMethod ? `${(0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__.gatewayLabel)(d.order.gateway)} · ${d.order.externalOrder.paymentMethod}` : (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__.gatewayLabel)(d.order.gateway)
+        }) : null, d.order.externalOrder ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
+          label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('External order', 'aponto'),
+          value: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("span", {
+            className: "pd-ltr",
+            children: [d.order.externalOrder.url ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("a", {
+              href: d.order.externalOrder.url,
+              children: d.order.externalOrder.reference
+            }) : d.order.externalOrder.reference, d.order.externalOrder.status ? ` · ${d.order.externalOrder.status}` : '', d.order.externalOrder.freshness === 'last_known' ? ` · ${(0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Last known status', 'aponto')}` : '']
+          })
+        }) : null, d.order.externalOrder?.sync ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
+          label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Sync status', 'aponto'),
+          value: d.order.externalOrder.sync === 'synced' ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Synced', 'aponto') : d.order.externalOrder.sync === 'pending' ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Sync pending', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Needs review in WooCommerce', 'aponto')
+        }) : null, d.order.externalOrder?.notice ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
+          className: "pd-editor-note",
+          children: d.order.externalOrder.notice
+        }) : null, transactions.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(TransactionList, {
           transactions: transactions,
-          currencyExponent: d.order.currencyExponent
-        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+          currencyExponent: d.order.currencyExponent,
+          hasExternalOrder: !!d.order.externalOrder
+        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
           className: "ap-order-actions",
-          children: [manualAllowed ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+          children: [canRecord ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
+            className: "pd-button sm",
+            type: "button",
+            disabled: balanceBusy,
+            onClick: () => recordBalance(),
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Record balance paid on site', 'aponto')
+          }) : null, d.order.canRecordOnsiteRefund ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
+            className: "pd-button sm",
+            type: "button",
+            disabled: refunding || balanceBusy,
+            onClick: () => setRefundOpen('onsite'),
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Record on-site refund', 'aponto')
+          }) : null, canReverse ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
+            className: "pd-button sm",
+            type: "button",
+            disabled: balanceBusy,
+            onClick: () => recordBalance(true),
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Reverse balance record', 'aponto')
+          }) : null, manualAllowed ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
             className: "pd-button sm",
             type: "button",
             onClick: togglePaid,
-            children: d.order.paymentStatus === 'paid' ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Mark unpaid', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Mark as paid', 'aponto')
-          }) : null, refundable ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+            children: d.order.paymentStatus === 'paid' ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Mark unpaid', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Mark as paid', 'aponto')
+          }) : null, refundable ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
             className: "pd-button sm",
             type: "button",
             disabled: refundBlocked,
             onClick: () => setRefundOpen(true),
-            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Refund', 'aponto')
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Refund', 'aponto')
+          }) : null, externalRefund ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("a", {
+            className: "pd-button sm",
+            href: externalRefund.url,
+            rel: "noreferrer",
+            children: externalRefund.label
+          }) : null, d.order.externalOrder?.action ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
+            className: "pd-button sm",
+            type: "button",
+            disabled: externalBusy,
+            onClick: runExternalAction,
+            children: d.order.externalOrder.action.label
           }) : null]
-        }), !manualAllowed ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("p", {
+        }), !manualAllowed ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
           className: "pd-editor-note",
-          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.sprintf)(/* translators: %s: payment gateway name, e.g. "Stripe". */
-          (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Managed by %s.', 'aponto'), '—' === (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_15__.gatewayLabel)(d.order.gateway) ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('the payment gateway', 'aponto') : (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_15__.gatewayLabel)(d.order.gateway))
-        }) : null, refundable && d.order.refundPending ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("p", {
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.sprintf)(/* translators: %s: payment gateway name, e.g. "Stripe". */
+          (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Managed by %s.', 'aponto'), '—' === (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__.gatewayLabel)(d.order.gateway) ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('the payment gateway', 'aponto') : (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__.gatewayLabel)(d.order.gateway))
+        }) : null, d.order.balancePending ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
           className: "pd-editor-note",
-          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('A refund is already in progress at the gateway.', 'aponto')
-        }) : null, gatewayMissing ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("p", {
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('An online balance payment is in progress. Resolve it before recording another payment or refund.', 'aponto')
+        }) : null, refundable && d.order.refundPending ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
           className: "pd-editor-note",
-          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.sprintf)(/* translators: %s: payment gateway name, e.g. "Stripe". */
-          (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Enable the %s module to refund this payment.', 'aponto'), (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_15__.gatewayLabel)(d.order.gateway))
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('A refund is already in progress at the gateway.', 'aponto')
+        }) : null, gatewayMissing ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
+          className: "pd-editor-note",
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.sprintf)(/* translators: %s: payment gateway name, e.g. "Stripe". */
+          (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Enable the %s module to refund this payment.', 'aponto'), (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__.gatewayLabel)(d.order.gateway))
         }) : null]
-      }), (d.customFields || []).length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("section", {
+      }), (d.customFields || []).length || d.consentAt ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("section", {
         className: "pd-editor-section",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
           className: "pd-editor-section-head",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h3", {
-            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Booking form answers', 'aponto')
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h3", {
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Booking form answers', 'aponto')
           })
-        }), (d.customFields || []).map(f => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(Readonly, {
+        }), (d.customFields || []).map(f => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
           label: f.label,
-          value: f.value
-        }, f.slug))]
-      }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("section", {
+          value: (0,_bookings_form_answers_js__WEBPACK_IMPORTED_MODULE_24__.customFieldValue)(f)
+        }, f.slug)), d.consentAt ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
+          label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Consent given', 'aponto'),
+          value: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.dateTimeLabel)(d.consentAt)
+        }) : null]
+      }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("section", {
         className: "pd-editor-section",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
           className: "pd-editor-section-head",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h3", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("h3", {
             children: "Internal notes"
           })
-        }), d.customerNote ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(Readonly, {
+        }), d.customerNote ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(Readonly, {
           label: "Customer note",
           value: d.customerNote
-        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
+        }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
           className: "pd-compact-field pd-compact-notes",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("textarea", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("textarea", {
             name: "note",
             rows: "3",
             placeholder: " ",
             value: internalNote,
             onChange: e => setInternalNote(e.target.value)
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
             className: "pd-compact-label",
             children: "Visible to staff only"
           })]
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("details", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("details", {
         className: "pd-booking-inspector-disclosure pd-editor-activity",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("summary", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("span", {
-            children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('clock'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("strong", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("summary", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("span", {
+            children: [(0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('clock'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("strong", {
               children: "Activity"
             })]
-          }), (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('chevronDown')]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+          }), (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('chevronDown')]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
           className: "pd-booking-inspector-disclosure-body",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
             className: "pd-inspector-activity",
-            children: d.activities.length ? d.activities.map(a => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("p", {
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("strong", {
-                  children: actionLabel(a.action)
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("small", {
-                  children: [a.initiatedBy, " \xB7 ", a.createdAt ? (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.dateTimeLabel)(a.createdAt) : '']
+            children: d.activities.length ? d.activities.map(a => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("p", {
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("strong", {
+                  children: (0,_lib_booking_activity_js__WEBPACK_IMPORTED_MODULE_8__.activityLabel)(a)
+                }), (0,_lib_booking_activity_js__WEBPACK_IMPORTED_MODULE_8__.activityReason)(a) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("small", {
+                  children: (0,_lib_booking_activity_js__WEBPACK_IMPORTED_MODULE_8__.activityReason)(a)
+                }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("small", {
+                  children: [(0,_lib_booking_activity_js__WEBPACK_IMPORTED_MODULE_8__.activityActor)(a.initiatedBy), a.createdAt ? (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.dateTimeLabel)(a.createdAt) : ''].filter(Boolean).join(' · ')
                 })]
               })]
-            }, a.id)) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("p", {
+            }, a.id)) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("p", {
               className: "pd-editor-note",
               children: "No activity recorded."
             })
           })
         })]
       })]
-    }), refundOpen ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(RefundDialog, {
-      order: d.order,
+    }), refundOpen ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(RefundDialog, {
+      order: {
+        ...d.order,
+        refundableCharges: d.order.refundableCharges?.filter(charge => (0,_modules_catalog_js__WEBPACK_IMPORTED_MODULE_20__.moduleAvailable)({
+          modules
+        }, charge.gateway))
+      },
+      onsite: refundOpen === 'onsite',
       busy: refunding,
       onCancel: () => setRefundOpen(false),
       onConfirm: doRefund
-    }) : null, confirm === 'cancel' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("footer", {
+    }) : null, confirm === 'balance' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("footer", {
       className: "pd-drawer-foot pd-drawer-confirm-foot",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
         className: "pd-drawer-confirm-copy",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("p", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("strong", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("p", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("strong", {
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('A balance is still due.', 'aponto')
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('If you collected it on site, record it before completing this appointment.', 'aponto')
+          })]
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
+        className: "pd-drawer-confirm-actions",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
+          className: "pd-button sm",
+          type: "button",
+          disabled: balanceBusy,
+          onClick: () => {
+            balancePrompted.current = true;
+            setConfirm(null);
+            saveEdit();
+          },
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Continue without recording', 'aponto')
+        }), canRecord ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
+          className: "pd-button sm primary",
+          type: "button",
+          disabled: balanceBusy,
+          onClick: async () => {
+            if (await recordBalance()) {
+              balancePrompted.current = true;
+              setConfirm(null);
+              saveEdit();
+            }
+          },
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Record balance paid on site', 'aponto')
+        }) : null]
+      })]
+    }) : confirm === 'cancel' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("footer", {
+      className: "pd-drawer-foot pd-drawer-confirm-foot",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
+        className: "pd-drawer-confirm-copy",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("p", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("strong", {
             children: "Cancel booking?"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
             children: "The slot will be released."
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
           className: "pd-notify-toggle",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("input", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("input", {
             className: "pd-table-checkbox",
             type: "checkbox",
             checked: notify,
             onChange: e => setNotify(e.target.checked)
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
             children: "Notify customer of cancellation"
           })]
-        })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+        }), errorText]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
         className: "pd-drawer-confirm-actions",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
           className: "pd-button sm",
           type: "button",
           onClick: () => setConfirm(null),
           children: "Keep"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
           className: "pd-button sm danger",
           type: "button",
           disabled: saving,
@@ -2854,98 +2841,108 @@ function BookingEditor({
           children: "Cancel booking"
         })]
       })]
-    }) : confirm === 'complete' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("footer", {
+    }) : confirm === 'complete' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("footer", {
       className: "pd-drawer-foot pd-drawer-confirm-foot",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
         className: "pd-drawer-confirm-copy",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("p", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("strong", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("p", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("strong", {
             children: "Complete before the end time?"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
             children: "This appointment has not finished yet."
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
           className: "pd-compact-field is-filled pd-force-reason",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("input", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("input", {
             value: forceReason,
             placeholder: " ",
             required: true,
-            onChange: e => setForceReason(e.target.value)
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+            "aria-invalid": reasonMissing || undefined,
+            onChange: e => {
+              setForceReason(e.target.value);
+              setReasonMissing(false);
+            }
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
             className: "pd-compact-label",
             children: "Reason (recorded in activity)"
           })]
-        })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+        }), reasonError, errorText]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
         className: "pd-drawer-confirm-actions",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
           className: "pd-button sm",
           type: "button",
           onClick: () => {
             setConfirm(null);
             setStatus(d.status);
+            setReasonMissing(false);
           },
           children: "Keep confirmed"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
           className: "pd-button sm primary",
           type: "button",
-          disabled: saving || !forceReason,
+          disabled: saving,
           onClick: saveEdit,
           children: "Complete anyway"
         })]
       })]
-    }) : confirm === 'no-show' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("footer", {
+    }) : confirm === 'no-show' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("footer", {
       className: "pd-drawer-foot pd-drawer-confirm-foot",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
         className: "pd-drawer-confirm-copy",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("p", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("strong", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("p", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("strong", {
             children: "Mark as no-show before the start time?"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
             children: "This appointment has not started yet."
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
           className: "pd-compact-field is-filled pd-force-reason",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("input", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("input", {
             value: forceReason,
             placeholder: " ",
             required: true,
-            onChange: e => setForceReason(e.target.value)
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+            "aria-invalid": reasonMissing || undefined,
+            onChange: e => {
+              setForceReason(e.target.value);
+              setReasonMissing(false);
+            }
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
             className: "pd-compact-label",
             children: "Reason (recorded in activity)"
           })]
-        })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+        }), reasonError, errorText]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
         className: "pd-drawer-confirm-actions",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
           className: "pd-button sm",
           type: "button",
           onClick: () => {
             setConfirm(null);
             setStatus(d.status);
+            setReasonMissing(false);
           },
           children: "Keep confirmed"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
           className: "pd-button sm primary",
           type: "button",
-          disabled: saving || !forceReason,
+          disabled: saving,
           onClick: saveEdit,
           children: "Mark anyway"
         })]
       })]
-    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.Fragment, {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(NotifyRow, {
+    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.Fragment, {
+      children: [errorBand, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(NotifyRow, {
         checked: notify,
         onChange: setNotify
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("footer", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("footer", {
         className: "pd-drawer-foot pd-booking-inspector-foot",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
           className: "pd-inspector-foot-actions",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(InspectorMoreMenu, {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)(InspectorMoreMenu, {
             cancellable: nextStatuses(d.status).includes('cancelled'),
             onCancel: () => setConfirm('cancel')
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("button", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("button", {
             className: "pd-button primary sm",
             type: "button",
             disabled: saving,
@@ -2972,62 +2969,31 @@ function SlotSelect({
   disabled = false,
   emptyLabel = 'No available times'
 }) {
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("label", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("label", {
     className: "pd-compact-field pd-compact-select is-filled",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("select", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("select", {
       value: value,
       disabled: disabled || loading || !slots.length,
       onChange: e => onChange(e.target.value),
-      children: loading ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("option", {
+      children: loading ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("option", {
         value: "",
         children: "Loading\u2026"
-      }) : slots.length ? slots.map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("option", {
+      }) : slots.length ? slots.map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("option", {
         value: s.startUtc,
         children: s.label
-      }, s.startUtc)) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("option", {
+      }, s.startUtc)) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("option", {
         value: "",
         children: emptyLabel
       })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
       className: "pd-compact-label",
       children: "Available start time"
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
       className: "pd-field-end-icon",
       "aria-hidden": "true",
-      children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_8__.renderIcon)('chevronDown')
+      children: (0,_lib_icon_jsx__WEBPACK_IMPORTED_MODULE_12__.renderIcon)('chevronDown')
     })]
   });
-}
-
-/**
- * Activity-trail labels. The payment actions (D-R38) are logged by `PaymentService`, mostly with
- * `initiated_by = gateway:{code}` or `system`, so without a label here the trail rendered raw enum
- * strings on exactly the rows an operator reads when money is in question.
- *
- * `payment_received_after_expiry` keeps its own wording on purpose: money that landed after the
- * hold lapsed is RECORDED, never allowed to resurrect the appointment (D-R38h), and the trail is
- * the only place that distinction is visible.
- */
-const ACTIVITY_LABELS = {
-  created: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Booking created', 'aponto'),
-  confirmed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Confirmed', 'aponto'),
-  cancelled: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Cancelled', 'aponto'),
-  completed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Completed', 'aponto'),
-  rescheduled: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Rescheduled', 'aponto'),
-  no_show: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Marked as no-show', 'aponto'),
-  payment_received: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Payment received', 'aponto'),
-  payment_received_after_expiry: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Payment received after the hold expired', 'aponto'),
-  payment_status_changed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Payment status changed', 'aponto'),
-  payment_hold_expired: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Payment hold expired', 'aponto'),
-  hold_released: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Payment hold released', 'aponto'),
-  refund: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Refunded', 'aponto'),
-  // QA run 2 BUG-3: a gateway that refused this order's amount or currency outright. Readiness
-  // cannot warn about it — it is asked without an order — so the booking's own trail is where the
-  // operator finds out that, say, PayPal has no minor unit for HUF and the price needs rounding.
-  payment_refused: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Gateway refused this amount', 'aponto')
-};
-function actionLabel(action) {
-  return ACTIVITY_LABELS[action] || action;
 }
 
 /**
@@ -3054,28 +3020,29 @@ function displayRef(t) {
  */
 function TransactionList({
   transactions,
-  currencyExponent = null
+  currencyExponent = null,
+  hasExternalOrder = false
 }) {
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("div", {
     className: "ap-txn-list",
-    children: transactions.map(t => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+    children: transactions.map(t => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsxs)("div", {
       className: "ap-txn-row",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
         className: "ap-txn-kind",
-        children: _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_15__.TRANSACTION_KIND_LABELS[t.kind] || t.kind
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+        children: _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__.TRANSACTION_KIND_LABELS[t.kind] || t.kind
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
         className: "ap-txn-amount",
-        children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.money)(t.amountMinor, t.currency, currencyExponent)
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+        children: (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.money)(t.amountMinor, t.currency, currencyExponent)
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
         className: `ap-txn-status is-${t.status}`,
-        children: _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_15__.TRANSACTION_STATUS_LABELS[t.status] || t.status
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+        children: _lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__.TRANSACTION_STATUS_LABELS[t.status] || t.status
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
         className: "ap-txn-ref pd-ltr",
-        title: displayRef(t),
-        children: (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_15__.shortRef)(displayRef(t))
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("span", {
+        title: (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__.transactionRef)(t, hasExternalOrder),
+        children: (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__.shortRef)((0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__.transactionRef)(t, hasExternalOrder))
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_27__.jsx)("span", {
         className: "ap-txn-when",
-        children: t.createdAt ? (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_5__.dateTimeLabel)(t.createdAt) : ''
+        children: t.createdAt ? (0,_lib_format_js__WEBPACK_IMPORTED_MODULE_6__.dateTimeLabel)(t.createdAt) : ''
       })]
     }, t.id))
   });
@@ -3099,13 +3066,13 @@ function TransactionList({
 function refundErrorMessage(err, gateway) {
   const code = err?.code || '';
   if ('aponto_payment_unavailable' === code) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.sprintf)(/* translators: %s: payment gateway name, e.g. "Stripe". */
-    (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Enable the %s module to refund this payment.', 'aponto'), (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_15__.gatewayLabel)(gateway));
+    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.sprintf)(/* translators: %s: payment gateway name, e.g. "Stripe". */
+    (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Enable the %s module to refund this payment.', 'aponto'), (0,_lib_payment_status_js__WEBPACK_IMPORTED_MODULE_22__.gatewayLabel)(gateway));
   }
   if ('aponto_payment_error' === code) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('The gateway refused the refund — try again later.', 'aponto');
+    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The gateway refused the refund — try again later.', 'aponto');
   }
-  return err?.message || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('The refund could not be completed.', 'aponto');
+  return err?.message || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The refund could not be completed.', 'aponto');
 }
 
 /***/ }

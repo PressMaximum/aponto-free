@@ -9,6 +9,7 @@
  * MINUTES from midnight. The component is controlled — every edit calls
  * `onChange( nextWeekly )`.
  */
+import { __ } from '@wordpress/i18n';
 import { renderIcon } from './icon.jsx';
 
 export const WEEKDAYS = [
@@ -111,19 +112,56 @@ export function sortWeekly( weekly ) {
  */
 export function validateWeekly( weekly ) {
 	for ( const [ n, label ] of WEEKDAYS ) {
-		const periods = [ ...( ( weekly || {} )[ n ] || [] ) ].sort( ( a, b ) => a.start - b.start );
+		// Sorted for the overlap test, but carrying each period's ORIGINAL index, because that
+		// is the one the grid rendered and therefore the only one a caller can address
+		// (founder QA 2026-09-21, round 3). Sorting away the index is what previously left
+		// `message` as the only thing this function could say.
+		const periods = ( ( weekly || {} )[ n ] || [] )
+			.map( ( period, index ) => ( { ...period, index } ) )
+			.sort( ( a, b ) => a.start - b.start );
 		let prevEnd = -1;
 		for ( const p of periods ) {
 			if ( p.end <= p.start ) {
-				return `${ label }: each period must end after it starts.`;
+				return {
+					message: `${ label }: each period must end after it starts.`,
+					weekday: n,
+					index: p.index,
+				};
 			}
 			if ( p.start < prevEnd ) {
-				return `${ label }: hours overlap — adjust the times.`;
+				return {
+					message: `${ label }: hours overlap — adjust the times.`,
+					weekday: n,
+					index: p.index,
+				};
 			}
 			prevEnd = p.end;
 		}
 	}
 	return null;
+}
+
+/**
+ * The period "Add hours" appends to a day (persona QA 2026-10-05, T-070).
+ *
+ * It was always 9:00–17:00, which OVERLAPS the range nearly every open day already has: pressing
+ * "Add hours" produced a grid that could not be saved until the operator worked out why. The new
+ * period now starts one hour after the day's LAST end (the usual break) and runs four hours,
+ * capped at midnight. A day with no room left after its last range gets the last possible
+ * five-minute slot rather than an overlapping one, and an empty day keeps the 9:00–17:00 default.
+ *
+ * @param {Array} periods The day's current periods (`{ start, end }` in minutes).
+ * @return {{start: number, end: number}} The period to append.
+ */
+export function nextPeriod( periods ) {
+	const list = periods || [];
+	if ( ! list.length ) {
+		return { start: 540, end: 1020 };
+	}
+	const lastEnd = Math.max( ...list.map( ( p ) => Number( p.end ) || 0 ) );
+	// Keep the same 5-minute grid the pickers offer; leave at least one slot before midnight.
+	const start = Math.min( lastEnd + 60, 1440 - TIME_STEP );
+	return { start, end: Math.min( start + 240, 1440 ) };
 }
 
 /**
@@ -146,7 +184,7 @@ export function WeeklyHoursGrid( { weekly, onChange, busy = false, timeFormat = 
 	const setDayOpen = ( n ) => onChange( { ...weekly, [ n ]: [ { start: 540, end: 1020 } ] } );
 	const setPeriod = ( n, i, key, min ) =>
 		onChange( { ...weekly, [ n ]: weekly[ n ].map( ( p, idx ) => ( idx === i ? { ...p, [ key ]: min } : p ) ) } );
-	const addPeriod = ( n ) => onChange( { ...weekly, [ n ]: [ ...( weekly[ n ] || [] ), { start: 540, end: 1020 } ] } );
+	const addPeriod = ( n ) => onChange( { ...weekly, [ n ]: [ ...( weekly[ n ] || [] ), nextPeriod( weekly[ n ] ) ] } );
 	const removePeriod = ( n, i ) => onChange( { ...weekly, [ n ]: weekly[ n ].filter( ( _, idx ) => idx !== i ) } );
 
 	// C8: copy the first open day's periods onto every OTHER open day (closed days stay closed).
@@ -179,13 +217,19 @@ export function WeeklyHoursGrid( { weekly, onChange, busy = false, timeFormat = 
 						<div className="ap-hours-day-head">
 							<strong>{ label }</strong>
 							{ periods.length ? (
-								<button type="button" className="pd-button text sm" disabled={ busy } onClick={ () => setDayClosed( n ) }>Closed</button>
+								// The label names the ACTION (T-070). It read "Closed" on an open
+								// day and "Open" on a closed one — the state the press would produce,
+								// which four testers read as the day's current state.
+								<button type="button" className="pd-button text sm" disabled={ busy } onClick={ () => setDayClosed( n ) }>{ __( 'Mark closed', 'aponto' ) }</button>
 							) : (
-								<button type="button" className="pd-button text sm" disabled={ busy } onClick={ () => setDayOpen( n ) }>Open</button>
+								<button type="button" className="pd-button text sm" disabled={ busy } onClick={ () => setDayOpen( n ) }>{ __( 'Open this day', 'aponto' ) }</button>
 							) }
 						</div>
 						{ periods.length ? periods.map( ( p, i ) => (
-							<div className="ap-hours-period" key={ i }>
+							// Addressable by (weekday, period) so a failed save can focus the
+							// control that is actually wrong — see `validateWeekly()`. Data
+							// attributes only: no behaviour, no styling hook.
+							<div className="ap-hours-period" key={ i } data-weekday={ n } data-period={ i }>
 								<TimeSelect value={ p.start } onChange={ ( min ) => setPeriod( n, i, 'start', min ) } ariaLabel={ `${ label } start` } timeFormat={ timeFormat } disabled={ busy } />
 								<span>–</span>
 								<TimeSelect value={ p.end } onChange={ ( min ) => setPeriod( n, i, 'end', min ) } ariaLabel={ `${ label } end` } timeFormat={ timeFormat } disabled={ busy } />

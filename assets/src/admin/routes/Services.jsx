@@ -14,6 +14,9 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, v
 import { CSS } from '@dnd-kit/utilities';
 import { __ } from '@wordpress/i18n';
 import { api } from '../lib/api.js';
+import { config } from '../lib/config.js';
+import { useInFlight } from '../lib/in-flight.js';
+import { countUpcomingBookings, upcomingBookingsNote } from '../lib/upcoming-bookings.js';
 import { money } from '../lib/format.js';
 import { renderIcon } from '../lib/icon.jsx';
 import { PageHeader } from '../lib/ui.jsx';
@@ -22,15 +25,45 @@ import { useConfirmDialog } from '../lib/confirm.jsx';
 import { InflowWorkspace } from '../lib/InflowWorkspace.jsx';
 import { RowMenu } from '../lib/RowMenu.jsx';
 import { Facets, FacetChips, facetCount, inArrayFilter, recordFacetFilter } from '../lib/facets.jsx';
-import { ServiceEditor } from './ServiceEditor.jsx';
+import { hashRecord, useEditorGuards } from '../lib/editor-guards.js';
+import { useRouteReselect } from '../lib/router.js';
+import { ServiceEditor, discardPrompt } from './ServiceEditor.jsx';
 import { ServiceReorder } from './ServiceReorder.jsx';
+import { serviceNotBookable } from '../bookings/dashboard-stats.js';
+
+// One line of why, for the pill's tooltip and the quick view (re-test R11).
+const NOT_BOOKABLE_REASON = __( 'No active staff member is assigned, so customers do not see this service. Assign staff in the service editor.', 'aponto' );
 
 const TABS = [
 	{ id: 'services', label: 'Services' },
 	{ id: 'categories', label: 'Categories' },
-	{ id: 'bundles', label: 'Bundles', badge: __( 'Premium', 'aponto' ) },
-	{ id: 'extras', label: 'Extras', badge: __( 'Premium', 'aponto' ) },
+	{ id: 'bundles', label: 'Bundles', reserved: true },
+	{ id: 'extras', label: 'Extras', reserved: true },
 ];
+
+/**
+ * The badge on a reserved (unbuilt) tab, and the sentence under its empty state.
+ *
+ * On a Free site these are honest upsell chrome: the feature will be a Premium module. On a
+ * PREMIUM site the same "Premium" badge read as a second upsell to someone who had already paid,
+ * and "ships with a later Premium module" as a roadmap note in their own product (persona QA
+ * 2026-10-05, T-082) — there it says what is true for them: coming soon. `planEdition` is the
+ * marketing-chrome switch `lib/config.js` documents, not a capability gate.
+ *
+ * @param {string} planEdition `free` or `premium`.
+ * @return {{badge: string, note: string}} Copy for the reserved tabs.
+ */
+export function reservedTabCopy( planEdition ) {
+	return 'premium' === planEdition
+		? {
+			badge: __( 'Coming soon', 'aponto' ),
+			note: __( 'Coming soon — there is nothing to set up here yet.', 'aponto' ),
+		}
+		: {
+			badge: __( 'Premium', 'aponto' ),
+			note: __( 'Ships with a later Premium module — there is nothing to set up here yet.', 'aponto' ),
+		};
+}
 const STATUS_OPTIONS = [ { value: 'active', label: 'Active' }, { value: 'draft', label: 'Draft' }, { value: 'archived', label: 'Archived' } ];
 const UNCATEGORIZED = 'Uncategorized';
 const WIDTH_KEY = 'aponto.admin.service-inspector-width.v1';
@@ -45,16 +78,80 @@ const FACETS = [
 ];
 const CATEGORY_FACET_FILTER = recordFacetFilter( 'categoryId', 'categoryName' );
 
+/**
+ * The record a `services/...` hash path names, or '' for the list and for the tab hashes.
+ *
+ * Tab ids are never numeric, so the two segment shapes cannot collide — the same test the deep
+ * link itself uses.
+ *
+ * @param {string} path Hash path, without the leading `#`.
+ * @return {string} Record id, or ''.
+ */
+function deepLinkOf( path ) {
+	const second = hashRecord( path );
+
+	return /^\d+$/.test( second ) ? second : '';
+}
+
 export function Services( { segments = [], onNavigate } ) {
 	const showToast = useToast();
 	const { confirm, dialog } = useConfirmDialog();
-	const initialTab = TABS.some( ( t ) => t.id === segments[ 1 ] ) ? segments[ 1 ] : 'services';
+	// Whether the OPEN editor holds unsaved edits — reported up by `ServiceEditor` from its own
+	// dirty computation (the form, a pending eligibility edit, a half-typed new category), because
+	// this is the component that owns both guards (D-R58). Handoff 2026-09-21 §4: it had none at all.
+	const [ editorDirty, setEditorDirty ] = useState( false );
+	// The LANDING tab, from the landing hash — mount-only, exactly as before the guards existed.
+	// Deliberately not read from `shownPath`: on the first render the two are equal by
+	// construction, and reading the held path would tie a mount-time seed to a navigation guard.
+	const landingTab = segments[ 1 ];
+	const initialTab = TABS.some( ( t ) => t.id === landingTab ) ? landingTab : 'services';
 	const [ tab, setTab ] = useState( initialTab );
 	const [ state, setState ] = useState( { status: 'loading', services: [], categories: [], error: null } );
 	const [ staffCount, setStaffCount ] = useState( null );
 	const [ editor, setEditor ] = useState( null ); // { mode, service }
 	const [ inspector, setInspector ] = useState( null ); // { type:'quickview'|'category', ... }
 	const [ reorder, setReorder ] = useState( false );
+	/**
+	 * Bumped by a confirmed discard that leaves this route on screen, and part of the editor's
+	 * `key`, so the discard actually empties the form (fix round 2). Applying the target usually
+	 * replaces the editor by itself; it does not when the target names a record this list does not
+	 * hold — a hand-edited hash, or anything past the `per_page: 100` window — and the operator
+	 * would be left looking at the very text they asked to throw away, with nothing guarding it. A
+	 * remount is also what puts the pending staff assignments back.
+	 */
+	const [ editorEpoch, setEditorEpoch ] = useState( 0 );
+	const onDiscard = useCallback( () => setEditorEpoch( ( epoch ) => epoch + 1 ), [] );
+
+	/** The record the editor is open on right now — `new` for a create, '' for the list. */
+	const openRecord = editor ? String( editor.service?.id ?? 'new' ) : '';
+
+	/**
+	 * Which same-route hash moves would REPLACE the open editor (`lib/editor-guards.js`).
+	 *
+	 * Only a deep link to a DIFFERENT record does: the effect below opens it with a new `key`,
+	 * which remounts the editor and takes the unsaved form with it. `#services`,
+	 * `#services/categories` and the other tab hashes change no surface while the editor is open —
+	 * it is local state and takes over the whole route — so a dialog for them would be a dialog
+	 * about nothing, and neither does the deep link of the record ALREADY being edited (fix round
+	 * 2: Back to `#services` then Forward to `#services/12` asked the operator to discard the
+	 * service they were still editing).
+	 */
+	const isExit = useCallback(
+		( next ) => {
+			const target = deepLinkOf( next );
+
+			return '' !== openRecord && '' !== target && target !== openRecord;
+		},
+		[ openRecord ]
+	);
+	const { shownPath, release } = useEditorGuards( {
+		segments,
+		dirty: editorDirty,
+		confirm,
+		discardPrompt,
+		isExit,
+		onDiscard,
+	} );
 
 	// Returns the reload promise so callers can AWAIT the fresh list before closing an editor —
 	// the quick-view panel derives from this state and must never show a stale price after a save
@@ -96,7 +193,12 @@ export function Services( { segments = [], onNavigate } ) {
 	// Applied ONCE per requested id and only after the list has loaded (the editor needs the row
 	// DTO). Never closes anything: an id that no longer exists — or an editor the admin closed by
 	// hand — leaves the list on screen instead of fighting it.
-	const deepLinkId = /^\d+$/.test( String( segments[ 1 ] || '' ) ) ? String( segments[ 1 ] ) : '';
+	//
+	// Resolved from `shownPath`, NOT from `segments`: that is the whole mechanism of the same-route
+	// hold (`lib/editor-guards.js`). While a dirty editor is on screen the hold does not advance
+	// `shownPath`, so this effect never sees the incoming id and never remounts the editor out from
+	// under the typing.
+	const deepLinkId = deepLinkOf( shownPath );
 	const openedDeepLink = useRef( '' );
 	useEffect( () => {
 		if ( '' === deepLinkId || openedDeepLink.current === deepLinkId || 'loading' === state.status ) {
@@ -121,9 +223,12 @@ export function Services( { segments = [], onNavigate } ) {
 	// reversible status change — NEVER a delete. It keeps the service for history and hides it from
 	// new bookings.
 	const onArchive = async ( service ) => {
+		// Say what happens to the bookings already made (T-075) — nothing, which is exactly what
+		// the dialog used to leave the operator to guess.
+		const note = upcomingBookingsNote( await countUpcomingBookings( { service_id: service.id } ) );
 		const ok = await confirm( {
 			title: `Archive “${ service.name }”?`,
-			message: 'It’s kept for history and hidden from new bookings. You can restore it any time.',
+			message: `It’s kept for history and hidden from new bookings. You can restore it any time.${ note ? ` ${ note }` : '' }`,
 			confirmText: 'Archive',
 			destructive: true,
 		} );
@@ -143,7 +248,7 @@ export function Services( { segments = [], onNavigate } ) {
 	const onRestore = async ( service ) => {
 		try {
 			await api.patch( `/services/${ service.id }`, { status: 'active' } );
-			showToast( `${ service.name } restored.` );
+			showToast( `${ service.name } restored.`, 'success' );
 			await load();
 		} catch ( err ) {
 			showToast( err.message, 'danger' );
@@ -182,31 +287,62 @@ export function Services( { segments = [], onNavigate } ) {
 		}
 	};
 
-	const onDuplicate = async ( service ) => {
+	// One request per press (persona QA 2026-10-05, T-066): a doubled "Duplicate as draft" made
+	// two copies, exactly as a doubled "Create service" made two services.
+	const once = useInFlight();
+	const onDuplicate = ( service ) => once( async () => {
 		try {
 			const copy = await api.post( `/services/${ service.id }/duplicate` );
-			showToast( `Duplicated “${ copy.name }” as draft — activate when ready.` );
+			showToast( `Duplicated “${ copy.name }” as draft — activate when ready.`, 'success' );
 			await load();
 		} catch ( err ) {
 			showToast( err.message, 'danger' );
 		}
-	};
+	} );
+
+	// "Services" pressed — header nav or WordPress sidebar — while the editor covers the list
+	// (persona QA 2026-10-05, T-076). The editor is local state, so the hash never moved and the
+	// press used to do nothing. It now does what the editor's own Cancel does: ask about unsaved
+	// edits, then return to the list.
+	useRouteReselect( 'services', async () => {
+		if ( ! editor ) {
+			return;
+		}
+		if ( editorDirty && ! ( await confirm( discardPrompt() ) ) ) {
+			return;
+		}
+		release();
+		setEditor( null );
+	} );
 
 	// ---- Full-page editor takes over the whole route ----------------------
 	if ( editor ) {
 		return (
-			<ServiceEditor
-				key={ `${ editor.mode }-${ editor.service?.id || 'new' }` }
-				mode={ editor.mode }
-				service={ editor.service }
-				categories={ state.categories }
-				onCreateCategory={ createCategory }
-				onClose={ () => setEditor( null ) }
-				onSaved={ load }
-			/>
+			<>
+				<ServiceEditor
+					key={ `${ editor.mode }-${ openRecord }-${ editorEpoch }` }
+					mode={ editor.mode }
+					service={ editor.service }
+					categories={ state.categories }
+					onCreateCategory={ createCategory }
+					// `release()` first: the editor has already asked its own question by the time it
+					// calls back, so a guard still registered here would ask again on the next hash
+					// the operator touches.
+					onClose={ () => { release(); setEditor( null ); } }
+					onSaved={ load }
+					onDirtyChange={ setEditorDirty }
+					confirm={ confirm }
+				/>
+				{ /* The ONE dialog this surface asks through — both guards and the editor's own
+				     Cancel. The list branch renders the same node inside the workspace; here the
+				     editor IS the page, so it is a sibling. A Modal portals out of the tree anyway,
+				     and it is null whenever nothing is being asked. */ }
+				{ dialog }
+			</>
 		);
 	}
 
+	const reserved = reservedTabCopy( config.planEdition );
 	const tabStrip = (
 		<div className="pmdk-section-tabs" role="tablist" aria-label="Service views">
 			{ TABS.map( ( t ) => (
@@ -217,7 +353,7 @@ export function Services( { segments = [], onNavigate } ) {
 					aria-selected={ tab === t.id ? 'true' : 'false' }
 					onClick={ () => { setTab( t.id ); setReorder( false ); } }
 				>
-					{ t.label }{ t.badge ? <small className="pd-nav-phase is-later">{ t.badge }</small> : null }
+					{ t.label }{ t.reserved ? <small className="pd-nav-phase is-later">{ reserved.badge }</small> : null }
 				</button>
 			) ) }
 		</div>
@@ -231,7 +367,7 @@ export function Services( { segments = [], onNavigate } ) {
 			<div className="ap-reserved-tab">
 				<span className="ap-state-icon" aria-hidden="true">{ renderIcon( tab === 'bundles' ? 'box' : 'tag' ) }</span>
 				<h2>{ tab === 'bundles' ? 'Bundles' : 'Extras' }</h2>
-				<p>{ tab === 'bundles' ? 'Sell packages of multiple services together.' : 'Add-ons customers can attach to a booking.' } { __( 'Ships with a later Premium module — there is nothing to set up here yet.', 'aponto' ) }</p>
+				<p>{ tab === 'bundles' ? 'Sell packages of multiple services together.' : 'Add-ons customers can attach to a booking.' } { reserved.note }</p>
 			</div>
 		);
 	} else {
@@ -291,7 +427,7 @@ function ServicesPanel( { state, reorder, setReorder, onNew, onEdit, onQuickView
 			cell: ( info ) => (
 				<span className="ap-cell-identity">
 					<span className="ap-color-dot" style={ { background: info.row.original.color || 'var(--ap-color-border-strong)' } } aria-hidden="true" />
-					<span className="pmdk-cell-value pmdk-cell-strong">{ info.getValue() }</span>
+					<span className="pmdk-cell-value pmdk-cell-strong" title={ info.getValue() }>{ info.getValue() }</span>
 				</span>
 			),
 		} ),
@@ -299,7 +435,11 @@ function ServicesPanel( { state, reorder, setReorder, onNew, onEdit, onQuickView
 		columnHelper.accessor( 'duration_minutes', { id: 'duration', header: 'Duration', size: 110, meta: { label: 'Duration', numeric: true }, cell: ( info ) => <span className="pmdk-cell-value pmdk-cell-numeric">{ info.getValue() } min</span> } ),
 		columnHelper.accessor( 'price_minor', { id: 'price', header: 'Price', size: 110, meta: { label: 'Price', numeric: true }, cell: ( info ) => <span className="pmdk-cell-value pmdk-cell-numeric">{ info.getValue() === null || info.getValue() === undefined ? '—' : money( info.getValue() ) }</span> } ),
 		columnHelper.accessor( 'staffCount', { id: 'staff', header: 'Staff', size: 90, enableSorting: false, meta: { label: 'Staff' }, cell: ( info ) => <span className="pmdk-cell-value pmdk-cell-muted">{ info.getValue() } staff</span> } ),
-		columnHelper.accessor( 'status', { id: 'status', header: 'Status', size: 110, meta: { label: 'Status' }, filterFn: inArrayFilter, cell: ( info ) => <span className={ `ap-status-pill is-${ info.getValue() }` }>{ info.getValue() }</span> } ),
+		// An ACTIVE service nobody active is assigned to is not bookable (re-test R11): the public
+		// catalogue leaves it out (T-073), so the pill says that instead of a plain "active".
+		columnHelper.accessor( 'status', { id: 'status', header: 'Status', size: 130, meta: { label: 'Status' }, filterFn: inArrayFilter, cell: ( info ) => ( serviceNotBookable( info.row.original )
+			? <span className="ap-status-pill is-draft" title={ NOT_BOOKABLE_REASON }>{ __( 'Not bookable', 'aponto' ) }</span>
+			: <span className={ `ap-status-pill is-${ info.getValue() }` }>{ info.getValue() }</span> ) } ),
 		columnHelper.display( {
 			id: 'action',
 			size: 60,
@@ -426,7 +566,7 @@ function CategoriesPanel( { state, confirm, onReload, showToast } ) {
 		}
 		try {
 			await api.patch( `/service-categories/${ category.id }`, { name: next } );
-			showToast( 'Category renamed.' );
+			showToast( 'Category renamed.', 'success' );
 			onReload();
 		} catch ( err ) {
 			showToast( err.message, 'danger' );
@@ -462,7 +602,7 @@ function CategoriesPanel( { state, confirm, onReload, showToast } ) {
 		try {
 			// Full-set replacement (rest-contract §2.4).
 			await api.post( '/service-categories/reorder', { ids: next } );
-			showToast( 'Category order saved.' );
+			showToast( 'Category order saved.', 'success' );
 			onReload();
 		} catch ( err ) {
 			setOrder( state.categories.map( ( c ) => c.id ) );
@@ -573,7 +713,10 @@ function ServiceQuickView( { service, categories, onEdit, onClose } ) {
 			</header>
 			<div className="pd-booking-inspector-body">
 				<section className="pd-editor-section">
-					<div className="pd-editor-section-head"><h3>Overview</h3><span className={ `ap-status-pill is-${ service.status }` }>{ service.status }</span></div>
+					<div className="pd-editor-section-head"><h3>Overview</h3>{ serviceNotBookable( service )
+						? <span className="ap-status-pill is-draft">{ __( 'Not bookable', 'aponto' ) }</span>
+						: <span className={ `ap-status-pill is-${ service.status }` }>{ service.status }</span> }</div>
+					{ serviceNotBookable( service ) ? <p className="ap-inspector-note">{ NOT_BOOKABLE_REASON }</p> : null }
 					<div className="pd-editor-readonly"><span className="pd-editor-readonly-label">Category</span><strong>{ category }</strong></div>
 					<div className="pd-editor-readonly"><span className="pd-editor-readonly-label">Duration</span><strong>{ service.duration_minutes } min</strong></div>
 					<div className="pd-editor-readonly"><span className="pd-editor-readonly-label">Price</span><strong>{ service.price_minor === null || service.price_minor === undefined ? '—' : money( service.price_minor ) }</strong></div>
@@ -597,8 +740,9 @@ function CategoryForm( { mode, category, onClose, onSaved, showToast } ) {
 	const [ name, setName ] = useState( category?.name || '' );
 	const [ saving, setSaving ] = useState( false );
 	const creating = mode === 'create';
+	const once = useInFlight();
 
-	const save = async () => {
+	const save = () => once( async () => {
 		if ( ! name.trim() ) {
 			return;
 		}
@@ -606,10 +750,10 @@ function CategoryForm( { mode, category, onClose, onSaved, showToast } ) {
 		try {
 			if ( creating ) {
 				await api.post( '/service-categories', { name: name.trim() } );
-				showToast( 'Category created.' );
+				showToast( 'Category created.', 'success' );
 			} else {
 				await api.patch( `/service-categories/${ category.id }`, { name: name.trim() } );
-				showToast( 'Category renamed.' );
+				showToast( 'Category renamed.', 'success' );
 			}
 			onSaved?.();
 			onClose?.();
@@ -617,7 +761,7 @@ function CategoryForm( { mode, category, onClose, onSaved, showToast } ) {
 			showToast( err.message, 'danger' );
 			setSaving( false );
 		}
-	};
+	} );
 
 	return (
 		<>

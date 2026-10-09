@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "policies": [
+    {
+      "module": "payments_woocommerce",
+      "version": 1,
+      "lock": "payments_woocommerce",
+      "cron": [
+        "aponto_woocommerce_reconcile"
+      ],
+      "tables": [
+        {
+          "name": "aponto_woo_attempts"
+        }
+      ]
+    },
+    {
+      "module": "webhooks",
+      "version": 1,
+      "lock": "webhooks",
+      "cron": [
+        "aponto_webhooks_tick"
+      ],
+      "tables": [
+        {
+          "name": "aponto_events",
+          "expiry": "expires_at",
+          "identity": "id",
+          "erase": {
+            "body": null,
+            "attempts": "[]",
+            "delivery_status": "cancelled",
+            "next_attempt_at": null,
+            "lease_token": null,
+            "lease_expires_at": null,
+            "last_error_code": "privacy_erased",
+            "updated_at": "$now"
+          },
+          "optional_erase": {
+            "payload": null
+          },
+          "subjects": {
+            "customer": [
+              {
+                "customer_id": "$id"
+              },
+              {
+                "subject_type": "customer",
+                "subject_id": "$id"
+              }
+            ],
+            "booking": [
+              {
+                "subject_type": "booking",
+                "subject_id": "$id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "aponto_webhook_endpoints"
+        }
+      ]
+    }
+  ]
+}

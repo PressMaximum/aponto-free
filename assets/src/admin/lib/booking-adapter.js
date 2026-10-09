@@ -5,9 +5,24 @@
  * column defs / renderers / data layer stay product-owned here.
  */
 import { config } from './config.js';
-import { timeLabel, dateLabel, isoDate, initials, tzLabel } from './format.js';
+import { timeLabel, dateLabel, isoDate, tzLabel } from './format.js';
+import { displayNameOf, initialsOf } from '../../shared/person-name.js';
 
 const TZ = config.business.timezone;
+
+/**
+ * The D-R71 badge/facet reason of an order: `pending` for every pending payment (its finer
+ * gateway reason travels separately as `paymentStateReason`), the ledger reason otherwise.
+ *
+ * @param {Object} order Order block of a list item or detail DTO.
+ * @return {string} One of `PAYMENT_REASONS`, or a stored status.
+ */
+function paymentReasonOf( order ) {
+	if ( order.payment_status === 'pending' ) {
+		return 'pending';
+	}
+	return order.payment_state_reason || order.payment_status || 'none';
+}
 
 /** GET /bookings item → BookingsTable row. */
 export function bookingRowFromListItem( item ) {
@@ -29,15 +44,24 @@ export function bookingRowFromListItem( item ) {
 		dateLabel: dateLabel( start, TZ ),
 		start: timeLabel( start, TZ ),
 		end: timeLabel( end, TZ ),
-		customer: customer.name || '',
+		// `name` is the server-composed display name (name split, 2026-10-01); the parts ride along
+		// for the surfaces that edit or search them.
+		customer: displayNameOf( customer ),
+		customerFirstName: customer.first_name || '',
+		customerLastName: customer.last_name || '',
 		email: customer.email || '',
 		phone: customer.phone || '',
 		customerId: customer.id || null,
 		service: service.name || '',
 		serviceId: service.id || null,
-		staff: staff.name || '',
+		staff: displayNameOf( staff ),
+		staffFirstName: staff.first_name || '',
+		staffLastName: staff.last_name || '',
 		staffId: staff.id || null,
 		location: item.location?.name || '',
+		// D-R63: the list item's `location_id` (rest-contract §2.8 addendum); the NAME is resolved by
+		// the route from the location catalog, because the payload carries only the id.
+		locationId: Number( item.location_id ) || 0,
 		status_total_minor: order.total_minor || 0,
 		total: order.total_minor || 0,
 		currency: order.currency || config.currency,
@@ -47,10 +71,22 @@ export function bookingRowFromListItem( item ) {
 		currencyExponent: Number.isInteger( order.currency_exponent ) ? order.currency_exponent : null,
 		paid: order.payment_status === 'paid',
 		paymentStatus: order.payment_status || 'none',
+		// One server field, two readings: a PENDING payment carries the derived gateway reason
+		// (`checkout_pending`, `cash_on_delivery`, …), any other order the D-R71 ledger reason
+		// (`deposit_paid`, …). The badge/facet value keeps `pending` for the former.
+		paymentReason: paymentReasonOf( order ),
+		payableNowMinor: order.payable_now_minor ?? order.total_minor ?? 0,
+		netCollectedMinor: order.net_collected_minor ?? 0,
+		balanceDueMinor: order.balance_due_minor ?? 0,
+		// Additive list fields (persona QA 2026-10-05, rest-contract §2.8): the derived reason of a
+		// PENDING payment (`checkout_pending` = the customer has not finished checkout), and the
+		// mark of a cancelled booking that was only ever a checkout nobody placed.
+		paymentStateReason: order.payment_status === 'pending' ? order.payment_state_reason || '' : '',
+		checkoutAbandoned: item.checkout_abandoned === true,
 		attendees: item.attendees || 1,
 		customerTimezone: customerTz,
 		timezone: tzLabel( customerTz, start ),
-		initials: initials( customer.name ),
+		initials: initialsOf( customer ) || '?',
 		note: '',
 		created: item.created_at || '',
 		source: 'Admin',
@@ -88,6 +124,9 @@ export function bookingDetailToEditor( detail ) {
 		// Read-only here: they are what the customer told the business, and the
 		// booking editor is not the place to rewrite that.
 		customFields: Array.isArray( b.custom_fields ) ? b.custom_fields : [],
+		billingAddress: typeof b.billing_address === 'string' ? b.billing_address : '',
+		// When the customer ticked the consent box, or '' (persona QA 2026-10-05, T-046).
+		consentAt: b.consent_at || '',
 		icsSequence: b.ics_sequence || 0,
 		order: orderFromDetail( order, items ),
 		activities: activities.map( ( a ) => ( {
@@ -111,9 +150,31 @@ export function bookingDetailToEditor( detail ) {
  * @param {Array}  items Order line items.
  * @return {Object} Editor order view model.
  */
+/**
+ * The one action a gateway may attach to its external order record, or null.
+ *
+ * Only a REST path under that same gateway's module is accepted, so the button can never be
+ * pointed anywhere else whatever the response carried.
+ *
+ * @param {*}      action  `external_order.action` from the detail DTO.
+ * @param {string} gateway The order's gateway module code.
+ * @return {?{label: string, confirm: string, path: string}} Action, or null.
+ */
+export function externalAction( action, gateway ) {
+	if ( ! action || typeof action.label !== 'string' || ! action.label || typeof action.path !== 'string' || ! gateway ) {
+		return null;
+	}
+	const prefix = `/modules/${ gateway }/`;
+	if ( ! action.path.startsWith( prefix ) || ! /^[a-z0-9_/-]{1,160}$/.test( action.path.slice( prefix.length ) ) || action.path.includes( '//' ) ) {
+		return null;
+	}
+	return { label: action.label, confirm: typeof action.confirm === 'string' ? action.confirm : '', path: action.path };
+}
+
 function orderFromDetail( order, items ) {
 	const transactions = ( Array.isArray( order.transactions ) ? order.transactions : [] ).map( ( t ) => ( {
 		id: t.id,
+		parentId: t.parent_id ?? null,
 		kind: t.kind || '',
 		status: t.status || '',
 		amountMinor: t.amount_minor || 0,
@@ -128,16 +189,52 @@ function orderFromDetail( order, items ) {
 	return {
 		id: order.id,
 		code: order.code || '',
-		totalMinor: order.total_minor || 0,
+		// D-R67b: coupon editing needs all three immutable pricing figures. Nullish checks keep a
+		// legitimate zero-total (100% coupon) instead of falling through to a pre-coupon amount.
+		subtotalMinor: order.subtotal_minor ?? order.total_minor ?? 0,
+		discountMinor: order.discount_minor ?? 0,
+		totalMinor: order.total_minor ?? 0,
+		couponCode: order.coupon_code || '',
 		currency: order.currency || config.currency,
 		// See the list row above: the order's OWN exponent, not the store's.
 		currencyExponent: Number.isInteger( order.currency_exponent ) ? order.currency_exponent : null,
 		paymentStatus: order.payment_status || 'none',
+		paymentReason: paymentReasonOf( order ),
+		payableNowMinor: order.payable_now_minor ?? order.total_minor ?? 0,
+		netCollectedMinor: order.net_collected_minor ?? 0,
+		balanceDueMinor: order.balance_due_minor ?? 0,
 		gateway: order.gateway || '',
 		transactionRef: order.transaction_ref || '',
+		refundManagement: order.refund_management && typeof order.refund_management.url === 'string' && typeof order.refund_management.label === 'string'
+			? { url: order.refund_management.url, label: order.refund_management.label }
+			: null,
+		// Display-only record of a checkout platform's own order (e.g. WooCommerce #34) and the
+		// payment method the customer chose there. Never settlement input.
+		externalOrder: order.external_order && typeof order.external_order.reference === 'string'
+			? {
+				reference: order.external_order.reference,
+				status: typeof order.external_order.status === 'string' ? order.external_order.status : '',
+				paymentMethod: typeof order.external_order.payment_method === 'string' ? order.external_order.payment_method : '',
+				url: typeof order.external_order.url === 'string' ? order.external_order.url : '',
+				...( order.external_order.freshness ? { freshness: order.external_order.freshness } : {} ),
+				...( order.external_order.sync ? { sync: order.external_order.sync } : {} ),
+				// Something about the external order needs the operator (server-computed words),
+				// optionally with one action: a POST to a route of the order's own gateway module.
+				...( typeof order.external_order.notice === 'string' && order.external_order.notice ? { notice: order.external_order.notice } : {} ),
+				...( externalAction( order.external_order.action, order.gateway ) ? { action: externalAction( order.external_order.action, order.gateway ) } : {} ),
+			}
+			: null,
 		holdExpiresAt: order.hold_expires_at || '',
+		holdDeadlineApplies: order.hold_deadline_applies === true,
+		paymentStateReason: order.payment_status === 'pending' ? order.payment_state_reason || '' : '',
 		transactions,
-		refundableMinor: refundableMinor( transactions ),
+		refundableMinor: Array.isArray( order.refundable_charges ) ? order.refundable_charges.reduce( ( total, charge ) => total + charge.refundable_minor, 0 ) : refundableMinor( transactions ),
+		refundableCharges: order.refundable_charges ?? null,
+		onsiteRefundableMinor: order.onsite_refundable_minor ?? 0,
+		canRecordOnsiteRefund: order.can_record_onsite_refund === true,
+		balancePending: order.balance_pending === true,
+		canRecordOnsiteBalance: order.can_record_onsite_balance,
+		canReverseOnsiteBalance: order.can_reverse_onsite_balance,
 		// A refund the gateway has accepted but not settled RESERVES its amount server-side
 		// (`TransactionRepository::refundedMinor`), and a second refund attempt while one is in
 		// flight is answered `409 aponto_payment_state`. Surfacing it lets the button say why it is

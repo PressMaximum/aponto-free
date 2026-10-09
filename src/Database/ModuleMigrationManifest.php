@@ -28,16 +28,20 @@ final class ModuleMigrationManifest {
 	/**
 	 * Construct an immutable manifest.
 	 *
-	 * @param non-empty-string       $moduleCode    Registry feature code owning the manifest.
-	 * @param positive-int           $version       Manifest version applied monotonically.
-	 * @param list<non-empty-string> $schema        dbDelta-compatible CREATE/ALTER statements.
-	 * @param callable(\wpdb):bool   $postcondition Returns true when the version's schema holds.
+	 * @param non-empty-string          $moduleCode    Registry feature code owning the manifest.
+	 * @param positive-int              $version       Manifest version applied monotonically.
+	 * @param list<non-empty-string>    $schema        dbDelta-compatible CREATE/ALTER statements.
+	 * @param callable(\wpdb):bool      $postcondition Returns true when the version's schema holds.
+	 * @param callable(\wpdb):void|null $upgrade Optional local data migration, before validation.
+	 * @param bool                      $repair Verify and repair this manifest after its version has been applied.
 	 */
 	public function __construct(
 		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase -- Published contract property name (extension-surface §3.4).
 		public readonly string $moduleCode,
 		public readonly int $version,
 		public readonly array $schema,
-		public readonly mixed $postcondition
+		public readonly mixed $postcondition,
+		public readonly mixed $upgrade = null,
+		public readonly bool $repair = false
 	) {}
 }

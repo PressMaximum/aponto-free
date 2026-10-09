@@ -104,6 +104,30 @@ final class Args {
 	}
 
 	/**
+	 * Validate a nullable id that also admits `0` — a FILTER over a column where `0` is a real value,
+	 * not "none" (D-R63: `location_id = 0` is the business/no-location scope of §5 invariant 11, so
+	 * "bookings with no location" must be askable). Null/empty = no filter.
+	 *
+	 * @param mixed $value Raw value.
+	 */
+	public static function checkNullableIdOrZero( mixed $value ): string {
+		if ( null === $value || '' === $value ) {
+			return '';
+		}
+		// STRICT whole number (D-R63 fix round 1): `is_numeric()` + a cast let `1.5`, `1e3` and
+		// `-0.5` through as 1, 1000 and 0 — a filter silently different from the one sent. Only a
+		// non-negative int, or a digits-only string (surrounding whitespace trimmed), is an id here.
+		if ( is_int( $value ) ) {
+			return $value >= 0 ? '' : __( 'A valid identifier is required.', 'aponto' );
+		}
+		if ( is_string( $value ) && 1 === preg_match( '/^\d+$/', trim( $value ) ) ) {
+			return '';
+		}
+
+		return __( 'A valid identifier is required.', 'aponto' );
+	}
+
+	/**
 	 * Validate a display name (1..191 chars after trim).
 	 *
 	 * @param mixed $value Raw value.
@@ -241,6 +265,37 @@ final class Args {
 	}
 
 	/**
+	 * Whether a value is a FIXED-OFFSET zone identifier `±HH:MM` (D-R63 fix round 2, browser QA B1):
+	 * whole quarter-hours only, at most 14 hours either side — exactly the shape
+	 * `wp_timezone_string()` answers for a WordPress "manual UTC offset" site, and a shape PHP's
+	 * `DateTimeZone` constructs natively, so every engine/formatter consumer already works with it.
+	 *
+	 * @param mixed $value Raw value.
+	 */
+	public static function isFixedOffsetZone( mixed $value ): bool {
+		if ( ! is_string( $value ) || 1 !== preg_match( '/^[+-](\d{2}):(00|15|30|45)$/', $value, $m ) ) {
+			return false;
+		}
+		$minutes = (int) $m[1] * 60 + (int) $m[2];
+
+		return $minutes <= 14 * 60;
+	}
+
+	/**
+	 * Validate a DISPLAY timezone — the `tz` a client reads times in (rest-contract §1.1 `iana_tz`,
+	 * fix round 2 addendum): an IANA name or legacy alias, OR a fixed offset `±HH:MM`
+	 * ({@see self::isFixedOffsetZone()}). A manual-offset WordPress site with no DST-free IANA
+	 * surrogate (`-03:30`, `+12:45`, `+13:45`) boots such an offset as its zone (`Support\SiteTimezone`),
+	 * and the admin sends it back as `tz`. A LOCATION's stored zone stays IANA-only
+	 * ({@see self::checkTimezone()}, D-R59 unchanged).
+	 *
+	 * @param mixed $value Raw value.
+	 */
+	public static function checkDisplayTimezone( mixed $value ): string {
+		return self::isFixedOffsetZone( $value ) ? '' : self::checkTimezone( $value );
+	}
+
+	/**
 	 * Map a possibly-legacy IANA zone name to its canonical form (identity for a
 	 * zone that is already canonical or unrecognised). Callers should validate with
 	 * {@see self::checkTimezone()} first.
@@ -335,6 +390,23 @@ final class Args {
 			'type'              => array( 'integer', 'null' ),
 			'sanitize_callback' => static fn ( $value ) => ( null === $value || '' === $value ) ? null : absint( $value ),
 			'validate_callback' => static fn ( $value ) => '' === self::checkNullableId( $value ) ? true : new WP_Error( 'aponto_field', self::checkNullableId( $value ) ),
+		);
+	}
+
+	/**
+	 * A nullable id FILTER argument that admits `0` (default null = no filter) — D-R63, the
+	 * `GET /bookings` / `GET /export/bookings.csv` location facet (rest-contract §2.8 addendum
+	 * 2026-09-23). Not {@see self::argNullableId()}, which refuses `0` by design for record ids.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function argNullableIdOrZero(): array {
+		return array(
+			'required'          => false,
+			'default'           => null,
+			'type'              => array( 'integer', 'null' ),
+			'sanitize_callback' => static fn ( $value ) => ( null === $value || '' === $value ) ? null : absint( $value ),
+			'validate_callback' => static fn ( $value ) => '' === self::checkNullableIdOrZero( $value ) ? true : new WP_Error( 'aponto_field', self::checkNullableIdOrZero( $value ) ),
 		);
 	}
 
@@ -435,7 +507,7 @@ final class Args {
 	}
 
 	/**
-	 * A required IANA timezone argument.
+	 * A required DISPLAY timezone argument — IANA, or a fixed offset `±HH:MM` (fix round 2).
 	 *
 	 * @return array<string, mixed>
 	 */
@@ -444,7 +516,7 @@ final class Args {
 			'required'          => true,
 			'type'              => 'string',
 			'sanitize_callback' => static fn ( $value ): string => sanitize_text_field( (string) $value ),
-			'validate_callback' => static fn ( $value ) => '' === self::checkTimezone( $value ) ? true : new WP_Error( 'aponto_field', self::checkTimezone( $value ) ),
+			'validate_callback' => static fn ( $value ) => '' === self::checkDisplayTimezone( $value ) ? true : new WP_Error( 'aponto_field', self::checkDisplayTimezone( $value ) ),
 		);
 	}
 

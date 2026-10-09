@@ -58,6 +58,12 @@ final class Settings {
 	private const CAP = 'aponto_manage_settings';
 
 	/**
+	 * Maximum length of the operator's own word for a staff member (`booking.staff_label`,
+	 * D-R52). It is a NOUN; anything longer is a sentence typed into the wrong field.
+	 */
+	public const MAX_STAFF_LABEL = 40;
+
+	/**
 	 * Build the core settings schema, resolving WordPress-derived defaults, then let modules
 	 * extend it via `aponto_settings_schema`.
 	 *
@@ -289,6 +295,112 @@ final class Settings {
 			'booking.auto_confirm_free'            => $this->entry( 'bool', true, $bool, 'booking', 'policy', $boolean ),
 
 			/*
+			 * Which clock the booking form shows by default (D-R48, founder 2026-09-18 — the
+			 * "quiet timezone" model C3). `visitor` is the default and is exactly what every site
+			 * did before this key existed: times render in the visitor's own browser zone.
+			 * `business` renders them in the business zone and says so — but ONLY to a visitor who
+			 * is somewhere else, because telling a local customer their own clock is their own
+			 * clock is noise.
+			 *
+			 * PRESENTATION ONLY, never a correctness gate (AGENTS §1 "never gate timezone
+			 * correctness"): the form's timezone picker exists in both modes, so a remote customer
+			 * can always move the whole flow onto their own zone, `tz` stays a required argument of
+			 * `/public/availability` and `POST /public/bookings`, and `customer_timezone` still
+			 * persists whatever zone the booking was actually made in.
+			 */
+			'booking.timezone_mode'                => $this->entry( 'string', 'visitor', array( self::class, 'validateTimezoneMode' ), 'booking', 'policy', array( self::class, 'isTimezoneMode' ) ),
+
+			/*
+			 * Whether the booking form lets the customer pick a staff member (D-R50, founder
+			 * 2026-09-20). `visitor` — the default — offers the choice on a dedicated step
+			 * between Service and Date & time, with "Any available" preselected; `any` never
+			 * asks and leaves every booking to the first-free `(position, id)` assignment.
+			 *
+			 * **D-R52 (founder 2026-09-20, phase 2) adds a THIRD value, `required`**: the customer
+			 * must name a staff member, so the "Any available" row is not rendered at all and
+			 * `POST /public/bookings` REFUSES a null `staff_id` for a service that really has a
+			 * choice in it (≥2 PUBLIC eligible staff). It is the same question as `visitor`, with
+			 * the escape hatch removed — which is why it publishes the same roster.
+			 *
+			 * It only MEANS anything with the `multi_staff` module available, which is why the
+			 * control is hidden without it; the gate itself is server-side, in
+			 * {@see \Aponto\Rest\Controller\PublicServicesController}, and the key round-trips
+			 * untouched either way so a downgrade loses no configuration.
+			 */
+			'booking.staff_choice'                 => $this->entry( 'string', 'visitor', array( self::class, 'validateStaffChoice' ), 'booking', 'staff', array( self::class, 'isStaffChoice' ) ),
+
+			/*
+			 * How the Staff step PRESENTS the roster, and how much of a staff public profile it
+			 * publishes (D-R52, founder 2026-09-20 — phase 2 of the staff public profile;
+			 * mockup `docs/mockups/v4/booking-form/specialist-step.html`). Five keys, all under
+			 * the `staff` panel beside `booking.staff_choice`, all display-only gated on
+			 * `multi_staff` in the admin and all ENFORCED server-side here and in
+			 * {@see \Aponto\Rest\Controller\PublicServicesController}.
+			 *
+			 *  - `staff_layout` — `list` (default) or `cards`. Presentation only, and the ONE key
+			 *    a single block may override (`staffLayout` data-prop), because a landing page
+			 *    legitimately wants a different shape from the site default.
+			 *  - `staff_photos` — default ON. Turning it OFF does not merely hide the circle: the
+			 *    public roster then OMITS `avatar` entirely, so no gravatar.com URL (which carries
+			 *    core's hash of the staff email) is published at all. That is the operator's THIRD
+			 *    way out of the D-R51 Gravatar disclosure, beside uploading a photo and switching
+			 *    Settings → Discussion avatars off — and the only one that lives in this plugin.
+			 *  - `staff_titles` — default ON. Off omits `title` from the PRE-booking roster; the
+			 *    post-booking staff object is unchanged, because a customer who has just booked
+			 *    somebody is owed the answer to "who am I seeing?".
+			 *  - `staff_profiles` — default **OFF** (founder: exposing staff details is a
+			 *    per-business opt-in). Only with it ON does the roster publish `bio`, and then
+			 *    only for staff whose bio is non-empty. With it off the reader does not even
+			 *    SELECT the column, so the text cannot leak by accident (the D-R51 property, kept).
+			 */
+			'booking.staff_layout'                 => $this->entry( 'string', 'list', array( self::class, 'validateStaffLayout' ), 'booking', 'staff', array( self::class, 'isStaffLayout' ) ),
+			'booking.staff_photos'                 => $this->entry( 'bool', true, $bool, 'booking', 'staff', $boolean ),
+			'booking.staff_titles'                 => $this->entry( 'bool', true, $bool, 'booking', 'staff', $boolean ),
+			'booking.staff_profiles'               => $this->entry( 'bool', false, $bool, 'booking', 'staff', $boolean ),
+
+			/*
+			 * What THIS business calls its staff on the booking form (D-R52, founder
+			 * 2026-09-20). Aponto serves salons, clinics, gyms and tutors, so no noun may be
+			 * hard-coded in the product: the form ships a neutral translated default ("staff
+			 * member") and this key replaces it with the operator's own word — "stylist",
+			 * "doctor", "trainer", "instructor".
+			 *
+			 * `''` means "use the translated default", NOT an empty word, which is why the read
+			 * validator can return the empty string and the widget resolves it. Singular and
+			 * lower case, because every form string is a template written without an article
+			 * ("Choose your %s") so it reads correctly for any noun and translates cleanly.
+			 * 40 characters is a hard cap in both directions: it is a NOUN, and anything longer
+			 * is a sentence somebody typed into the wrong field.
+			 *
+			 * Plain text, rendered as a TEXT NODE in the widget's shadow root — the same rule
+			 * `bio` follows (D-R51), for the same reason.
+			 */
+			'booking.staff_label'                  => $this->entry( 'string', '', array( self::class, 'validateStaffLabel' ), 'booking', 'staff', array( self::class, 'isStaffLabel' ) ),
+
+			/*
+			 * Whether the booking form asks the customer WHERE (D-R60/D-R61, rest-contract §2.11
+			 * addendum 2026-09-23). `visitor` — the default — offers a Location step (D-R56 order
+			 * Service → Location → Staff → Date & time) once the site has two or more active
+			 * locations serving a service; `first` never asks and books every request at the
+			 * first active serving location by `name ASC, id ASC` — and ONLY there (fix round 2,
+			 * option A: an explicit other branch gets zero slots and a `422`), the shape of a site
+			 * whose other branches are listed but not bookable online yet. "Name order" is the
+			 * database's `ORDER BY name`, so MySQL's case/accent-insensitive collations and
+			 * SQLite's binary one may pick differently between names that differ only that way.
+			 *
+			 * There is deliberately no "any location" value: assigning a place the customer did
+			 * not pick is a surprise, not a convenience (D-R60 rule 3). One active location is a
+			 * fact rather than a choice and is assigned silently under either value.
+			 *
+			 * Only MEANINGFUL with `multi_location` available, which is why the control is hidden
+			 * without it; the gate itself is server-side, in
+			 * {@see \Aponto\Rest\Support\LocationResolution}, and the key round-trips untouched
+			 * either way so a downgrade loses no configuration. Its own `location` panel, rendered
+			 * by the Booking → Policy section exactly like `staff` (D-R52).
+			 */
+			'booking.location_choice'              => $this->entry( 'string', 'visitor', array( self::class, 'validateLocationChoice' ), 'booking', 'location', array( self::class, 'isLocationChoice' ) ),
+
+			/*
 			 * Payments (D-R38). `mode` is the master switch: `off` hides the payment step and makes
 			 * `POST /public/bookings` reject any method, `optional` offers online payment beside
 			 * pay-on-site, `required` demands it for a priced service. `hold_minutes` bounds how long
@@ -299,6 +411,10 @@ final class Settings {
 			 * for studios that screen their appointments.
 			 */
 			'payments.mode'                        => $this->entry( 'string', 'optional', array( self::class, 'validatePaymentMode' ), 'booking', 'payments', array( self::class, 'isPaymentMode' ) ),
+			// D-R79 (opt-in, default `accept` = D-R38a(1) unchanged): what the public form does with a
+			// PAID service while online payment is required and no payment method is ready —
+			// `accept` takes the booking without payment, `refuse` does not take it.
+			'payments.when_unavailable'            => $this->entry( 'string', 'accept', array( self::class, 'validateWhenUnavailable' ), 'booking', 'payments', array( self::class, 'isWhenUnavailable' ) ),
 			'payments.hold_minutes'                => $this->entry( 'int', 30, array( self::class, 'validateHoldMinutes' ), 'booking', 'payments', array( self::class, 'isHoldMinutes' ) ),
 			'payments.auto_confirm'                => $this->entry( 'bool', true, $bool, 'booking', 'payments', $boolean ),
 			// Booking-form data collection + consent live under the Privacy tab (SPEC-P1 §1.6:
@@ -670,6 +786,184 @@ final class Settings {
 	 */
 	public static function isPaymentMode( mixed $value ): bool {
 		return is_string( $value ) && in_array( $value, array( 'off', 'optional', 'required' ), true );
+	}
+
+	/**
+	 * Validate `payments.when_unavailable` (D-R79). Falls back to `accept` — the behaviour every
+	 * site had before the setting existed — so an unreadable stored value can never start refusing
+	 * a live site's bookings.
+	 *
+	 * @param mixed $value Raw value.
+	 * @return 'accept'|'refuse'
+	 */
+	public static function validateWhenUnavailable( mixed $value ): string {
+		return 'refuse' === $value ? 'refuse' : 'accept';
+	}
+
+	/**
+	 * Whether a value is a valid `payments.when_unavailable` (strict write validator).
+	 *
+	 * @param mixed $value Raw value.
+	 */
+	public static function isWhenUnavailable( mixed $value ): bool {
+		return is_string( $value ) && in_array( $value, array( 'accept', 'refuse' ), true );
+	}
+
+	/**
+	 * The two booking-form timezone modes (D-R48).
+	 *
+	 * @return array<int, string>
+	 */
+	public static function timezoneModes(): array {
+		return array( 'visitor', 'business' );
+	}
+
+	/**
+	 * Validate the booking-form timezone mode enum (D-R48).
+	 *
+	 * Falls back to `visitor` — the pre-D-R48 behaviour — so an unreadable stored value can never
+	 * silently move a live site's booking form onto a different clock.
+	 *
+	 * @param mixed $value Raw value.
+	 * @return 'visitor'|'business'
+	 */
+	public static function validateTimezoneMode( mixed $value ): string {
+		return in_array( $value, self::timezoneModes(), true ) ? $value : 'visitor';
+	}
+
+	/**
+	 * Whether a value is a valid timezone mode (strict write validator).
+	 *
+	 * @param mixed $value Raw value.
+	 */
+	public static function isTimezoneMode( mixed $value ): bool {
+		return is_string( $value ) && in_array( $value, self::timezoneModes(), true );
+	}
+
+	/**
+	 * The booking-form staff-selection modes (D-R50; `required` added by D-R52).
+	 *
+	 * @return array<int, string>
+	 */
+	public static function staffChoiceModes(): array {
+		return array( 'visitor', 'required', 'any' );
+	}
+
+	/**
+	 * The two Staff-step layouts (D-R52).
+	 *
+	 * @return array<int, string>
+	 */
+	public static function staffLayouts(): array {
+		return array( 'list', 'cards' );
+	}
+
+	/**
+	 * Validate the Staff-step layout (D-R52).
+	 *
+	 * Falls back to `list`, the default, because Cards is the richer presentation and an
+	 * unreadable stored value must never silently upgrade a site into a layout its owner never
+	 * chose.
+	 *
+	 * @param mixed $value Raw value.
+	 * @return 'list'|'cards'
+	 */
+	public static function validateStaffLayout( mixed $value ): string {
+		return in_array( $value, self::staffLayouts(), true ) ? $value : 'list';
+	}
+
+	/**
+	 * Whether a value is a valid Staff-step layout (strict write validator).
+	 *
+	 * @param mixed $value Raw value.
+	 */
+	public static function isStaffLayout( mixed $value ): bool {
+		return is_string( $value ) && in_array( $value, self::staffLayouts(), true );
+	}
+
+	/**
+	 * Validate the customer-facing staff term (D-R52).
+	 *
+	 * Read side: sanitize, trim, truncate. `''` is a legal and meaningful value — it means
+	 * "use the product's own translated default" — so there is nothing to fall back TO and the
+	 * conservative answer to an unreadable stored value is the default term, i.e. `''`.
+	 *
+	 * @param mixed $value Raw value.
+	 */
+	public static function validateStaffLabel( mixed $value ): string {
+		if ( ! is_string( $value ) ) {
+			return '';
+		}
+
+		return mb_substr( trim( sanitize_text_field( $value ) ), 0, self::MAX_STAFF_LABEL );
+	}
+
+	/**
+	 * Whether a value is a usable staff term (strict write validator).
+	 *
+	 * REFUSES an over-long term rather than truncating it, the same way the staff `title` and
+	 * `bio` fields do (D-R51): a silently cut word is a word the operator never chose, and the
+	 * admin control counts to the same number.
+	 *
+	 * @param mixed $value Raw value.
+	 */
+	public static function isStaffLabel( mixed $value ): bool {
+		return is_string( $value ) && mb_strlen( trim( $value ) ) <= self::MAX_STAFF_LABEL;
+	}
+
+	/**
+	 * Validate the staff-selection enum (D-R50).
+	 *
+	 * Falls back to `visitor`, the default, so an unreadable stored value shows the choice
+	 * rather than silently taking it away — the conservative direction here is the one that
+	 * keeps the customer in control of who they see.
+	 *
+	 * @param mixed $value Raw value.
+	 * @return 'visitor'|'required'|'any'
+	 */
+	public static function validateStaffChoice( mixed $value ): string {
+		return in_array( $value, self::staffChoiceModes(), true ) ? $value : 'visitor';
+	}
+
+	/**
+	 * Whether a value is a valid staff-selection mode (strict write validator).
+	 *
+	 * @param mixed $value Raw value.
+	 */
+	public static function isStaffChoice( mixed $value ): bool {
+		return is_string( $value ) && in_array( $value, self::staffChoiceModes(), true );
+	}
+
+	/**
+	 * The booking-form location-selection modes (D-R61).
+	 *
+	 * @return array<int, string>
+	 */
+	public static function locationChoiceModes(): array {
+		return array( 'visitor', 'first' );
+	}
+
+	/**
+	 * Validate the location-selection enum (D-R61).
+	 *
+	 * Falls back to `visitor`, the default, for the same reason `booking.staff_choice` does: an
+	 * unreadable stored value must leave the customer the choice rather than silently deciding
+	 * where they go.
+	 *
+	 * @param mixed $value Raw value.
+	 * @return 'visitor'|'first'
+	 */
+	public static function validateLocationChoice( mixed $value ): string {
+		return in_array( $value, self::locationChoiceModes(), true ) ? $value : 'visitor';
+	}
+
+	/**
+	 * Whether a value is a valid location-selection mode (strict write validator).
+	 *
+	 * @param mixed $value Raw value.
+	 */
+	public static function isLocationChoice( mixed $value ): bool {
+		return is_string( $value ) && in_array( $value, self::locationChoiceModes(), true );
 	}
 
 	/**

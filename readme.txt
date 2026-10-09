@@ -4,7 +4,7 @@ Tags: appointment booking, appointments, booking, scheduling, booking calendar
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.3
+Stable tag: 1.1.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -50,7 +50,7 @@ It is built for the solo professional and the small studio: one owner, a handful
 
 * Unlimited services, grouped into categories, each with its own duration and price.
 * Weekly working hours, date overrides and days off for your staff member.
-* Timezone-correct slots everywhere, with an automatic timezone selector when the customer is somewhere else.
+* Timezone-correct slots everywhere. Choose whether the form opens on the customer's clock or on yours; either way it names the timezone, and a searchable picker of every world timezone is one click away.
 * Booking statuses that match real life: pending, confirmed, completed, cancelled and no-show, with guarded transitions so a slot is never double-sold on the way back from a cancellation.
 
 **Notifications**
@@ -146,7 +146,7 @@ Add the Aponto Booking Form block to a page. Customers pick a service, choose a 
 
 = Does it handle timezones correctly? =
 
-Yes. When a customer's browser timezone differs from your business timezone, the form shows a timezone selector and books in the customer's timezone, while you always see the business timezone in the admin. Every surface the customer sees, from the slot picker to the confirmation email, uses the same timezone, so nothing disagrees.
+Yes, and quietly. By default the booking form shows times in the customer's own timezone; under Settings → Booking → Policy, "Booking times shown in" lets you show your business timezone instead, which suits a studio whose customers all come to the same address. Either way the form names the timezone the times are in, right next to "Available times", and tells a customer in another timezone which one it is. "Change" opens a searchable list of every timezone in the world, so a customer anywhere can put the whole form on their own clock, and their booking is confirmed in the timezone they chose. You always see the business timezone in the admin. Every surface the customer sees, from the slot picker to the confirmation email, uses the same timezone, so nothing disagrees.
 
 = Can customers pay online? =
 
@@ -194,7 +194,7 @@ Post on the [WordPress.org support forum](https://wordpress.org/support/plugin/a
 
 == External services ==
 
-Aponto does not contact an external service in the background on a fresh installation. The Google Calendar action below runs only when a customer clicks its link. Stripe communication starts only after you enable that module and enter your own Stripe API keys.
+Aponto does not contact an external service in the background on a fresh installation. The Google Calendar action below runs only when a customer clicks its link. The Gravatar images below are requested by the visitor's browser, and only when the conditions listed there are all met. Stripe communication starts only after you enable that module and enter your own Stripe API keys.
 
 = Google Calendar links =
 
@@ -202,6 +202,25 @@ The confirmation and manage-booking screens can show an "Add to Google Calendar"
 
 Google terms of service: https://policies.google.com/terms
 Google privacy policy: https://policies.google.com/privacy
+
+= Gravatar =
+
+Gravatar is the globally recognised avatar service operated by Automattic, and it is the same service WordPress itself uses for comment avatars. Aponto can fall back to it for a staff member's photo on the booking form and on the staff list in the admin.
+
+Aponto's own PHP never contacts gravatar.com. What it can do is put a `gravatar.com` image address into the page; the visitor's browser then requests that image, which tells Gravatar the visitor's IP address, browser details, and the address of the page being viewed. The address contains a one-way hash of the staff member's email address, not the address itself. Aponto asks for the image with `d=404`, so a staff member who has no Gravatar account produces no image at all and the page falls back to their initials.
+
+It happens only when both of the following are true:
+
+* Avatars are enabled for the site, under Settings → Discussion → "Show Avatars". This is WordPress's own setting and it is on by default. With it off, Aponto never writes a gravatar.com address anywhere.
+* The staff member has no photo uploaded to your own media library. An uploaded photo is always used in preference to Gravatar.
+
+There are exactly two places the image can appear. The staff screens in your WordPress admin, where your own browser requests it. And the staff list on the booking form, on sites where customers choose a staff member — the only place a customer's browser requests it. Confirmation screens, booking emails and the manage-booking page name the staff member and their job title, and never request an image.
+
+Ways to avoid it, any one of which is enough: upload a photo for each staff member, turn off "Show Avatars" for the whole site, or — where Aponto offers the setting for the booking form — turn off "Show staff photos" under Aponto → Settings → Booking → Policy, which removes the address from the booking form's data entirely rather than just hiding the picture.
+
+Gravatar: https://gravatar.com/
+Automattic terms of service: https://wordpress.com/tos/
+Automattic privacy policy: https://automattic.com/privacy/
 
 = Stripe =
 
@@ -225,6 +244,18 @@ hCaptcha's privacy policy: https://www.hcaptcha.com/privacy
 hCaptcha's terms of service: https://www.hcaptcha.com/terms
 
 == Changelog ==
+
+= 1.1.0 =
+
+* Booking form: a new one-page layout for a block pinned to a single service, chosen with the editor's "Booking flow" control, with an optional host line and meeting-method line. A service priced 0 reads "Free".
+* Booking form: visual refresh. White card with a shadow option, cleaner calendar, summary sidebar from the first step, a step rail whose completed steps are clickable, a contact footer from the location or business phone.
+* Booking form: quieter timezone handling. One "City (GMT+N) · Change" line under the slot grid with a searchable picker; new setting "Booking times shown in" (visitor or business time); changing the timezone keeps the chosen day and slot; a site set to a UTC offset no longer forces the selector on every visitor.
+* Booking form: optional staff step with public staff profiles (photo, job title, bio) and display options; a block whose preset service was removed behaves like a block without a preset.
+* Customers and staff have separate first and last names everywhere: booking form, admin, wizard, CSV, webhooks, and the new `{customer_first_name}` / `{staff_first_name}` notification placeholders.
+* CSV import of customers, services, staff and schedules with an upload-and-preview workflow, matching the existing CSV exports.
+* Admin: the Bookings list shows newest-created first and remembers each user's column layout; the booking inspector shows the cancellation reason and every activity with a readable label; staff photos show right after saving; per-screen browser tab titles; the site's 12/24-hour setting is respected; honest Dashboard counts and a warning when payments are not ready.
+* Core: no cancellation email for a payment hold that was never announced; a returning customer's stored name is kept; schedule saves are atomic and a double-submitted booking is created once; settings saves keep edits made while a save is in flight.
+* Premium: Coupons, Webhooks (25 events, signed deliveries, retries and logs), Multiple locations with a Location step, Deposits with remaining-balance payments, and a WooCommerce checkout module.
 
 = 1.0.3 =
 
@@ -263,6 +294,10 @@ hCaptcha's terms of service: https://www.hcaptcha.com/terms
 * Privacy: personal-data export and erase integration, optional retention-based anonymization, and an optional consent checkbox.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+
+Names are now stored as first and last name. A site that created customers or staff on 1.0.x should start from a fresh install of 1.1.0.
 
 = 1.0.3 =
 

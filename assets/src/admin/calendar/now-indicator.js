@@ -10,14 +10,9 @@
  * line positioned against a stale 07:00–21:00 would drift by exactly the amount the window grew.
  */
 import { DEFAULT_SLOT_MIN_MINUTES, DEFAULT_SLOT_MAX_MINUTES } from './window.js';
+// The bubble follows the site's 12/24-hour setting, like the axis beside it (T-071).
+import { minutesLabel } from '../lib/format.js';
 
-function fmt( min ) {
-	let h = Math.floor( min / 60 );
-	const m = min % 60;
-	const ampm = h >= 12 ? 'PM' : 'AM';
-	h = h % 12 || 12;
-	return `${ h }:${ String( m ).padStart( 2, '0' ) } ${ ampm }`;
-}
 
 function ensure( parent, cls, make ) {
 	let el = parent.querySelector( `:scope > .${ cls }` );
@@ -29,14 +24,34 @@ function ensure( parent, cls, make ) {
 }
 
 /**
+ * Whether "now" is on the grid being shown (persona QA 2026-10-05, T-052): the line was drawn
+ * across a FUTURE week, at the current time of day, as if that week were this one.
+ *
+ * @param {?{currentStart: Date, currentEnd: Date}} view EC view (`getView()`), business-local dates.
+ * @param {Date}                                    now  Business-local "now" (`toBusinessLocalDate`).
+ * @return {boolean} True when the view's range contains now — or the range is unknown.
+ */
+export function viewContainsNow( view, now ) {
+	const start = view?.currentStart instanceof Date ? view.currentStart.getTime() : NaN;
+	const end = view?.currentEnd instanceof Date ? view.currentEnd.getTime() : NaN;
+	if ( Number.isNaN( start ) || Number.isNaN( end ) ) {
+		return true;
+	}
+	const at = now.getTime();
+
+	return at >= start && at < end;
+}
+
+/**
  * Draw (or hide) the now line + time bubble.
  *
  * @param {?Element} root       Calendar host element.
  * @param {number}   nowMinutes Business-time minutes from midnight.
  * @param {number}   [minMinutes] Visible window start (minutes) — the grid's derived `slotMinTime`.
  * @param {number}   [maxMinutes] Visible window end (minutes) — the grid's derived `slotMaxTime`.
+ * @param {boolean}  [onGrid]     Whether today is in the range on screen ({@link viewContainsNow}).
  */
-export function renderNowIndicator( root, nowMinutes, minMinutes = DEFAULT_SLOT_MIN_MINUTES, maxMinutes = DEFAULT_SLOT_MAX_MINUTES ) {
+export function renderNowIndicator( root, nowMinutes, minMinutes = DEFAULT_SLOT_MIN_MINUTES, maxMinutes = DEFAULT_SLOT_MAX_MINUTES, onGrid = true ) {
 	if ( ! root ) {
 		return;
 	}
@@ -63,7 +78,7 @@ export function renderNowIndicator( root, nowMinutes, minMinutes = DEFAULT_SLOT_
 		return el;
 	} );
 
-	if ( min < minMinutes || min > maxMinutes ) {
+	if ( ! onGrid || min < minMinutes || min > maxMinutes ) {
 		line.style.display = 'none';
 		bubble.style.display = 'none';
 		return;
@@ -87,5 +102,5 @@ export function renderNowIndicator( root, nowMinutes, minMinutes = DEFAULT_SLOT_
 	bubble.style.display = 'block';
 	bubble.style.top = `${ y }px`;
 	bubble.style.width = `${ sidebarW }px`;
-	bubble.textContent = fmt( min );
+	bubble.textContent = minutesLabel( min );
 }

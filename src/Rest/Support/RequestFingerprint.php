@@ -46,12 +46,15 @@ final class RequestFingerprint {
 	 * @param string                     $start_utc     RFC3339 UTC start.
 	 * @param string                     $timezone      Customer IANA timezone.
 	 * @param string                     $email_norm    Normalized email.
-	 * @param string                     $name          Customer name.
+	 * @param string                     $first_name    Customer first name (name split, D-R69).
+	 * @param string                     $last_name     Customer last name.
 	 * @param string                     $phone         Customer phone.
 	 * @param string                     $note          Customer note.
 	 * @param bool                       $consent       Consent flag.
 	 * @param array<string, string|bool> $custom_fields Validated custom-field answers (D-R30).
 	 * @param string                     $payment_method Chosen payment module code, '' for none (D-R38).
+	 * @param string                     $coupon_code Canonical coupon code, '' for none (D-R67).
+	 * @param string                     $amount_mode Initial payment choice; only full changes legacy hashes.
 	 */
 	public static function forBooking(
 		int $service_id,
@@ -60,12 +63,15 @@ final class RequestFingerprint {
 		string $start_utc,
 		string $timezone,
 		string $email_norm,
-		string $name,
+		string $first_name,
+		string $last_name,
 		string $phone,
 		string $note,
 		bool $consent,
 		array $custom_fields = array(),
-		string $payment_method = ''
+		string $payment_method = '',
+		string $coupon_code = '',
+		string $amount_mode = 'deposit'
 	): string {
 		$canonical = array(
 			'service_id'  => $service_id,
@@ -74,7 +80,11 @@ final class RequestFingerprint {
 			'start_utc'   => $start_utc,
 			'timezone'    => $timezone,
 			'email_norm'  => $email_norm,
-			'name'        => $name,
+			// The two parts replace the pre-split `name` (founder 2026-10-01, D-R69): moving a word
+			// from one part to the other ("Mary Jane|Smith" vs "Mary|Jane Smith") is a different
+			// booking request, so it must hash differently on both sides of the lockstep.
+			'first_name'  => $first_name,
+			'last_name'   => $last_name,
 			'phone'       => $phone,
 			'note'        => $note,
 			'consent'     => $consent,
@@ -91,8 +101,63 @@ final class RequestFingerprint {
 		if ( '' !== $payment_method ) {
 			$canonical['payment_method'] = $payment_method;
 		}
+		if ( '' !== $coupon_code ) {
+			$canonical['coupon_code'] = $coupon_code;
+		}
+		if ( 'full' === $amount_mode ) {
+			$canonical['payment_amount_mode'] = 'full';
+		}
 		ksort( $canonical );
 
 		return hash( 'sha256', (string) wp_json_encode( $canonical ) );
+	}
+
+	/**
+	 * The SHA-256 of the EXACT submitted request body (D-R67u): the identity a same-key replay may be
+	 * resolved on before any validation or guard.
+	 *
+	 * Deliberately NOT the lockstep fingerprint above, which normalizes (trims, casts, drops empty
+	 * optional parts) and therefore lets payloads with different ordinary-path outcomes share a
+	 * hash. This one keeps every submitted key, every value and its JSON type, and presence
+	 * (`null`, `""`, `{}` and absent all differ). Objects are key-sorted recursively; lists keep
+	 * their order. Only routing plumbing is excluded — exactly {@see RequestFields::TRANSPORT_KEYS},
+	 * the list the unknown-field checks ignore.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 */
+	public static function exact( \WP_REST_Request $request ): string {
+		$body = array_merge(
+			(array) $request->get_query_params(),
+			(array) $request->get_body_params(),
+			(array) $request->get_json_params()
+		);
+		foreach ( RequestFields::TRANSPORT_KEYS as $transport ) {
+			unset( $body[ $transport ] );
+		}
+
+		return hash( 'sha256', (string) wp_json_encode( self::canonical( $body ), JSON_PRESERVE_ZERO_FRACTION ) );
+	}
+
+	/**
+	 * Recursively key-sort associative arrays; keep lists (and every scalar type) as they are.
+	 *
+	 * @param mixed $value Submitted value.
+	 * @return mixed Canonical value.
+	 */
+	private static function canonical( mixed $value ): mixed {
+		if ( ! is_array( $value ) ) {
+			return $value;
+		}
+		if ( array() !== $value && array_is_list( $value ) ) {
+			return array_map( array( self::class, 'canonical' ), $value );
+		}
+		ksort( $value, SORT_STRING );
+		foreach ( $value as $key => $item ) {
+			$value[ $key ] = self::canonical( $item );
+		}
+
+		// An empty array is emitted as `{}` (an empty OBJECT is what a JSON client sends and what a
+		// form-encoded body can produce); it still differs from `null`, `""` and absence.
+		return array() === $value ? new \stdClass() : $value;
 	}
 }

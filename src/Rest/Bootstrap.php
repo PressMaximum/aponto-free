@@ -22,10 +22,12 @@ use Aponto\Rest\Controller\DiagnosticsController;
 use Aponto\Rest\Controller\EligibilityController;
 use Aponto\Rest\Controller\ExportController;
 use Aponto\Rest\Controller\IntegrationsController;
+use Aponto\Rest\Controller\ImportsController;
 use Aponto\Rest\Controller\LocationsController;
 use Aponto\Rest\Controller\ModulesController;
 use Aponto\Rest\Controller\NotificationsController;
 use Aponto\Rest\Controller\PaymentsController;
+use Aponto\Rest\Controller\PreferencesController;
 use Aponto\Rest\Controller\PublicAvailabilityController;
 use Aponto\Rest\Controller\PublicBookingsController;
 use Aponto\Rest\Controller\PublicServicesController;
@@ -81,10 +83,13 @@ final class Bootstrap {
 			new SettingsController( $services ),
 			new IntegrationsController( $services ),
 			new ExportController( $services ),
+			new ImportsController( $services ),
+			new \Aponto\Rest\Controller\ExportsController( $services ),
 			new DiagnosticsController( $services ),
 			new NotificationsController( $services ),
 			new ModulesController( $services ),
 			new PaymentsController( $services ),
+			new PreferencesController(),
 			new PublicServicesController( $services ),
 			new PublicAvailabilityController( $services ),
 			new PublicBookingsController( $services ),

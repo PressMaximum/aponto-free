@@ -1,5 +1,5 @@
 /*!***********************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[2].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[2].use[2]!./assets/src/admin/styles/aponto-tokens.css ***!
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!./assets/src/admin/styles/aponto-tokens.css ***!
   \***********************************************************************************************************************************************************************************************/
 /*
  * Aponto public UI tokens
@@ -31,6 +31,9 @@
   --ap-color-inverse-surface: #12151b;
   --ap-color-on-inverse: #ffffff;
   --ap-color-on-inverse-danger: #ffb4a8;
+  /* D-R64: the success toast's check glyph. The inverse surface is NOT re-seeded by any dark
+   * preset below, so this one value serves both schemes (11.6:1 on #12151b; danger is 10.8:1). */
+  --ap-color-on-inverse-success: #7ee2a8;
 
   /* Internal tone weights. Presets may tune contrast without adding colors.
    * muted/soft darkened to WCAG AA (4.5:1 on surface): muted 68→72% (4.55→5.13),
@@ -54,6 +57,11 @@
   --ap-color-surface-muted: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-surface-muted), var(--ap-color-surface));
   --ap-color-avatar-surface: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-avatar-surface), var(--ap-color-surface));
   --ap-color-border: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-border), var(--ap-color-surface));
+  /* The card header hairline, shared by the Settings panels and the carded record editors
+     (founder QA 2026-09-21). Seeded to the exact value `@wordpress/components` draws its own
+     Card borders with (`CONFIG.surfaceBorderColor`), so the two surfaces match to the shade;
+     the dark preset flips it, because a black-alpha rule is invisible on a dark surface. */
+  --ap-color-card-hairline: rgba(0, 0, 0, 0.1);
   --ap-color-border-strong: color-mix(in srgb, var(--ap-color-text) var(--ap-tone-border-strong), var(--ap-color-surface));
   --ap-color-row-hover: color-mix(in srgb, var(--ap-color-surface-subtle) 50%, var(--ap-color-surface));
 
@@ -162,6 +170,7 @@
   --ap-tone-surface-muted: 6%;
   --ap-tone-avatar-surface: 7%;
   --ap-tone-border: 12%;
+  --ap-color-card-hairline: rgba(255, 255, 255, 0.12);
   --ap-tone-border-strong: 20%;
   --ap-tone-accent-subtle: 22%;
   --ap-tone-accent-soft: 30%;
@@ -222,7 +231,7 @@
 }
 
 /*!*******************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[2].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[2].use[2]!./node_modules/@pressmaximum/dashboard-kit/build/themes/app.css ***!
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!./node_modules/@pressmaximum/dashboard-kit/build/themes/app.css ***!
   \*******************************************************************************************************************************************************************************************************************/
 /*
  * @pressmaximum/dashboard-kit — App theme (opt-in)
@@ -663,7 +672,7 @@
 	font-size: var( --pmdk-font-size-meta );
 }
 /*!*****************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[2].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[2].use[2]!./assets/src/admin/styles/aponto-admin-bridge.css ***!
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!./assets/src/admin/styles/aponto-admin-bridge.css ***!
   \*****************************************************************************************************************************************************************************************************/
 /*
  * Aponto → dashboard-kit token bridge (admin surfaces)
@@ -837,7 +846,7 @@
  */
 
 /*!******************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[2].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[2].use[2]!./node_modules/@event-calendar/core/dist/index.css ***!
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!./node_modules/@event-calendar/core/dist/index.css ***!
   \******************************************************************************************************************************************************************************************************/
 /*!
  * EventCalendar v5.10.0
@@ -1627,7 +1636,7 @@
 }
 /*$vite$:1*/
 /*!**************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[2].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[2].use[2]!./assets/src/admin/styles/plugin-dashboard.css ***!
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!./assets/src/admin/styles/plugin-dashboard.css ***!
   \**************************************************************************************************************************************************************************************************/
 [hidden]{display:none!important}
 
@@ -6013,7 +6022,7 @@
 }
 
 /*!******************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[2].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[2].use[2]!./assets/src/admin/styles/calendar.css ***!
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!./assets/src/admin/styles/calendar.css ***!
   \******************************************************************************************************************************************************************************************/
 /*
  * Aponto admin calendar — Event Calendar (vkurko, v5) restyle to the Q10
@@ -6058,6 +6067,11 @@
 	background: var( --ap-color-canvas );
 	overflow: hidden;
 }
+
+/* A RE-load in flight (D-R63 fix round 3): the grid still shows the previous selection, so it is
+   dimmed like a busy hours grid (`.ap-hours-grid.is-busy`) and takes no pointer input. */
+
+.ap-admin .ap-cal-card[aria-busy="true"] .ap-cal-host { opacity: 0.65; pointer-events: none; }
 
 .ap-admin .ap-cal-host { padding: 4px 8px 10px; }
 
@@ -6240,7 +6254,10 @@
 	min-height: 56px; padding: 10px 14px; border-bottom: 1px solid var( --ap-color-border );
 }
 
-.ap-admin .ap-cal-tb-left, .ap-admin .ap-cal-tb-right { display: flex; align-items: center; gap: 8px; }
+/* Each group wraps too (persona QA 2026-10-05, S2-82): at 375px the right-hand group alone is wider
+   than the screen, and the Week tab and Add button ended up off it. */
+
+.ap-admin .ap-cal-tb-left, .ap-admin .ap-cal-tb-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
 
 .ap-admin .ap-cal-icon-btn {
 	width: var( --ap-size-control-sm ); height: var( --ap-size-control-sm );
@@ -6259,6 +6276,12 @@
 }
 
 .ap-admin .ap-cal-btn--ghost:hover { border-color: var( --ap-color-accent-border ); color: var( --ap-color-accent ); }
+
+/* D-R64: Block time is refused in the All-staff scope (its `title` says why) — look it. */
+
+.ap-admin .ap-cal-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.ap-admin .ap-cal-btn--ghost:disabled:hover { border-color: var( --ap-color-border-strong ); color: var( --ap-color-text ); }
 
 .ap-admin .ap-cal-btn--primary { border-color: var( --ap-color-accent ); background: var( --ap-color-accent ); color: var( --ap-color-on-accent ); }
 
@@ -6330,7 +6353,7 @@
 }
 
 /*!*********************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[2].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[2].use[2]!./assets/src/admin/styles/admin-extra.css ***!
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!./assets/src/admin/styles/admin-extra.css ***!
   \*********************************************************************************************************************************************************************************************/
 /*
  * Aponto admin — scoped globals + WordPress-shell integration + new .ap-* bits.
@@ -6562,6 +6585,15 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 .ap-admin .pd-main:has( > .pd-page > .pd-bookings-main ),
 .ap-admin .pd-main:has( > .pd-page > .pd-bookings-workspace ) { padding: 0; }
 
+/* A module page whose head was taken over by the shared inspector workspace
+ * (`InflowPageHost`, lib/InflowWorkspace.jsx) is the same shell one level deeper: the
+ * workspace's main pane carries the gutter, so the view drops its own and the page its
+ * max-width, and the inspector starts at the shell header like the Bookings one. */
+
+.ap-admin .pd-main:has( > .pd-page.is-inflow-host ) { padding: 0; }
+
+.ap-admin .pd-page.is-inflow-host { max-width: none; }
+
 /* ---- Boot state ----------------------------------------------------------- */
 
 .ap-admin-boot {
@@ -6643,7 +6675,17 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 
 .ap-admin .ap-toast.is-visible { opacity: 1; visibility: visible; transform: translate( -50%, 0 ); transition-delay: 0s; }
 
+/* Dark scheme only: the inverse surface (#12151b) is all but the dark canvas, so the toast gets the
+   house hairline (strong border role, no extra shadow) to read as its own layer (QA 2026-09-28).
+   Light is unchanged. */
+
+.ap-token-scope[data-ap-color-scheme="dark"] .ap-admin .ap-toast { border: 1px solid var( --ap-color-border-strong ); }
+
 .ap-admin .ap-toast .ap-toast-danger { color: var( --ap-color-on-inverse-danger, #ffb4a8 ); }
+
+/* D-R64: the `success` tone — a green check before UNCHANGED text (the copy stays on-inverse). */
+
+.ap-admin .ap-toast > .pd-react-icon { flex: 0 0 auto; font-size: var( --ap-size-icon-md ); color: var( --ap-color-on-inverse-success, #7ee2a8 ); }
 
 /* ---- List truncation note (loaded window smaller than server total) -------- */
 
@@ -6835,6 +6877,37 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 	.ap-admin .ap-settings-panel { max-width: none; padding: 20px; }
 }
 
+/* Phone width (persona QA 2026-10-05, T-084). The stacked rail above took ~390px of a 375×812
+   screen and the sticky save bar another ~105px, so a settings page opened on its own menu with
+   one button of content showing. Below the sheet's 620px breakpoint:
+
+   1. the rail becomes a wrapping row of the five sections, with the OPEN section's children as
+      one full-width row under it. `display: contents` on the branch is what lets a parent and
+      its child group sit in two different rows of the same flex container without new markup;
+      the roving-key handler, the disclosure state and the DOM order are untouched.
+   2. the save bar stops being sticky. It is the last thing on the page either way — on a phone
+      it simply waits there instead of covering a fifth of the form. */
+
+@container ( max-width: 620px ) {
+	.ap-admin .ap-settings-nav {
+		max-width: none; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px;
+		padding: 10px 12px;
+	}
+	.ap-admin .ap-settings-branch { display: contents; }
+	.ap-admin .ap-settings-node,
+	.ap-admin .ap-settings-node.is-leaf {
+		width: auto; min-height: 40px; display: inline-flex; gap: 6px; padding: 0 10px;
+	}
+	.ap-admin .ap-settings-node > .ap-settings-node-caret { display: none; }
+	.ap-admin .ap-settings-children {
+		order: 1; flex: 1 0 100%; flex-direction: row; flex-wrap: wrap; gap: 4px;
+		margin: 4px 0 0; padding: 6px 0 0; border-block-start: 1px solid var( --ap-color-border );
+	}
+	.ap-admin .ap-settings-child { width: auto; min-height: 36px; white-space: nowrap; }
+	.ap-admin .ap-settings-panel { padding: 16px 12px 24px; }
+	.ap-admin .ap-settings-app .pmdk-save-bar { position: static; }
+}
+
 /* ---- Narrow-shell nav guard ------------------------------------------------
    The mockup answers a cramped shell at <=820px by hiding `.pd-navigation` behind a
    hamburger (`.pd-mobile-menu`) + a slide-in `.pd-mobile-panel`. NEITHER markup
@@ -6860,6 +6933,21 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 	   Release the overflow only while one of the three header menus is open; the
 	   closed navigation keeps its horizontal-scroll fallback on narrow shells. */
 	.ap-admin .pd-navigation.has-open-menu { overflow: visible; }
+	/* The row scrolls, but nothing SAID so (persona QA 2026-10-05, T-083 / T-084): with the
+	   scrollbar hidden the header simply ended on a clipped "Boo" and Settings was nowhere.
+	   A fade at the inline end is the cue that there is more — and the padding of the same
+	   width lets the last item scroll clear of it, so it never dims a row that fits. Dropped
+	   while a dropdown is open: a mask clips descendants, and the menu must escape the row
+	   exactly as `overflow: visible` above lets it. (LTR: the fade follows the scroll end.) */
+	.ap-admin .pd-navigation:not( .has-open-menu ) {
+		padding-inline-end: 28px;
+		-webkit-mask-image: linear-gradient( to right, #000 calc( 100% - 28px ), transparent );
+		mask-image: linear-gradient( to right, #000 calc( 100% - 28px ), transparent );
+	}
+	[dir="rtl"] .ap-admin .pd-navigation:not( .has-open-menu ) {
+		-webkit-mask-image: linear-gradient( to left, #000 calc( 100% - 28px ), transparent );
+		mask-image: linear-gradient( to left, #000 calc( 100% - 28px ), transparent );
+	}
 	.ap-admin .pd-navigation::-webkit-scrollbar { display: none; }
 	.ap-admin .pd-nav-daily, .ap-admin .pd-nav-tools { flex: 0 0 auto; }
 }
@@ -6867,6 +6955,38 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 @container ( max-width: 820px ) {
 	.ap-admin .pd-navigation { display: flex; }
 	.ap-admin .pd-brand-copy { display: none; }
+}
+
+/* Phone width (persona QA 2026-10-05 re-test: T-084 remainder, N4). On one row the brand and the
+   two utility buttons left the navigation ~190px of a 390px screen, and tapping Offerings /
+   Resources / Settings made it worse: `.has-open-menu` releases the row's overflow so the
+   dropdown can escape the scroll container, which also reset the row to its start, painted its
+   items over the "?" and "⋮" buttons, and opened the menu ~500px from the left — off the screen.
+   Below the sheet's 620px breakpoint:
+
+   1. The header is TWO rows: brand + utilities, then the navigation on a row of its own, as wide
+      as the screen. It scrolls inside its own box and has nothing beside it to overlap.
+   2. The dropdowns are anchored to the HEADER, not to their trigger: the wrap stops being the
+      positioning context, so the menu's containing block is `.pd-shell-header` (already
+      `position: relative`) and it opens as a sheet under the header, inset by the gutter —
+      always on screen, wherever the trigger has been scrolled to. Because that containing block
+      is OUTSIDE the scrolling row, the row's own overflow no longer clips the menu, so the row
+      keeps scrolling (and keeps its scroll position) while a menu is open. The end fade is still
+      dropped while one is open: a mask clips every descendant, whatever its containing block. */
+
+@container ( max-width: 620px ) {
+	.ap-admin .pd-shell-header { height: auto; flex-wrap: wrap; row-gap: 0; }
+	.ap-admin .pd-shell-start,
+	.ap-admin .pd-shell-actions { min-height: 48px; }
+	.ap-admin .pd-shell-actions { margin-inline-start: auto; }
+	.ap-admin .pd-navigation { order: 3; flex: 0 0 100%; min-height: 44px; }
+	.ap-admin .pd-navigation.has-open-menu { overflow-x: auto; }
+	.ap-admin .pd-nav-menu-wrap { position: static; }
+	.ap-admin .pd-nav-menu-wrap .pd-nav-dropdown,
+	.ap-admin .pd-nav-menu-wrap.is-settings .pd-nav-dropdown {
+		top: 100%; right: var( --pd-content-gutter ); left: var( --pd-content-gutter );
+		width: auto; max-height: calc( 100dvh - 160px ); overflow-y: auto;
+	}
 }
 
 /* ---- Section action buttons used in the editor (mockup markup) ------------ *
@@ -6951,6 +7071,25 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 
 @container bookings-page (max-width: 520px) {
 	.ap-admin .ap-inspector-notify-row { padding-inline: 16px; }
+}
+
+/* Fixed header and bottom band (founder QA 2026-10-01). The body scrolls between them; without a
+ * hairline at either edge the clipped content (e.g. the Activity row half-cut under "Notify
+ * customer") read as an overlap bug. One hairline where the scroll area ends on each side: the
+ * header's bottom, and the top of the bottom band (the notify row when shown, else the footer).
+ * The footer selector out-ranks the v2 `border-top: 0` reset in plugin-dashboard.css. */
+
+.ap-admin .pd-booking-inspector > .pd-booking-inspector-head {
+	border-bottom: 1px solid var( --ap-color-border );
+}
+
+.ap-admin .pd-booking-inspector > .ap-inspector-notify-row {
+	border-top: 1px solid var( --ap-color-border );
+}
+
+.ap-admin .pd-booking-inspector > .pd-booking-inspector-body + .pd-drawer-foot,
+.ap-token-scope[data-ap-visual] .ap-admin .pd-booking-inspector > .pd-booking-inspector-body + .pd-drawer-foot {
+	border-top: 1px solid var( --ap-color-border );
 }
 
 /* ---- Fixed-height controls never wrap their label ------------------------- *
@@ -7041,9 +7180,58 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 .ap-admin .pmdk-data-list .pmdk-toolbar-actions > .pmdk-column-manager,
 .ap-admin .pmdk-data-list .pmdk-toolbar-actions > .pmdk-export-trigger { flex: 0 0 var( --ap-size-control-sm ); }
 
+/* ---- Kebab triggers on kit surfaces: the 34px / 20px ellipsis contract ----- *
+ * Founder report 2026-09-22 (Customers list screenshot): the row-actions "three
+ * dots" is visibly smaller on the kit-backed lists than on Bookings, which is
+ * the correct one. DESIGN-SYSTEM §Icons ("icon-only controls are always a
+ * 34x34px square … the vertical-ellipsis overflow glyph is 20px") and SPEC §6.4
+ * fix ONE size for a contextual-menu affordance, and Bookings gets it from
+ * `.ap-admin .pd-bookings-list .pd-row-action-icon svg{width:20px;height:20px}`
+ * (plugin-dashboard.css) — a DESCENDANT selector, which is why it still reaches
+ * the glyph.
+ *
+ * The kit ships the same 20px, but only through `.pmdk-row-action-icon >
+ * .pmdk-react-icon > svg` / `.pmdk-table-options-trigger > .pmdk-react-icon >
+ * svg`. Every Aponto consumer (RowMenu, and the `renderIcon` prop handed to
+ * `PMDKDataTable` by Customers · Staff · Services · Locations) renders glyphs
+ * with `lib/icon.jsx`, which emits the product's `.pd-react-icon` wrapper — so
+ * the kit's child selectors never match and the icon falls through to
+ * `.ap-admin .pd-react-icon > svg{width:1em}`, i.e. 1em of the trigger's
+ * `--ap-font-size-caption` = 13px. Exactly the wrapper-class mismatch already
+ * patched above for `.pmdk-search > .pd-react-icon` and below for
+ * `.pmdk-module-icon > .pd-react-icon`.
+ *
+ * Only the GLYPH changes: the kit already gives both triggers the 34px
+ * transparent-at-rest box with `padding:0`, so row height and the Action column
+ * budget are untouched (Locations keeps Action = 60px inside its 824px table).
+ * `margin-inline` mirrors the Bookings rule too — the kit's labelled
+ * `.pmdk-row-action` base carries `margin-inline-start:auto`, and in a flex row
+ * an auto margin eats the free space before `justify-content:center` can, so the
+ * icon-only trigger was pinned to the inline end of its cell instead of centred
+ * under the Action header. Logical properties throughout, so rtlcss has nothing
+ * to rewrite and RTL mirrors for free. */
+
+.ap-admin .pmdk-row-action-icon { margin-inline: auto; }
+
+.ap-admin .pmdk-row-action-icon > .pd-react-icon,
+.ap-admin .pmdk-table-options-trigger > .pd-react-icon {
+	display: grid; place-items: center; line-height: 0;
+}
+
+.ap-admin .pmdk-row-action-icon > .pd-react-icon > svg,
+.ap-admin .pmdk-row-action-icon > svg,
+.ap-admin .pmdk-table-options-trigger > .pd-react-icon > svg {
+	width: var( --ap-size-icon-lg ); height: var( --ap-size-icon-lg ); display: block;
+}
+
 /* ---- List cells: identity (avatar + name), truncation --------------------- */
 
-.ap-admin .ap-cell-identity { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.ap-admin .ap-cell-identity { display: inline-flex; align-items: center; gap: 10px; min-width: 0; max-width: 100%; }
+
+/* Capped at the cell and shrinkable, so the kit's `pmdk-cell-value` ellipsis engages instead of a
+ * long name running over the next columns (first-run QA D25). */
+
+.ap-admin .ap-cell-identity > .pmdk-cell-value { min-width: 0; }
 
 .ap-admin .ap-cell-identity .pmdk-avatar { width: 28px; height: 28px; font-size: var( --ap-font-size-caption ); }
 
@@ -7158,9 +7346,19 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
  * replacing the old bordered `.ap-editor-section` cards. The nav renders
  * <button>s (in-page scroll, no hash-router side effects) rather than the mockup
  * `<a>`, so mirror the `.pd-editor-nav a` styling onto them. The shell header is
- * non-sticky (position:relative), so pin the nav near the top instead of 96px. */
+ * non-sticky (position:relative), so pin the nav near the top instead of 96px.
+ *
+ * The offset is the ADMIN BAR plus a gap, not a bare 24px (founder QA 2026-09-21): the bar is
+ * 32px on the desktop breakpoint and 46px at =<782px, and `top: 24px` put the nav 8px UNDER it.
+ * Core publishes its own height as a custom property, so the two can never drift; the fallback
+ * is core's desktop value, and a screen with no bar simply gets 24px of breathing room. Below
+ * 782px the nav turns `position: static` (plugin-dashboard.css), so the taller bar there costs
+ * nothing. `.is-focused` — the distraction-free mode, where WordPress hides its own chrome —
+ * keeps its own smaller offset further down this file. */
 
-.ap-admin .pd-record-editor-page .pd-editor-nav { top: 24px; }
+.ap-admin .pd-record-editor-page .pd-editor-nav {
+	top: calc( var( --wp-admin--admin-bar--height, 32px ) + 24px );
+}
 
 .ap-admin .pd-record-editor-page .pd-editor-nav button {
 	min-height: 40px; width: 100%; display: flex; align-items: center;
@@ -7172,6 +7370,150 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 .ap-admin .pd-record-editor-page .pd-editor-nav button:hover { color: var( --ap-color-text ); }
 
 .ap-admin .pd-record-editor-page .pd-editor-nav button.is-active { background: var( --ap-color-accent-subtle ); color: var( --pd-color-accent-fg ); }
+
+/* ---- Opt-in modifiers for a full-page record editor (D-R56) ----------------
+ * Two treatments the Staff and Service editors get from PAGE-SCOPED rules in
+ * plugin-dashboard.css (`.pd-staff-editor-page`, `.pd-service-editor-page`), which means a new
+ * full-page editor silently gets neither. Both are MODIFIERS rather than a rule keyed on the
+ * generic `.pd-record-editor-page`, because a generic rule would also change what Staff and
+ * Service compute — and only opt-in classes can add a treatment without editing anyone else's
+ * layout. Deliberately named for the treatment, never for a route or a module: a route-specific
+ * selector in a free-shipped stylesheet is the kind of edition leak §5 invariant 2 exists to stop.
+ *
+ * (a) `.is-boxed` — the nav's card. Metrics come from the box only; the BUTTONS deliberately keep
+ *     the generic sizing above (40px / 0 10px / --ap-radius-control), because that is what Staff's
+ *     nav buttons actually render: plugin-dashboard.css's 42px/12px/6px twin targets
+ *     `.pd-editor-nav a`, which Staff's `<button>`s have not matched since they stopped being
+ *     links. Parity means matching what ships, not what the sheet intended. */
+
+.ap-admin .pd-record-editor-page .pd-editor-nav.is-boxed {
+	padding: 7px; border: 1px solid var( --ap-color-border );
+	border-radius: calc( var( --ap-radius-control ) * 2 ); background: var( --ap-color-surface );
+}
+
+/* (b) `.is-fluid` — the single-column layout between 720px and 900px.
+ *
+ * THE CASCADE (verified by reading plugin-dashboard.css, not by guessing): inside
+ * `@container (max-width:900px)` the sheet turns the nav into a horizontal row and sets
+ * `.pd-record-editor-layout{grid-template-columns:1fr}` — specificity (0,2,0). Further DOWN the
+ * same file, UNCONDITIONALLY, `.pd-record-editor-layout{grid-template-columns:176px minmax(0,1fr)}`
+ * is also (0,2,0) and therefore wins on source order at every width. Staff escapes only through
+ * `.pd-staff-editor-page .pd-record-editor-layout` — (0,3,0) — inside its own 900px query, and the
+ * Service editor has no such rule. Below 720px a later `@container (max-width:720px)` rule restores
+ * the single column for everyone, so the broken band is exactly 720–900px: a row-nav squeezed into
+ * a 176px column (QA measured it at 782px).
+ *
+ * This restores the single column at (0,3,0) — matching Staff's own escape hatch, and in a later
+ * sheet — but ONLY for an element that asked for it, so Staff's and Service's computed layout is
+ * byte-identical at every width. The `min-width: 0` pair is copied from Staff's rule verbatim: a
+ * grid item's `auto` minimum is its content, so without it a wide card refuses to shrink and the
+ * page scrolls sideways instead of wrapping. */
+
+@container ( max-width: 900px ) {
+	.ap-admin .pd-record-editor-page .pd-record-editor-layout.is-fluid { min-width: 0; grid-template-columns: minmax( 0, 1fr ); }
+	.ap-admin .pd-record-editor-layout.is-fluid > .pd-editor-nav,
+	.ap-admin .pd-record-editor-layout.is-fluid > .pd-record-editor-form { min-width: 0; max-width: 100%; }
+}
+
+/* Narrow widths: the same 6px box Staff and Service switch to inside their own 720px rule. */
+
+@container ( max-width: 720px ) {
+	.ap-admin .pd-record-editor-page .pd-editor-nav.is-boxed { padding: 6px; border: 1px solid var( --ap-color-border ); border-radius: calc( var( --ap-radius-control ) * 2 ); }
+}
+
+/* ---- Carded editor sections (D-R55) ---------------------------------------
+ * Founder 2026-09-21: the flat, rule-divided editor read as one undifferentiated
+ * column. `.ap-editor-cards` on the form turns its sections into the SAME cards the
+ * Settings page uses — `lib/EditorCard.jsx` renders the `@wordpress/components`
+ * Card with `.ap-settings-card`, so the surface, border, radius, header divider and
+ * body padding are the Settings ones, not a second card style. Only three things
+ * belong here: the gap between cards, undoing the flat `.pd-record-editor-form >
+ * section` rules the cards replace, and the header row that carries a trailing
+ * action. This supersedes mockup SPEC §7.5's "does not re-card its sections" for the
+ * record editors; the Service editor adopts it by adding this class.
+ *
+ * Reversing the flat rules needs no `!important`: same specificity, later sheet. */
+
+.ap-admin .pd-record-editor-form.ap-editor-cards { gap: 16px; }
+
+.ap-admin .ap-editor-cards > section { min-width: 0; padding: 0; border-bottom: 0; }
+
+/* The Settings card header is a block (see `.ap-settings-card .components-card__header`),
+   so the title/description column and the optional action sit in this row inside it. */
+
+.ap-admin .ap-editor-card-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 6px 12px; }
+
+.ap-admin .ap-editor-card-head-copy { min-width: 0; flex: 1 1 15rem; }
+
+/* The action keeps its own width and drops to a second line rather than squeezing the title
+   or pushing the card past the column — narrow admin widths must not scroll sideways.
+   `.pd-neutral-badge` is here for the same reason: the Service editor's Public-content seam
+   carries its state badge in this slot, and a badge that shrank would truncate its own words. */
+
+.ap-admin .ap-editor-card-head > .pd-section-action,
+.ap-admin .ap-editor-card-head > .pd-neutral-badge { flex: 0 0 auto; align-self: center; }
+
+.ap-admin .ap-editor-card .pd-editor-section-body { padding: 0; }
+
+/* One field and its inline error as a SINGLE layout item (D-R56 fix round 2). The error used to be
+   a sibling of the label, so inside the two-column `.pd-form-grid` it took a cell of its own and
+   the Country message rendered under Postal code — pointing at the wrong control. Generic, because
+   every record editor's grid rows have the same problem waiting in them. */
+
+.ap-admin .ap-editor-field { min-width: 0; display: flex; flex-direction: column; }
+
+/* PARITY WITH THE SETTINGS CARD (founder QA 2026-09-21). Two measured differences, both fixed
+ * here rather than left to whichever rule happened to win:
+ *
+ *  1. **The header hairline.** Settings cards carry a 1px rule under the header; the Service
+ *     editor's rendered with none. Nothing in this repository removes it, so it was upstream
+ *     styling losing a race — `@wordpress/components` draws that border from an emotion class
+ *     injected at component mount, and the two editors mount from DIFFERENT lazy chunks. A rule
+ *     of our own is the only version of "identical in both editors" that cannot depend on
+ *     injection order, and it uses our token, so dark mode and RTL follow the rest of the admin.
+ *  2. **The title size.** `.ap-admin .pd-record-editor-form h2` (two classes + an element) beats
+ *     `.ap-admin .ap-settings-card-title` (two classes), so BOTH editors shrank their card
+ *     titles to the 16px body size while Settings rendered 20px. The founder asked for "cards
+ *     like the Settings page", and 20px is the documented sub-heading tier of DESIGN-SYSTEM.md's
+ *     scale (24 page / 20 sub-heading / 17 item), so the Settings size wins in both. The header
+ *     row centres its action on the taller title via `align-items` below. */
+
+.ap-admin .ap-editor-cards .ap-settings-card-title {
+	font-size: var( --ap-font-size-subheading );
+}
+
+/* NARROW WIDTHS: the section nav WRAPS instead of scrolling sideways (founder QA 2026-09-21).
+ * Below 900px the shared `.pd-editor-nav` turns into a `overflow-x: auto; nowrap` strip, and at
+ * 375px the last item was clipped with nothing to say so — a scroll affordance nobody can see is
+ * worse than no scroll at all. Wrapping makes every anchor reachable without a horizontal
+ * gesture, which is the actual job, and it costs two declarations instead of a mask plus a
+ * scroll-shadow. The `margin-inline: -2px` on the Service editor's strip went with it: it was
+ * what put the first nav item 2px to the left of the cards it navigates (12px vs 14px). */
+
+@container ( max-width: 900px ) {
+	.ap-admin .pd-record-editor-page .pd-editor-nav {
+		flex-wrap: wrap;
+		overflow-x: visible;
+		margin-inline: 0;
+	}
+	.ap-admin .pd-record-editor-page .pd-editor-nav button { width: auto; }
+}
+
+/* FIELD CHROME inside a grid row (founder QA 2026-09-21). The Service editor's Details grid puts
+ * the featured-image control beside a bordered Status select, and its Pricing grid puts the
+ * colour swatch beside a bordered "Slot step" input — both bare, so the row read as one control
+ * and one gap. They get the field box their siblings have: same border, radius, surface and
+ * minimum height as `.pd-compact-field`, and nothing else moves. Scoped to the carded editors so
+ * the same controls keep their existing look wherever else they appear. */
+
+.ap-admin .ap-editor-cards .pd-form-grid > .ap-image-field,
+.ap-admin .ap-editor-cards .pd-form-grid > .ap-color-field {
+	min-height: var( --ap-size-field-compact );
+	padding: 8px 12px;
+	border: 1px solid var( --pd-control-border-default, var( --ap-color-border ) );
+	border-radius: 6px;
+	background: var( --ap-color-surface );
+}
 
 .ap-admin .ap-inline-create { display: flex; align-items: flex-start; gap: 8px; }
 
@@ -7187,7 +7529,39 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 
 .ap-admin .ap-image-placeholder { display: grid; place-items: center; border: 1px dashed var( --ap-color-border ); color: var( --ap-color-text-soft ); }
 
-.ap-admin .ap-image-actions { display: flex; align-items: center; gap: 6px; }
+.ap-admin .ap-image-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* ---- Staff public profile (D-R51) ---------------------------------------
+ * The avatar control's preview is the SQUARE-circle twin of the service editor's featured
+ * image: same 52px box and same action row, but round, because the booking form draws it
+ * round and the editor must not promise a shape it will not get. The empty state reuses the
+ * existing tinted single-letter avatar rather than inventing a placeholder icon, so the
+ * "no photo" look in the editor is the "no photo" look on the form.
+ */
+
+.ap-admin .ap-avatar-thumb { width: 52px; height: 52px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
+
+.ap-admin .ap-avatar-thumb.is-empty { display: grid; place-items: center;
+  background: color-mix( in srgb, var( --ap-color-accent ) 12%, var( --ap-color-surface ) );
+  color: var( --ap-color-accent ); font-size: var( --ap-font-size-body ); font-weight: var( --ap-font-weight-semibold ); }
+
+.ap-admin .ap-image-source { color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
+
+/* The letter mark is always in the DOM and the resolved photo is painted OVER it, revealed
+ * only once it has loaded. A Gravatar URL carries `d=404`, so "no Gravatar" arrives as a 404
+ * on an ordinary request — this way that costs neither a broken-image glyph nor a reflow. */
+
+.ap-admin .ap-avatar-mark { position: relative; overflow: hidden; }
+
+.ap-admin .ap-avatar-photo { position: absolute; inset: 0; width: 100%; height: 100%;
+  display: block; object-fit: cover; border-radius: 50%; opacity: 0; }
+
+.ap-admin .ap-avatar-photo.is-loaded { opacity: 1; }
+
+.ap-admin .ap-editor-subhead { margin: 18px 0 2px; font-size: var( --ap-font-size-body );
+  font-weight: var( --ap-font-weight-semibold ); }
+
+.ap-admin .ap-cell-identity .ap-avatar-mark { flex: 0 0 auto; }
 
 .ap-admin .ap-color-field { display: flex; flex-direction: column; gap: 4px; justify-content: center; }
 
@@ -7260,6 +7634,17 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 
 .ap-admin .ap-timeoff-form { margin: 8px 0 12px; padding: 12px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); background: var( --ap-color-surface-subtle ); }
 
+/* Two `datetime-local` pickers cannot share a phone-width row: each needs ~190px for its own
+ * value, so at 375px both were clipped to "dd/mm/yyyy, --" and the time part was unreachable
+ * (persona QA 2026-10-05, T-069). Stack them once the app is narrower than the smallest
+ * two-picker row; the unnamed container is the app scope, like every breakpoint in this sheet. */
+
+@container ( max-width: 520px ) {
+	.ap-admin .ap-timeoff-form .pd-field-grid { grid-template-columns: minmax( 0, 1fr ); }
+}
+
+.ap-admin .ap-timeoff-form .ap-field-error { margin-top: 4px; }
+
 .ap-admin .ap-timeoff-list { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; }
 
 .ap-admin .ap-timeoff-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); }
@@ -7274,44 +7659,140 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 
 /* ---- Service editor: eligible-staff multi-select (D-R28) ------------------ */
 
-.ap-admin .ap-eligibility-list { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 0; padding: 0; list-style: none; max-height: 320px; overflow-y: auto; }
+/* D-R64: ONE bordered list, hairline-separated rows (the D-R55 list-row anatomy), one row per
+   member: checkbox · name (+ job title) · email, and — for a ticked member on a site with
+   locations — the compact branch picker at the inline end of the SAME row. The list is a size
+   container so a narrow editor column wraps the picker onto a second line inside the row, aligned
+   with the name (16px box + 10px gap), instead of stacking another bordered block. */
 
-.ap-admin .ap-eligibility-list li label { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); cursor: pointer; }
+.ap-admin .ap-eligibility-list {
+	display: flex; flex-direction: column; margin: 8px 0 0; padding: 0; list-style: none;
+	max-height: 320px; overflow-y: auto; container: ap-eligibility / inline-size;
+	border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control );
+}
 
-.ap-admin .ap-eligibility-list li label:hover { background: var( --ap-color-surface-subtle ); }
+.ap-admin .ap-eligibility-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 8px 12px; }
 
-.ap-admin .ap-eligibility-list.is-readonly li { padding: 8px 12px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); }
+.ap-admin .ap-eligibility-list li + li { border-block-start: 1px solid var( --ap-color-border ); }
+
+.ap-admin .ap-eligibility-list li:hover { background: var( --ap-color-surface-subtle ); }
+
+.ap-admin .ap-eligibility-list li label { display: flex; flex: 1 1 240px; min-width: 0; align-items: center; gap: 10px; cursor: pointer; }
+
+.ap-admin .ap-eligibility-list .pd-table-checkbox { margin: 0; flex: 0 0 auto; }
+
+.ap-admin .ap-eligibility-who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; min-width: 0; }
+
+.ap-admin .ap-eligibility-where { flex: 0 1 240px; min-width: 200px; }
+
+.ap-admin .ap-eligibility-where .ap-multiselect__trigger.components-button { min-height: var( --ap-size-control-sm ); padding-block: 4px; }
+
+@container ap-eligibility ( max-width: 560px ) {
+	.ap-admin .ap-eligibility-list li label { flex-basis: 100%; }
+	.ap-admin .ap-eligibility-where { min-width: 0; margin-inline-start: 26px; }
+}
+
+.ap-admin .ap-eligibility-list.is-readonly li:hover { background: none; }
 
 .ap-admin .ap-eligibility-name { font-size: var( --ap-font-size-meta ); font-weight: var( --ap-font-weight-medium ); }
 
-.ap-admin .ap-eligibility-meta { margin-left: auto; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
+.ap-admin .ap-eligibility-title,
+.ap-admin .ap-eligibility-meta { color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); }
 
 /* "Specific locations" — this member's rows are location-scoped, so the ticked box does not mean
-   "every location" for them (D-R28 copy fix). Sits before the meta line, which keeps `margin-left:
-   auto` and stays flush right. */
+   "every location" for them (D-R28 copy fix). Follows the name/email block (D-R64). */
 
 .ap-admin .ap-eligibility-scope { padding: 1px 6px; border: 1px solid var( --ap-color-border ); border-radius: 999px; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); white-space: nowrap; }
 
+/* ---- Boolean toggles keep the box beside its label ------------------------ *
+ * `.pd-table-checkbox` is the TABLE selection box and carries `margin: auto`
+ * (plugin-dashboard.css), which is right in a table cell — auto margins centre
+ * it there. Inside `.pd-notify-toggle`, a flex row, the same auto margins absorb
+ * every pixel of FREE SPACE instead. Wherever the toggle is a stretched item in
+ * a full-width column — the staff editor's "Show on booking form" switch, which
+ * sits in `.pd-editor-section-body` (`flex-direction: column`, items stretched)
+ * — the box drifted to the middle of the row and shoved its label to the far
+ * right: `[      checkbox                    Show on booking form]`
+ * (founder QA 2026-09-20). It survived review because the other two call sites
+ * are inside narrow boxes with no free space to absorb.
+ *
+ * Fixed on the TOGGLE, not on the one call site, so every boolean in the admin
+ * reads the same way: zero the inherited auto margins, and let the row
+ * shrink-wrap so the clickable label is the control and its text, not the whole
+ * width of the form. */
+
+.ap-admin .pd-notify-toggle { align-self: flex-start; max-width: 100%; }
+
+.ap-admin .pd-notify-toggle input { margin: 0; }
+
 /* ---- Staff workspace: read-only assigned-services list (D-R28) ------------ */
 
-/* Read-only integration status in the staff editor (D-R35). Deliberately quieter than the services
-   list beside it: it is a STATUS line with one escape hatch, not a collection the editor manages. */
+/* Read-only integration status in the staff editor (D-R35), as the admin's standard list rows
+   since D-R55: provider name, a toned status, and the one escape hatch at the inline end,
+   separated by hairlines. Still a STATUS line, not a collection the editor manages. */
 
-.ap-admin .ap-staff-integrations { display: flex; flex-direction: column; gap: 4px; margin: 10px 0 0; padding: 0; list-style: none; }
+.ap-admin .ap-staff-integrations { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0; list-style: none; }
 
-.ap-admin .ap-staff-integrations li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: var( --ap-font-size-meta ); color: var( --ap-color-text-muted ); }
+.ap-admin .ap-staff-integrations li {
+	display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 10px 0;
+	border-top: 1px solid var( --ap-color-border ); font-size: var( --ap-font-size-meta );
+}
 
-.ap-admin .ap-staff-integrations a { color: var( --ap-color-accent ); font-weight: var( --ap-font-weight-medium ); text-decoration: none; flex: 0 0 auto; }
+.ap-admin .ap-staff-integrations li:first-child { padding-top: 0; border-top: 0; }
+
+.ap-admin .ap-staff-integrations li:last-child { padding-bottom: 0; }
+
+.ap-admin .ap-staff-integration-name { color: var( --ap-color-text ); font-weight: var( --ap-font-weight-medium ); }
+
+/* Text tones, the vocabulary `.ap-txn-status` already uses on this admin — a pill would have to
+   capitalize and truncate "Connected as ana@example.test", which is the one useful word here. */
+
+.ap-admin .ap-staff-integration-state { min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere; color: var( --ap-color-text-muted ); }
+
+.ap-admin .ap-staff-integration-state.is-positive { color: var( --ap-color-on-success ); }
+
+.ap-admin .ap-staff-integration-state.is-warning { color: var( --ap-color-warning ); }
+
+.ap-admin .ap-staff-integrations a { color: var( --ap-color-accent ); font-weight: var( --ap-font-weight-medium ); text-decoration: none; flex: 0 0 auto; margin-inline-start: auto; }
 
 .ap-admin .ap-staff-integrations a:hover, .ap-admin .ap-staff-integrations a:focus-visible { text-decoration: underline; }
 
-.ap-admin .ap-staff-services-list { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; }
+/* The SAME list-row anatomy as `.ap-staff-integrations` above (founder QA 2026-09-21). Each
+   service used to be a 44px bordered box whose only content was a body-coloured, underline-free
+   `<a>` — which is exactly what a DISABLED INPUT looks like in this admin, so nobody could tell
+   it was a link to that service. Hairline rows, the name as text, and the link carrying the
+   accent at the inline end, where every other row on this page puts its action. */
 
-.ap-admin .ap-staff-services-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var( --ap-color-border ); border-radius: var( --ap-radius-control ); }
+.ap-admin .ap-staff-services-list { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0; list-style: none; }
 
-.ap-admin .ap-staff-services-list a { color: var( --ap-color-text ); font-size: var( --ap-font-size-meta ); font-weight: var( --ap-font-weight-medium ); text-decoration: none; }
+.ap-admin .ap-staff-services-list li {
+	display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 10px 0;
+	border-top: 1px solid var( --ap-color-border ); font-size: var( --ap-font-size-meta );
+}
 
-.ap-admin .ap-staff-services-list a:hover { text-decoration: underline; }
+.ap-admin .ap-staff-services-list li:first-child { padding-top: 0; border-top: 0; }
+
+.ap-admin .ap-staff-services-list li:last-child { padding-bottom: 0; }
+
+.ap-admin .ap-staff-service-name { min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere; color: var( --ap-color-text ); font-weight: var( --ap-font-weight-medium ); }
+
+/* The D-R63 "· Downtown, Uptown" branch suffix rides inside the name span; it is a caption, not
+   part of the name, so it does not inherit the name's weight. */
+
+.ap-admin .ap-staff-service-name .ap-image-source { font-weight: var( --ap-font-weight-regular ); }
+
+/* Same toned-text vocabulary as `.ap-staff-integration-state` directly above — one status
+   language on this card, not two. */
+
+.ap-admin .ap-staff-service-state { flex: 0 0 auto; color: var( --ap-color-text-muted ); }
+
+.ap-admin .ap-staff-service-state.is-positive { color: var( --ap-color-on-success ); }
+
+.ap-admin .ap-staff-service-state.is-warning { color: var( --ap-color-warning ); }
+
+.ap-admin .ap-staff-services-list a { flex: 0 0 auto; margin-inline-start: auto; color: var( --ap-color-accent ); font-weight: var( --ap-font-weight-medium ); text-decoration: none; }
+
+.ap-admin .ap-staff-services-list a:hover, .ap-admin .ap-staff-services-list a:focus-visible { text-decoration: underline; }
 
 /* ---- Categories simple table (reuses pmdk table chrome) ------------------- */
 
@@ -7371,7 +7852,30 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 
 .ap-admin .pd-status.ap-pay-refunded { --pd-status-tone: var( --ap-color-text-soft ); }
 
-.ap-admin .ap-order-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ap-admin .ap-order-actions { display: flex; align-items: center; gap: var( --ap-space-2 ); flex-wrap: wrap; margin-top: var( --ap-space-3 ); }
+
+.ap-admin .ap-order-actions:empty { display: none; }
+
+.ap-admin .pd-value-summary .is-discount { color: var( --ap-color-success ); }
+
+.ap-admin .ap-booking-coupon { display: flex; flex-direction: column; gap: var( --ap-space-2 ); margin-top: var( --ap-space-3 ); }
+
+.ap-admin .ap-booking-coupon__controls { display: grid; grid-template-columns: minmax( 0, 1fr ) auto; align-items: stretch; gap: 8px; }
+
+.ap-admin .ap-booking-coupon__controls .pd-compact-field { min-width: 0; }
+
+.ap-admin .ap-booking-coupon__controls .pd-button { min-height: 40px; }
+
+.ap-admin .ap-booking-coupon__message { margin: 0; font-size: var( --ap-font-size-caption ); color: var( --ap-color-text-muted ); }
+
+.ap-admin .ap-booking-coupon__message.is-error { color: var( --ap-color-danger ); }
+
+.ap-admin .ap-booking-coupon__applied { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var( --ap-color-success ); font-size: var( --ap-font-size-caption ); font-weight: var( --ap-font-weight-medium ); }
+
+.ap-admin .ap-booking-coupon__applied button { padding: 0; border: 0; background: transparent; color: var( --ap-color-accent ); font: inherit; cursor: pointer; }
+
+.ap-admin .ap-booking-coupon__applied button:hover,
+.ap-admin .ap-booking-coupon__applied button:focus-visible { text-decoration: underline; }
 
 /* A flat surface with quiet dividers, never a nested card (DESIGN-SYSTEM "Tables"). The rows wrap
    at the 344px inspector minimum instead of scrolling sideways: a reference the operator cannot
@@ -7401,6 +7905,18 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 
 .ap-admin .ap-txn-when { margin-inline-start: auto; white-space: nowrap; color: var( --ap-color-text-soft ); }
 
+/* Order section rhythm (founder QA 2026-10-01). Read-only rows already draw their own bottom
+   hairline, so the ledger directly under one must not add a second line; the action row and the
+   "Managed by …" note sit one step below whatever precedes them, flush with the field labels. */
+
+.ap-admin .pd-editor-readonly + .ap-txn-list { border-top: 0; }
+
+.ap-admin .pd-editor-section > .ap-order-actions:not( :empty ) { margin-top: var( --ap-space-3 ); }
+
+.ap-admin .pd-editor-section > .ap-order-actions ~ .pd-editor-note { margin: var( --ap-space-2 ) 0 0; padding: 0; font-size: var( --ap-font-size-caption ); }
+
+.ap-admin .pd-editor-section > .pd-editor-readonly + .pd-compact-field { margin-top: var( --ap-space-2 ); }
+
 /* ---- Reduced-motion guard for our animations ------------------------------ */
 
 @media (prefers-reduced-motion: reduce) {
@@ -7413,7 +7929,22 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 
 .ap-admin .ap-settings-card { margin: 0; }
 
-.ap-admin .ap-settings-card .components-card__header { display: block; }
+/* ONE SOURCE for the card header hairline (founder QA 2026-09-21, round 2). The Settings cards
+ * took theirs from `@wordpress/components`' own `CONFIG.surfaceBorderColor`
+ * (`rgba( 0, 0, 0, .1 )`) while the editor cards drew `--ap-color-border` (#ebebeb), so the two
+ * surfaces disagreed by a shade — and in the editors it did not always render at all, because
+ * the upstream emotion class is injected at component mount and the two editors mount from
+ * different lazy chunks. Declaring it HERE, on the class both surfaces carry, settles both
+ * problems at once: same colour, always drawn, impossible to drift.
+ *
+ * The token is what makes dark mode correct without reintroducing the drift: a black-alpha
+ * hairline is invisible on a dark surface, so it flips with the scheme — for BOTH surfaces
+ * together, which is the point. */
+
+.ap-admin .ap-settings-card .components-card__header {
+	display: block;
+	border-bottom: 1px solid var( --ap-color-card-hairline );
+}
 
 /* Toggle whose visible label is the row beside it: the control still needs a real
    <label for> for its accessible name, so hide only that element (WP's own
@@ -7425,13 +7956,28 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 	white-space: nowrap; border: 0;
 }
 
-.ap-admin .ap-settings-card-title { margin: 0; font-size: var( --ap-font-size-subheading ); font-weight: var( --ap-font-weight-semibold ); }
+/* `line-height` is pinned rather than inherited so the editor cards cannot render a different
+   one from the Settings cards; 1.45 x 20px is the 29px the Settings panels already measured. */
+
+.ap-admin .ap-settings-card-title { margin: 0; font-size: var( --ap-font-size-subheading ); font-weight: var( --ap-font-weight-semibold ); line-height: 1.45; }
 
 .ap-admin .ap-settings-card-desc { margin: 4px 0 0; color: var( --ap-color-text-soft ); font-size: var( --ap-font-size-caption ); font-weight: var( --ap-font-weight-regular ); }
 
 .ap-admin .ap-field-error { color: var( --ap-color-danger ); font-size: var( --ap-font-size-caption ); }
 
+/* A field message inside a two-column grid spans the row, so it sits under the field it
+   describes rather than beside it. Was an inline `style={{ gridColumn: '1 / -1' }}` repeated at
+   four call sites; one class instead, now that `FieldErrors` renders every one of them. */
+
+.ap-admin .ap-field-error-row { grid-column: 1 / -1; }
+
 .ap-admin .ap-settings-actions-row { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* A row of actions, or a notice, that follows a schema form keeps one step of air from the field's help text. */
+
+.ap-admin .pmdk-schema-form + .ap-settings-actions-row,
+.ap-admin .pmdk-schema-form + .components-notice,
+.ap-admin .ap-settings-card .components-notice + .ap-settings-actions-row { margin-top: 16px; }
 
 .ap-admin .ap-settings-conflict-body { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
 
@@ -7482,6 +8028,11 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 .ap-admin .ap-module-link { display: inline-flex; align-items: center; color: var( --pd-color-accent-fg, var( --ap-color-accent ) ); font-size: var( --ap-font-size-caption ); font-weight: var( --ap-font-weight-medium ); text-decoration: none; }
 
 .ap-admin .ap-module-link:hover { text-decoration: underline; }
+
+/* The turned-off module card (D-R57) is the first placeholder with TWO actions; the mockup's
+   `.pd-placeholder` only ever spaced one, so the pair rendered edge to edge. */
+
+.ap-admin .ap-module-disabled .pd-button + .pd-button { margin-inline-start: 8px; }
 
 /* Module card glyph size (beta fix, founder report 2026-07-25).
  * The kit sizes the 34px `.pmdk-module-icon` BOX but never the glyph inside it —
@@ -7540,6 +8091,13 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 	display: flex; flex-wrap: wrap; align-items: center; gap: var( --ap-space-2 );
 	margin: 0 0 var( --ap-space-4 );
 }
+
+/* The inspector pane is sticky (stacked above the list on narrow screens, pinned beside it on wide
+ * ones), so list rows scroll beneath it. The kit table's sticky action column sits at z-index 3/4
+ * and used to paint THROUGH the pane — a stray "Action" header over the inspector's Save button.
+ * 5 clears those cells and stays under the kit's open row menu (35) and floating menus (120). */
+
+.ap-admin .pd-bookings-workspace > .pd-booking-inspector { z-index: 5; }
 
 .ap-admin .ap-module-subnav-item {
 	height: 28px; display: inline-flex; align-items: center; padding: 0 11px;
@@ -7641,6 +8199,12 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 
 .ap-admin .ap-module-panel__field { display: flex; flex-direction: column; gap: var( --ap-space-2 ); }
 
+/* A `.pd-notify-toggle` + `.pd-editor-note` pair (the Staff "Show on booking form"
+   anatomy) inside a field: the gap spaces them, so wp-admin's `p { margin: 1em 0 }`
+   must not add 15px more (the Staff editor resets it the same way). */
+
+.ap-admin .ap-module-panel__field > .pd-editor-note { margin: 0; }
+
 .ap-admin .ap-module-panel__label {
 	margin: 0; color: var( --ap-color-text ); font-size: var( --ap-font-size-field-label );
 	font-weight: var( --ap-font-weight-semibold ); line-height: var( --ap-line-height-compact );
@@ -7673,8 +8237,30 @@ body.toplevel_page_aponto #wpbody-content { min-height: calc( 100vh - 32px ); }
 	border-bottom: 1px solid var( --ap-color-border );
 }
 
+/* WordPress core `forms.css` paints its own 21px blue tick (`input[type=checkbox]:checked::before`)
+   over EVERY checkbox in wp-admin. The kit's `.pd-table-checkbox` is custom-drawn (background
+   image check on an accent box), so core's glyph showed as a second, thinner tick bleeding past
+   the 16px box on every screen — Bookings rows, the Staff editor, the Webhooks drawer
+   (founder, 2026-09-29). The kit owns the glyph; core's pseudo-element must not render. */
+
+/* Specificity note: core's selector is `input[type=checkbox]:checked::before` (0,2,1), so a plain
+   `.ap-admin .pd-table-checkbox::before` (0,2,0) loses; the element + state below wins (0,3,1). */
+
+.ap-admin input.pd-table-checkbox:checked::before,
+.ap-admin input.pd-table-checkbox:indeterminate::before { content: none; }
+
+/* Footer `…` menu items: the kit styles every item in the destructive colour because the Booking
+   editor's menu only ever held "Cancel booking". A menu with ordinary actions (Send test, Rotate
+   secret) reads them as body text; only `.is-danger` keeps the destructive colour. */
+
+.ap-admin .pd-inspector-more-menu > div > button { color: var( --ap-color-text ); }
+
+.ap-admin .pd-inspector-more-menu > div > button.is-danger { color: var( --ap-color-danger ); }
+
+.ap-admin .pd-inspector-more-menu > div > button:disabled { color: var( --ap-color-text-muted ); cursor: not-allowed; }
+
 /*!****************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[2].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[2].use[2]!./assets/src/admin/styles/dark-scheme-bridge.css ***!
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!./assets/src/admin/styles/dark-scheme-bridge.css ***!
   \****************************************************************************************************************************************************************************************************/
 /*
  * Dark-scheme bridge for the two style systems the `--ap-*` engine cannot reach.

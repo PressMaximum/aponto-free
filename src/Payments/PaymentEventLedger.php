@@ -44,8 +44,8 @@ use Aponto\Support\Clock;
  *   - a FRESH `processing` row ⇒ another worker has it right now, answer retryable so the gateway
  *     comes back rather than being told a lie in either direction.
  *
- * A failed INSERT is still never read as "already claimed" on its own (D-R34a): only a duplicate-key
- * errno followed by a successful read-back is, and anything else raises {@see StorageException} so
+ * An ignored INSERT is never read as "already claimed" on its own (D-R34a): only zero affected
+ * rows followed by an exact-key read-back is. A statement error raises {@see StorageException} so
  * the route answers 500 and the gateway retries.
  */
 final class PaymentEventLedger {
@@ -169,28 +169,26 @@ final class PaymentEventLedger {
 		$now = $this->clock->nowSql();
 
 		$suppressed = $this->wpdb->suppress_errors( true );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic unique claim; a duplicate-key failure is the expected "already seen" answer, resolved below.
-		$inserted = $this->wpdb->insert(
+		$sql        = $this->wpdb->prepare(
+			'INSERT IGNORE INTO %i (gateway, event_id, type, order_id, status, claimed_at, received_at) VALUES (%s, %s, %s, NULL, %s, %s, %s)',
 			$this->table(),
-			array(
-				'gateway'     => $gateway,
-				'event_id'    => $event_id,
-				'type'        => mb_substr( $type, 0, 64 ),
-				'order_id'    => null,
-				'status'      => self::STATUS_PROCESSING,
-				'claimed_at'  => $now,
-				'received_at' => $now,
-			),
-			array( '%s', '%s', '%s', '%d', '%s', '%s', '%s' )
+			$gateway,
+			$event_id,
+			mb_substr( $type, 0, 64 ),
+			self::STATUS_PROCESSING,
+			$now,
+			$now
 		);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Identifier and values bound above; expected collisions do not abort SQLite transactions.
+		$inserted = $this->wpdb->query( $sql );
 		$error    = (string) $this->wpdb->last_error;
 		$this->wpdb->suppress_errors( $suppressed );
 
-		if ( false !== $inserted ) {
+		if ( 1 === $inserted ) {
 			return new EventClaim( self::CLAIM_TAKEN, $now );
 		}
 
-		if ( ! $this->eventExists( $gateway, $event_id ) ) {
+		if ( false === $inserted || ! $this->eventExists( $gateway, $event_id ) ) {
 			throw StorageException::fromSqlError( esc_html( 'payment event claim' ), esc_html( $error ) );
 		}
 

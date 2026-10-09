@@ -18,7 +18,12 @@
 import { useState, useMemo } from 'preact/hooks';
 import { IconSearch, IconChevronRight, IconCheck } from './icons.jsx';
 import { StepHeader } from './StepHeader.jsx';
-import { formatMoney, formatDuration } from '../lib/format.js';
+import { Footer } from './Footer.jsx';
+import {
+	formatMoney,
+	formatPrice,
+	formatDuration,
+} from '../lib/format.js';
 import { COPY, sprintf } from '../lib/copy.js';
 
 /**
@@ -43,7 +48,7 @@ const FLAT_THRESHOLD = 5;
  *     secondary size to `sm` rather than sitting alone as micro-type.
  */
 function ServiceRow( { service, selected, showPath, onClick } ) {
-	const price = formatMoney(
+	const price = formatPrice(
 		service.price_minor,
 		service.currency,
 		service.__locale,
@@ -101,6 +106,7 @@ export function ServiceStep( {
 	currencyExponent = null,
 	selectedId,
 	stepIndex,
+	progress,
 	stepCount,
 	focusOnMount,
 	onSelect,
@@ -161,6 +167,14 @@ export function ServiceStep( {
 		} );
 	}, [ q, withLocale ] );
 
+	/**
+	 * The category row's price note: "from $20.00", "Free" when every priced service in it is
+	 * free (D-R81), or nothing — also when free and paid services are MIXED, because "from
+	 * Free" reads as nonsense and "from $20.00" would hide the free one.
+	 *
+	 * @param {number} catId Category id.
+	 * @return {string} Note or ''.
+	 */
 	function minPrice( catId ) {
 		const prices = withLocale
 			.filter( ( s ) => s.category && s.category.id === catId )
@@ -169,11 +183,13 @@ export function ServiceStep( {
 		if ( ! prices.length ) {
 			return '';
 		}
-		return formatMoney(
-			Math.min( ...prices ),
-			services[ 0 ].currency,
-			locale,
-			currencyExponent
+		const min = Math.min( ...prices );
+		if ( min === 0 ) {
+			return Math.max( ...prices ) === 0 ? COPY.price_free : '';
+		}
+		return sprintf(
+			COPY.from_price,
+			formatMoney( min, services[ 0 ].currency, locale, currencyExponent )
 		);
 	}
 
@@ -283,9 +299,7 @@ export function ServiceStep( {
 												COPY.services_count,
 												count
 										  ) }
-									{ from
-										? ' · ' + sprintf( COPY.from_price, from )
-										: '' }
+									{ from ? ' · ' + from : '' }
 								</small>
 							</span>
 							<span class="chev" aria-hidden="true">
@@ -306,12 +320,20 @@ export function ServiceStep( {
 		);
 	}
 
+	// A remembered choice (the visitor came back) gets an explicit Continue — rows
+	// advance on click, so otherwise re-clicking was the only way forward.
+	const chosen =
+		null !== selectedId && undefined !== selectedId
+			? ( services || [] ).find( ( svc ) => svc.id === selectedId ) || null
+			: null;
+
 	return (
 		<div class="ap-step">
 			<StepHeader
 				title={ COPY.service_title }
 				sub={ sub }
 				stepIndex={ stepIndex }
+				progress={ progress }
 				stepCount={ stepCount }
 				focusOnMount={ focusOnMount }
 			/>
@@ -329,6 +351,12 @@ export function ServiceStep( {
 				</label>
 			) }
 			{ renderBody() }
+			{ chosen && (
+				<Footer
+					onPrimary={ () => onSelect( chosen ) }
+					primaryLabel={ COPY.continue }
+				/>
+			) }
 		</div>
 	);
 }

@@ -38,6 +38,9 @@
 	background: var( --ap-color-canvas );
 	overflow: hidden;
 }
+/* A RE-load in flight (D-R63 fix round 3): the grid still shows the previous selection, so it is
+   dimmed like a busy hours grid (`.ap-hours-grid.is-busy`) and takes no pointer input. */
+.ap-admin .ap-cal-card[aria-busy="true"] .ap-cal-host { opacity: 0.65; pointer-events: none; }
 .ap-admin .ap-cal-host { padding: 4px 8px 10px; }
 .ap-admin .ap-cal-host.is-loading { min-height: 480px; }
 
@@ -187,7 +190,9 @@
 	display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
 	min-height: 56px; padding: 10px 14px; border-bottom: 1px solid var( --ap-color-border );
 }
-.ap-admin .ap-cal-tb-left, .ap-admin .ap-cal-tb-right { display: flex; align-items: center; gap: 8px; }
+/* Each group wraps too (persona QA 2026-10-05, S2-82): at 375px the right-hand group alone is wider
+   than the screen, and the Week tab and Add button ended up off it. */
+.ap-admin .ap-cal-tb-left, .ap-admin .ap-cal-tb-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
 .ap-admin .ap-cal-icon-btn {
 	width: var( --ap-size-control-sm ); height: var( --ap-size-control-sm );
 	display: inline-flex; align-items: center; justify-content: center;
@@ -202,6 +207,9 @@
 	font: inherit; font-size: var( --ap-font-size-meta ); font-weight: var( --ap-font-weight-semibold );
 }
 .ap-admin .ap-cal-btn--ghost:hover { border-color: var( --ap-color-accent-border ); color: var( --ap-color-accent ); }
+/* D-R64: Block time is refused in the All-staff scope (its `title` says why) — look it. */
+.ap-admin .ap-cal-btn:disabled { opacity: .5; cursor: not-allowed; }
+.ap-admin .ap-cal-btn--ghost:disabled:hover { border-color: var( --ap-color-border-strong ); color: var( --ap-color-text ); }
 .ap-admin .ap-cal-btn--primary { border-color: var( --ap-color-accent ); background: var( --ap-color-accent ); color: var( --ap-color-on-accent ); }
 .ap-admin .ap-cal-btn svg, .ap-admin .ap-cal-icon-btn svg { width: 15px; height: 15px; }
 .ap-admin .ap-cal-title { margin-inline-start: 6px; font-size: var( --ap-font-size-item ); font-weight: var( --ap-font-weight-semibold ); white-space: nowrap; }

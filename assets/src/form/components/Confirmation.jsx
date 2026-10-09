@@ -10,14 +10,19 @@
  * label is shown (D1). Pending copy points the visitor to their email.
  *
  * Idempotent replay (`links_available:false`): the calendar buttons drop and the
- * panel says the manage link + calendar file were already emailed (SPEC-P0 §5.6).
+ * panel says the manage link was already emailed (SPEC-P0 §5.6; QA D02 — no default template
+ * attaches a calendar file, so the copy no longer claims one).
  */
+import { DepositLines } from './DepositLines.jsx';
 import { __ } from '@wordpress/i18n';
 import { useRef, useEffect } from 'preact/hooks';
-import { tzLabel, formatInTz, fmtTime } from '../lib/tz.js';
+import { tzLabel, formatInTz, fmtTime, endsNextDay } from '../lib/tz.js';
+import { formatMoney } from '../lib/format.js';
 import { IconCheck, IconCalendar, IconDownload, IconPrinter } from './icons.jsx';
 import { Banner } from './feedback.jsx';
 import { COPY, sprintf } from '../lib/copy.js';
+import { telHref } from '../lib/config.js';
+import { StepRail } from './StepHeader.jsx';
 import { gatewayPaidLineCopy } from '../lib/payments.js';
 
 /** ISO instant -> `YYYYMMDDTHHMMSSZ` for calendar URLs. */
@@ -28,8 +33,36 @@ function icsStamp( iso ) {
 		.replace( /\.\d{3}Z$/, 'Z' );
 }
 
-/** Build a Google Calendar "add event" URL from the original response data. */
-function googleUrl( booking, businessName ) {
+/**
+ * The Google Calendar event's `location` (D-R62, the D-R61 contract fix).
+ *
+ * The ADDRESS the server booked (`booking.location.address` — the branch, or `business.*` at
+ * location `0`), because that is what a calendar app can route to; its NAME when the address is
+ * empty; and the business name only when the response carries neither — which is also what an
+ * older server that does not send `booking.location` produces, so that case is unchanged. This
+ * used to send the business NAME unconditionally, so a two-branch business put every customer's
+ * event at the same non-address.
+ *
+ * @param {Object} booking      The response's `booking`.
+ * @param {string} businessName Business name.
+ * @return {string} Location text, possibly ''.
+ */
+export function calendarLocation( booking, businessName ) {
+	const place = booking && booking.location ? booking.location : {};
+	const address =
+		typeof place.address === 'string' ? place.address.trim() : '';
+	const name = typeof place.name === 'string' ? place.name.trim() : '';
+	return address || name || businessName || '';
+}
+
+/**
+ * Build a Google Calendar "add event" URL from the original response data.
+ *
+ * @param {Object} booking      The response's `booking`.
+ * @param {string} businessName Business name.
+ * @return {string} URL.
+ */
+export function googleUrl( booking, businessName ) {
 	const title = booking.service && booking.service.name ? booking.service.name : __( 'Appointment', 'aponto' );
 	const text = businessName ? title + ' — ' + businessName : title;
 	const dates = icsStamp( booking.start_utc ) + '/' + icsStamp( booking.end_utc );
@@ -38,8 +71,9 @@ function googleUrl( booking, businessName ) {
 		'text=' + encodeURIComponent( text ),
 		'dates=' + dates,
 	];
-	if ( businessName ) {
-		params.push( 'location=' + encodeURIComponent( businessName ) );
+	const where = calendarLocation( booking, businessName );
+	if ( where ) {
+		params.push( 'location=' + encodeURIComponent( where ) );
 	}
 	return 'https://calendar.google.com/calendar/render?' + params.join( '&' );
 }
@@ -91,16 +125,55 @@ export function PaymentLine( { payment } ) {
 
 export function Confirmation( {
 	response,
+	// The staff member the customer NAMED on the Staff step, or '' (D-R50). Read from the
+	// widget's own choice rather than from `booking.staff`, which the response carries for
+	// every booking: on a Free or single-staff site the engine still assigns somebody, and
+	// printing that name here would change a panel this feature is not supposed to touch.
+	staffName = '',
+	// The assigned staff member's job title (D-R51), on the same line after the name. Empty
+	// whenever the site has not filled one in.
+	staffTitle = '',
+	// Where the booking is (D-R62): the server's `booking.location` when a location was in play,
+	// else ''. The widget resolves it, so this panel prints nothing on a site with no roster.
+	locationName = '',
+	locationAddress = '',
 	displayTz,
 	locale,
 	businessName,
+	// Server-supplied ISO exponent for the site currency (D-R39a), for the total line.
+	currencyExponent = null,
 	payment = null,
+	// The macro progress rail (D-R53) — the confirmation IS the last item in the step list, so
+	// without these it vanished on the final screen and its last item never became current
+	// (fix round 1, P2-2). Null in fraction mode, which is the default and renders nothing.
+	progress = null,
+	stepIndex,
+	stepCount,
 	focusOnMount = true,
 	onBookAnother,
+	// The one-page frame (D-R80): its intro panel already shows the service, the time and the
+	// total beside this panel, so the date card and total line are left out. False everywhere
+	// else, which keeps the step-by-step confirmation byte-identical.
+	hideCard = false,
 } ) {
 	const booking = response.booking;
 	const confirmed = booking.status === 'confirmed';
 	const linksAvailable = response.links_available !== false;
+	const order = booking.order || {};
+	// Deposit paid now / balance later (D-R71); nothing for an order without a deposit.
+	const deposit = (
+		<DepositLines
+			order={ order }
+			currency={ order.currency }
+			locale={ locale }
+			currencyExponent={ currencyExponent }
+			settled={ [ 'partial', 'paid', 'refunded' ].includes( order.payment_status ) }
+		/>
+	);
+	const total =
+		order.total_minor > 0 && order.currency
+			? formatMoney( order.total_minor, order.currency, locale, currencyExponent )
+			: '';
 	const headingRef = useRef( null );
 
 	useEffect( () => {
@@ -112,6 +185,11 @@ export function Confirmation( {
 
 	return (
 		<div class="ap-step">
+			<StepRail
+				progress={ progress }
+				stepIndex={ stepIndex }
+				stepCount={ stepCount }
+			/>
 			<div class="ap-done">
 				<div class="ap-check">
 					<IconCheck />
@@ -121,14 +199,14 @@ export function Confirmation( {
 						? COPY.confirm_confirmed_title
 						: COPY.confirm_pending_title }
 				</h2>
-				<p class="lead">
-					{ confirmed
-						? COPY.confirm_confirmed_lead
-						: COPY.confirm_pending_lead }
-				</p>
-				<p class="tz">{ tzLabel( displayTz, booking.start_utc ) }</p>
+				{ /* A confirmed booking needs no lead: "Appointment confirmed / Your
+				   appointment is confirmed." said the same thing twice, and the zone
+				   line repeated the one in the card below (founder review 2026-09-30). */ }
+				{ ! confirmed && (
+					<p class="lead">{ COPY.confirm_pending_lead }</p>
+				) }
 				<span class="ap-order">
-					{ COPY.order_label }{ ' ' }
+					{ total ? COPY.order_label : COPY.booking_label }{ ' ' }
 					<span class="ap-order-code">
 						#{ booking.order && booking.order.code }
 					</span>
@@ -136,28 +214,67 @@ export function Confirmation( {
 				<PaymentLine payment={ payment } />
 			</div>
 
-			<div class="ap-conf-card">
-				<div class="ap-tile">
-					<div class="d">{ formatInTz( booking.start_utc, displayTz, { day: 'numeric' }, locale ) }</div>
-					<div class="m">{ formatInTz( booking.start_utc, displayTz, { month: 'short' }, locale ) }</div>
-				</div>
-				<div class="info">
-					<span class="ap-item-title">
-						{ booking.service && booking.service.name }
-					</span>
-					<small>
-						{ formatInTz(
-							booking.start_utc,
-							displayTz,
-							{ weekday: 'short', month: 'short', day: 'numeric' },
-							locale
-						) }{ ' ' }
-						· { fmtTime( booking.start_utc, displayTz, locale ) } →{ ' ' }
-						{ fmtTime( booking.end_utc, displayTz, locale ) }
-					</small>
-					<small class="tz">{ tzLabel( displayTz, booking.start_utc ) }</small>
-				</div>
-			</div>
+			{ hideCard ? null : (
+				<>
+					<div class="ap-conf-card">
+						<div class="ap-tile">
+							<div class="d">{ formatInTz( booking.start_utc, displayTz, { day: 'numeric' }, locale ) }</div>
+							<div class="m">{ formatInTz( booking.start_utc, displayTz, { month: 'short' }, locale ) }</div>
+						</div>
+						<div class="info">
+							<span class="ap-item-title">
+								{ booking.service && booking.service.name }
+							</span>
+							{ /* Same reading as the summary's icon rows: the "Where:" / "With:"
+							   words are spoken, not shown. */ }
+							{ locationName ? (
+								<small>
+									<span class="ap-visually-hidden">
+										{ sprintf( COPY.summary_line, COPY.summary_where, '' ) }
+									</span>
+									{ locationName }
+									{ locationAddress ? ' · ' + locationAddress : '' }
+								</small>
+							) : null }
+							{ staffName ? (
+								<small>
+									<span class="ap-visually-hidden">
+										{ sprintf( COPY.summary_line, COPY.summary_with, '' ) }
+									</span>
+									{ staffName }
+									{ staffTitle ? ' · ' + staffTitle : '' }
+								</small>
+							) : null }
+							<small>
+								{ formatInTz(
+									booking.start_utc,
+									displayTz,
+									{ weekday: 'short', month: 'short', day: 'numeric' },
+									locale
+								) }{ ' ' }
+								· { fmtTime( booking.start_utc, displayTz, locale ) } →{ ' ' }
+								{ endsNextDay( booking.start_utc, booking.end_utc, displayTz )
+									? sprintf(
+											COPY.time_next_day,
+											fmtTime( booking.end_utc, displayTz, locale )
+									  )
+									: fmtTime( booking.end_utc, displayTz, locale ) }
+							</small>
+							<small class="tz">{ tzLabel( displayTz, booking.start_utc ) }</small>
+						</div>
+					</div>
+					{ deposit }
+					{ total ? (
+						<div class="ap-conf-total">
+							<span>{ COPY.summary_total }</span>
+							<span class="v">{ total }</span>
+						</div>
+					) : null }
+				</>
+			) }
+			{ /* The one-page frame hides the card (its intro panel names the booking), but the
+			   deposit paid / balance due lines exist only here, so they stay (D-R71). */ }
+			{ hideCard ? deposit : null }
 
 			{ linksAvailable ? (
 				<div>
@@ -230,12 +347,16 @@ export function Confirmation( {
  */
 export function MinimalConfirmation( {
 	confirmed,
+	order = null,
 	// The WHITELISTED display facts (F5): service, staff, start/end and the
 	// display timezone. Enough to recognise the appointment, and not one field
 	// that grants access to it.
 	details = null,
 	locale,
 	payment = null,
+	progress = null,
+	stepIndex,
+	stepCount,
 	focusOnMount = true,
 	onBookAnother,
 } ) {
@@ -250,6 +371,11 @@ export function MinimalConfirmation( {
 
 	return (
 		<div class="ap-step">
+			<StepRail
+				progress={ progress }
+				stepIndex={ stepIndex }
+				stepCount={ stepCount }
+			/>
 			<div class="ap-done">
 				<div class="ap-check">
 					<IconCheck />
@@ -282,6 +408,7 @@ export function MinimalConfirmation( {
 						<span class="ap-order-code">#{ payment.orderCode }</span>
 					</span>
 				) : null }
+				<DepositLines order={ order } currency={ order?.currency } locale={ locale } currencyExponent={ order?.currency_exponent } settled={ [ 'partial', 'paid', 'refunded' ].includes( order?.payment_status ) } />
 				<PaymentLine payment={ payment } />
 			</div>
 			<div class="ap-conf-actions">
@@ -442,6 +569,47 @@ export function ResumeUnavailable( {
 					</a>
 				</div>
 			) : null }
+		</div>
+	);
+}
+
+/**
+ * The one-page block's service is gone (QA D01, 2026-10-05): the block pins a service the
+ * catalogue no longer lists (deleted, inactive, draft). The frame shows THIS instead of booking
+ * any other service in its place — no calendar, no intro column — with the business's own
+ * contact line when it has one (mockup `single-screen-layout.html`, "Unavailable").
+ *
+ * @param {Object} props       Props.
+ * @param {string} props.phone Display phone, '' for none.
+ * @return {Object} Panel.
+ */
+export function ServiceUnavailable( { phone = '' } ) {
+	const parts = sprintf( COPY.unavailable_call, '\u0000' ).split( '\u0000' );
+	const href = telHref( phone );
+	return (
+		<div class="ap-step">
+			<div class="ap-done is-unavailable">
+				<div class="ap-check is-neutral">
+					<IconCalendar />
+				</div>
+				<h2 tabIndex={ -1 }>{ COPY.unavailable_title }</h2>
+				<p class="lead">
+					{ COPY.unavailable_lead }
+					{ phone ? (
+						<>
+							{ ' ' + parts[ 0 ] }
+							{ href ? (
+								<a class="ap-link" href={ href }>
+									{ phone }
+								</a>
+							) : (
+								phone
+							) }
+							{ parts[ 1 ] || '' }
+						</>
+					) : null }
+				</p>
+			</div>
 		</div>
 	);
 }

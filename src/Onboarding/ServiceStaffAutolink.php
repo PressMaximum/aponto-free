@@ -71,6 +71,13 @@ final class ServiceStaffAutolink {
 		if ( $service_id <= 0 || ! $this->applies() ) {
 			return;
 		}
+		// An importer may have committed explicit assignments before this creation hook.
+		// Preserve those tuples instead of broadening them to every staff/location.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- Bound table and ID; existing eligibility is authoritative.
+		$assigned = $this->wpdb->get_var( $this->wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE service_id = %d', $this->wpdb->prefix . 'aponto_staff_services', $service_id ) );
+		if ( null === $assigned || '' !== $this->wpdb->last_error || (int) $assigned > 0 ) {
+			return;
+		}
 		foreach ( $this->staffIds() as $staff_id ) {
 			$this->connect( $staff_id, $service_id );
 		}

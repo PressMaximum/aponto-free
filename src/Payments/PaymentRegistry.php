@@ -76,7 +76,7 @@ final class PaymentRegistry {
 	 *
 	 * @var list<string>
 	 */
-	public const VERBS = array( 'ready', 'client_config', 'begin', 'capture', 'void', 'verify_webhook', 'refund' );
+	public const VERBS = array( 'ready', 'exclusive', 'client_config', 'begin', 'capture', 'void', 'verify_webhook', 'refund', 'min_amount' );
 
 	/**
 	 * Whether a code names a payment entry in the registry. Pure metadata — no entitlement.
@@ -143,8 +143,107 @@ final class PaymentRegistry {
 				$out[] = $code;
 			}
 		}
+		$exclusive = self::exclusiveCode( $out );
 
-		return $out;
+		return '' === $exclusive ? $out : array( $exclusive );
+	}
+
+	/**
+	 * Whether this site REQUIRES online payment while no payment method can take one (D-R79).
+	 *
+	 * All of:
+	 *  - the stored mode is not `off` (the owner's kill switch);
+	 *  - at least one payment module is switched on here — a site that never enabled one never
+	 *    asked for online payment, whatever the mode's default says;
+	 *  - NOTHING is offered: {@see self::offeredCodes()} is empty, the very list the booking form
+	 *    and `POST /public/bookings` draw the payment step from, so "no method is available" here
+	 *    and "the form shows no payment step" cannot disagree;
+	 *  - payment is required: the stored mode is `required`, or an enabled gateway declares itself
+	 *    the site's exclusive checkout (D-R71c) — asked of the ENABLED codes, because the gateway
+	 *    that is down is exactly the one that cannot be found among the ready ones.
+	 *
+	 * What happens in this state is the owner's choice (`payments.when_unavailable`); this method
+	 * only names the state. Cheap: the readiness verbs it asks are the ones every public request
+	 * already asks.
+	 *
+	 * @param string $stored Stored `payments.mode` value.
+	 */
+	public static function requiredButUnavailable( string $stored ): bool {
+		if ( 'off' === $stored ) {
+			return false;
+		}
+		$active = self::activeCodes();
+		if ( array() === $active ) {
+			return false;
+		}
+		$offered = array() !== self::offeredCodes();
+
+		return self::decideRequiredButUnavailable( $stored, true, $offered, ! $offered && '' !== self::exclusiveCode( $active ) );
+	}
+
+	/**
+	 * The rule of {@see self::requiredButUnavailable()} over plain facts — pure, so the whole
+	 * matrix is pinned by a unit test that needs no plan, option or driver.
+	 *
+	 * @param string $stored      Stored `payments.mode`.
+	 * @param bool   $any_enabled Whether at least one payment module is switched on.
+	 * @param bool   $any_offered Whether at least one of them is ready (something is offered).
+	 * @param bool   $exclusive   Whether an enabled module is the site's exclusive checkout.
+	 */
+	public static function decideRequiredButUnavailable( string $stored, bool $any_enabled, bool $any_offered, bool $exclusive ): bool {
+		if ( 'off' === $stored || ! $any_enabled || $any_offered ) {
+			return false;
+		}
+
+		return 'required' === $stored || $exclusive;
+	}
+
+	/**
+	 * The effective public payment mode for a stored `payments.mode` (D-R71c).
+	 *
+	 * An exclusive checkout gateway makes online payment required for priced orders: its whole
+	 * point is that checkout moves there, so a pay-later/on-site choice is not offered. `off` stays
+	 * the merchant's explicit kill switch.
+	 *
+	 * @param string $stored Stored `payments.mode` value.
+	 */
+	public static function effectiveMode( string $stored ): string {
+		return 'off' !== $stored && '' !== self::exclusiveCode() ? 'required' : $stored;
+	}
+
+	/**
+	 * The ready gateway that takes over every NEW online checkout, or `''` (D-R71c).
+	 *
+	 * A driver answers the `exclusive` verb when enabling it means the site's checkout moves to that
+	 * gateway, for example a commerce platform that owns the cart and every payment method. The
+	 * first such code in registry order wins, and only among codes already ready. This narrows new
+	 * offers only: {@see self::isOffered()} is unchanged, so a hold begun with another gateway before
+	 * the switch can still be paid, voided and refunded through its own driver.
+	 *
+	 * @param list<string>|null $offered Ready codes already computed, or null to compute them.
+	 */
+	public static function exclusiveCode( ?array $offered = null ): string {
+		if ( null === $offered ) {
+			$offered = array();
+			foreach ( self::activeCodes() as $code ) {
+				if ( PaymentDispatcher::isReady( $code ) ) {
+					$offered[] = $code;
+				}
+			}
+		}
+		foreach ( $offered as $code ) {
+			/**
+			 * Filter whether a ready payment driver takes over every new online checkout.
+			 *
+			 * @param bool   $exclusive Whether this gateway is exclusive (initial value `false`).
+			 * @param string $code      Module code being asked about.
+			 */
+			if ( true === apply_filters( self::verbHook( 'exclusive', $code ), false, $code ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- The name is BUILT by verbHook(), which prefixes `aponto_payment_` and refuses any code the registry does not allow-list; the sniff cannot see through the call.
+				return $code;
+			}
+		}
+
+		return '';
 	}
 
 	/**
@@ -177,13 +276,14 @@ final class PaymentRegistry {
 	 *
 	 * @param string $code Payment module code.
 	 * @return array<string, string>
+	 * @param string $currency Optional stored order currency.
 	 */
-	public static function clientConfig( string $code ): array {
+	public static function clientConfig( string $code, string $currency = '' ): array {
 		if ( ! self::isOffered( $code ) ) {
 			return array();
 		}
 
-		$config = apply_filters( self::verbHook( 'client_config', $code ), array(), $code ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- The name is BUILT by verbHook(), which prefixes `aponto_payment_` and refuses any code the registry does not allow-list; the sniff cannot see through the call.
+		$config = apply_filters( self::verbHook( 'client_config', $code ), array(), $code, $currency ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- The name is BUILT by verbHook(), which prefixes `aponto_payment_` and refuses any code the registry does not allow-list; the sniff cannot see through the call.
 
 		return is_array( $config ) ? self::publicScalars( $config ) : array();
 	}

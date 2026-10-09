@@ -15,6 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	}
 }
 
+use Aponto\Payments\OrderAmounts;
+use Aponto\Payments\TransactionRepository;
+use Aponto\Support\Clock;
+
 /**
  * Read-side queries backing the admin `/export/*.csv` routes. Each method returns the full matching
  * result set (no pagination) in a deterministic order so the CSV export is stable and complete. The
@@ -34,7 +38,7 @@ final class ExportGateway {
 	 * Every booking matching the filters (no pagination), joined to service, staff, customer and
 	 * order, ordered by start instant then id.
 	 *
-	 * @param array{status:string, service_id:?int, staff_id:?int, from:string, to:string, search:string} $filters Filters.
+	 * @param array{status:string, service_id:?int, staff_id:?int, location_id?:?int, from:string, to:string, search:string} $filters Filters.
 	 * @return list<array<string, mixed>>
 	 */
 	public function exportBookings( array $filters ): array {
@@ -54,6 +58,11 @@ final class ExportGateway {
 			$where[] = 'b.staff_id = %d';
 			$args[]  = $filters['staff_id'];
 		}
+		// D-R63: `0` is a real filter value (no location), so only null means "no filter".
+		if ( null !== ( $filters['location_id'] ?? null ) ) {
+			$where[] = 'b.location_id = %d';
+			$args[]  = $filters['location_id'];
+		}
 		if ( '' !== $filters['from'] ) {
 			$where[] = 'b.start_datetime_utc >= %s';
 			$args[]  = $filters['from'];
@@ -66,12 +75,10 @@ final class ExportGateway {
 			// Contract haystack (rest-contract §2.8, amended 2026-07-18): customer name +
 			// customer email + service name + order code — same fields the admin list UI
 			// searches, so the export matches the on-screen "current view".
+			// The customer name is the two stored parts plus their concatenation (D-R69 / D-R54).
 			$like    = '%' . $this->wpdb->esc_like( $filters['search'] ) . '%';
-			$where[] = '(c.name LIKE %s OR c.email LIKE %s OR s.name LIKE %s OR o.code LIKE %s)';
-			$args[]  = $like;
-			$args[]  = $like;
-			$args[]  = $like;
-			$args[]  = $like;
+			$where[] = '(' . PersonNameSearch::clause( $this->wpdb, 'c' ) . ' OR c.email LIKE %s OR s.name LIKE %s OR o.code LIKE %s)';
+			$args    = array_merge( $args, PersonNameSearch::args( $like ), array( $like, $like, $like ) );
 		}
 		$where_sql = array() === $where ? '' : ' WHERE ' . implode( ' AND ', $where );
 
@@ -82,12 +89,20 @@ final class ExportGateway {
 			LEFT JOIN {$p}aponto_order_items oi ON oi.booking_id = b.id AND oi.item_type = 'booking'
 			LEFT JOIN {$p}aponto_orders o ON o.id = oi.order_id";
 
-		$select_cols = 'b.id, b.status, b.start_datetime_utc, b.end_datetime_utc, b.customer_note, s.name AS service_name, st.name AS staff_name, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone, o.code AS order_code, o.total_minor, o.currency, o.payment_status, o.gateway, o.transaction_ref';
+		$select_cols = 'b.id, b.status, b.start_datetime_utc, b.end_datetime_utc, b.customer_note, s.name AS service_name, st.first_name AS staff_first_name, st.last_name AS staff_last_name, c.first_name AS customer_first_name, c.last_name AS customer_last_name, c.email AS customer_email, c.phone AS customer_phone, o.id AS order_id, o.payable_now_minor, o.code AS order_code, o.subtotal_minor, o.discount_minor, o.total_minor, o.coupon_code, o.currency, o.payment_status, o.gateway, o.transaction_ref';
 		$sql         = "SELECT {$select_cols} {$from_sql}{$where_sql} ORDER BY b.start_datetime_utc ASC, b.id ASC";
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; bound via prepare().
 		$rows = $this->wpdb->get_results( array() === $args ? $sql : $this->wpdb->prepare( $sql, $args ), ARRAY_A );
 
-		return is_array( $rows ) ? $rows : array();
+		if ( ! is_array( $rows ) ) {
+			return array();
+		}
+		$transactions = new TransactionRepository( $this->wpdb, new Clock() );
+		foreach ( $rows as &$row ) {
+			$row = array_merge( $row, OrderAmounts::readModel( $row, $transactions->ledgerTotals( (int) ( $row['order_id'] ?? 0 ) ) ) );
+		}
+		unset( $row );
+		return $rows;
 	}
 
 	/**
@@ -104,11 +119,11 @@ final class ExportGateway {
 
 		if ( '' !== $search ) {
 			$like  = '%' . $this->wpdb->esc_like( $search ) . '%';
-			$where = ' WHERE ( name LIKE %s OR email LIKE %s OR phone LIKE %s OR note LIKE %s )';
-			$args  = array( $like, $like, $like, $like );
+			$where = ' WHERE ( ' . PersonNameSearch::clause( $this->wpdb ) . ' OR email LIKE %s OR phone LIKE %s OR note LIKE %s )';
+			$args  = array_merge( PersonNameSearch::args( $like ), array( $like, $like, $like ) );
 		}
 
-		$sql = "SELECT id, name, email, phone, note, created_at FROM {$table}{$where} ORDER BY created_at ASC, id ASC";
+		$sql = "SELECT id, first_name, last_name, email, phone, note, created_at FROM {$table}{$where} ORDER BY created_at ASC, id ASC";
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
 		$rows = $this->wpdb->get_results( array() === $args ? $sql : $this->wpdb->prepare( $sql, $args ), ARRAY_A );
 

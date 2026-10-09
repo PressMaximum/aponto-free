@@ -150,14 +150,40 @@ final class BookingStatusService {
 			return $this->reclaimUnderLock( $booking_id, 'no_show', 'confirmed', 'undo_no_show', $actor, $policy );
 		}
 
+		// Cancellation/no-show and a new online balance share one serialization domain. Release
+		// before dispatching listeners; they may perform network I/O. Initial payment lifecycle
+		// callers may already own this lock, whose recursion is supported on both engines.
+		$payment_lock = null;
+		if ( in_array( $to, array( 'cancelled', 'no_show' ), true ) && (int) $current->order_id > 0 ) {
+			$payment_lock = $this->locks->forOrder( (int) $current->order_id );
+			if ( ! $payment_lock->acquire( 3 ) ) {
+				throw new \Aponto\Payments\PaymentLockTimeout();
+			}
+		}
 		$event = null;
-		$this->tx->begin();
 		try {
-			$event = $this->runTransition( $booking_id, $to, $actor, $reason, $force, $policy );
-			$this->tx->commit();
-		} catch ( \Throwable $e ) {
-			$this->tx->rollback();
-			throw $e;
+			if ( null !== $payment_lock ) {
+				$this->assertLockIntact( $payment_lock );
+				$ledger = new \Aponto\Payments\TransactionRepository( $this->wpdb, $this->clock );
+				if ( null !== $ledger->pendingBalance( (int) $current->order_id ) ) {
+					throw \Aponto\Payments\PaymentException::state();
+				}
+			}
+			$this->tx->begin();
+			try {
+				$event = $this->runTransition( $booking_id, $to, $actor, $reason, $force, $policy );
+				if ( null !== $payment_lock ) {
+					$this->assertLockIntact( $payment_lock );
+				}
+				$this->tx->commit();
+			} catch ( \Throwable $e ) {
+				$this->tx->rollback();
+				throw $e;
+			}
+		} finally {
+			if ( null !== $payment_lock ) {
+				$payment_lock->release();
+			}
 		}
 
 		// Post-commit: dispatched RAW per standard WordPress semantics (verify round V3) — the
@@ -215,20 +241,40 @@ final class BookingStatusService {
 			throw SlotUnavailable::lockTimeout();
 		}
 
+		$held  = array( $lock );
 		$event = null;
 		try {
+			$resources   = $pre->location_id > 0 ? array( $this->locks->forLocation( $pre->location_id ) ) : array();
+			$resources[] = $this->locks->forService( $pre->service_id );
+			foreach ( $resources as $resource_lock ) {
+				if ( ! $resource_lock->acquire( 3 ) ) {
+					throw SlotUnavailable::lockTimeout();
+				}
+				$held[] = $resource_lock;
+			}
+
 			// E1: verify the lock still belongs to this connection before starting.
 			$this->assertLockIntact( $lock );
 			$this->tx->begin();
 			try {
+				$locked = $this->bookings->findForUpdate( $booking_id );
+				if ( null === $locked || $locked->mutation_version !== $pre->mutation_version || $locked->staff_id !== $pre->staff_id
+					|| $locked->service_id !== $pre->service_id || $locked->location_id !== $pre->location_id ) {
+					throw SlotUnavailable::taken();
+				}
 				$event = $this->runReclaim( $booking_id, $from, $to, $reason, $actor, $policy, $lock );
+				foreach ( $held as $held_lock ) {
+					$this->assertLockIntact( $held_lock );
+				}
 				$this->tx->commit();
 			} catch ( \Throwable $e ) {
 				$this->tx->rollback();
 				throw $e;
 			}
 		} finally {
-			$lock->release();
+			foreach ( array_reverse( $held ) as $held_lock ) {
+				$held_lock->release();
+			}
 		}
 
 		// Post-commit: raw dispatch (verify round V3) — see transition().
@@ -296,17 +342,19 @@ final class BookingStatusService {
 			throw new InvalidTransition( esc_html( $from ), esc_html( $to ), true );
 		}
 
+		$this->validateTransition( $booking, $to, $actor );
 		$this->bookings->updateStatus( $booking_id, $to, $this->clock->nowSql() );
 		$this->activities->log(
 			'booking',
 			$booking_id,
 			'status_changed',
 			array(
-				'from'   => $from,
-				'to'     => $to,
-				'reason' => $reason,
-				'force'  => $force,
-				'policy' => $policy,
+				'mutation_version' => $booking->mutation_version + 1,
+				'from'             => $from,
+				'to'               => $to,
+				'reason'           => $reason,
+				'force'            => $force,
+				'policy'           => $policy,
 			),
 			$actor
 		);
@@ -349,7 +397,7 @@ final class BookingStatusService {
 			$booking->staff_id,
 			$booking->location_id,
 			$booking->start_utc,
-			new CustomerInput( '', '' ),
+			new CustomerInput( '', '', '' ),
 			$booking->customer_timezone,
 			false,
 			null,
@@ -358,32 +406,48 @@ final class BookingStatusService {
 			'admin'
 		);
 
-		if ( ! $this->engine->is_slot_free( $draft, $booking_id ) ) {
-			throw SlotUnavailable::taken();
-		}
-
 		// Delete-vs-re-claim race (R2 #4): re-activating the booking re-claims the provider's time,
 		// so the staff member must still EXIST and be ACTIVE at the moment of the write. The
 		// per-staff lock is held (the admin delete/archive serialises on the same lock), so this
 		// READ COMMITTED read is authoritative; `is_slot_free()` alone cannot catch a vanished staff
 		// row whose schedule rows survive.
 		if ( ! $this->staffIsBookable( $booking->staff_id ) ) {
+			throw SlotUnavailable::staffUnavailable();
+		}
+
+		foreach ( array(
+			'services'  => $booking->service_id,
+			'locations' => $booking->location_id,
+		) as $resource => $resource_id ) {
+			if ( 0 === $resource_id ) {
+				continue;
+			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- Fixed table suffix and bound ID; under resource lock.
+			$status = $this->wpdb->get_var( $this->wpdb->prepare( 'SELECT status FROM %i WHERE id = %d', $this->wpdb->prefix . 'aponto_' . $resource, $resource_id ) );
+			if ( 'active' !== $status ) {
+				throw new SlotUnavailable( 'services' === $resource ? 'service_unavailable' : 'location_unavailable' );
+			}
+		}
+
+		if ( ! $this->engine->is_slot_free( $draft, $booking_id ) ) {
 			throw SlotUnavailable::taken();
 		}
 
 		// E1: nothing beyond this point may run without the lock — verify before the write.
 		$this->assertLockIntact( $lock );
 
+		$this->validateTransition( $booking, $to, $actor );
 		$this->bookings->updateStatus( $booking_id, $to, $this->clock->nowSql() );
 		$activity_id = $this->activities->log(
 			'booking',
 			$booking_id,
 			'status_changed',
 			array(
-				'from'   => $from,
-				'to'     => $to,
-				'reason' => $reason,
-				'policy' => $policy,
+				'mutation_version' => $booking->mutation_version + 1,
+				'from'             => $from,
+				'to'               => $to,
+				'reason'           => $reason,
+				'policy'           => $policy,
 			),
 			$actor
 		);
@@ -536,6 +600,21 @@ final class BookingStatusService {
 			do_action( 'aponto_reservation_anomaly', $code, $context );
 		} catch ( \Throwable $listener_failure ) {
 			unset( $listener_failure ); // Swallowed by design — diagnostics never block recovery.
+		}
+	}
+
+	/**
+	 * Provider-neutral local checks; listeners must not perform external I/O.
+	 *
+	 * @param Booking $booking Current locked booking.
+	 * @param string  $to Requested state.
+	 * @param string  $actor Initiator.
+	 * @throws \Aponto\Payments\PaymentException When a provider refuses the transition.
+	 */
+	private function validateTransition( Booking $booking, string $to, string $actor ): void {
+		$result = apply_filters( 'aponto_booking_transition_validate', null, $booking, $to, $actor );
+		if ( $result instanceof \WP_Error ) {
+			throw \Aponto\Payments\PaymentException::state( esc_html( (string) $result->get_error_message() ) );
 		}
 	}
 

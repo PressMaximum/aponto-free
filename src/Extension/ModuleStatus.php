@@ -35,8 +35,8 @@ use Aponto\Plan;
  *
  * ### Shape
  *
- * A callback returns `array{ready: bool, reason: ?string, message?: string, webhook_url?: string,
- * webhook_events?: list<string>}`, or leaves the initial `null` alone to say "I do not answer this",
+ * A callback returns `array{ready: bool, reason: ?string, message?: string, warnings?: list<string>,
+ * webhook_url?: string, webhook_events?: list<string>}`, or leaves the initial `null` alone to say "I do not answer this",
  * in which case core omits the field entirely rather than inventing a `false`. "Not ready" and "did
  * not answer" are different claims, and only the first one belongs on a screen.
  *
@@ -50,6 +50,11 @@ use Aponto\Plan;
  * a panel meeting a token it has no copy for should still be able to tell its owner something, so it
  * renders this rather than falling silent. Stable English through `__()`, bounded, and never
  * provider prose or PII — the rule the payment drivers already follow for `POST /modules/{code}/test`.
+ *
+ * `warnings` is optional and NON-BLOCKING (2026-10-03): sentences about a module that IS ready but
+ * whose owner should still act — a dependency setting that will hurt later, say. It never changes
+ * `ready` or `reason`; a panel renders each entry as an ordinary warning notice. Same rules as
+ * `message`: stable English through `__()`, bounded, sanitized, never provider prose or PII.
  *
  * `webhook_url` and `webhook_events` are optional and exist because a module owner has to type them
  * into a third-party dashboard by hand. The URL is built server-side with `rest_url()` and never
@@ -101,6 +106,11 @@ final class ModuleStatus {
 	private const MAX_MESSAGE = 400;
 
 	/**
+	 * Maximum entries accepted in `warnings`.
+	 */
+	private const MAX_WARNINGS = 5;
+
+	/**
 	 * Maximum entries accepted in `webhook_events`.
 	 */
 	private const MAX_EVENTS = 40;
@@ -119,7 +129,7 @@ final class ModuleStatus {
 	 * produces a `do_action`-shaped string at all.
 	 *
 	 * @param string $code Module code.
-	 * @return array{ready: bool, reason: ?string, message?: string, webhook_url?: string, webhook_events?: list<string>}|null
+	 * @return array{ready: bool, reason: ?string, message?: string, warnings?: list<string>, webhook_url?: string, webhook_events?: list<string>}|null
 	 */
 	public static function forModule( string $code ): ?array {
 		if ( 1 !== preg_match( '/^[a-z0-9_]+$/', $code ) || ! isset( Plan::FEATURES[ $code ] ) ) {
@@ -157,7 +167,7 @@ final class ModuleStatus {
 	 * rendering problem the panel should not have to defend against.
 	 *
 	 * @param array<string, mixed> $status Raw status from the module.
-	 * @return array{ready: bool, reason: ?string, message?: string, webhook_url?: string, webhook_events?: list<string>}
+	 * @return array{ready: bool, reason: ?string, message?: string, warnings?: list<string>, webhook_url?: string, webhook_events?: list<string>}
 	 */
 	private static function normalize( array $status ): array {
 		$ready = ! empty( $status['ready'] );
@@ -181,6 +191,21 @@ final class ModuleStatus {
 		$message = isset( $status['message'] ) && is_string( $status['message'] ) ? sanitize_text_field( $status['message'] ) : '';
 		if ( '' !== $message ) {
 			$out['message'] = mb_substr( $message, 0, self::MAX_MESSAGE );
+		}
+
+		// Non-blocking warnings: the same sanitizing and bound as `message`, and a short list.
+		$warnings = array();
+		foreach ( isset( $status['warnings'] ) && is_array( $status['warnings'] ) ? $status['warnings'] : array() as $warning ) {
+			if ( count( $warnings ) >= self::MAX_WARNINGS ) {
+				break;
+			}
+			$warning = is_string( $warning ) ? sanitize_text_field( $warning ) : '';
+			if ( '' !== $warning ) {
+				$warnings[] = mb_substr( $warning, 0, self::MAX_MESSAGE );
+			}
+		}
+		if ( array() !== $warnings ) {
+			$out['warnings'] = $warnings;
 		}
 
 		$url = isset( $status['webhook_url'] ) && is_string( $status['webhook_url'] ) ? trim( $status['webhook_url'] ) : '';

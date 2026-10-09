@@ -255,6 +255,7 @@ export function createStripeAdapter( gateway ) {
 	let holder = null;
 	let complete = false;
 	let torn = false;
+	let pendingPatch = null;
 
 	/** Tear the gateway UI down, in the order the spike requires. */
 	function teardown() {
@@ -267,6 +268,7 @@ export function createStripeAdapter( gateway ) {
 		}
 		element = null;
 		elements = null;
+		pendingPatch = null;
 		sdk = null;
 		complete = false;
 		if ( holder ) {
@@ -338,6 +340,13 @@ export function createStripeAdapter( gateway ) {
 				appearance: resolveAppearance( scope ),
 				locale: 'auto',
 			} );
+			// Selection can change while Stripe.js is loading. Apply its latest amount
+			// before mounting the payment UI, so ready never exposes the old choice.
+			if ( pendingPatch ) {
+				const patch = pendingPatch;
+				pendingPatch = null;
+				this.update( patch );
+			}
 			element = elements.create( 'payment', { layout: 'tabs' } );
 
 			const ready = new Promise( ( resolve, reject ) => {
@@ -394,7 +403,11 @@ export function createStripeAdapter( gateway ) {
 		 * @param {Object} patch `{amount?, scope?}`.
 		 */
 		update( patch ) {
-			if ( ! elements || ! patch ) {
+			if ( ! patch || torn ) {
+				return;
+			}
+			if ( ! elements ) {
+				pendingPatch = { ...pendingPatch, ...patch };
 				return;
 			}
 			const next = {};

@@ -87,7 +87,12 @@ export const SETTINGS_TREE = [
 			{
 				id: 'policy',
 				label: __( 'Policy', 'aponto' ),
-				panels: [ 'policy' ],
+				// The `staff` panel (D-R52) rides this section rather than a nav leaf of its
+				// own: every key in it is gated on `multi_staff`, so a dedicated leaf would be
+				// an empty screen on Free and on any build without the module. Rendered as its
+				// own card under Booking policy, with its own heading. `location` (D-R61) rides
+				// it for the same reason, gated on `multi_location`.
+				panels: [ 'policy', 'staff', 'location' ],
 			},
 			{
 				// Payments (D-R38, 2026-09-04). A CHILD of Booking rather than a tab of its own,
@@ -104,11 +109,12 @@ export const SETTINGS_TREE = [
 				// The mockup's Booking → Form presentation child states the form contract
 				// rather than exposing per-install settings (plugin-dashboard.js:366).
 				// Production's real content for it is the booking-form appearance pointer
-				// (Q11: accent + radius live in the block Inspector).
+				// (Q11: accent + radius live in the block Inspector) and, since D-R75, WHICH
+				// page hosts the form — the one setting the onboarding wizard used to own alone.
 				id: 'form',
 				label: __( 'Form presentation', 'aponto' ),
 				panels: [],
-				extras: [ 'appearance-hint' ],
+				extras: [ 'booking-page', 'appearance-hint' ],
 			},
 		],
 	},

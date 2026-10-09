@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Aponto\Database\StorageException;
 use Aponto\Support\Clock;
+use Aponto\Support\PersonName;
 
 /**
  * Direct SQL gateway for the `aponto_staff` table backing the admin `/staff` routes. Owns admin
@@ -28,8 +29,13 @@ final class StaffGateway {
 
 	/**
 	 * Selectable columns in DTO order.
+	 *
+	 * `title`, `bio` and `is_public` are the D-R51 public-profile columns (migration 0011). They
+	 * are named explicitly rather than reached with `SELECT *` for the reason the list has always
+	 * been explicit: the DTO's key order is the contract's key order, and a `SELECT *` would let a
+	 * schema change reorder a public response.
 	 */
-	private const COLUMNS = 'id, type, name, email, phone, avatar_id, wp_user_id, status, position, created_at, updated_at';
+	private const COLUMNS = 'id, type, first_name, last_name, email, phone, avatar_id, wp_user_id, status, position, title, bio, is_public, created_at, updated_at';
 
 	/**
 	 * Construct the gateway.
@@ -69,8 +75,9 @@ final class StaffGateway {
 			$params[] = $status;
 		}
 		if ( '' !== $search ) {
-			$where[]  = 'name LIKE %s';
-			$params[] = '%' . $this->wpdb->esc_like( $search ) . '%';
+			// `first_name`, `last_name` or their concatenation (name split, D-R69 / D-R54).
+			$where[] = PersonNameSearch::clause( $this->wpdb );
+			$params  = array_merge( $params, PersonNameSearch::args( '%' . $this->wpdb->esc_like( $search ) . '%' ) );
 		}
 		$where_sql = array() === $where ? '' : ' WHERE ' . implode( ' AND ', $where );
 
@@ -219,8 +226,9 @@ final class StaffGateway {
 	 * that as a real error, never as a created row).
 	 *
 	 * @param array<string, mixed> $data Column => value (validated).
+	 * @param bool                 $emit_event Emit the legacy hook; import defers it until commit.
 	 */
-	public function create( array $data ): int {
+	public function create( array $data, bool $emit_event = true ): int {
 		$now                = $this->clock->nowSql();
 		$data['created_at'] = $now;
 		$data['updated_at'] = $now;
@@ -241,9 +249,12 @@ final class StaffGateway {
 		 * ({@see \Aponto\Onboarding\ServiceStaffAutolink}).
 		 *
 		 * @param int                  $id   New staff id.
-		 * @param array<string, mixed> $data Inserted column data.
+		 * @param array<string, mixed> $data Inserted column data, plus the composed display `name`
+		 *                                   beside `first_name` / `last_name` (name split N2).
 		 */
-		do_action( 'aponto_staff_created', $id, $data );
+		if ( $emit_event ) {
+			do_action( 'aponto_staff_created', $id, PersonName::withDisplayName( $data ) );
+		}
 
 		return $id;
 	}
@@ -273,11 +284,16 @@ final class StaffGateway {
 	 *
 	 * @param int                  $id   Staff id.
 	 * @param array<string, mixed> $data Column => value (partial).
+	 * @throws \Aponto\Database\StorageException On write failure.
 	 */
 	public function update( int $id, array $data ): void {
 		$data['updated_at'] = $this->clock->nowSql();
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin update.
-		$this->wpdb->update( $this->table(), $data, array( 'id' => $id ), $this->formats( $data ), array( '%d' ) );
+		$result = $this->wpdb->update( $this->table(), $data, array( 'id' => $id ), $this->formats( $data ), array( '%d' ) );
+		if ( false === $result ) {
+			$failure = \Aponto\Database\StorageException::fromWpdb( $this->wpdb, esc_html( 'update entity' ) );
+			throw $failure;
+		}
 	}
 
 	/**
@@ -312,7 +328,7 @@ final class StaffGateway {
 	 * @return list<string>
 	 */
 	private function formats( array $data ): array {
-		$int_cols = array( 'id', 'avatar_id', 'wp_user_id', 'position' );
+		$int_cols = array( 'id', 'avatar_id', 'wp_user_id', 'position', 'is_public' );
 		$formats  = array();
 		foreach ( array_keys( $data ) as $column ) {
 			$formats[] = in_array( $column, $int_cols, true ) ? '%d' : '%s';

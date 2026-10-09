@@ -128,8 +128,9 @@ final class Driver {
 		add_filter( 'aponto_module_settings_migrate_' . $code, array( $this->config, 'legacySecretPaths' ), 10, 2 );
 		add_filter( 'aponto_test_' . $code, array( $this, 'test' ), 10, 2 );
 
+		add_filter( 'aponto_payment_min_amount_' . $code, array( self::class, 'minAmount' ), 10, 2 );
 		add_filter( 'aponto_payment_ready_' . $code, array( $this, 'ready' ), 10, 2 );
-		add_filter( 'aponto_payment_client_config_' . $code, array( $this, 'clientConfig' ), 10, 2 );
+		add_filter( 'aponto_payment_client_config_' . $code, array( $this, 'clientConfig' ), 10, 3 );
 		add_filter( 'aponto_payment_begin_' . $code, array( $this, 'begin' ), 10, 3 );
 		add_filter( 'aponto_payment_capture_' . $code, array( $this, 'capture' ), 10, 3 );
 		add_filter( 'aponto_payment_void_' . $code, array( $this, 'void' ), 10, 3 );
@@ -142,6 +143,52 @@ final class Driver {
 		// The one-click webhook registration route (D-R39b). Module-owned and admin-only; it is an
 		// ACTION with a remote side effect, which is why it is not a settings field.
 		( new WebhookEndpoint( $this->config, $this->settings ) )->register();
+	}
+
+	/**
+	 * Published currency minimums; unknown currencies retain the optional verb's zero default.
+	 * Settlement conversion can impose a different limit, which the gateway still enforces.
+	 * Source: https://docs.stripe.com/currencies#minimum-and-maximum-charge-amounts.
+	 *
+	 * @param int    $minimum Prior minimum.
+	 * @param string $currency Order currency.
+	 */
+	public static function minAmount( int $minimum, string $currency ): int {
+		unset( $minimum );
+		$amounts = array(
+			'USD' => 50,
+			'AED' => 200,
+			'ARS' => 50,
+			'AUD' => 50,
+			'BRL' => 50,
+			'CAD' => 50,
+			'CHF' => 50,
+			'COP' => 50,
+			'CZK' => 1500,
+			'DKK' => 250,
+			'EUR' => 50,
+			'GBP' => 30,
+			'HKD' => 400,
+			'HUF' => 17500,
+			'IDR' => 50,
+			'ILS' => 50,
+			'INR' => 50,
+			'JPY' => 50,
+			'KRW' => 50,
+			'MXN' => 1000,
+			'MYR' => 200,
+			'NOK' => 300,
+			'NZD' => 50,
+			'PHP' => 50,
+			'PLN' => 200,
+			'RON' => 200,
+			'RUB' => 50,
+			'SEK' => 300,
+			'SGD' => 50,
+			'THB' => 1000,
+			'ZAR' => 50,
+		);
+		return $amounts[ strtoupper( $currency ) ] ?? 0;
 	}
 
 	/**
@@ -244,11 +291,16 @@ final class Driver {
 	 * @param mixed  $config Config contributed so far (initial `[]`).
 	 * @param string $code   Module code.
 	 * @return array<string, string>
+	 * @param string $currency Optional stored order currency.
 	 */
-	public function clientConfig( $config, string $code ): array {
+	public function clientConfig( $config, string $code, string $currency = '' ): array {
 		unset( $config );
 
 		if ( Config::CODE !== $code || ! $this->config->isReady() ) {
+			return array();
+		}
+
+		if ( '' !== $currency && Money::UNSUPPORTED_CURRENCY === Money::refusalFor( 1000000, $currency ) ) {
 			return array();
 		}
 
@@ -263,7 +315,7 @@ final class Driver {
 			// exponent lets the widget convert `minor × 10^(gateway_exponent − currency_exponent)`
 			// instead of hard-coding a divisor that is wrong for two currencies and three-decimal
 			// ones. `PaymentRegistry::clientConfig()` stringifies it, so the wire value is `"2"`.
-			'gateway_exponent' => $this->config->gatewayExponent(),
+			'gateway_exponent' => '' === $currency ? $this->config->gatewayExponent() : Money::stripeExponent( $currency ),
 		);
 	}
 

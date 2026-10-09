@@ -78,6 +78,8 @@ use WP_Error;
  */
 final class PaymentService {
 
+	use BalancePayments;
+
 	/**
 	 * Seconds to wait for a per-order lock before giving up.
 	 *
@@ -139,6 +141,14 @@ final class PaymentService {
 	private const VOID_RETRY_BACKOFF_HOURS = 1;
 
 	/**
+	 * How many pages of due holds one expiry pass may read (D-R71).
+	 *
+	 * Only a hold whose deadline a gateway has suspended makes the pass read past its first page;
+	 * the bound keeps one tick's cost finite however many such orders a site carries.
+	 */
+	private const EXPIRY_SCAN_PAGES = 5;
+
+	/**
 	 * How old an unpaid hold must be before it earns a reminder email (D-R38j).
 	 */
 	private const REMINDER_AFTER_MINUTES = 10;
@@ -165,6 +175,13 @@ final class PaymentService {
 	 * @var TransactionGuard
 	 */
 	private TransactionGuard $tx;
+
+	/**
+	 * Post-commit ledger observation.
+	 *
+	 * @var TransactionEvents
+	 */
+	private TransactionEvents $events;
 
 	/**
 	 * Construct the service.
@@ -198,16 +215,467 @@ final class PaymentService {
 		private StaffLockFactory $locks,
 		private ?Logger $logger = null
 	) {
-		$this->tx = new TransactionGuard( $wpdb );
+		$this->tx     = new TransactionGuard( $wpdb );
+		$this->events = new TransactionEvents( $wpdb );
+	}
+
+	/**
+	 * Bind real checkout identity once, including authoritative late-payment recovery.
+	 *
+	 * Identity attachment never extends a hold or revives a cancelled booking.
+	 *
+	 * @param string                        $gateway Bound gateway.
+	 * @param string                        $ref Bound charge reference.
+	 * @param \Aponto\Booking\CustomerInput $customer Validated checkout billing identity.
+	 * @param bool                          $public_checkout Whether a visitor is submitting a checkout
+	 *                                      now. Then the public per-email booking cap applies, exactly
+	 *                                      as it does to a booking made with an email; recovery of a
+	 *                                      checkout that is already placed must pass false.
+	 * @return int The immutable customer id.
+	 * @throws PaymentException When identity or binding is invalid.
+	 * @throws \Aponto\Rest\Support\RateLimited When the email already holds the allowed bookings.
+	 * @throws \Throwable When storage fails.
+	 */
+	public function attachCheckoutCustomer( string $gateway, string $ref, \Aponto\Booking\CustomerInput $customer, bool $public_checkout = false ): int {
+		$charge = $this->transactions->findByGatewayRef( $gateway, $ref );
+		if ( null === $charge || TransactionRepository::KIND_CHARGE !== $charge['kind'] ) {
+			throw PaymentException::state();
+		}
+		$order_id = (int) $charge['order_id'];
+		$lock     = $this->acquire( $order_id );
+		try {
+			$charge     = $this->transactions->findByGatewayRef( $gateway, $ref );
+			$order      = $this->orders->find( $order_id );
+			$booking_id = $this->orders->bookingIdFor( $order_id );
+			$booking    = $this->bookings->find( $booking_id );
+			if ( null === $charge || (int) $charge['order_id'] !== $order_id || null === $order
+				|| $gateway !== (string) $order['gateway'] || ! $booking instanceof Booking ) {
+				throw PaymentException::state();
+			}
+			if ( $booking->customer_id > 0 ) {
+				return $booking->customer_id;
+			}
+			// The checkout owns the identity form, so a single name part is accepted here (the
+			// other is stored empty); only "no name at all" is refused. Each part keeps the
+			// `name_part` length bound (D-R69).
+			if ( '' === $customer->displayName() || ! is_email( $customer->email )
+				|| ( 'required' === (string) $this->settings->get( 'customer_fields.phone' ) && '' === trim( $customer->phone ) )
+				|| mb_strlen( $customer->first_name ) > 191 || mb_strlen( $customer->last_name ) > 191
+				|| strlen( $customer->email ) > 191 || strlen( $customer->phone ) > 64 ) {
+				throw PaymentException::state();
+			}
+			if ( $gateway !== $this->meta->getKey( $booking_id, 'payments.deferred_customer' ) ) {
+				throw PaymentException::state();
+			}
+			if ( $public_checkout ) {
+				// A reservation made without an identity skipped the `booking_email` cap. It is
+				// applied here, when the email arrives, with the same bucket and the same count of
+				// real blocking bookings ({@see \Aponto\Rest\Support\RateLimiter::emailBookingRetryAfter()}).
+				/** This filter is documented in {@see \Aponto\Rest\Support\RateLimiter::hit()}. */
+				$limits = apply_filters( 'aponto_public_rate_limits', \Aponto\Rest\Support\RateLimiter::defaults(), new \WP_REST_Request() );
+				$bucket = is_array( $limits ) && is_array( $limits['booking_email'] ?? null ) ? $limits['booking_email'] : null;
+				$retry  = null === $bucket ? null : ( new \Aponto\Rest\Support\RateLimiter( $this->wpdb, $this->clock ) )->emailBookingRetryAfter( $customer->emailNorm(), (int) ( $bucket['limit'] ?? 0 ), (int) ( $bucket['window'] ?? 0 ) );
+				if ( null !== $retry ) {
+					throw new \Aponto\Rest\Support\RateLimited( $retry );
+				}
+			}
+			$this->assertLockIntact( $lock );
+			$this->tx->begin();
+			try {
+				$customers   = new \Aponto\Booking\Repository\CustomerRepository( $this->wpdb, $this->clock );
+				$customer_id = $customers->findOrCreateByEmail( $customer );
+				$this->bookings->attachCustomer( $booking_id, $customer_id, $customer->note, $this->clock->nowSql() );
+				$this->activities->log( 'booking', $booking_id, 'checkout_customer_attached', array( 'gateway' => $gateway ), 'gateway:' . $gateway );
+				$this->assertLockIntact( $lock );
+				$this->tx->commit();
+			} catch ( \Throwable $failure ) {
+				$this->tx->rollback();
+				throw $failure;
+			}
+			return $customer_id;
+		} finally {
+			$this->events->release( $lock );
+		}
+	}
+
+	/**
+	 * Finalize a trusted provider's quote and fence external payment invocation.
+	 *
+	 * @param string        $gateway Gateway module code.
+	 * @param string        $ref Durable attempt reference returned by begin.
+	 * @param CheckoutQuote $quote Authoritative, customer-approved quote.
+	 * @param int           $expected_revision Current revision, initially zero.
+	 * @return array{revision:int,lease:string}
+	 * @throws PaymentException When binding, quote or reservation no longer permits payment.
+	 * @throws StorageException When encoding the financial snapshot fails.
+	 * @throws \Throwable When a checked financial write or lock fails.
+	 */
+	public function prepareExternalCheckout( string $gateway, string $ref, CheckoutQuote $quote, int $expected_revision ): array {
+		$charge = $this->transactions->findByGatewayRef( $gateway, $ref );
+		if ( null === $charge || ! PaymentRegistry::isOffered( $gateway ) ) {
+			throw PaymentException::state();
+		}
+		$order_id = (int) $charge['order_id'];
+		$lock     = $this->acquire( $order_id );
+		try {
+			$charge = $this->transactions->findByGatewayRef( $gateway, $ref );
+			$order  = $this->orders->find( $order_id );
+			$item   = $this->orders->checkoutItem( $order_id );
+			if ( null === $charge || null === $order || null === $item
+				|| $order_id !== (int) $charge['order_id']
+				|| TransactionRepository::KIND_CHARGE !== (string) $charge['kind']
+				|| TransactionRepository::STATUS_PENDING !== (string) $charge['status']
+				|| $gateway !== (string) $order['gateway']
+					|| (int) ( $this->transactions->pendingCharge( $order_id )['id'] ?? 0 ) !== (int) $charge['id']
+				|| strtoupper( (string) $order['currency'] ) !== $quote->currency
+				|| ! $this->holdIsLive( $order_id, $order ) ) {
+				throw PaymentException::state();
+			}
+			$meta     = $this->checkoutQuoteMeta( $item );
+			$previous = is_array( $meta['external_checkout'] ?? null ) ? $meta['external_checkout'] : array();
+			$revision = (int) ( $previous['revision'] ?? 0 );
+			$original = (int) ( $previous['source_base_minor'] ?? $order['total_minor'] );
+			if ( 0 > $expected_revision || $expected_revision !== $revision || $quote->source_base_minor !== $original
+				|| ( array() !== $previous && ( ( $previous['gateway'] ?? '' ) !== $gateway || ( $previous['ref'] ?? '' ) !== $ref ) ) ) {
+				throw PaymentException::state();
+			}
+			$this->assertLockIntact( $lock );
+			$this->tx->begin();
+			try {
+				$this->transactions->finalizeCheckoutAmount( (int) $charge['id'], $quote->total_minor );
+				$lease = $this->transactions->claimForCapture( (int) $charge['id'] );
+				if ( '' === $lease ) {
+					throw PaymentException::state();
+				}
+				$original_pricing          = $previous['original_pricing'] ?? array(
+					'subtotal_minor' => (int) $order['subtotal_minor'],
+					'discount_minor' => (int) $order['discount_minor'],
+					'total_minor'    => (int) $order['total_minor'],
+					'coupon_id'      => $order['coupon_id'],
+					'coupon_code'    => $order['coupon_code'],
+					'item_amount'    => (int) $item['amount_minor'],
+				);
+				$meta['external_checkout'] = array_merge(
+					$quote->toArray(),
+					array(
+						'original_pricing' => $original_pricing,
+						'revision'         => $revision + 1,
+						'gateway'          => $gateway,
+						'ref'              => $ref,
+						'lease'            => $lease,
+					)
+				);
+				$encoded                   = wp_json_encode( $meta );
+				if ( false === $encoded ) {
+					throw StorageException::because( esc_html( 'checkout quote encoding' ) );
+				}
+				$this->orders->finalizeCheckoutQuote( $order_id, (int) $item['id'], $quote );
+				if ( ! $this->meta->setKey( (int) $item['booking_id'], 'payments.external_checkout.' . $order_id, $encoded ) ) {
+					throw StorageException::because( esc_html( 'checkout quote projection write' ) );
+				}
+				$this->activities->log( 'booking', (int) $item['booking_id'], 'payment_quote_finalized', $meta['external_checkout'], 'gateway:' . $gateway );
+				$this->assertLockIntact( $lock );
+				$this->tx->commit();
+			} catch ( \Throwable $failure ) {
+				$this->tx->rollback();
+				throw $failure;
+			}
+
+			return array(
+				'revision' => $revision + 1,
+				'lease'    => $lease,
+			);
+		} finally {
+			$this->events->release( $lock );
+		}
+	}
+
+	/**
+	 * Return an external claim only after the provider has durably fenced payment.
+	 *
+	 * Trusted providers must verify terminal external cancellation or a definitive pre-dispatch
+	 * refusal before calling. A timeout, missing remote reference or elapsed lease is insufficient.
+	 *
+	 * @param string $gateway Gateway module code.
+	 * @param string $ref Durable attempt reference.
+	 * @param int    $revision Exact prepared quote revision.
+	 * @param string $lease Exact capture lease.
+	 * @return bool Whether the matching claim was returned to pending.
+	 */
+	public function releaseExternalCheckout( string $gateway, string $ref, int $revision, string $lease ): bool {
+		$charge = $this->transactions->findByGatewayRef( $gateway, $ref );
+		if ( null === $charge || '' === $lease || 1 > $revision ) {
+			return false;
+		}
+		$order_id = (int) $charge['order_id'];
+		$lock     = $this->acquire( $order_id );
+		try {
+			$charge = $this->transactions->findByGatewayRef( $gateway, $ref );
+			$order  = $this->orders->find( $order_id );
+			$item   = $this->orders->checkoutItem( $order_id );
+			$meta   = null === $item ? array() : $this->checkoutQuoteMeta( $item );
+			$quote  = is_array( $meta['external_checkout'] ?? null ) ? $meta['external_checkout'] : array();
+			if ( null === $charge || null === $order || ! $this->holdIsLive( $order_id, $order )
+				|| ( $quote['revision'] ?? 0 ) !== $revision || ( $quote['lease'] ?? '' ) !== $lease
+				|| ( $quote['gateway'] ?? '' ) !== $gateway || ( $quote['ref'] ?? '' ) !== $ref
+				|| TransactionRepository::KIND_CHARGE !== (string) $charge['kind']
+				|| TransactionRepository::STATUS_CAPTURING !== (string) $charge['status']
+				|| (string) $charge['updated_at'] !== $lease ) {
+				return false;
+			}
+			$this->assertLockIntact( $lock );
+			$this->transactions->releaseCaptureClaim( (int) $charge['id'], $lease );
+			$this->assertLockIntact( $lock );
+			$fresh = $this->transactions->find( (int) $charge['id'] );
+			return null !== $fresh && TransactionRepository::STATUS_PENDING === (string) $fresh['status'];
+		} finally {
+			$this->events->release( $lock );
+		}
+	}
+
+	/**
+	 * Settle a prepared zero-due obligation without claiming that money moved.
+	 *
+	 * @param string $gateway Gateway module code.
+	 * @param string $ref Persisted attempt reference.
+	 * @param int    $revision Prepared quote revision.
+	 * @param string $lease Exact processing lease returned by preparation.
+	 * @throws PaymentException When the prepared zero quote or claim does not match.
+	 * @throws \Throwable When a checked financial write or lock fails.
+	 */
+	public function completeNoChargeCheckout( string $gateway, string $ref, int $revision, string $lease ): void {
+		$charge = $this->transactions->findByGatewayRef( $gateway, $ref );
+		if ( null === $charge ) {
+			throw PaymentException::state();
+		}
+		$order_id = (int) $charge['order_id'];
+		$lock     = $this->acquire( $order_id );
+		try {
+			$charge = $this->transactions->findByGatewayRef( $gateway, $ref );
+			$order  = $this->orders->find( $order_id );
+			$item   = $this->orders->checkoutItem( $order_id );
+			$meta   = null === $item ? array() : $this->checkoutQuoteMeta( $item );
+			$quote  = is_array( $meta['external_checkout'] ?? null ) ? $meta['external_checkout'] : array();
+			if ( null === $charge || null === $order || null === $item || '' === $lease || 1 > $revision
+				|| ( $quote['revision'] ?? 0 ) !== $revision || ( $quote['lease'] ?? '' ) !== $lease
+				|| ( $quote['gateway'] ?? '' ) !== $gateway || ( $quote['ref'] ?? '' ) !== $ref
+				|| 0 !== ( $quote['total_minor'] ?? -1 ) || 0 !== (int) $order['total_minor']
+				|| 0 !== (int) $charge['amount_minor'] || $order_id !== (int) $charge['order_id']
+				|| TransactionRepository::KIND_CHARGE !== (string) $charge['kind']
+				|| $gateway !== (string) $order['gateway']
+				|| ( $quote['currency'] ?? '' ) !== strtoupper( (string) $order['currency'] ) ) {
+				throw PaymentException::state();
+			}
+			if ( 1 > ( $this->bookings->find( (int) $item['booking_id'] )?->customer_id ?? 0 ) ) {
+				throw PaymentException::state();
+			}
+			if ( 'paid' === (string) $order['payment_status'] && 'no_charge' === (string) $charge['failure_code'] ) {
+				$this->recoverDeferredCreated( $order_id );
+				$this->confirmPaidBooking( (int) $item['booking_id'], $gateway );
+				return;
+			}
+			// The immutable prepared quote owns this completion. A confirm/void read may
+			// reclaim the mutable transaction lease before Woo's completion is observed;
+			// that must not strand a zero-due booking or invent a monetary charge (D-R71a).
+			if ( ! in_array( (string) $charge['status'], TransactionRepository::IN_FLIGHT, true )
+				|| ! $this->holdIsOpen( $order_id, $order ) ) {
+				throw PaymentException::state();
+			}
+			$booking = $this->bookings->find( (int) $item['booking_id'] );
+			$this->assertLockIntact( $lock );
+			$this->tx->begin();
+			try {
+				if ( ! $this->transactions->markFailed( (int) $charge['id'], 'no_charge' )
+					|| ! $this->orders->markPaid( $order_id, $gateway, '' ) ) {
+					throw PaymentException::state();
+				}
+				$this->transactions->clearClientParams( $order_id );
+				$this->activities->log(
+					'booking',
+					(int) $item['booking_id'],
+					'payment_not_required',
+					array(
+						'gateway'  => $gateway,
+						'revision' => $revision,
+					),
+					'gateway:' . $gateway
+				);
+				if ( $booking instanceof Booking ) {
+					$this->notifications->queueDeferredCreated( $booking, ! $this->autoConfirmsFor( $gateway, (int) $item['booking_id'] ) );
+				}
+				$this->assertLockIntact( $lock );
+				$this->tx->commit();
+			} catch ( \Throwable $failure ) {
+				$this->tx->rollback();
+				throw $failure;
+			}
+			$this->confirmPaidBooking( (int) $item['booking_id'], $gateway );
+		} finally {
+			$this->events->release( $lock );
+		}
+	}
+
+	/**
+	 * Booking-meta marker: the deferred `created` notifications were released because the external
+	 * order was PLACED ({@see self::announceExternalPlacement()}). Its value is the instant.
+	 */
+	public const PLACEMENT_ANNOUNCED_META_KEY = 'payments.placement_announced';
+
+	/** {@see self::announceExternalPlacement()} released the notifications on this call. */
+	public const PLACEMENT_ANNOUNCED = 'announced';
+
+	/** An earlier call already released them; nothing was queued. */
+	public const PLACEMENT_ALREADY = 'already';
+
+	/** Not a placed, unpaid, slot-holding order of this gateway; nothing was queued. */
+	public const PLACEMENT_NOT_APPLICABLE = 'not_applicable';
+
+	/** The booking has no customer yet; attach the checkout identity and call again. */
+	public const PLACEMENT_NO_CUSTOMER = 'no_customer';
+
+	/** The outbox could not answer; nothing is recorded and the next observation asks again. */
+	public const PLACEMENT_FAILED = 'failed';
+
+	/**
+	 * A driver tells core: "this external order is now PLACED and is waiting for the merchant to
+	 * verify the payment" (persona QA 2026-10-05, T-022).
+	 *
+	 * A pay-online hold defers its `created` mail until the money lands (D-R38j), because an unpaid
+	 * hold dissolves when its deadline passes. An order placed for a bank transfer, a cheque or
+	 * cash on delivery does not: the deadline no longer governs it and the booking stays until the
+	 * merchant decides. Until this seam existed nobody was told about such a booking — the
+	 * customer had no manage link, the owner and the staff member no "new booking" — until the
+	 * order was marked paid, sometimes hours later.
+	 *
+	 * So at that moment, ONCE per booking, core releases exactly the notifications the hold
+	 * deferred: the customer's "we received your booking" (it carries the manage link and claims
+	 * neither a payment nor a confirmation), and the admin and staff "new booking". They are queued
+	 * under the SAME dispatch keys settlement uses, so the payment that lands later answers
+	 * `duplicate` for each: paid + confirmed in one pass still sends only "confirmed", and paid
+	 * without auto-confirm sends nothing more. The booking now counts as announced, so a later
+	 * cancellation is mailed (D-R72).
+	 *
+	 * CORE DOES NOT TAKE THE DRIVER'S WORD FOR THE STATE. The order must be this gateway's, still
+	 * unpaid, its booking still holding the slot, and — for a `pending` booking — the checkout
+	 * deadline must no longer apply ({@see PaymentState::describe()}, the answer the manage page and
+	 * the payment reminder already read; `verifying_payment` in the driver's own terms). A hold the
+	 * customer is still being asked to pay stays silent, exactly as D-R38j requires.
+	 *
+	 * IDEMPOTENT across reconcile ticks, duplicate hooks and several bookings on one external
+	 * order: the unique dispatch keys make a second queue a no-op, and the booking-meta marker stops
+	 * the question being asked again once it has a definitive answer (including "the site switched
+	 * these templates off").
+	 *
+	 * Call it POST-COMMIT with NO lock held and no transaction open: it sends mail. It takes no
+	 * lock itself — its only writes are outbox claims and the marker, both idempotent. Never throws.
+	 *
+	 * @param string $gateway Gateway module code.
+	 * @param string $ref     The charge reference the driver returned from `begin`.
+	 * @return string One of the `PLACEMENT_*` constants.
+	 */
+	public function announceExternalPlacement( string $gateway, string $ref ): string {
+		try {
+			$charge = $this->transactions->findByGatewayRef( $gateway, $ref );
+			if ( null === $charge || TransactionRepository::KIND_CHARGE !== (string) $charge['kind'] ) {
+				return self::PLACEMENT_NOT_APPLICABLE;
+			}
+			$order_id   = (int) $charge['order_id'];
+			$order      = $this->orders->find( $order_id );
+			$booking_id = $this->orders->bookingIdFor( $order_id );
+			$booking    = $booking_id > 0 ? $this->bookings->find( $booking_id ) : null;
+			if ( null === $order || $gateway !== (string) $order['gateway'] || ! $booking instanceof Booking ) {
+				return self::PLACEMENT_NOT_APPLICABLE;
+			}
+
+			$announced = null !== $this->meta->getKey( $booking_id, self::PLACEMENT_ANNOUNCED_META_KEY );
+			$decision  = self::placementAudience(
+				(string) $order['payment_status'],
+				$this->bookingHoldsSlot( $booking ) ? $booking->status : '',
+				$booking->customer_id > 0,
+				// Asked only when it can matter: the answer reads the driver's own records.
+				! $announced && PaymentState::describe( $order, $booking->status )['hold_deadline_applies'],
+				$announced
+			);
+			if ( 'all' !== $decision && 'staff' !== $decision ) {
+				return $decision;
+			}
+
+			if ( ! $this->notifications->queueDeferredCreated( $booking, 'all' === $decision ) ) {
+				return self::PLACEMENT_FAILED; // Unknown outcome: no marker, the next observation retries.
+			}
+			$this->meta->setKey( $booking_id, self::PLACEMENT_ANNOUNCED_META_KEY, $this->clock->nowSql() );
+			$this->notifications->flushBooking( $booking_id );
+
+			return self::PLACEMENT_ANNOUNCED;
+		} catch ( \Throwable $failure ) {
+			unset( $failure ); // A notification never breaks the driver's reconciliation.
+
+			return self::PLACEMENT_FAILED;
+		}
+	}
+
+	/**
+	 * Who is told when an external order is PLACED but not paid — the decision table of
+	 * {@see self::announceExternalPlacement()}, pure so it can be pinned by a unit test.
+	 *
+	 * - `already`        — released before; nothing more, whatever else is true (replay).
+	 * - `not_applicable` — the order is not unpaid (settlement owns its mail), the booking no
+	 *                      longer holds its slot, or the customer is still being asked to pay.
+	 * - `no_customer`    — nobody to write to yet.
+	 * - `all`            — a `pending` booking: customer "received" + admin + staff.
+	 * - `staff`          — a `confirmed` booking: admin + staff only, because the confirmation
+	 *                      transition already told the customer.
+	 *
+	 * @param string $payment_status   Stored order `payment_status`.
+	 * @param string $booking_status   Booking status, or '' when it no longer holds its slot.
+	 * @param bool   $has_customer     Whether the booking has a customer.
+	 * @param bool   $deadline_applies Whether the checkout deadline still governs the booking.
+	 * @param bool   $announced        Whether the release already happened.
+	 * @return string `all`, `staff`, or one of the non-sending `PLACEMENT_*` constants.
+	 */
+	public static function placementAudience( string $payment_status, string $booking_status, bool $has_customer, bool $deadline_applies, bool $announced ): string {
+		if ( $announced ) {
+			return self::PLACEMENT_ALREADY;
+		}
+		if ( 'pending' !== $payment_status || ! in_array( $booking_status, array( 'pending', 'confirmed' ), true ) || $deadline_applies ) {
+			return self::PLACEMENT_NOT_APPLICABLE;
+		}
+		if ( ! $has_customer ) {
+			return self::PLACEMENT_NO_CUSTOMER;
+		}
+
+		return 'pending' === $booking_status ? 'all' : 'staff';
+	}
+
+	/**
+	 * Read the longtext checkout projection without modifying the item's bounded metadata.
+	 *
+	 * @param array<string, mixed> $item Booking order item.
+	 * @return array<string, mixed>
+	 * @throws StorageException When an existing projection cannot be safely read.
+	 */
+	private function checkoutQuoteMeta( array $item ): array {
+		$raw = $this->meta->getKey( (int) $item['booking_id'], 'payments.external_checkout.' . (int) $item['order_id'] );
+		if ( '' !== (string) $this->wpdb->last_error ) {
+			throw StorageException::because( esc_html( 'checkout quote projection read' ) );
+		}
+		if ( null === $raw ) {
+			return array();
+		}
+		$decoded = json_decode( $raw, true );
+		if ( ! is_array( $decoded ) || ! is_array( $decoded['external_checkout'] ?? null ) ) {
+			throw StorageException::because( esc_html( 'checkout quote projection invalid' ) );
+		}
+		return $decoded;
 	}
 
 	// -- Settings ------------------------------------------------------------------------------
 
 	/**
-	 * The site's payment mode: `off`, `optional` or `required`.
+	 * The site's effective payment mode: `off`, `optional` or `required` ({@see PaymentRegistry::effectiveMode()}).
 	 */
 	public function mode(): string {
-		return (string) $this->settings->get( 'payments.mode' );
+		return PaymentRegistry::effectiveMode( (string) $this->settings->get( 'payments.mode' ) );
 	}
 
 	/**
@@ -220,6 +688,21 @@ final class PaymentService {
 	 */
 	public function enabled(): bool {
 		return 'off' !== $this->mode() && array() !== PaymentRegistry::offeredCodes();
+	}
+
+	/**
+	 * Whether a PAID service may not be booked online right now (D-R79, opt-in, default off).
+	 *
+	 * D-R38a(1) stays the default: with nothing offered a `required` site takes the booking unpaid.
+	 * An owner who would rather lose the booking than take it without the money sets
+	 * `payments.when_unavailable = refuse`; then, while {@see PaymentRegistry::requiredButUnavailable()}
+	 * holds, the public route refuses a priced order and the form says so. Free services and
+	 * admin-created bookings are never affected. The setting is read first, so a site that left
+	 * it alone pays for no readiness check here.
+	 */
+	public function refusesPaidBookings(): bool {
+		return 'refuse' === (string) $this->settings->get( 'payments.when_unavailable' )
+			&& PaymentRegistry::requiredButUnavailable( (string) $this->settings->get( 'payments.mode' ) );
 	}
 
 	/**
@@ -241,6 +724,27 @@ final class PaymentService {
 	 */
 	public function autoConfirms(): bool {
 		return (bool) $this->settings->get( 'payments.auto_confirm' );
+	}
+
+	/**
+	 * Whether THIS gateway's first settlement of a booking should confirm it (D-R71l).
+	 *
+	 * `aponto_payment_auto_confirm_{gateway}` may replace the site-wide answer for one settlement.
+	 * It is read inside the payment transaction (to pick the customer copy) and again post-commit,
+	 * so a callback must answer from memory only: no I/O, no remote calls, no locks.
+	 *
+	 * @param string $gateway    Module code.
+	 * @param int    $booking_id Booking being settled.
+	 */
+	private function autoConfirmsFor( string $gateway, int $booking_id ): bool {
+		$auto = $this->autoConfirms();
+		if ( ! PaymentRegistry::isPaymentModule( $gateway ) ) {
+			return $auto;
+		}
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Registry allow-list checked before building the gateway hook.
+		$answer = apply_filters( 'aponto_payment_auto_confirm_' . $gateway, $auto, $booking_id );
+
+		return is_bool( $answer ) ? $answer : $auto;
 	}
 
 	// -- Initiation ----------------------------------------------------------------------------
@@ -317,7 +821,6 @@ final class PaymentService {
 	 * @param int $booking_id Booking id.
 	 * @return bool Whether a hold was released by THIS call.
 	 * @throws PaymentException   `aponto_payment_state` when a capture is on the network.
-	 * @throws PaymentLockTimeout When the per-order lock cannot be taken.
 	 */
 	public function expireHoldNow( int $booking_id ): bool {
 		$order = $this->orders->findForBooking( $booking_id );
@@ -330,7 +833,36 @@ final class PaymentService {
 			return false;
 		}
 
+		// A deadline the gateway has suspended (payment being verified externally) is not due.
+		if ( $this->holdDeadlineSuspended( $order ) ) {
+			return false;
+		}
+
 		return $this->releaseHold( (int) $order['id'], 'hold_expired', 'expired', 'payment_hold_expired', 'system', true );
+	}
+
+	/**
+	 * Release a cancelled external checkout before its original hold deadline (D-R71a).
+	 *
+	 * The provider must first apply its terminal event. The binding and failed charge
+	 * are re-read under the release lock, so a resumed or settled attempt cannot be
+	 * released by a stale cancellation observation. This never overrides a void failure.
+	 *
+	 * `$cancel_booking = false` (D-R71l, a merchant's "keep booking" status mapping) releases only
+	 * the payment obligation: the charge fails, the order returns to `none` and the booking keeps its
+	 * status and slot for the admin to decide.
+	 *
+	 * @param string $gateway        External checkout module.
+	 * @param string $ref            Bound attempt reference.
+	 * @param bool   $cancel_booking Whether the release also cancels the booking (default).
+	 * @return bool Whether the booking hold was released.
+	 */
+	public function cancelExternalCheckout( string $gateway, string $ref, bool $cancel_booking = true ): bool {
+		$charge = $this->transactions->findByGatewayRef( $gateway, $ref );
+		if ( null === $charge || TransactionRepository::KIND_CHARGE !== (string) $charge['kind'] ) {
+			return false;
+		}
+		return $this->releaseHold( (int) $charge['order_id'], 'external_cancelled', 'cancelled', 'hold_released', 'system', $cancel_booking, false, $gateway, $ref );
 	}
 
 	/**
@@ -418,7 +950,7 @@ final class PaymentService {
 				$order_id,
 				(string) $order['code'],
 				$booking->id,
-				(int) $order['total_minor'],
+				OrderAmounts::payableNow( $order ),
 				(string) $order['currency'],
 				$this->customerEmail( $booking->customer_id ),
 				$this->serviceName( $booking->service_id ),
@@ -456,13 +988,70 @@ final class PaymentService {
 				// booking's own activity feed. The module `status` block cannot carry this — readiness
 				// is asked without an order, and the price that cannot be charged belongs to one.
 				$this->anomaly( $gateway, $order_id, $refusal );
-				$this->logBeginRefusal( $booking->id, $gateway, $refusal, (int) $order['total_minor'], (string) $order['currency'] );
+				$this->logBeginRefusal( $booking->id, $gateway, $refusal, OrderAmounts::payableNow( $order ), (string) $order['currency'] );
 			}
 
 			return $this->unavailableBlock( $gateway, $order_id, ! $deterrent );
 		}
 
 		return $this->settleChargeAttempt( $order_id, $gateway, $txn_id, $key, $result, (string) $claim['lease'] );
+	}
+
+	/**
+	 * The `payment` block a same-key REPLAY answers with — READ-ONLY (D-R67r, review round 3).
+	 *
+	 * Rebuilt purely from durable rows: the order and its in-flight charge. No readiness check (a
+	 * gateway switched off since the original request must not turn the original `begin` into
+	 * `unavailable`), no lock, no claim, no HTTP, no new attempt. The shapes are exactly the ones
+	 * {@see self::claimChargeAttempt()} returns for its own reuse branches, so a replay answers what
+	 * the original did while its intent is live.
+	 *
+	 * Returns NULL only for the one state durable rows cannot answer: a live hold with NO usable
+	 * attempt — none at all, a dead reference-less claim left by a request that crashed inside the
+	 * gateway call, or a claim parked by an unreachable verification. That is the documented crash
+	 * recovery (D-R38b, Codex #2 — "a replay after a crashed create must not stay `unavailable`"),
+	 * and the caller then runs {@see self::beginPayment()}, whose own readiness check still refuses
+	 * a gateway that is no longer offered.
+	 *
+	 * @param Booking $booking Committed booking.
+	 * @param string  $gateway The ORDER's own gateway.
+	 * @return array<string, mixed>|null The `payment` response block (rest-contract §3.3), or null
+	 *                                   when only a new attempt can answer.
+	 */
+	public function replayBlock( Booking $booking, string $gateway ): ?array {
+		$order_id = (int) $booking->order_id;
+		$order    = $order_id > 0 ? $this->orders->find( $order_id ) : null;
+		if ( null === $order || 'pending' !== (string) $order['payment_status'] ) {
+			return $this->unavailableBlock( $gateway, $order_id );
+		}
+		if ( ! $this->holdIsLive( $order_id, $order ) ) {
+			return $this->unavailableBlock( $gateway, $order_id, false, 'hold_expired' );
+		}
+
+		$charge = $this->transactions->pendingCharge( $order_id );
+		if ( is_array( $charge ) && '' !== (string) $charge['gateway_ref'] ) {
+			return array(
+				'gateway'       => (string) $charge['gateway'],
+				'status'        => 'begin',
+				'gateway_ref'   => (string) $charge['gateway_ref'],
+				'client_params' => self::paramsBlock( TransactionRepository::clientParams( $charge ) ),
+				'expires_at'    => $this->iso( $this->holdExpiry( $order ) ),
+			);
+		}
+		if ( is_array( $charge )
+			&& TransactionRepository::VERIFICATION_UNAVAILABLE !== (string) $charge['failure_code']
+			&& $this->transactions->isClaimFresh( $charge, $this->clock->now() ) ) {
+			return array(
+				'gateway'        => (string) $charge['gateway'],
+				'status'         => 'pending',
+				'gateway_ref'    => '',
+				'client_params'  => (object) array(),
+				'expires_at'     => $this->iso( $this->holdExpiry( $order ) ),
+				'retry_after_ms' => self::BEGIN_RETRY_AFTER_MS,
+			);
+		}
+
+		return null;
 	}
 
 	/**
@@ -572,7 +1161,7 @@ final class PaymentService {
 				$booking_id,
 				$gateway,
 				TransactionRepository::KIND_CHARGE,
-				(int) $order['total_minor'],
+				OrderAmounts::payableNow( $order ),
 				(string) $order['currency'],
 				$key,
 				$this->holdExpiry( $order )
@@ -591,7 +1180,7 @@ final class PaymentService {
 				'lease'  => is_array( $created ) ? (string) $created['updated_at'] : '',
 			);
 		} finally {
-			$lock->release();
+			$this->events->release( $lock );
 		}
 	}
 
@@ -670,7 +1259,7 @@ final class PaymentService {
 			unset( $failure );
 			$stale = true;
 		} finally {
-			$lock->release();
+			$this->events->release( $lock );
 		}
 
 		// Outside the lock, per the structural rule: the just-created intent is not wanted, so it is
@@ -748,6 +1337,9 @@ final class PaymentService {
 	public function confirm( string $gateway, string $ref ): ?array {
 		// phpcs:enable Squiz.Commenting.FunctionCommentThrowTag.WrongNumber
 		$charge = $this->transactions->findByGatewayRef( $gateway, $ref );
+		if ( is_array( $charge ) && TransactionRepository::KIND_BALANCE === $charge['kind'] ) {
+			return $this->confirmBalance( $charge );
+		}
 		if ( null === $charge || TransactionRepository::KIND_CHARGE !== (string) $charge['kind'] ) {
 			// An unknown, foreign or refund-shaped reference is the SAME uniform 404 as an unknown
 			// module: this route is public and must not confirm which references exist.
@@ -780,6 +1372,9 @@ final class PaymentService {
 				return $this->stateFor( $order_id );
 			}
 
+			if ( 1 > ( $this->bookings->find( $this->orders->bookingIdFor( $order_id ) )?->customer_id ?? 0 ) ) {
+				return $this->stateFor( $order_id );
+			}
 			$hold_open = $this->holdIsOpen( $order_id, $order );
 			if ( $hold_open ) {
 				$this->assertLockIntact( $lock );
@@ -803,7 +1398,7 @@ final class PaymentService {
 				$this->assertLockIntact( $lock );
 			}
 		} finally {
-			$lock->release();
+			$this->events->release( $lock );
 		}
 
 		// ---- Phase 2: no lock held — the gateway call. ----
@@ -811,7 +1406,7 @@ final class PaymentService {
 			new CaptureRequest(
 				$gateway,
 				$ref,
-				(int) $order['total_minor'],
+				OrderAmounts::payableNow( $order ),
 				(string) $order['currency'],
 				(string) $order['code'],
 				$hold_open
@@ -833,7 +1428,7 @@ final class PaymentService {
 						$this->assertLockIntact( $release );
 						$this->safeReleaseCaptureClaim( $txn_id, $lease, $claimed_from );
 					} finally {
-						$release->release();
+						$this->events->release( $release );
 					}
 				} catch ( \Throwable $failure ) {
 					unset( $failure );
@@ -852,7 +1447,7 @@ final class PaymentService {
 			}
 			$this->applyOutcome( $order_id, $gateway, $outcome, $txn_id, $lock );
 		} finally {
-			$lock->release();
+			$this->events->release( $lock );
 		}
 
 		return $this->stateFor( $order_id );
@@ -867,7 +1462,7 @@ final class PaymentService {
 	 * @param string       $gateway Payment module code.
 	 * @param WebhookEvent $event   Normalized event.
 	 * @return array{status: string, order_id: int} Ledger status and the order it resolved to.
-	 * @throws PaymentLockTimeout When the per-order lock cannot be taken.
+	 * @throws PaymentLockTimeout When the per-order lock cannot be acquired.
 	 * @throws StorageException When a durable write fails — including the CONTENDED case (an InnoDB
 	 *                          deadlock or lock-wait timeout inside the apply's own transaction),
 	 *                          which the route must answer `503` rather than `500` (D-R40d).
@@ -887,6 +1482,11 @@ final class PaymentService {
 		$lock = $this->acquire( $order_id );
 
 		try {
+			$event_charge = $this->eventCharge( $gateway, $event );
+			if ( is_array( $event_charge ) && TransactionRepository::KIND_BALANCE === $event_charge['kind'] && in_array( $event->type, array( WebhookEvent::PAYMENT_SUCCEEDED, WebhookEvent::PAYMENT_FAILED, WebhookEvent::SESSION_EXPIRED ), true ) ) {
+				$status = WebhookEvent::PAYMENT_SUCCEEDED === $event->type ? PaymentOutcome::PAID : ( WebhookEvent::SESSION_EXPIRED === $event->type ? PaymentOutcome::EXPIRED : PaymentOutcome::FAILED );
+				return $this->ledgerResult( $this->applyBalanceOutcome( $event_charge, new PaymentOutcome( $status, $event->amount_minor, $event->currency, $event->payment_ref, $event->gateway_ref, $event->failureCode(), $event->occurred_at ), $lock ), $order_id );
+			}
 			switch ( $event->type ) {
 				case WebhookEvent::PAYMENT_SUCCEEDED:
 					$applied = $this->applyOutcome(
@@ -931,6 +1531,14 @@ final class PaymentService {
 
 						return $this->ledgerResult( 'skipped', $order_id );
 					}
+					if ( WebhookEvent::SESSION_EXPIRED === $event->type && $this->transactions->isCaptureClaimLive( $charge, $this->clock->now() ) ) {
+						$item       = $this->orders->checkoutItem( $order_id );
+						$quote_meta = null === $item ? array() : $this->checkoutQuoteMeta( $item );
+						if ( ! empty( $quote_meta['external_checkout'] ) ) {
+							// A platform label cannot revoke a still-running external dispatch.
+							return $this->ledgerResult( 'deferred', $order_id );
+						}
+					}
 					// The gateway's DECLINE REASON, when it sent one (Codex Q). `failure_code` is already
 					// a column; without this the row said only "failed", and the one question the
 					// customer asks — why? — had no answer anywhere in the system. Folded onto the
@@ -961,7 +1569,7 @@ final class PaymentService {
 					return $this->ledgerResult( 'skipped', $order_id );
 			}
 		} finally {
-			$lock->release();
+			$this->events->release( $lock );
 		}
 	}
 
@@ -991,26 +1599,52 @@ final class PaymentService {
 		$cutoff = $now->sub( new \DateInterval( 'PT' . self::EXPIRY_GRACE_MINUTES . 'M' ) )->format( 'Y-m-d H:i:s' );
 		$retry  = $now->sub( new \DateInterval( 'PT' . self::VOID_RETRY_BACKOFF_HOURS . 'H' ) )->format( 'Y-m-d H:i:s' );
 
+		// A hold whose deadline the gateway has SUSPENDED is walked past too, and — because that
+		// answer comes from a filter, not from a column the scan could anti-join — it does not spend
+		// the batch: the scan pages on by id, a bounded number of times, so a site with many orders
+		// awaiting the merchant still reaches the due holds behind them.
 		$released = 0;
-		foreach ( $this->orders->expiredHoldIds( $cutoff, $limit, $retry ) as $order_id ) {
-			try {
-				if ( $this->voidRetryBackoffActive( $order_id ) ) {
-					continue;
+		$spent    = 0;
+		$after    = 0;
+		for ( $page = 0; $page < self::EXPIRY_SCAN_PAGES && $spent < $limit; $page++ ) {
+			$ids = $this->orders->expiredHoldIds( $cutoff, $limit, $retry, $after );
+			foreach ( $ids as $order_id ) {
+				if ( $spent >= $limit ) {
+					break;
 				}
-				if ( $this->releaseHold( $order_id, 'hold_expired', 'expired', 'payment_hold_expired', 'system', true ) ) {
-					++$released;
+				$after = $order_id;
+				try {
+					if ( $this->voidRetryBackoffActive( $order_id ) ) {
+						++$spent;
+						continue;
+					}
+					// THE GATEWAY SAYS THE DEADLINE DOES NOT APPLY (D-R71): the payment is being
+					// verified outside this site, so the hold is neither voided nor escalated — it
+					// stays. Asked again on every tick, with no lock held, so the ordinary ladder
+					// resumes the moment the answer changes.
+					$order = $this->orders->find( $order_id );
+					if ( null !== $order && $this->holdDeadlineSuspended( $order ) ) {
+						continue;
+					}
+					++$spent;
+					if ( $this->releaseHold( $order_id, 'hold_expired', 'expired', 'payment_hold_expired', 'system', true ) ) {
+						++$released;
+					}
+				} catch ( PaymentException | PaymentLockTimeout $expected ) {
+					// The two ORDINARY refusals, and neither is news: a capture is on the network for this
+					// slot, or another writer holds the order. The next tick looks again.
+					unset( $expected );
+				} catch ( \Throwable $failure ) {
+					// ANYTHING ELSE IS REPORTED (Codex round on PR #42). One stuck order must never stop
+					// the batch — but swallowing a storage or code failure silently meant a hold that can
+					// never be released looked exactly like a hold that is merely busy, forever, with the
+					// slot kept out of sale and nothing anywhere to say why. The exception CLASS is a safe
+					// machine token; its message is not (§5 invariant 8), so it never leaves the process.
+					$this->anomaly( '', $order_id, 'hold_release_failed:' . self::classToken( $failure ) );
 				}
-			} catch ( PaymentException | PaymentLockTimeout $expected ) {
-				// The two ORDINARY refusals, and neither is news: a capture is on the network for this
-				// slot, or another writer holds the order. The next tick looks again.
-				unset( $expected );
-			} catch ( \Throwable $failure ) {
-				// ANYTHING ELSE IS REPORTED (Codex round on PR #42). One stuck order must never stop
-				// the batch — but swallowing a storage or code failure silently meant a hold that can
-				// never be released looked exactly like a hold that is merely busy, forever, with the
-				// slot kept out of sale and nothing anywhere to say why. The exception CLASS is a safe
-				// machine token; its message is not (§5 invariant 8), so it never leaves the process.
-				$this->anomaly( '', $order_id, 'hold_release_failed:' . self::classToken( $failure ) );
+			}
+			if ( count( $ids ) < $limit ) {
+				break;
 			}
 		}
 
@@ -1018,17 +1652,44 @@ final class PaymentService {
 	}
 
 	/**
+	 * Whether a gateway has SUSPENDED the checkout deadline of a hold that would otherwise be due.
+	 *
+	 * True only when core's own rule says the deadline governs ({@see PaymentState::deadlineApplies()})
+	 * AND the gateway answers otherwise through `aponto_payment_state_{key}` — the same resolved
+	 * state the reminder and the manage page read. A gateway that registers no such answer can
+	 * never suspend anything, so its expiry ladder is exactly what it was. An answer that cannot be
+	 * read is "not suspended": the ordinary fail-closed ladder then decides.
+	 *
+	 * Called with NO lock held (a provider reads its own records here).
+	 *
+	 * @param array<string, mixed> $order Order row.
+	 */
+	private function holdDeadlineSuspended( array $order ): bool {
+		$status = $this->bookings->find( $this->orders->bookingIdFor( (int) $order['id'] ) )?->status ?? '';
+		if ( ! PaymentState::deadlineApplies( $order, $status ) ) {
+			return false;
+		}
+		try {
+			return ! PaymentState::describe( $order, $status )['hold_deadline_applies'];
+		} catch ( \Throwable $unreadable ) {
+			unset( $unreadable );
+
+			return false;
+		}
+	}
+
+	// phpcs:disable Squiz.Commenting.FunctionCommentThrowTag.WrongNumber -- PaymentLockTimeout is raised by the called releaseHold().
+	/**
 	 * Release a live unpaid hold because the CUSTOMER cancelled it (D-R38k).
 	 *
 	 * @param int $booking_id Booking id.
 	 * @return string `released` (the hold is gone, cancel freely), `paid` (money arrived — apply the
 	 *                ordinary cancel policy) or `not_a_hold` (nothing payment-related here).
-	 * @throws PaymentException   `aponto_payment_state` (409) when a capture is on the network for
+	 * @throws PaymentException   `aponto_payment_state` (409) when a void is unresolved or a capture is on the network for
 	 *                            this order (D-R40c). The widget locks its UI for the length of a
 	 *                            gateway attempt, so the customer meets this only in a real race —
 	 *                            and the honest answer to "cancel this" while their card is being
 	 *                            charged is "not yet", never a released slot.
-	 * @throws PaymentLockTimeout When the per-order lock cannot be taken.
 	 */
 	public function releaseHoldForCancel( int $booking_id ): string {
 		$order = $this->orders->findForBooking( $booking_id );
@@ -1040,7 +1701,7 @@ final class PaymentService {
 		// customer's own reason and actor, and doing it twice would make the second transition throw
 		// `InvalidTransition` and turn a successful release into a 409.
 		$order_id = (int) $order['id'];
-		if ( $this->releaseHold( $order_id, 'hold_released', 'cancelled', 'hold_released', 'customer', false ) ) {
+		if ( $this->releaseHold( $order_id, 'hold_released', 'cancelled', 'hold_released', 'customer', false, false, '', '', $this->captureClaimIsInert( $order, $booking_id ) ) ) {
 			return 'released';
 		}
 
@@ -1049,7 +1710,46 @@ final class PaymentService {
 			return 'paid';
 		}
 
+		// The void could not establish nonpayment, or another release still owns its claim.
+		// Falling back to ordinary cancellation here would free the slot despite that uncertainty.
+		if ( null !== $fresh && 'pending' === (string) $fresh['payment_status'] ) {
+			throw PaymentException::state();
+		}
+
 		return 'not_a_hold';
+	}
+
+	// phpcs:enable Squiz.Commenting.FunctionCommentThrowTag.WrongNumber
+
+	/**
+	 * Whether a capture claim on this order protects nothing, on its gateway's own statement
+	 * (persona QA 2026-10-05, final check).
+	 *
+	 * An external checkout takes the capture claim before it hands the order to its payment method,
+	 * and for an order paid at the appointment nothing is ever captured: the claim then simply runs
+	 * out, and for those five minutes the customer was offered "Cancel booking" and answered `409`.
+	 * `cash_on_delivery` is the gateway saying the order is placed and that no money can be on its
+	 * way ({@see PaymentState::customerCancelRule()}, rule `policy`). On that answer alone the
+	 * customer's cancellation may ask the gateway's `void` while the claim is still live. Nothing is
+	 * released on this answer: the `void` re-reads its own order and the hold goes only against what
+	 * it finds, and a refused void gives the claim back untouched.
+	 *
+	 * Read with no lock held and no transaction open (a provider reads its own records). Any doubt
+	 * answers false, which is the refusal of before.
+	 *
+	 * @param array<string, mixed> $order      Order row.
+	 * @param int                  $booking_id Booking id.
+	 */
+	private function captureClaimIsInert( array $order, int $booking_id ): bool {
+		try {
+			$status = $this->bookings->find( $booking_id )?->status ?? '';
+
+			return 'policy' === PaymentState::customerCancelRule( PaymentState::describe( $order, $status )['payment_state_reason'] );
+		} catch ( \Throwable $unreadable ) {
+			unset( $unreadable );
+
+			return false;
+		}
 	}
 
 	// phpcs:disable Squiz.Commenting.FunctionCommentThrowTag.WrongNumber -- The sniff counts SYNTACTIC `throw` statements. The lock-timeout and the post-ROLLBACK re-throw documented on this method are raised by `acquire()`/`assertLockIntact()` and by the transaction guard, which it cannot see — and they are exactly the exceptions a caller has to handle, so the tags stay and the count check is waived for this one method.
@@ -1078,6 +1778,12 @@ final class PaymentService {
 	 *                               recorded as `void_unresolved_admin_override`. Every unattended
 	 *                               caller leaves it `false`, because a timer must never make that
 	 *                               decision on their behalf.
+	 * @param string $external_gateway Optional exact terminal checkout gateway binding.
+	 * @param string $external_ref Optional exact terminal checkout attempt binding.
+	 * @param bool   $claim_inert    Whether a LIVE capture claim may be taken over for this void
+	 *                               ({@see self::captureClaimIsInert()}): the customer's own
+	 *                               cancellation of a placed pay-at-the-appointment order, and
+	 *                               nothing else. A refused void restores that claim as it was.
 	 * @return bool Whether the hold was released.
 	 * @throws PaymentException   `aponto_payment_state` when a CAPTURE claim is live for this order:
 	 *                            a payment is being taken for the slot this call wants to release.
@@ -1085,19 +1791,34 @@ final class PaymentService {
 	 *                            is lost mid-section (E1).
 	 * @throws \Throwable         Re-thrown after ROLLBACK when a durable write fails.
 	 */
-	private function releaseHold( int $order_id, string $reason, string $code, string $action, string $actor, bool $cancel_booking, bool $force_void = false ): bool {
+	private function releaseHold( int $order_id, string $reason, string $code, string $action, string $actor, bool $cancel_booking, bool $force_void = false, string $external_gateway = '', string $external_ref = '', bool $claim_inert = false ): bool {
 		// phpcs:enable Squiz.Commenting.FunctionCommentThrowTag.WrongNumber
 		// ---- Phase 1: under the lock, claim the void. ----
 		$lock        = $this->acquire( $order_id );
 		$charge      = null;
 		$gateway     = '';
 		$claim_lease = '';
+		// The capture claim this void took over while it was still live ('' = none): its own
+		// `updated_at`, to which a refused void restores it.
+		$capture_lease = '';
 		try {
 			$order = $this->orders->find( $order_id );
 			if ( null === $order || 'pending' !== (string) $order['payment_status'] ) {
 				return false;
 			}
+			if ( 'hold_expired' === $reason && ! PaymentState::deadlineApplies( $order, $this->bookings->find( $this->orders->bookingIdFor( $order_id ) )?->status ?? '' ) ) {
+				return false;
+			}
 			$gateway = (string) $order['gateway'];
+			if ( '' !== $external_ref ) {
+				$terminal = $this->transactions->findByGatewayRef( $external_gateway, $external_ref );
+				if ( $gateway !== $external_gateway || null === $terminal
+					|| (int) $terminal['order_id'] !== $order_id
+					|| TransactionRepository::STATUS_FAILED !== (string) $terminal['status']
+					|| null !== $this->transactions->pendingCharge( $order_id ) ) {
+					return false;
+				}
+			}
 
 			$in_flight = $this->transactions->pendingCharge( $order_id );
 
@@ -1110,22 +1831,31 @@ final class PaymentService {
 			// locks its UI for the length of a gateway attempt, so a customer meets this only in a real
 			// race. An EXPIRED claim is not live: it is the wreckage of a died request, and
 			// `claimForVoid()` takes it over below.
-			if ( is_array( $in_flight ) && $this->transactions->isCaptureClaimLive( $in_flight, $this->clock->now() ) ) {
+			//
+			// THE ONE EXCEPTION (2026-10-05): the customer cancels a placed order that is paid at the
+			// appointment. Its gateway states that nothing can be on the network, so the claim that
+			// placing the order left behind is taken over and the gateway's `void` decides.
+			$live = is_array( $in_flight ) && $this->transactions->isCaptureClaimLive( $in_flight, $this->clock->now() );
+			if ( $live && ! $claim_inert ) {
 				throw PaymentException::state();
 			}
 
-			if ( is_array( $in_flight ) && '' !== (string) $in_flight['gateway_ref'] && PaymentRegistry::isActive( $gateway ) ) {
+			// A disabled or unshipped driver cannot prove nonpayment (D-R40c). Still claim
+			// the referenced charge: dispatch then fails closed through the ordinary unresolved-void
+			// path, preserving the hold and escalation until recovery or an explicit admin override.
+			if ( is_array( $in_flight ) && '' !== (string) $in_flight['gateway_ref'] ) {
 				$this->assertLockIntact( $lock );
-				$claim_lease = $this->transactions->claimForVoid( (int) $in_flight['id'] );
+				$claim_lease = $this->transactions->claimForVoid( (int) $in_flight['id'], $live );
 				if ( '' === $claim_lease ) {
 					// Another tick owns the void right now; leave the hold to it.
 					return false;
 				}
 				$this->assertLockIntact( $lock );
-				$charge = $in_flight;
+				$charge        = $in_flight;
+				$capture_lease = $live ? (string) $in_flight['updated_at'] : '';
 			}
 		} finally {
-			$lock->release();
+			$this->events->release( $lock );
 		}
 
 		// ---- Phase 2: no lock held — the gateway calls. ----
@@ -1155,8 +1885,14 @@ final class PaymentService {
 				// ({@see self::noteUnresolvedVoid()}). The exception is an admin who has decided to
 				// cancel anyway, which is what `$force_void` is.
 				if ( ! $force_void ) {
-					$this->noteUnresolvedVoid( $order_id, $gateway );
-					$this->safeReleaseVoidClaim( (int) $charge['id'], $claim_lease );
+					// The narrow race of {@see self::holdDeadlineSuspended()}: the order became
+					// "being verified" between the scan and this void. Its refusal is then the
+					// expected answer, not an unresolved one, and nobody is to be mailed about it.
+					$current = 'hold_expired' === $reason ? $this->orders->find( $order_id ) : null;
+					if ( null === $current || ! $this->holdDeadlineSuspended( $current ) ) {
+						$this->noteUnresolvedVoid( $order_id, $gateway );
+					}
+					$this->handBackVoidClaim( (int) $charge['id'], $claim_lease, $capture_lease );
 
 					return false;
 				}
@@ -1171,7 +1907,7 @@ final class PaymentService {
 			if ( $void instanceof VoidResult && $void->isAlreadyPaid() ) {
 				$order   = $this->orders->find( $order_id );
 				$outcome = null === $order ? null : $this->dispatcher->capture(
-					new CaptureRequest( $gateway, (string) $charge['gateway_ref'], (int) $order['total_minor'], (string) $order['currency'], (string) $order['code'] ),
+					new CaptureRequest( $gateway, (string) $charge['gateway_ref'], OrderAmounts::payableNow( $order ), (string) $order['currency'], (string) $order['code'] ),
 					$this->context( (string) $charge['idempotency_key'], 'capture', false ),
 					$order_id
 				);
@@ -1183,7 +1919,7 @@ final class PaymentService {
 					// a booking somebody paid for, so NOTHING is resolved: the claim goes back and the
 					// next tick retries. Fail-closed, at the price of a slot held a little longer.
 					$this->anomaly( $gateway, $order_id, 'void_conflict' );
-					$this->safeReleaseVoidClaim( (int) $charge['id'], $claim_lease );
+					$this->handBackVoidClaim( (int) $charge['id'], $claim_lease, $capture_lease );
 
 					return false;
 				}
@@ -1191,16 +1927,38 @@ final class PaymentService {
 		}
 
 		// ---- Phase 3: under the lock again, apply the decision. ----
-		$lock = $this->acquire( $order_id );
+		// The booking whose cancellation mail was queued under the lock (0 = none). It is SENT only
+		// after the lock is released, below: a slow mail transport must not keep the per-order
+		// payment lock and time out a concurrent payment, reconciliation or cancellation
+		// (review 2026-10-05; AGENTS §4, side effects outside locks).
+		$flush_booking = 0;
+		$lock          = $this->acquire( $order_id );
 		try {
 			$order = $this->orders->find( $order_id );
 			if ( null === $order || 'pending' !== (string) $order['payment_status'] ) {
 				// Settled while we were on the network; nothing to release.
 				if ( is_array( $charge ) ) {
-					$this->safeReleaseVoidClaim( (int) $charge['id'], $claim_lease );
+					$this->handBackVoidClaim( (int) $charge['id'], $claim_lease, $capture_lease );
 				}
 
 				return false;
+			}
+
+			if ( null === $paid_outcome && 'hold_expired' === $reason && ! PaymentState::deadlineApplies( $order, $this->bookings->find( $this->orders->bookingIdFor( $order_id ) )?->status ?? '' ) ) {
+				if ( is_array( $charge ) ) {
+					$this->handBackVoidClaim( (int) $charge['id'], $claim_lease, $capture_lease );
+				}
+				return false;
+			}
+
+			if ( '' !== $external_ref ) {
+				$terminal = $this->transactions->findByGatewayRef( $external_gateway, $external_ref );
+				if ( (string) $order['gateway'] !== $external_gateway || null === $terminal
+					|| (int) $terminal['order_id'] !== $order_id
+					|| TransactionRepository::STATUS_FAILED !== (string) $terminal['status']
+					|| null !== $this->transactions->pendingCharge( $order_id ) ) {
+					return false;
+				}
 			}
 
 			if ( null !== $paid_outcome ) {
@@ -1212,7 +1970,7 @@ final class PaymentService {
 				$applied = $this->applyOutcome( $order_id, $gateway, $paid_outcome, is_array( $charge ) ? (int) $charge['id'] : 0, $lock );
 				if ( ! in_array( $applied, array( 'applied', 'duplicate' ), true ) && is_array( $charge ) ) {
 					$this->anomaly( $gateway, $order_id, 'void_conflict' );
-					$this->safeReleaseVoidClaim( (int) $charge['id'], $claim_lease );
+					$this->handBackVoidClaim( (int) $charge['id'], $claim_lease, $capture_lease );
 				}
 
 				return false;
@@ -1227,12 +1985,15 @@ final class PaymentService {
 			// it. And an admin who confirmed the booking WHILE the void was in flight has taken the
 			// appointment over deliberately: the honest answer there is to drop the hold and leave the
 			// booking confirmed, not to cancel an appointment somebody just accepted.
-			$admin_took_over = $cancel_booking
-				&& $booking instanceof Booking
-				&& 'pending' !== $booking->status;
+			$admin_took_over = $cancel_booking && $booking instanceof Booking
+				&& ( '' !== $external_ref
+					? ( ! in_array( $booking->status, array( 'pending', 'confirmed' ), true ) || $booking->start_utc <= $this->clock->now() )
+					: 'pending' !== $booking->status );
 
 			if ( $cancel_booking && ! $admin_took_over ) {
-				$this->cancelBooking( $booking_id, 'payment_hold_expired' );
+				if ( $this->cancelBooking( $booking_id, 'payment_hold_expired', '' !== $external_ref ) ) {
+					$flush_booking = $booking_id;
+				}
 
 				$fresh = $this->bookings->find( $booking_id );
 				if ( $fresh instanceof Booking && 'cancelled' !== $fresh->status ) {
@@ -1261,6 +2022,13 @@ final class PaymentService {
 
 					return false;
 				}
+				// An EXPIRED hold hands its coupon use back (D-R67d, founder 2026-09-23): the visitor
+				// never paid and the system cancelled the booking. Only this system expiry — not the
+				// customer's own cancel of a hold, not an admin confirm take-over — and inside the same
+				// transaction as the hold release, idempotent per order.
+				if ( 'payment_hold_expired' === $action && ! $admin_took_over ) {
+					( new CouponUsage( $this->wpdb, $this->clock ) )->releaseForOrder( $order_id );
+				}
 				$this->activities->log(
 					'booking',
 					$booking_id,
@@ -1277,10 +2045,33 @@ final class PaymentService {
 
 			return true;
 		} finally {
-			$lock->release();
+			$this->events->release( $lock );
+			// The cancellation itself is committed whatever happened to the hold after it, so its
+			// mail goes out on every exit — once, by its dispatch keys — with no lock held.
+			if ( $flush_booking > 0 ) {
+				$this->flushReleasedBooking( $flush_booking );
+			}
 		}
 	}
 
+	/**
+	 * Send the cancellation mail of a booking a hold release just cancelled. Call with NO lock held
+	 * and no transaction open.
+	 *
+	 * Never throws: the rows are committed in the outbox, so anything not sent now is picked up by
+	 * the notification cron, and a mail failure must not turn a completed release into an error.
+	 *
+	 * @param int $booking_id Booking id.
+	 */
+	private function flushReleasedBooking( int $booking_id ): void {
+		try {
+			$this->notifications->flushBooking( $booking_id );
+		} catch ( \Throwable $failure ) {
+			unset( $failure );
+		}
+	}
+
+	// phpcs:disable Squiz.Commenting.FunctionCommentThrowTag.WrongNumber -- PaymentLockTimeout is raised by releaseHold().
 	/**
 	 * Drop a live hold because an ADMIN confirmed the booking by hand (Codex C).
 	 *
@@ -1292,22 +2083,59 @@ final class PaymentService {
 	 *
 	 * @param int $booking_id Booking id.
 	 * @return bool Whether a hold was released.
-	 * @throws PaymentException   `aponto_payment_state` (409) when a capture is on the network for
-	 *                            this order (D-R40c) — the customer is paying for the very slot the
-	 *                            admin is confirming, and the two decisions must not interleave.
+	 * @throws PaymentException   `aponto_payment_state` (409) when a capture is on the network or
+	 *                            the void remains unresolved (D-R40c). Confirmation cannot override
+	 *                            uncertainty about a payment for this slot.
 	 * @throws PaymentLockTimeout When a per-order lock cannot be taken.
 	 */
 	public function releaseHoldForAdminConfirm( int $booking_id ): bool {
-		$order = $this->orders->findForBooking( $booking_id );
+		$order   = $this->orders->findForBooking( $booking_id );
+		$gateway = null === $order ? '' : (string) $order['gateway'];
+		// D-R71k: an external checkout can retain its unpaid obligation independently of
+		// appointment acceptance. Ask outside every lock; retain never records a receipt.
+		if ( null !== $order && 'pending' === (string) $order['payment_status'] && PaymentRegistry::isPaymentModule( $gateway ) ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Registry allow-list checked before building the gateway hook.
+			$handled = apply_filters( 'aponto_payment_admin_confirm_' . $gateway, null, $booking_id, (int) $order['id'] );
+			if ( $handled instanceof WP_Error ) {
+				throw PaymentException::state( esc_html( (string) $handled->get_error_message() ) );
+			}
+			if ( 'retain' === $handled ) {
+				if ( 1 > ( $this->bookings->find( $booking_id )?->customer_id ?? 0 ) ) {
+					throw PaymentException::state();
+				}
+				return false;
+			}
+			if ( true === $handled ) {
+				$fresh = $this->orders->find( (int) $order['id'] );
+				if ( null !== $fresh && 'pending' === (string) $fresh['payment_status'] ) {
+					throw PaymentException::state( esc_html__( 'The payment was recorded at checkout but has not settled yet. Try again in a moment.', 'aponto' ) );
+				}
+				return false;
+			}
+		}
+		if ( 1 > ( $this->bookings->find( $booking_id )?->customer_id ?? 0 ) ) {
+			throw PaymentException::state();
+		}
 		if ( null === $order || 'pending' !== (string) $order['payment_status'] ) {
 			return false;
 		}
 
 		// `cancel_booking = false`: the booking is being CONFIRMED, not cancelled. Everything else —
 		// the void, the claim, the order reset — is the ordinary release.
-		return $this->releaseHold( (int) $order['id'], 'admin_confirmed', 'admin_confirmed', 'hold_released_admin_confirmed', 'admin', false );
+		$released = $this->releaseHold( (int) $order['id'], 'admin_confirmed', 'admin_confirmed', 'hold_released_admin_confirmed', 'admin', false );
+		$fresh    = $this->orders->find( (int) $order['id'] );
+		// Unlike explicit admin cancellation, confirmation cannot override uncertain payment.
+		// A false release must not let the caller transition a still-pending financial hold.
+		if ( ! $released && null !== $fresh && 'pending' === (string) $fresh['payment_status'] ) {
+			throw PaymentException::state();
+		}
+
+		return $released;
 	}
 
+	// phpcs:enable Squiz.Commenting.FunctionCommentThrowTag.WrongNumber
+
+	// phpcs:disable Squiz.Commenting.FunctionCommentThrowTag.WrongNumber -- PaymentLockTimeout is raised by releaseHold().
 	/**
 	 * Drop a live hold because an ADMIN cancelled the booking by hand (D-R40c).
 	 *
@@ -1333,9 +2161,29 @@ final class PaymentService {
 		if ( null === $order || 'pending' !== (string) $order['payment_status'] ) {
 			return false;
 		}
+		// D-R71f: a checkout platform that owns payment (e.g. WooCommerce) resolves an admin
+		// cancellation by cancelling ITS order; its reconciliation then releases the hold through
+		// the ordinary terminal path. Asked outside every lock.
+		$gateway = (string) $order['gateway'];
+		if ( PaymentRegistry::isPaymentModule( $gateway ) ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Registry allow-list checked before building the gateway hook.
+			$handled = apply_filters( 'aponto_payment_admin_cancel_' . $gateway, null, $booking_id, (int) $order['id'] );
+			if ( $handled instanceof WP_Error ) {
+				throw PaymentException::state( esc_html( (string) $handled->get_error_message() ) );
+			}
+			if ( true === $handled ) {
+				$fresh = $this->orders->find( (int) $order['id'] );
+				if ( null !== $fresh && 'pending' === (string) $fresh['payment_status'] ) {
+					throw PaymentException::state( esc_html__( 'The checkout order was cancelled but the hold has not been released yet. Try again in a moment.', 'aponto' ) );
+				}
+				return true;
+			}
+		}
 
 		return $this->releaseHold( (int) $order['id'], 'admin_cancelled', 'cancelled', 'hold_released', 'admin', false, true );
 	}
+
+	// phpcs:enable Squiz.Commenting.FunctionCommentThrowTag.WrongNumber
 
 	/**
 	 * Run a caller's work under this order's payment lock (Codex C).
@@ -1349,16 +2197,18 @@ final class PaymentService {
 	 * @param int      $order_id Order id.
 	 * @param callable $work     `function (Lock $lock): mixed`.
 	 * @return mixed The callback's return value.
-	 * @throws PaymentLockTimeout When the per-order lock cannot be taken.
 	 */
 	public function withOrderLock( int $order_id, callable $work ) {
-		$lock = $this->acquire( $order_id );
-
-		try {
-			return $work( $lock );
-		} finally {
-			$lock->release();
-		}
+		return \Aponto\Booking\EventDispatcher::afterLocks(
+			function () use ( $order_id, $work ) {
+				$lock = $this->acquire( $order_id );
+				try {
+					return $work( $lock );
+				} finally {
+					$this->events->release( $lock );
+				}
+			}
+		);
 	}
 
 	/**
@@ -1380,6 +2230,18 @@ final class PaymentService {
 				$booking_id = $this->orders->bookingIdFor( $order_id );
 				$booking    = $booking_id > 0 ? $this->bookings->find( $booking_id ) : null;
 				if ( ! $booking instanceof Booking || 'pending' !== $booking->status ) {
+					continue;
+				}
+
+				// The reminder says "pay by the deadline or the slot is released". That is only true
+				// while the checkout deadline governs the booking. A gateway can answer, through
+				// `aponto_payment_state_{key}`, that the payment is being verified externally (an order
+				// placed on a checkout platform and waiting for the merchant): nothing is asked of the
+				// customer and no deadline applies, so no reminder is sent. It is a DEFINITIVE outcome
+				// and is marked like one, or the order would re-enter every batch (Codex #14).
+				$order = $this->orders->find( $order_id );
+				if ( null !== $order && ! PaymentState::describe( $order, $booking->status )['hold_deadline_applies'] ) {
+					$this->meta->setKey( $booking_id, OrderRepository::REMINDED_META_KEY, $this->clock->nowSql() );
 					continue;
 				}
 
@@ -1426,8 +2288,9 @@ final class PaymentService {
 	 * @throws PaymentException   When the state, the module or the driver refuses.
 	 * @throws PaymentLockTimeout When a per-order lock cannot be taken, or its connection identity
 	 *                            is lost mid-section (E1).
+	 * @param int|null $transaction_id Original online collection to refund.
 	 */
-	public function refund( int $booking_id, ?int $amount_minor, string $actor, string $reason = '' ): ?array {
+	public function refund( int $booking_id, ?int $amount_minor, string $actor, string $reason = '', ?int $transaction_id = null ): ?array {
 		// phpcs:enable Squiz.Commenting.FunctionCommentThrowTag.WrongNumber
 		$existing = $this->orders->findForBooking( $booking_id );
 		if ( null === $existing ) {
@@ -1451,27 +2314,33 @@ final class PaymentService {
 				return null;
 			}
 
-			$gateway = (string) $order['gateway'];
-			if ( ! PaymentRegistry::isActive( $gateway ) ) {
-				// D-R31 retention: the data stays readable, the ACTION needs the module.
-				throw PaymentException::unavailable();
-			}
-			if ( ! in_array( (string) $order['payment_status'], array( 'paid', 'partial' ), true ) ) {
+			if ( ! in_array( (string) $order['payment_status'], array( 'paid', 'partial' ), true ) || $this->transactions->hasPendingRefund( $order_id ) || null !== $this->transactions->pendingBalance( $order_id ) ) {
 				throw PaymentException::state();
 			}
-			if ( $this->transactions->hasPendingRefund( $order_id ) ) {
-				// A refund is already in flight; its amount is reserved and a second operator must
-				// wait rather than race it (Codex #7).
+			$charges = $this->refundableCharges( $order_id );
+			if ( null === $transaction_id && 1 !== count( $charges ) ) {
 				throw PaymentException::state();
 			}
-
-			$charge = $this->transactions->succeededCharge( $order_id );
+			$charge = null;
+			foreach ( $charges as $candidate ) {
+				if ( null === $transaction_id || $transaction_id === (int) $candidate['id'] ) {
+					$charge = $candidate;
+					break;
+				}
+			}
 			if ( null === $charge ) {
 				throw PaymentException::state();
 			}
+			$gateway = (string) $charge['gateway'];
+			if ( TransactionRepository::KIND_BALANCE === $charge['kind'] && ! $this->balanceConfigurationMatches( $charge ) ) {
+				throw PaymentException::unavailable();
+			}
+			if ( ! PaymentRegistry::isActive( $gateway ) ) {
+				throw PaymentException::unavailable();
+			}
 
 			$paid      = (int) $charge['amount_minor'];
-			$remaining = $paid - $this->transactions->refundedMinor( $order_id );
+			$remaining = $paid - $this->transactions->refundedForCharge( $order_id, (int) $charge['id'] );
 			$amount    = null === $amount_minor ? $remaining : $amount_minor;
 			if ( $remaining <= 0 || $amount < 1 || $amount > $remaining ) {
 				throw PaymentException::state();
@@ -1494,7 +2363,7 @@ final class PaymentService {
 			);
 			$this->assertLockIntact( $lock );
 		} finally {
-			$lock->release();
+			$this->events->release( $lock );
 		}
 
 		// ---- Phase 2: no lock held — the gateway call. ----
@@ -1583,7 +2452,7 @@ final class PaymentService {
 				'order'       => $this->orderSummary( $order_id ),
 			);
 		} finally {
-			$lock->release();
+			$this->events->release( $lock );
 		}
 	}
 
@@ -1650,11 +2519,11 @@ final class PaymentService {
 			if ( $attempts > TransactionRepository::MAX_REFUND_RECONCILES ) {
 				$give_up = true;
 			} else {
-				$charge = $this->transactions->succeededCharge( $order_id );
+				$charge = $this->transactions->find( (int) $current['parent_id'] );
 				$order  = $this->orders->find( $order_id );
 			}
 		} finally {
-			$lock->release();
+			$this->events->release( $lock );
 		}
 
 		if ( $give_up ) {
@@ -1722,15 +2591,18 @@ final class PaymentService {
 	 * @throws \Throwable Re-thrown after ROLLBACK when a durable write fails.
 	 */
 	private function settleRefund( int $order_id, string $gateway, int $booking_id, int $txn_id, string $ref, int $amount, string $actor, Lock $lock ): void {
-		$charge = $this->transactions->succeededCharge( $order_id );
-		$paid   = null === $charge ? 0 : (int) $charge['amount_minor'];
+		$refund = $this->transactions->find( $txn_id );
+		$charge = null === $refund ? null : $this->transactions->find( (int) $refund['parent_id'] );
 
 		$this->assertLockIntact( $lock );
 		$this->tx->begin();
 		try {
-			$this->transactions->markSucceeded( $txn_id, self::refundPaymentRef( $charge, $ref ), $ref );
-			$settled = $this->transactions->settledRefundMinor( $order_id );
-			$this->orders->markRefundStatus( $order_id, $settled >= $paid && $paid > 0 ? 'refunded' : 'partial' );
+			$won = $this->transactions->markRefundSucceeded( $txn_id, $ref, self::refundPaymentRef( $charge, $ref ) );
+			if ( $won < 1 ) {
+				$this->tx->rollback();
+				return;
+			}
+			$this->orders->markRefundStatus( $order_id, $this->settledStatusFor( $order_id ) );
 			$this->activities->log(
 				'booking',
 				$booking_id,
@@ -1767,11 +2639,17 @@ final class PaymentService {
 	 * @param Lock         $lock     The held per-order lock.
 	 * @return string `applied`, `duplicate`, `mismatch` or `skipped`.
 	 * @throws \Throwable Re-thrown after ROLLBACK when a durable write fails.
+	 * @throws PaymentException Retryable when the parent success callback has not arrived.
 	 */
 	private function applyRemoteRefund( int $order_id, string $gateway, WebhookEvent $event, Lock $lock ): string {
-		$charge = $this->transactions->succeededCharge( $order_id );
+		$charge = $this->eventCharge( $gateway, $event );
 		if ( null === $charge ) {
 			return 'skipped';
+		}
+		if ( TransactionRepository::STATUS_SUCCEEDED !== $charge['status'] ) {
+			// The gateway may deliver its refund before its charge success. Retry this event
+			// instead of acknowledging it permanently while the parent payment is unresolved.
+			throw PaymentException::driverFailed();
 		}
 
 		$order = $this->orders->find( $order_id );
@@ -1799,7 +2677,7 @@ final class PaymentService {
 		// the refunded total. An outstanding reservation of the SAME amount and currency on this order
 		// is that refund; the event settles it and stamps the reference it was missing.
 		if ( ! is_array( $existing ) ) {
-			$existing = $this->transactions->findPendingRefundMatching( $order_id, $event->amount_minor, $event->currency );
+			$existing = $this->transactions->findPendingRefundMatching( $order_id, $event->amount_minor, $event->currency, (int) $charge['id'] );
 		}
 
 		$paid       = (int) $charge['amount_minor'];
@@ -1817,7 +2695,7 @@ final class PaymentService {
 			// EVERY unsettled row, not only a `pending` one (D-R40e, verify B.1): since the settling
 			// compare-and-swap accepts a row this site had failed, that row has to pass the same
 			// agreement check as a reservation — it is being settled by exactly the same event.
-			if ( (int) $existing['amount_minor'] !== $event->amount_minor
+			if ( (int) $existing['parent_id'] !== (int) $charge['id'] || (string) $existing['gateway'] !== $gateway || (int) $existing['amount_minor'] !== $event->amount_minor
 				|| strtoupper( (string) $existing['currency'] ) !== $reported_currency ) {
 				$this->anomaly( $gateway, $order_id, 'refund_mismatch' );
 
@@ -1825,7 +2703,7 @@ final class PaymentService {
 			}
 		}
 
-		$already   = $this->transactions->settledRefundMinor( $order_id );
+		$already   = $this->transactions->refundedForCharge( $order_id, (int) $charge['id'], true );
 		$remaining = $paid - $already;
 		if ( $remaining < 1 ) {
 			return 'duplicate';
@@ -1884,8 +2762,7 @@ final class PaymentService {
 
 			$existing = array( 'id' => $txn_id );
 
-			$settled = $this->transactions->settledRefundMinor( $order_id );
-			$this->orders->markRefundStatus( $order_id, $settled >= $paid ? 'refunded' : 'partial' );
+			$this->orders->markRefundStatus( $order_id, $this->settledStatusFor( $order_id ) );
 			$this->activities->log(
 				'booking',
 				$booking_id,
@@ -2011,7 +2888,7 @@ final class PaymentService {
 		// changed nothing `applied` is both a transaction nobody needed and a ledger row that
 		// overstates what happened. The repair this method exists for (a crash between the refund row
 		// and the order write) still runs, because there the stored status and the derived one differ.
-		$target = $settled >= $paid ? 'refunded' : 'partial';
+		$target = $this->settledStatusFor( $order_id );
 		if ( $target === (string) $order['payment_status'] ) {
 			return 'duplicate';
 		}
@@ -2019,7 +2896,7 @@ final class PaymentService {
 		$this->assertLockIntact( $lock );
 		$this->tx->begin();
 		try {
-			$this->orders->markRefundStatus( $order_id, $settled >= $paid ? 'refunded' : 'partial' );
+			$this->orders->markRefundStatus( $order_id, $target );
 			$this->assertLockIntact( $lock );
 			$this->tx->commit();
 		} catch ( \Throwable $failure ) {
@@ -2200,6 +3077,7 @@ final class PaymentService {
 	 * @param int            $txn_id   Charge row to resolve (0 = look one up / create one).
 	 * @param Lock           $lock     The held per-order lock (identity re-verified around writes).
 	 * @return string `applied`, `duplicate`, `mismatch` or `skipped`.
+	 * @throws PaymentException When a paid provisional booking lacks customer identity.
 	 * @throws \Throwable Re-thrown after ROLLBACK when a durable write fails.
 	 */
 	private function applyOutcome( int $order_id, string $gateway, PaymentOutcome $outcome, int $txn_id, Lock $lock ): string {
@@ -2265,6 +3143,10 @@ final class PaymentService {
 			return 'skipped';
 		}
 
+		if ( 1 > ( $this->bookings->find( $this->orders->bookingIdFor( $order_id ) )?->customer_id ?? 0 ) ) {
+			throw PaymentException::state();
+		}
+
 		if ( in_array( (string) $order['payment_status'], array( 'paid', 'partial', 'refunded' ), true ) ) {
 			// RECOVERY (Codex M): a reclaimed event whose order is already paid but whose `created`
 			// mail never reached the outbox is the fingerprint of a worker that committed the payment
@@ -2282,7 +3164,7 @@ final class PaymentService {
 		// paid what they owed" and "something happened at the gateway". A driver whose first response
 		// omits the figures must fetch the authoritative object before answering (extension-surface
 		// §5b.2).
-		$expected_amount   = (int) $order['total_minor'];
+		$expected_amount   = OrderAmounts::payableNow( $order );
 		$expected_currency = strtoupper( (string) $order['currency'] );
 		$matches           = $outcome->amount_minor === $expected_amount
 			&& '' !== $outcome->currency
@@ -2339,7 +3221,8 @@ final class PaymentService {
 			// safely share this transaction.
 			$this->transactions->clearClientParams( $order_id );
 
-			if ( ! $this->orders->markPaid( $order_id, $gateway, $outcome->payment_ref ) ) {
+			// A deposit order settles as `partial` (D-R71 #4): the balance is still due on site.
+			if ( ! $this->orders->markPaid( $order_id, $gateway, $outcome->payment_ref, OrderAmounts::isDeposit( $order ) ? 'partial' : 'paid' ) ) {
 				$this->tx->rollback();
 
 				return 'duplicate';
@@ -2364,7 +3247,7 @@ final class PaymentService {
 			// staff copies always, and the customer's `received` copy when auto-confirm is OFF (with
 			// it on, the transition below queues `booking_confirmed_customer` in its own transaction).
 			if ( $is_live_hold && $booking instanceof Booking ) {
-				$this->notifications->queueDeferredCreated( $booking, ! $this->autoConfirms() );
+				$this->notifications->queueDeferredCreated( $booking, ! $this->autoConfirmsFor( $gateway, $booking_id ) );
 			}
 
 			$this->assertLockIntact( $lock );
@@ -2397,7 +3280,7 @@ final class PaymentService {
 			return;
 		}
 
-		if ( 'pending' === $booking->status && $this->autoConfirms() ) {
+		if ( 'pending' === $booking->status && $this->autoConfirmsFor( $gateway, $booking_id ) ) {
 			try {
 				// Queues `booking_confirmed_customer` inside its OWN transaction (V3 outbox); the
 				// admin/staff copies were already queued with the payment (Codex M).
@@ -2488,22 +3371,34 @@ final class PaymentService {
 	// -- Shared helpers --------------------------------------------------------------------------
 
 	/**
-	 * Cancel the booking behind a released hold, then flush its mail.
+	 * Cancel the booking behind a released hold. Its mail is QUEUED here, inside the transition's
+	 * own transaction, and never sent: this runs under the per-order payment lock, so the caller
+	 * flushes once that lock is released ({@see self::flushReleasedBooking()}, review 2026-10-05 —
+	 * the flush used to happen here, with the lock held for as long as the mail transport took).
+	 *
+	 * The policy is `send`, but WHO is mailed is the outbox's call (D-R72): a hold nobody was ever
+	 * told about — no `created` mail, no delivered payment reminder — is released silently, see
+	 * {@see NotificationDispatcher::queueStatusChanged()}.
 	 *
 	 * @param int    $booking_id Booking id.
 	 * @param string $reason     Machine reason recorded on the transition.
+	 * @param bool   $external Trusted terminal checkout; confirmed appointments may also be cancelled.
+	 * @return bool Whether this call cancelled the booking, so its outbox rows are to be flushed.
 	 */
-	private function cancelBooking( int $booking_id, string $reason ): void {
+	private function cancelBooking( int $booking_id, string $reason, bool $external = false ): bool {
 		$booking = $booking_id > 0 ? $this->bookings->find( $booking_id ) : null;
-		if ( ! $booking instanceof Booking || 'pending' !== $booking->status ) {
-			return;
+		if ( ! $booking instanceof Booking || ! in_array( $booking->status, $external ? array( 'pending', 'confirmed' ) : array( 'pending' ), true ) || ( $external && $booking->start_utc <= $this->clock->now() ) ) {
+			return false;
 		}
 
 		try {
 			$this->status->transition( $booking_id, 'cancelled', 'system', $reason, false, 'send' );
-			$this->notifications->flushBooking( $booking_id );
+
+			return true;
 		} catch ( DomainException $failure ) {
 			unset( $failure ); // Already moved by a concurrent actor.
+
+			return false;
 		}
 	}
 
@@ -2519,6 +3414,7 @@ final class PaymentService {
 			throw new PaymentLockTimeout();
 		}
 
+		$this->events->acquired( $order_id, $lock );
 		return $lock;
 	}
 
@@ -2594,6 +3490,10 @@ final class PaymentService {
 			return 0;
 		}
 
+		if ( null === $this->eventCharge( $gateway, $event ) ) {
+			return 0;
+		}
+
 		$row      = reset( $candidates );
 		$order_id = (int) $row['order_id'];
 		$order    = $this->orders->find( $order_id );
@@ -2631,6 +3531,7 @@ final class PaymentService {
 			'order_code'     => null === $order ? '' : (string) $order['code'],
 			'payment_status' => null === $order ? 'none' : (string) $order['payment_status'],
 			'booking_status' => $booking instanceof Booking ? $booking->status : '',
+			'order'          => null === $order ? null : $this->orderSummary( $order_id ),
 			'expires_at'     => null === $order ? null : $this->iso( $this->holdExpiry( $order ) ),
 		);
 
@@ -2664,6 +3565,150 @@ final class PaymentService {
 	}
 
 	/**
+	 * Record the balance of a deposit order as paid on site (D-R71 #3, rest-contract §10.5).
+	 *
+	 * No gateway is involved: under the per-order lock the preconditions are re-read, one `onsite`
+	 * ledger row is written for exactly the balance due, the order moves to `paid` and the booking
+	 * activity names the operator — all in one transaction. Edition-neutral core: a Free site still
+	 * closes historical deposit orders after a downgrade.
+	 *
+	 * @param int    $booking_id Booking id.
+	 * @param string $actor      Activity actor (`admin:{user_id}`).
+	 * @return array<string, mixed> The fresh order row.
+	 * @throws PaymentException   `aponto_payment_state` when a precondition fails.
+	 * @throws \Throwable         Re-thrown after ROLLBACK when a durable write fails.
+	 */
+	public function recordOnsiteBalance( int $booking_id, string $actor ): array {
+		$order = $this->orders->findForBooking( $booking_id );
+		if ( null === $order ) {
+			throw PaymentException::state();
+		}
+		$order_id = (int) $order['id'];
+		$lock     = $this->acquire( $order_id );
+		try {
+			$order = $this->orders->find( $order_id );
+			if ( null === $order ) {
+				throw PaymentException::state();
+			}
+			$ledger  = $this->transactions->ledgerTotals( $order_id );
+			$balance = OrderAmounts::balanceDue( $order, $ledger );
+			if ( ! OrderAmounts::isDeposit( $order )
+				|| 'partial' !== (string) $order['payment_status']
+				|| $balance < 1
+				|| $this->transactions->hasPendingRefund( $order_id )
+				|| null !== $this->transactions->pendingBalance( $order_id )
+				|| null !== $this->transactions->succeededOnsite( $order_id )
+			) {
+				throw PaymentException::state( esc_html__( 'There is no balance to record for this booking.', 'aponto' ) );
+			}
+
+			$this->assertLockIntact( $lock );
+			$this->tx->beginReadCommitted();
+			try {
+				$sequence = $this->transactions->nextSequence( $order_id, TransactionRepository::KIND_ONSITE );
+				$txn_id   = $this->transactions->insertOnsite( $order_id, $booking_id, $balance, (string) $order['currency'], 'onsite:' . $order_id . ':' . $sequence );
+				$this->orders->markRefundStatus( $order_id, $this->settledStatusFor( $order_id ) );
+				$this->activities->log(
+					'booking',
+					$booking_id,
+					'balance_recorded_onsite',
+					array(
+						'order_id'       => $order_id,
+						'transaction_id' => $txn_id,
+						'amount'         => $balance,
+					),
+					$actor
+				);
+				$this->assertLockIntact( $lock );
+				$this->tx->commit();
+			} catch ( \Throwable $failure ) {
+				$this->tx->rollback();
+				throw $failure;
+			}
+
+			return $this->orders->find( $order_id ) ?? $order;
+		} finally {
+			$this->events->release( $lock );
+		}
+	}
+
+	/**
+	 * Reverse an on-site balance record (D-R71 #3) while no refund was created after it.
+	 *
+	 * @param int    $booking_id Booking id.
+	 * @param string $actor      Activity actor.
+	 * @return array<string, mixed> The fresh order row.
+	 * @throws PaymentException   `aponto_payment_state` when nothing can be reversed.
+	 * @throws \Throwable         Re-thrown after ROLLBACK when a durable write fails.
+	 */
+	public function reverseOnsiteBalance( int $booking_id, string $actor ): array {
+		$order = $this->orders->findForBooking( $booking_id );
+		if ( null === $order ) {
+			throw PaymentException::state();
+		}
+		$order_id = (int) $order['id'];
+		$lock     = $this->acquire( $order_id );
+		try {
+			$record = $this->transactions->succeededOnsite( $order_id );
+			if ( null !== $this->transactions->pendingBalance( $order_id ) || null === $record || $this->transactions->hasRefundAfter( $order_id, (int) $record['id'] ) ) {
+				throw PaymentException::state( esc_html__( 'This balance record can no longer be reversed.', 'aponto' ) );
+			}
+
+			$this->assertLockIntact( $lock );
+			$this->tx->beginReadCommitted();
+			try {
+				if ( ! $this->transactions->markOnsiteReversed( (int) $record['id'] ) ) {
+					throw PaymentException::state();
+				}
+				$this->orders->markRefundStatus( $order_id, $this->settledStatusFor( $order_id ) );
+				$this->activities->log(
+					'booking',
+					$booking_id,
+					'balance_record_reversed',
+					array(
+						'order_id'       => $order_id,
+						'transaction_id' => (int) $record['id'],
+						'amount'         => (int) $record['amount_minor'],
+					),
+					$actor
+				);
+				$this->assertLockIntact( $lock );
+				$this->tx->commit();
+			} catch ( \Throwable $failure ) {
+				$this->tx->rollback();
+				throw $failure;
+			}
+
+			return $this->orders->find( $order_id ) ?? array();
+		} finally {
+			$this->events->release( $lock );
+		}
+	}
+
+	/**
+	 * The stored payment status the settled ledger implies (D-R71): `paid` when net collected covers
+	 * the total, `refunded` when nothing is left, `partial` otherwise. Counts money recorded on site,
+	 * so refunding a deposit after the balance was recorded never reads as fully refunded.
+	 *
+	 * @param int $order_id Order id.
+	 */
+	private function settledStatusFor( int $order_id ): string {
+		return OrderAmounts::settledStatus( $this->orders->find( $order_id ) ?? array(), $this->transactions->ledgerTotals( $order_id ) );
+	}
+
+	/**
+	 * The derived money facts of an order for every DTO (D-R71, rest-contract §10.2).
+	 *
+	 * @param array<string, mixed> $order Order row.
+	 * @return array{payable_now_minor: int, net_collected_minor: int, balance_due_minor: int, payment_state_reason: string}
+	 */
+	public function orderReadModel( array $order ): array {
+		$order_id = (int) ( $order['id'] ?? 0 );
+
+		return OrderAmounts::readModel( $order, $order_id > 0 ? $this->transactions->ledgerTotals( $order_id ) : array() );
+	}
+
+	/**
 	 * A compact order summary for the refund response.
 	 *
 	 * @param int $order_id Order id.
@@ -2676,12 +3721,13 @@ final class PaymentService {
 		}
 
 		return array(
-			'id'             => (int) $order['id'],
-			'payment_status' => (string) $order['payment_status'],
-			'total_minor'    => (int) $order['total_minor'],
-			'currency'       => (string) $order['currency'],
-			'refunded_minor' => $this->transactions->settledRefundMinor( $order_id ),
-		);
+			'id'                => (int) $order['id'],
+			'payment_status'    => (string) $order['payment_status'],
+			'total_minor'       => (int) $order['total_minor'],
+			'currency'          => (string) $order['currency'],
+			'currency_exponent' => Settings::currencyExponent( (string) $order['currency'] ),
+			'refunded_minor'    => $this->transactions->settledRefundMinor( $order_id ),
+		) + $this->orderReadModel( $order );
 	}
 
 	/**
@@ -2909,7 +3955,7 @@ final class PaymentService {
 	 */
 	private function safeFail( int $txn_id, string $code, bool $retryable = false ): void {
 		try {
-			$this->transactions->markFailed( $txn_id, $code, $retryable );
+			$this->events->failed( $txn_id, $this->transactions->markFailed( $txn_id, $code, $retryable ) );
 		} catch ( StorageException $failure ) {
 			unset( $failure );
 		}
@@ -2929,11 +3975,11 @@ final class PaymentService {
 	private function safeFailFenced( int $txn_id, string $code, string $lease ): void {
 		try {
 			if ( '' === $lease ) {
-				$this->transactions->markFailed( $txn_id, $code );
+				$this->events->failed( $txn_id, $this->transactions->markFailed( $txn_id, $code ) );
 
 				return;
 			}
-			$this->transactions->markFailedIfUnchanged( $txn_id, $code, $lease );
+			$this->events->failed( $txn_id, $this->transactions->markFailedIfUnchanged( $txn_id, $code, $lease ) );
 		} catch ( StorageException $failure ) {
 			unset( $failure );
 		}
@@ -2950,6 +3996,27 @@ final class PaymentService {
 			$this->transactions->releaseVoidClaim( $txn_id, $lease );
 		} catch ( StorageException $failure ) {
 			unset( $failure ); // The lease expires on its own; the next tick reclaims it.
+		}
+	}
+
+	/**
+	 * Hand a void claim back: as `pending`, or — when it took over a live capture claim — as that
+	 * capture claim, unchanged ({@see TransactionRepository::restoreCaptureClaim()}).
+	 *
+	 * @param int    $txn_id        Transaction id.
+	 * @param string $lease         The `updated_at` of the void claim this caller took.
+	 * @param string $capture_lease The taken-over capture claim's `updated_at`, '' when there was none.
+	 */
+	private function handBackVoidClaim( int $txn_id, string $lease, string $capture_lease ): void {
+		if ( '' === $capture_lease ) {
+			$this->safeReleaseVoidClaim( $txn_id, $lease );
+
+			return;
+		}
+		try {
+			$this->transactions->restoreCaptureClaim( $txn_id, $lease, $capture_lease );
+		} catch ( StorageException $failure ) {
+			unset( $failure ); // The void lease expires on its own; the next tick reclaims it.
 		}
 	}
 

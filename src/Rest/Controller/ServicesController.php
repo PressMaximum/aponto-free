@@ -15,7 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	}
 }
 
+use Aponto\Booking\Repository\ConnectionRepository;
 use Aponto\Booking\StaffLockFactory;
+use Aponto\Database\LockFactory;
+use Aponto\Database\StorageException;
 use Aponto\Database\TransactionGuard;
 use Aponto\Rest\Args;
 use Aponto\Rest\Controller;
@@ -51,12 +54,26 @@ final class ServicesController implements Controller {
 	private \wpdb $wpdb;
 
 	/**
+	 * Clock (the double-submit window of {@see self::create()} — persona QA 2026-10-05, T-066).
+	 *
+	 * @var \Aponto\Support\Clock
+	 */
+	private \Aponto\Support\Clock $clock;
+
+	/**
+	 * Seconds within which a second, field-for-field identical `POST /services` is answered with
+	 * the service the first one created instead of creating a twin.
+	 */
+	private const DOUBLE_SUBMIT_WINDOW = 10;
+
+	/**
 	 * Construct the controller.
 	 *
 	 * @param Services $services Service locator.
 	 */
 	public function __construct( Services $services ) {
 		$this->wpdb    = $services->wpdb();
+		$this->clock   = $services->clock();
 		$this->gateway = new ServiceGateway( $services->wpdb(), $services->clock() );
 	}
 
@@ -155,7 +172,11 @@ final class ServicesController implements Controller {
 		$ids           = array_map( static fn ( array $row ): int => (int) $row['id'], $items );
 		$counts        = $this->gateway->staffCountsFor( $ids );
 		$booking_count = $this->gateway->bookingCountsFor( $ids );
+		$active_counts = $this->gateway->activeStaffCountsFor( $ids );
 		foreach ( $items as $index => $item ) {
+			// Additive (persona QA 2026-10-05): distinct ACTIVE eligible staff. 0 on an active
+			// service = customers cannot see it (the public catalogue's own rule, T-073).
+			$items[ $index ]['active_staff_count'] = $active_counts[ (int) $item['id'] ] ?? 0;
 			// Additive list-column extensions: distinct eligible staff count (B4b) and booking
 			// count (C1 — the UI shows a permanent Delete only when this is 0; otherwise Archive).
 			$items[ $index ]['staff_count']   = $counts[ (int) $item['id'] ] ?? 0;
@@ -177,13 +198,110 @@ final class ServicesController implements Controller {
 			return $data;
 		}
 
-		$id  = $this->gateway->create( $data );
+		// A double submit creates ONE service (persona QA 2026-10-05, T-066). A service has no
+		// natural key — two services may legitimately share a name — so the server cannot refuse a
+		// twin outright. What it can recognise is the double tap: a second POST whose every field
+		// equals a service created in the last few seconds answers `200` with THAT service and
+		// creates nothing. The look-up and the insert share one per-site lock, or two concurrent
+		// POSTs would both miss and both insert. The editor also blocks the second click; this is
+		// the half that still holds when two requests are already on the wire.
+		$guard = new TransactionGuard( $this->wpdb );
+		$lock  = ( new LockFactory( $this->wpdb ) )->named( 'apt:' . substr( hash( 'sha256', $this->wpdb->prefix . '|service-create' ), 0, 48 ) );
+		if ( ! $lock->acquire( 3 ) ) {
+			return Errors::lockTimeout();
+		}
+
+		$created = true;
+		try {
+			$id = $this->recentTwinId( $data );
+			if ( $id > 0 ) {
+				$created = false;
+			} else {
+				// E1 pre-write: a reconnect since acquire() silently dropped the lock.
+				if ( null === $lock->connectionId() || $lock->connectionId() !== $guard->currentConnectionId() ) {
+					return Errors::lockTimeout();
+				}
+				$id = $this->gateway->create( $data );
+			}
+		} finally {
+			if ( null !== $lock->connectionId() && $lock->connectionId() === $guard->currentConnectionId() ) {
+				$lock->release();
+			}
+		}
+
 		$row = $this->gateway->find( $id );
 		if ( null === $row ) {
 			return Errors::notFound();
 		}
 
+		if ( ! $created ) {
+			// The first request already announced this service; a replay is not a second creation.
+			return new WP_REST_Response( $this->toDto( $row ), 200 );
+		}
+
+		try {
+			/**
+			 * Fires after a service is created and business locks are released (extension-surface §2).
+			 *
+			 * @param array<string, mixed> $row Persisted domain row.
+			 */
+			do_action( 'aponto_service_creation_committed', $row );
+		} catch ( \Throwable $listener_failure ) {
+			unset( $listener_failure ); // Post-commit extensions cannot invalidate the saved operation.
+		}
+
 		return new WP_REST_Response( $this->toDto( $row ), 201 );
+	}
+
+	/**
+	 * The id of a service created within {@see self::DOUBLE_SUBMIT_WINDOW} seconds whose every
+	 * submitted column equals `$data`, or 0.
+	 *
+	 * The candidates are narrowed in SQL on the two columns that are never null and compared
+	 * column by column in PHP, which keeps the statement portable (no null-safe operator) and makes
+	 * "identical" mean every field the request carried — a different price or category is a
+	 * different service, however quickly it follows.
+	 *
+	 * @param array<string, mixed> $data Validated column data of the incoming create.
+	 */
+	private function recentTwinId( array $data ): int {
+		$table = $this->wpdb->prefix . 'aponto_services';
+		$since = $this->clock->now()->setTimezone( new \DateTimeZone( 'UTC' ) )->modify( '-' . self::DOUBLE_SUBMIT_WINDOW . ' seconds' )->format( 'Y-m-d H:i:s' );
+		$sql   = "SELECT id FROM {$table} WHERE name = %s AND duration_minutes = %d AND created_at >= %s ORDER BY id DESC LIMIT 5";
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		$ids = $this->wpdb->get_col( $this->wpdb->prepare( $sql, (string) ( $data['name'] ?? '' ), (int) ( $data['duration_minutes'] ?? 0 ), $since ) );
+
+		foreach ( is_array( $ids ) ? $ids : array() as $candidate ) {
+			$row = $this->gateway->find( (int) $candidate );
+			if ( null !== $row && self::sameColumns( $data, $row ) ) {
+				return (int) $candidate;
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Whether a stored row holds exactly the submitted values (null stays distinct from 0 and '').
+	 *
+	 * @param array<string, mixed> $data Submitted column data.
+	 * @param array<string, mixed> $row  Stored row.
+	 */
+	private static function sameColumns( array $data, array $row ): bool {
+		foreach ( $data as $column => $value ) {
+			if ( ! array_key_exists( $column, $row ) ) {
+				continue;
+			}
+			$stored = $row[ $column ];
+			if ( ( null === $value ) !== ( null === $stored ) ) {
+				return false;
+			}
+			if ( null !== $value && (string) $value !== (string) $stored ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -208,8 +326,9 @@ final class ServicesController implements Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function update( WP_REST_Request $request ) {
-		$id = (int) $request->get_param( 'id' );
-		if ( null === $this->gateway->find( $id ) ) {
+		$id     = (int) $request->get_param( 'id' );
+		$before = $this->gateway->find( $id );
+		if ( null === $before ) {
 			return Errors::notFound();
 		}
 
@@ -235,6 +354,20 @@ final class ServicesController implements Controller {
 		$row = $this->gateway->find( $id );
 		if ( null === $row ) {
 			return Errors::notFound();
+		}
+
+		if ( $before !== $row ) {
+			try {
+				/**
+				 * Fires after a service is updated and business locks are released (extension-surface §2).
+				 *
+				 * @param array<string, mixed> $row Persisted domain row.
+				 * @param array<string, mixed> $before Previous domain row.
+				 */
+				do_action( 'aponto_service_updated', $row, $before );
+			} catch ( \Throwable $listener_failure ) {
+				unset( $listener_failure ); // Post-commit extensions cannot invalidate the saved operation.
+			}
 		}
 
 		return new WP_REST_Response( $this->toDto( $row ), 200 );
@@ -345,6 +478,17 @@ final class ServicesController implements Controller {
 			}
 		}
 
+		try {
+			/**
+			 * Fires after a service is deleted and business locks are released (extension-surface §2).
+			 *
+			 * @param array<string, mixed> $row Deleted row pre-image.
+			 */
+			do_action( 'aponto_service_deleted', $row );
+		} catch ( \Throwable $listener_failure ) {
+			unset( $listener_failure ); // Post-commit extensions cannot invalidate the saved operation.
+		}
+
 		return new WP_REST_Response(
 			array(
 				'deleted' => true,
@@ -374,6 +518,47 @@ final class ServicesController implements Controller {
 		$new_row   = $this->gateway->find( $new_id );
 		if ( null === $new_row ) {
 			return Errors::notFound();
+		}
+
+		// The copy keeps the source's staff × location assignments (persona QA 2026-10-05, T-075).
+		// With `multi_staff` there is no auto-link, so a duplicate used to come back with NOBODY
+		// assigned: activating it produced a service nobody could book, and re-ticking every member
+		// and branch by hand is exactly the work "Duplicate" exists to save. The copy is a draft
+		// with no bookings, so no reservation can race this write and the per-service lock the
+		// eligibility PUT takes is not needed. A source with no assignments leaves whatever the
+		// create hook seeded (the Free single-staff auto-link) untouched. Best-effort: the copy
+		// already exists, and a failed assignment copy is repaired in its editor.
+		$connections = new ConnectionRepository( $this->wpdb );
+		$assignments = $connections->eligibilityForService( $id );
+		if ( array() !== $assignments ) {
+			try {
+				$connections->replaceForService( $new_id, $assignments );
+			} catch ( StorageException $failure ) {
+				unset( $failure );
+			}
+		}
+
+		try {
+			/**
+			 * Fires after a service is created and business locks are released (extension-surface §2).
+			 *
+			 * @param array<string, mixed> $row Persisted domain row.
+			 */
+			do_action( 'aponto_service_creation_committed', $new_row );
+		} catch ( \Throwable $listener_failure ) {
+			unset( $listener_failure ); // Post-commit extensions cannot invalidate the saved operation.
+		}
+
+		try {
+			/**
+			 * Copy module-owned metadata after the new service has been persisted.
+			 *
+			 * @param int $new_id New service id.
+			 * @param int $id Source service id.
+			 */
+			do_action( 'aponto_service_duplicated', $new_id, $id );
+		} catch ( \Throwable $listener_failure ) {
+			unset( $listener_failure ); // Independent of creation listeners and the committed result.
 		}
 
 		return new WP_REST_Response( $this->toDto( $new_row ), 201 );
@@ -411,8 +596,10 @@ final class ServicesController implements Controller {
 			return Errors::lockTimeout();
 		}
 
+		$transaction_open = false;
 		try {
-			$existing = $this->gateway->allIds();
+			$previous = $this->gateway->allIds();
+			$existing = $previous;
 			sort( $existing );
 			$sorted = $ids;
 			sort( $sorted );
@@ -425,20 +612,40 @@ final class ServicesController implements Controller {
 				return Errors::lockTimeout();
 			}
 
-			$this->gateway->reorder( $ids );
+			$guard->beginReadCommitted();
+			$transaction_open = true;
+			if ( ! $this->gateway->reorder( $ids ) ) {
+				return Errors::internal();
+			}
 
-			// E1 post-write: a reconnect mid-loop replayed UPDATEs without the lock — positions may
-			// be mixed but remain repairable by a retry, which rewrites the full permutation under a
-			// fresh lock. Report the retryable loss instead of claiming success.
+			// A lost session cannot report or emit a successful reorder.
 			if ( null === $lock->connectionId() || $lock->connectionId() !== $guard->currentConnectionId() ) {
 				return Errors::lockTimeout();
 			}
+			$guard->commit();
+			$transaction_open = false;
+			if ( $lock->connectionId() !== $guard->currentConnectionId() ) {
+				return Errors::lockTimeout();
+			}
+		} catch ( \Aponto\Database\StorageException $failure ) {
+			unset( $failure );
+			return Errors::internal();
 		} finally {
+			if ( $transaction_open ) {
+				$guard->rollback();
+			}
 			if ( null !== $lock->connectionId() && $lock->connectionId() === $guard->currentConnectionId() ) {
 				$lock->release();
 			}
 		}
 
+		if ( $previous !== $ids ) {
+			try {
+				do_action( 'aponto_service_reordered', array( 'ids' => $ids ), array( 'ids' => $previous ) );
+			} catch ( \Throwable $listener_failure ) {
+				unset( $listener_failure ); // Keep the committed reorder successful.
+			}
+		}
 		return new WP_REST_Response( array( 'ids' => $ids ), 200 );
 	}
 

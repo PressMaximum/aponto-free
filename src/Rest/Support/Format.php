@@ -78,6 +78,40 @@ final class Format {
 	}
 
 	/**
+	 * Integer minor units → money a PERSON reads, with the currency symbol in the site locale
+	 * ("£60.00", "70,36 €"), or null when ext-intl is not available.
+	 *
+	 * The one PHP formatter for customer-facing prose — the manage page and the cancellation note
+	 * in a mail (persona QA 2026-10-05, re-test R7: the note read "60.00 GBP" beside a page that
+	 * said "£60.00"). It matches the booking form's and the admin's `Intl.NumberFormat` output.
+	 * The digit count is pinned to the single exponent source
+	 * ({@see \Aponto\Support\Settings::currencyExponent()}) rather than left to CLDR, which
+	 * disagrees with ISO-4217 on a handful of currencies. Null lets each caller keep its own
+	 * fallback; the placeholders `{amount_paid}` / `{amount_due}` / `{refund_amount}` deliberately
+	 * stay locale-neutral ("60.00 GBP") and do not use this.
+	 *
+	 * @param int    $minor    Amount in minor units.
+	 * @param string $currency ISO currency code.
+	 */
+	public static function moneyDisplay( int $minor, string $currency ): ?string {
+		if ( '' === $currency || ! class_exists( '\NumberFormatter' ) ) {
+			return null;
+		}
+		$decimals = \Aponto\Support\Settings::currencyExponent( $currency );
+		try {
+			$formatter = new \NumberFormatter( function_exists( 'get_locale' ) ? get_locale() : 'en_US', \NumberFormatter::CURRENCY );
+			$formatter->setAttribute( \NumberFormatter::FRACTION_DIGITS, $decimals );
+			$formatted = $formatter->formatCurrency( $minor / ( 10 ** $decimals ), strtoupper( $currency ) );
+		} catch ( \Throwable $unsupported ) {
+			unset( $unsupported );
+
+			return null;
+		}
+
+		return is_string( $formatted ) && '' !== $formatted ? $formatted : null;
+	}
+
+	/**
 	 * Build the standard list envelope (rest-contract §1).
 	 *
 	 * @param list<array<string, mixed>> $items    Serialized items.

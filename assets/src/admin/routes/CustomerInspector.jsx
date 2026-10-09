@@ -3,8 +3,9 @@
  * with three modes: read-only Detail first (history + aggregates strip) → footer
  * "Edit customer"; Edit form; and Create directly. Sections Contact + Preferences.
  *
- * - name* + a valid email are required; a duplicate normalised email is rejected
- *   inline from the API's 422 (`data.fields.email`, SPEC-P0 §4.5).
+ * - First name* + last name* (name split, 2026-10-01) + a valid email are required; the API's
+ *   422 keys `first_name` / `last_name` / `email` land inline (a duplicate normalised email is
+ *   `data.fields.email`, SPEC-P0 §4.5).
  * - Internal notes are staff-only (never enter the booking form / notifications).
  * - Timezone is DERIVE read-only from the latest booking (Q4 — no editable field);
  *   a warning shows when it differs from the business timezone.
@@ -15,9 +16,14 @@ import { api } from '../lib/api.js';
 import { config } from '../lib/config.js';
 import { longDate, tzLabel } from '../lib/format.js';
 import { renderIcon } from '../lib/icon.jsx';
+import { fieldClass, fieldAria, FieldErrors } from '../lib/field-error.jsx';
+import { displayName, normalizePart, initials } from '../../shared/person-name.js';
 import { useToast } from '../lib/toast.jsx';
 
 const TZ = config.business.timezone;
+
+/** The `POST`/`PUT /customers` 422 keys this editor renders inline. */
+const FIELD_KEYS = [ 'first_name', 'last_name', 'email', 'phone' ];
 
 function AggregatesStrip( { row } ) {
 	const last = row.lastBooking ? longDate( row.lastBooking ) : '—';
@@ -39,7 +45,8 @@ export function CustomerInspector( { mode: initialMode, row = null, onClose, onS
 	const [ mode, setMode ] = useState( initialMode ); // 'detail' | 'edit' | 'create'
 	const [ saving, setSaving ] = useState( false );
 	const [ form, setForm ] = useState( () => ( {
-		name: row?.name || '',
+		first_name: row?.firstName || '',
+		last_name: row?.lastName || '',
 		email: row?.email || '',
 		phone: row?.phone || '',
 		note: row?.note || '',
@@ -52,12 +59,21 @@ export function CustomerInspector( { mode: initialMode, row = null, onClose, onS
 
 	const set = ( key ) => ( e ) => setForm( ( f ) => ( { ...f, [ key ]: e.target.value } ) );
 
+	// D-R77: a customer the front desk booked WITHOUT an email (or a last name) can be saved without
+	// one — the server allows a part that is not stored to stay absent, and never lets a stored one
+	// be removed. A new customer still needs all three.
+	const lastNameOptional = ! creating && ! row?.lastName;
+	const emailOptional = ! creating && ! row?.email;
+
 	const save = async () => {
 		const errors = {};
-		if ( ! form.name.trim() ) {
-			errors.name = 'A name is required.';
+		if ( ! normalizePart( form.first_name ) ) {
+			errors.first_name = 'A first name is required.';
 		}
-		if ( ! /.+@.+\..+/.test( form.email.trim() ) ) {
+		if ( ! normalizePart( form.last_name ) && ! lastNameOptional ) {
+			errors.last_name = 'A last name is required.';
+		}
+		if ( ! /.+@.+\..+/.test( form.email.trim() ) && ! ( emailOptional && ! form.email.trim() ) ) {
 			errors.email = 'A valid email is required.';
 		}
 		if ( Object.keys( errors ).length ) {
@@ -68,24 +84,30 @@ export function CustomerInspector( { mode: initialMode, row = null, onClose, onS
 		setFieldError( {} );
 		try {
 			const body = {
-				name: form.name.trim(),
+				first_name: normalizePart( form.first_name ),
+				last_name: normalizePart( form.last_name ),
 				email: form.email.trim(),
 				phone: form.phone.trim(),
 				note: form.note,
 			};
 			if ( creating ) {
 				await api.post( '/customers', body );
-				showToast( `${ body.name } added.` );
+				showToast( `${ displayName( body.first_name, body.last_name ) } added.`, 'success' );
 			} else {
 				await api.put( `/customers/${ row.id }`, { ...body, wp_user_id: row.wpUserId ?? null } );
-				showToast( 'Customer updated.' );
+				showToast( 'Customer updated.', 'success' );
 			}
 			onSaved?.();
 			onClose?.();
 		} catch ( err ) {
-			const emailError = err.data?.fields?.email;
-			if ( emailError ) {
-				setFieldError( { email: emailError } );
+			const inline = {};
+			for ( const key of FIELD_KEYS ) {
+				if ( err.data?.fields?.[ key ] ) {
+					inline[ key ] = err.data.fields[ key ];
+				}
+			}
+			if ( Object.keys( inline ).length ) {
+				setFieldError( inline );
 			} else {
 				showToast( err.message, 'danger' );
 			}
@@ -109,7 +131,7 @@ export function CustomerInspector( { mode: initialMode, row = null, onClose, onS
 				{ header }
 				<div className="pd-booking-inspector-body">
 					<div className="ap-inspector-identity">
-						<span className="pmdk-avatar is-large" aria-hidden="true">{ ( row.name || '?' ).trim().charAt( 0 ).toUpperCase() }</span>
+						<span className="pmdk-avatar is-large" aria-hidden="true">{ initials( row.firstName, row.lastName ) || initials( row.name, '' ) || '?' }</span>
 						<div><strong>{ row.name }</strong><span className="pd-ltr">{ row.email || 'No email' }</span></div>
 					</div>
 					<AggregatesStrip row={ row } />
@@ -141,20 +163,29 @@ export function CustomerInspector( { mode: initialMode, row = null, onClose, onS
 			<form className="pd-booking-inspector-body pd-compact-editor" autoComplete="off" onSubmit={ ( e ) => e.preventDefault() }>
 				<section className="pd-editor-section">
 					<div className="pd-editor-section-head"><h3>Contact</h3></div>
-					<label className={ `pd-compact-field${ fieldError.name ? ' has-error' : '' }` }>
-						<input name="name" value={ form.name } placeholder=" " required onChange={ set( 'name' ) } />
-						<span className="pd-compact-label">Full name</span>
-					</label>
-					{ fieldError.name ? <p className="ap-field-error">{ fieldError.name }</p> : null }
-					<label className={ `pd-compact-field${ fieldError.email ? ' has-error' : '' }` }>
-						<input className="pd-ltr" type="email" name="email" value={ form.email } placeholder=" " required onChange={ set( 'email' ) } />
-						<span className="pd-compact-label">Email</span>
-					</label>
-					{ fieldError.email ? <p className="ap-field-error">{ fieldError.email }</p> : null }
-					<label className="pd-compact-field">
-						<input className="pd-ltr" name="phone" value={ form.phone } placeholder=" " onChange={ set( 'phone' ) } />
-						<span className="pd-compact-label">Phone</span>
-					</label>
+					<div className="pd-field-grid">
+						<label className={ fieldClass( 'pd-compact-field', fieldError, 'first_name' ) }>
+							<input name="first_name" value={ form.first_name } placeholder=" " required { ...fieldAria( 'customer', fieldError, 'first_name' ) } onChange={ set( 'first_name' ) } />
+							<span className="pd-compact-label">First name</span>
+						</label>
+						<label className={ fieldClass( 'pd-compact-field', fieldError, 'last_name' ) }>
+							<input name="last_name" value={ form.last_name } placeholder=" " required={ ! lastNameOptional } { ...fieldAria( 'customer', fieldError, 'last_name' ) } onChange={ set( 'last_name' ) } />
+							<span className="pd-compact-label">Last name</span>
+						</label>
+					</div>
+					<FieldErrors prefix="customer" fieldError={ fieldError } keys={ [ 'first_name', 'last_name' ] } />
+					{ /* Same two-row grid as the booking editor's new customer: names, then contact. */ }
+					<div className="pd-field-grid">
+						<label className={ fieldClass( 'pd-compact-field', fieldError, 'email' ) }>
+							<input className="pd-ltr" type="email" name="email" value={ form.email } placeholder=" " required={ ! emailOptional } { ...fieldAria( 'customer', fieldError, 'email' ) } onChange={ set( 'email' ) } />
+							<span className="pd-compact-label">Email</span>
+						</label>
+						<label className={ fieldClass( 'pd-compact-field', fieldError, 'phone' ) }>
+							<input className="pd-ltr" name="phone" value={ form.phone } placeholder=" " { ...fieldAria( 'customer', fieldError, 'phone' ) } onChange={ set( 'phone' ) } />
+							<span className="pd-compact-label">Phone</span>
+						</label>
+					</div>
+					<FieldErrors prefix="customer" fieldError={ fieldError } keys={ [ 'email', 'phone' ] } />
 				</section>
 				<section className="pd-editor-section">
 					<div className="pd-editor-section-head"><h3>Preferences</h3></div>

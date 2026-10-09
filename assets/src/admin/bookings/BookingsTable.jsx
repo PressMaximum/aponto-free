@@ -27,6 +27,7 @@ import {
 } from '@tanstack/react-table';
 import { __ } from '@wordpress/i18n';
 import { customerTimezoneLine } from '../lib/schedule-cell.js';
+import { ToolbarSelect } from '../lib/ToolbarSelect.jsx';
 import { menuRovingKeydown } from '../lib/ui.jsx';
 import {
 	facetChipSummary,
@@ -36,7 +37,9 @@ import {
 	inArrayFilter,
 	recordFacetFilter,
 } from '../lib/facet-options.js';
-import { PAYMENT_FILTER_OPTIONS, paymentBadge } from '../lib/payment-status.js';
+import { PAYMENT_FILTER_OPTIONS, PAYMENT_STATUSES, REFUND_REVIEW_LABEL, listPaymentBadge } from '../lib/payment-status.js';
+import { isCheckoutHold, needsRefundReview } from './dashboard-stats.js';
+import { timeLabel } from '../lib/format.js';
 
 const STATUS_LABELS = {
 	pending: 'Pending',
@@ -117,9 +120,9 @@ const DATE_RANGES = computeDateRanges();
 // Facet identity per axis (lib/facet-options.js): catalog columns are RECORD-keyed via
 // the row's id, so two same-named services/staff stay two options that filter to
 // disjoint row sets. `status` is a genuine enum — its value IS the identity. `location`
-// stays value-keyed because the `GET /bookings` list item carries no location id
-// (rest-contract §2.8 exposes only `service.id`/`staff.id`); it becomes record-keyed the
-// day the payload does, by adding `idKey` here.
+// is record-keyed on `locationId` since the list item carries `location_id` (D-R63,
+// rest-contract §2.8 addendum); `0` is a real group ("No location"). Its rows carry a name only
+// when the site has locations (routes/Bookings.jsx), so with none it still offers nothing.
 const FILTER_DEFINITIONS = [
 	{ columnId: 'status', label: 'Status', options: STATUS_OPTIONS.map( ( value ) => ( { value, label: STATUS_LABELS[ value ] } ) ) },
 	// Payment status is a genuine enum too (D-R38), so its options are the FIVE the server knows —
@@ -128,14 +131,19 @@ const FILTER_DEFINITIONS = [
 	{ columnId: 'payment', label: __( 'Payment', 'aponto' ), options: PAYMENT_FILTER_OPTIONS },
 	{ columnId: 'staff', label: 'Staff', idKey: 'staffId' },
 	{ columnId: 'service', label: 'Service', idKey: 'serviceId' },
-	{ columnId: 'location', label: 'Location' },
+	{ columnId: 'location', label: 'Location', idKey: 'locationId' },
 ];
 const SERVICE_FACET_FILTER = recordFacetFilter( 'serviceId', 'service' );
 const STAFF_FACET_FILTER = recordFacetFilter( 'staffId', 'staff' );
-const DEFAULT_SORTING = [ { id: 'schedule', desc: false } ];
+const LOCATION_FACET_FILTER = recordFacetFilter( 'locationId', 'location' );
+// Newest booking first (D-R74), matching the `order_by=created` order the Bookings route asks
+// `GET /bookings` for: a booking that just came in sits on top whatever date it is for. Clearing
+// every header sort falls back to that same order, because the rows arrive in it.
+const DEFAULT_SORTING = [ { id: 'created', desc: true } ];
 const DEFAULT_COLUMN_ORDER = [
 	'select',
 	'id',
+	'created',
 	'schedule',
 	'customer',
 	'service',
@@ -150,6 +158,7 @@ const DEFAULT_COLUMN_ORDER = [
 ];
 
 const DEFAULT_COLUMN_VISIBILITY = {
+	created: false,
 	date: false,
 	location: false,
 	email: false,
@@ -169,13 +178,26 @@ function normalizeColumnOrder( preferredOrder ) {
 	return [ 'select', 'id', ...ordered.filter( ( id ) => ! [ 'select', 'id', 'action' ].includes( id ) ), 'action' ];
 }
 
+/**
+ * Created-at order: the RFC3339 UTC strings compare correctly as text, and the id breaks ties
+ * between same-second inserts the way the server's `b.id DESC` does.
+ */
+function createdSort( rowA, rowB ) {
+	return String( rowA.original.created || '' ).localeCompare( String( rowB.original.created || '' ) )
+		|| Number( rowA.original.id ) - Number( rowB.original.id );
+}
+
 const columnHelper = createColumnHelper();
 
-function timeInMinutes( value ) {
-	const match = String( value ).match( /^(\d+):(\d+)\s(AM|PM)$/ );
-	if ( ! match ) return 0;
-	const hour = ( Number( match[ 1 ] ) % 12 ) + ( match[ 3 ] === 'PM' ? 12 : 0 );
-	return hour * 60 + Number( match[ 2 ] );
+/**
+ * Schedule order: business date, then the start INSTANT. The time used to be parsed back out of
+ * the "9:00 AM" label, which stopped matching — every row sorted as midnight — once the label
+ * followed the site's 24-hour setting (persona QA 2026-10-05, T-071). RFC3339 UTC strings
+ * compare correctly as text.
+ */
+function scheduleSort( rowA, rowB ) {
+	return rowA.original.date.localeCompare( rowB.original.date )
+		|| String( rowA.original.startUtc || '' ).localeCompare( String( rowB.original.startUtc || '' ) );
 }
 
 function dateMatchesRange( date, range ) {
@@ -193,7 +215,35 @@ function bookingGlobalFilter( row, _columnId, value ) {
 	const query = String( value || '' ).trim().toLowerCase();
 	if ( ! query ) return true;
 	const booking = row.original;
-	return `${ booking.customer } ${ booking.email } ${ booking.service } ${ booking.order }`.toLowerCase().includes( query );
+	// The display name already holds both name parts ("Jane Doe" matches); the parts are added so a
+	// row whose composed name differs from them (a legacy DTO) is still found by either one.
+	return [ booking.customer, booking.customerFirstName, booking.customerLastName, booking.email, booking.service, booking.order ]
+		.filter( Boolean )
+		.join( ' ' )
+		.toLowerCase()
+		.includes( query );
+}
+
+/**
+ * Where a floating menu goes: under its trigger, or above it when the viewport has no room below
+ * (or the caller prefers up), always kept inside the viewport (T-050).
+ *
+ * @param {{top: number, bottom: number, left: number}} rect     Trigger rect (viewport coordinates).
+ * @param {{width: number, height: number, preferUp: boolean}} menu Estimated menu size + preference.
+ * @param {{width: number, height: number}} viewport            Viewport size.
+ * @return {{left: number, top: number}} Fixed position.
+ */
+export function floatingMenuPosition( rect, menu, viewport ) {
+	const inset = 8;
+	const fitsBelow = viewport.height - rect.bottom >= menu.height + inset + 5;
+	const fitsAbove = rect.top >= menu.height + inset + 5;
+	const above = ( menu.preferUp && fitsAbove ) || ( ! fitsBelow && fitsAbove );
+	const top = above
+		? rect.top - menu.height - 5
+		: Math.max( inset, Math.min( viewport.height - menu.height - inset, rect.bottom + 5 ) );
+	const left = Math.max( inset, Math.min( viewport.width - menu.width - inset, rect.left ) );
+
+	return { left, top };
 }
 
 function statusMenuOpensUp( rowIndex, rowCount ) {
@@ -221,6 +271,10 @@ function StatusControl( {
 	const triggerRef = useRef( null );
 	const menuRef = useRef( null );
 	const openedByKeyboard = useRef( false );
+	// The menu FLOATS (persona QA 2026-10-05, T-050), like the row-action menu below: positioned in
+	// the viewport and portaled out of the table, whose scroll container clipped it whenever the
+	// table had only a row or two — there is no direction to open in that fits inside two rows.
+	const [ menuPosition, setMenuPosition ] = useState( null );
 	// The inline picker is a ONE-CLICK control, so it only offers moves that need no
 	// confirmation: `no_show` drops out until the appointment has started (D-R33), where
 	// the server would answer a forceable 422 anyway. Forcing it earlier stays possible,
@@ -233,12 +287,59 @@ function StatusControl( {
 		onOpenChange( null );
 	};
 
+	const estimatedMenuHeight = statusOptions.length * 38 + 18;
+
 	useEffect( () => {
-		if ( isOpen && openedByKeyboard.current ) {
+		if ( isOpen && menuPosition && openedByKeyboard.current ) {
 			window.requestAnimationFrame( () => menuRef.current?.querySelector( '[role="menuitemradio"]' )?.focus() );
 		}
 		if ( ! isOpen ) openedByKeyboard.current = false;
-	}, [ isOpen ] );
+	}, [ isOpen, menuPosition ] );
+
+	useLayoutEffect( () => {
+		if ( ! isOpen ) {
+			setMenuPosition( null );
+			return undefined;
+		}
+		const updatePosition = () => {
+			const rect = triggerRef.current?.getBoundingClientRect();
+			if ( ! rect ) return;
+			setMenuPosition( floatingMenuPosition( rect, { width: 180, height: estimatedMenuHeight, preferUp: opensUp }, { width: window.innerWidth, height: window.innerHeight } ) );
+		};
+		updatePosition();
+		window.addEventListener( 'resize', updatePosition );
+		window.addEventListener( 'scroll', updatePosition, true );
+		return () => {
+			window.removeEventListener( 'resize', updatePosition );
+			window.removeEventListener( 'scroll', updatePosition, true );
+		};
+	}, [ estimatedMenuHeight, isOpen, opensUp ] );
+
+	const portalRoot = typeof document === 'undefined' ? null : document.querySelector( '.ap-admin' );
+	// `data-tanstack-status-picker` rides on the portaled menu too: the table's outside-click
+	// handler closes the picker for any pointerdown that is not inside an element carrying it.
+	const menu = isOpen && menuPosition ? (
+		<div className="pd-status-menu is-floating" data-tanstack-status-picker role="menu" aria-label="Set booking status" style={ { position: 'fixed', zIndex: 120, ...menuPosition } } ref={ menuRef } onKeyDown={ menuRovingKeydown }>
+			{ statusOptions.map( ( status ) => {
+				const restore = booking.status === 'cancelled' && status === 'pending';
+				const undoNoShow = booking.status === 'no_show' && status === 'confirmed';
+				return (
+					<button
+						className={ `pd-status-option ${ status }` }
+						type="button"
+						role="menuitemradio"
+						aria-checked={ booking.status === status }
+						key={ status }
+						onClick={ ( event ) => chooseStatus( event, status ) }
+					>
+						<span className="pd-status-option-icon">{ renderIcon( STATUS_ICONS[ status ] ) }</span>
+						<span>{ restore ? 'Pending (restore)' : undoNoShow ? 'Confirmed (undo no-show)' : STATUS_LABELS[ status ] }</span>
+						<span className="pd-status-option-check">{ booking.status === status ? renderIcon( 'check' ) : null }</span>
+					</button>
+				);
+			} ) }
+		</div>
+	) : null;
 
 	return (
 		<div
@@ -271,26 +372,7 @@ function StatusControl( {
 				<span className="pd-status-label">{ STATUS_LABELS[ booking.status ] }</span>
 				{ renderIcon( 'chevronDown' ) }
 			</button>
-			<div className="pd-status-menu" role="menu" aria-label="Set booking status" hidden={ ! isOpen } ref={ menuRef } onKeyDown={ menuRovingKeydown }>
-				{ statusOptions.map( ( status ) => {
-					const restore = booking.status === 'cancelled' && status === 'pending';
-					const undoNoShow = booking.status === 'no_show' && status === 'confirmed';
-					return (
-						<button
-							className={ `pd-status-option ${ status }` }
-							type="button"
-							role="menuitemradio"
-							aria-checked={ booking.status === status }
-							key={ status }
-							onClick={ ( event ) => chooseStatus( event, status ) }
-						>
-							<span className="pd-status-option-icon">{ renderIcon( STATUS_ICONS[ status ] ) }</span>
-							<span>{ restore ? 'Pending (restore)' : undoNoShow ? 'Confirmed (undo no-show)' : STATUS_LABELS[ status ] }</span>
-							<span className="pd-status-option-check">{ booking.status === status ? renderIcon( 'check' ) : null }</span>
-						</button>
-					);
-				} ) }
-			</div>
+			{ portalRoot && menu ? createPortal( menu, portalRoot ) : menu }
 		</div>
 	);
 }
@@ -475,8 +557,8 @@ function utcAtTzMidnight( ymd, tz, addDays = 0 ) {
  *  - status/service/staff facets are multi-select client-side but the route
  *    takes one value — threaded only when exactly ONE is selected, else the
  *    export stays unfiltered on that axis;
- *  - the route has NO `location` param (Free is single-location); the location
- *    facet is also the one axis with no id in the list payload;
+ *  - the location facet threads `location_id` under the same exactly-one rule
+ *    (D-R63; `0` = "No location" is a real value, not "unfiltered");
  *  - the client "order" search haystack uses the `AP #<id>` display form while
  *    the server matches real `AP-*` order codes.
  *
@@ -513,6 +595,13 @@ function exportFiltersFromTable( table, businessTimezone ) {
 			filters.staff_id = staffId;
 		}
 	}
+	const locations = facet( 'location' );
+	if ( locations.length === 1 ) {
+		const locationId = facetRecordId( locations[ 0 ] );
+		if ( null !== locationId ) {
+			filters.location_id = locationId;
+		}
+	}
 
 	// Date-range preset lives as the `date` column's filter value.
 	const rangeId = ( state.columnFilters || [] ).find( ( f ) => f.id === 'date' )?.value;
@@ -527,6 +616,8 @@ function exportFiltersFromTable( table, businessTimezone ) {
 
 function BookingActionsMenu( { table, renderIcon, onExport, businessTimezone } ) {
 	const [ panel, setPanel ] = useState( null );
+	const locationFilter = table.getState().columnFilters.find( ( entry ) => 'location' === entry.id )?.value;
+	const exportBlocked = Array.isArray( locationFilter ) && locationFilter.length > 1;
 	const managerRef = useRef( null );
 	const menuRef = useRef( null );
 	const openedByKeyboard = useRef( false );
@@ -538,8 +629,11 @@ function BookingActionsMenu( { table, renderIcon, onExport, businessTimezone } )
 		}
 		if ( panel === null ) openedByKeyboard.current = false;
 	}, [ panel ] );
+	// Only columns this table DEFINES — the Location column exists only on a site with locations
+	// (D-R63 fix round 1), while a stored column order may still name it.
+	const known = new Set( table.getAllLeafColumns().map( ( column ) => column.id ) );
 	const columns = table.getState().columnOrder
-		.filter( ( id ) => ! [ 'select', 'action' ].includes( id ) )
+		.filter( ( id ) => known.has( id ) && ! [ 'select', 'action' ].includes( id ) )
 		.map( ( id ) => table.getColumn( id ) )
 		.filter( ( column ) => column && ! column.columnDef.meta?.filterOnly );
 	const sensors = useSensors(
@@ -607,12 +701,17 @@ function BookingActionsMenu( { table, renderIcon, onExport, businessTimezone } )
 						{ renderIcon( 'chevron' ) }
 					</button>
 					<div className="pd-table-actions-separator" role="separator" />
-					<button type="button" role="menuitem" onClick={ () => {
+					{ /* "Export filtered" (D-R63 fix round 1): the CSV is built by the SERVER from the
+					     filters it takes — status, service, staff, date and location — not from the
+					     rows loaded here. The route takes ONE location, so a multi-location facet
+					     refuses the export and says why instead of silently exporting every branch. */ }
+					<button type="button" role="menuitem" aria-disabled={ exportBlocked || undefined } onClick={ () => {
+						if ( exportBlocked ) return;
 						onExport?.( exportFiltersFromTable( table, businessTimezone ) );
 						setPanel( null );
 					} }>
 						{ renderIcon( 'csv' ) }
-						<span><strong>Export current view</strong></span>
+						<span><strong>{ __( 'Export filtered', 'aponto' ) }</strong><small>{ exportBlocked ? __( 'Export one location at a time', 'aponto' ) : __( 'Uses the status, service, staff, date and location filters', 'aponto' ) }</small></span>
 					</button>
 				</div>
 			) : null }
@@ -715,15 +814,32 @@ function FilterFacet( { column, data, definition, renderIcon } ) {
 	);
 }
 
-function BookingsToolbar( { data, globalFilter, onExport, onNewBooking, renderIcon, setGlobalFilter, table, businessTimezone } ) {
-	const [ filtersOpen, setFiltersOpen ] = useState( false );
-	const [ dateOpen, setDateOpen ] = useState( false );
-	const dateRef = useRef( null );
+/**
+ * Facet filters named by the hash: `#bookings/payment/{status}` opens the list on that payment
+ * facet (a module panel links its open-checkout count here). Anything else starts unfiltered.
+ *
+ * @param {string} hash Location hash.
+ * @return {Array} TanStack `columnFilters` initial state.
+ */
+export function deepLinkFilters( hash = typeof window === 'undefined' ? '' : window.location.hash ) {
+	const [ route, facet, value ] = String( hash ).replace( /^#/, '' ).split( '/' );
+
+	return route === 'bookings' && facet === 'payment' && PAYMENT_STATUSES.includes( value )
+		? [ { id: 'payment', value: [ value ] } ]
+		: [];
+}
+
+function BookingsToolbar( { data, definitions, globalFilter, onExport, onNewBooking, renderIcon, setGlobalFilter, table, businessTimezone } ) {
+	// A deep link that arrives with a facet already set opens the builder so the filter is visible.
+	const [ filtersOpen, setFiltersOpen ] = useState( () => definitions.some( ( definition ) => {
+		const value = table.getColumn( definition.columnId )?.getFilterValue();
+		return Array.isArray( value ) && value.length > 0;
+	} ) );
 	const filterButtonRef = useRef( null );
 	const dateColumn = table.getColumn( 'date' );
 	const dateRange = dateColumn.getFilterValue() || 'all';
 	const selectedDateRange = DATE_RANGES[ dateRange ] || DATE_RANGES.all;
-	const activeFilters = FILTER_DEFINITIONS.filter( ( definition ) => {
+	const activeFilters = definitions.filter( ( definition ) => {
 		const value = table.getColumn( definition.columnId )?.getFilterValue();
 		return Array.isArray( value ) && value.length;
 	} );
@@ -733,28 +849,6 @@ function BookingsToolbar( { data, globalFilter, onExport, onNewBooking, renderIc
 		const values = table.getColumn( definition.columnId )?.getFilterValue() || [];
 		return facetChipSummary( facetOptions( definition, data ), values );
 	};
-
-	useEffect( () => {
-		if ( ! dateOpen ) return undefined;
-		const close = ( event ) => {
-			if ( ! dateRef.current?.contains( event.target ) ) setDateOpen( false );
-		};
-		document.addEventListener( 'pointerdown', close );
-		return () => document.removeEventListener( 'pointerdown', close );
-	}, [ dateOpen ] );
-
-	useEffect( () => {
-		if ( ! dateOpen ) return undefined;
-		const closeOnEscape = ( event ) => {
-			if ( event.key !== 'Escape' ) return;
-			event.preventDefault();
-			event.stopPropagation();
-			setDateOpen( false );
-			dateRef.current?.querySelector( '.pd-toolbar-control' )?.focus();
-		};
-		document.addEventListener( 'keydown', closeOnEscape, true );
-		return () => document.removeEventListener( 'keydown', closeOnEscape, true );
-	}, [ dateOpen ] );
 
 	useEffect( () => {
 		const showPending = () => {
@@ -783,22 +877,17 @@ function BookingsToolbar( { data, globalFilter, onExport, onNewBooking, renderIc
 				<div className="pd-toolbar-query">
 					<label className="pd-search">{ renderIcon( 'search' ) }<input type="search" value={ globalFilter ?? '' } placeholder="Search customer, email or order…" aria-label="Search bookings" onChange={ ( event ) => setGlobalFilter( event.target.value ) } /></label>
 					<div className="pd-toolbar-filter-controls">
-						<div className="pd-toolbar-control-group pd-toolbar-date-control">
-							<div className="pd-toolbar-popover-wrap" ref={ dateRef }>
-								<button className="pd-toolbar-control" type="button" aria-haspopup="menu" aria-expanded={ dateOpen } aria-label={ `Date range: ${ selectedDateRange.start ? `${ selectedDateRange.start } to ${ selectedDateRange.end }` : selectedDateRange.fullLabel }` } onClick={ () => setDateOpen( ( open ) => ! open ) }>
-									{ renderIcon( 'calendar' ) }
-									<span className="pd-date-range-value">
-										<span className="pd-date-range-full">{ selectedDateRange.start ? <><span>{ selectedDateRange.start }</span><span className="pd-date-range-arrow">{ renderIcon( 'arrowRight' ) }</span><span>{ selectedDateRange.end }</span></> : selectedDateRange.fullLabel }</span>
-										<span className="pd-date-range-compact">{ selectedDateRange.label }</span>
-									</span>
-									{ renderIcon( 'chevronDown' ) }
-								</button>
-								{ dateOpen ? <div className="pd-toolbar-popover pd-date-popover" role="menu" aria-label="Date range">{ Object.entries( DATE_RANGES ).map( ( [ id, range ] ) => <button type="button" role="menuitemradio" aria-checked={ dateRange === id } key={ id } onClick={ () => {
-									dateColumn.setFilterValue( id === 'all' ? undefined : id );
-									setDateOpen( false );
-								} }><span><strong>{ range.title }</strong><small>{ range.detail }</small></span><span className="pd-toolbar-menu-check">{ dateRange === id ? renderIcon( 'check' ) : null }</span></button> ) }<div className="pd-toolbar-popover-separator" /><button type="button" onClick={ () => setDateOpen( false ) }><span><strong>Custom range</strong></span>{ renderIcon( 'calendar' ) }</button></div> : null }
-							</div>
-						</div>
+						<ToolbarSelect
+							label={ `Date range: ${ selectedDateRange.start ? `${ selectedDateRange.start } to ${ selectedDateRange.end }` : selectedDateRange.fullLabel }` }
+							menuLabel="Date range"
+							value={ dateRange }
+							options={ Object.entries( DATE_RANGES ).map( ( [ id, range ] ) => ( { value: id, label: range.title, detail: range.detail } ) ) }
+							onChange={ ( id ) => dateColumn.setFilterValue( id === 'all' ? undefined : id ) }
+							renderIcon={ renderIcon }
+							icon="calendar"
+							selectedContent={ <><span className="pd-date-range-full">{ selectedDateRange.start ? <><span>{ selectedDateRange.start }</span><span className="pd-date-range-arrow">{ renderIcon( 'arrowRight' ) }</span><span>{ selectedDateRange.end }</span></> : selectedDateRange.fullLabel }</span><span className="pd-date-range-compact">{ selectedDateRange.label }</span></> }
+							menuFooter={ ( { close } ) => <><div className="pd-toolbar-popover-separator" /><button type="button" onClick={ close }><span><strong>Custom range</strong></span>{ renderIcon( 'calendar' ) }</button></> }
+						/>
 						<button className="pd-toolbar-export pd-toolbar-filter-button" ref={ filterButtonRef } type="button" aria-label={ filtersOpen ? 'Hide booking filters' : 'Show booking filters' } title="Filters" aria-controls="bookingFilterBuilder" aria-expanded={ filtersOpen } onClick={ () => setFiltersOpen( ( open ) => ! open ) }>{ renderIcon( 'sliders' ) }{ activeFilters.length ? <span className="pd-filter-count">{ activeFilters.length }</span> : null }</button>
 					</div>
 				</div>
@@ -807,8 +896,8 @@ function BookingsToolbar( { data, globalFilter, onExport, onNewBooking, renderIc
 					<button className="pd-button primary sm pd-toolbar-new-booking" type="button" onClick={ () => onNewBooking?.() }>{ renderIcon( 'plus' ) }<span>New booking</span></button>
 				</div>
 			</div>
-			{ activeFilters.length && ! filtersOpen ? <div className="pd-active-filters" aria-label="Active booking filters">{ activeFilters.map( ( definition ) => <button className="pd-filter-chip" type="button" key={ definition.columnId } aria-label={ `Remove ${ definition.label } filter` } onClick={ () => table.getColumn( definition.columnId )?.setFilterValue( undefined ) }><span>{ definition.label }</span><strong>{ filterSummary( definition ) }</strong>{ renderIcon( 'close' ) }</button> ) }<button className="pd-clear-filters" type="button" onClick={ () => FILTER_DEFINITIONS.forEach( ( definition ) => table.getColumn( definition.columnId )?.setFilterValue( undefined ) ) }>Clear all</button></div> : null }
-			{ filtersOpen ? <div className="pd-filter-builder" id="bookingFilterBuilder" aria-label="Booking filter options"><div className="pd-filter-facets">{ FILTER_DEFINITIONS.map( ( definition ) => <FilterFacet column={ table.getColumn( definition.columnId ) } data={ data } definition={ definition } key={ definition.columnId } renderIcon={ renderIcon } /> ) }</div>{ activeFilters.length ? <button className="pd-clear-filters" type="button" onClick={ () => FILTER_DEFINITIONS.forEach( ( definition ) => table.getColumn( definition.columnId )?.setFilterValue( undefined ) ) }>Clear all</button> : null }</div> : null }
+			{ activeFilters.length && ! filtersOpen ? <div className="pd-active-filters" aria-label="Active booking filters">{ activeFilters.map( ( definition ) => <button className="pd-filter-chip" type="button" key={ definition.columnId } aria-label={ `Remove ${ definition.label } filter` } onClick={ () => table.getColumn( definition.columnId )?.setFilterValue( undefined ) }><span>{ definition.label }</span><strong>{ filterSummary( definition ) }</strong>{ renderIcon( 'close' ) }</button> ) }<button className="pd-clear-filters" type="button" onClick={ () => definitions.forEach( ( definition ) => table.getColumn( definition.columnId )?.setFilterValue( undefined ) ) }>Clear all</button></div> : null }
+			{ filtersOpen ? <div className="pd-filter-builder" id="bookingFilterBuilder" aria-label="Booking filter options"><div className="pd-filter-facets">{ definitions.map( ( definition ) => <FilterFacet column={ table.getColumn( definition.columnId ) } data={ data } definition={ definition } key={ definition.columnId } renderIcon={ renderIcon } /> ) }</div>{ activeFilters.length ? <button className="pd-clear-filters" type="button" onClick={ () => definitions.forEach( ( definition ) => table.getColumn( definition.columnId )?.setFilterValue( undefined ) ) }>Clear all</button> : null }</div> : null }
 		</div>
 	);
 }
@@ -828,6 +917,7 @@ export function BookingsTable( {
 	renderIcon,
 	formatMoney,
 	businessTimezone = 'America/Los_Angeles',
+	hasLocations = false,
 	totalCount = data.length,
 	pageIndex = 0,
 	pageSize = 25,
@@ -836,13 +926,14 @@ export function BookingsTable( {
 	const [ columnVisibility, setColumnVisibility ] = useState( () => ( {
 		...DEFAULT_COLUMN_VISIBILITY,
 		...initialPreferences.columnVisibility,
+		created: false,
 		date: false,
 		schedule: true,
 		customer: true,
 	} ) );
 	const [ columnOrder, setColumnOrder ] = useState( () => normalizeColumnOrder( initialPreferences.columnOrder ) );
 	const [ globalFilter, setGlobalFilter ] = useState( '' );
-	const [ columnFilters, setColumnFilters ] = useState( [] );
+	const [ columnFilters, setColumnFilters ] = useState( () => deepLinkFilters() );
 	const [ rowSelection, setRowSelection ] = useState( {} );
 	const [ bulkConfirm, setBulkConfirm ] = useState( false );
 	const [ openStatusId, setOpenStatusId ] = useState( null );
@@ -885,6 +976,8 @@ export function BookingsTable( {
 			header: ( { table } ) => <IndeterminateCheckbox aria-label="Select all visible bookings" checked={ table.getIsAllPageRowsSelected() } indeterminate={ table.getIsSomePageRowsSelected() } onChange={ table.getToggleAllPageRowsSelectedHandler() } />,
 			cell: ( { row } ) => <IndeterminateCheckbox aria-label={ `Select booking ${ row.original.order }` } checked={ row.getIsSelected() } disabled={ ! row.getCanSelect() } indeterminate={ row.getIsSomeSelected() } onClick={ ( event ) => event.stopPropagation() } onChange={ row.getToggleSelectedHandler() } />,
 		} ),
+		// Sort key only (like `date` below is filter-only): never rendered, never in the Columns picker.
+		columnHelper.accessor( 'created', { id: 'created', header: 'Created', enableHiding: false, meta: { label: 'Created', filterOnly: true }, sortingFn: createdSort } ),
 		columnHelper.accessor( 'id', { header: 'ID', size: 58, enableSorting: true, meta: { label: 'ID' }, cell: ( info ) => <span className="pd-cell-value pd-booking-id">{ info.getValue() }</span> } ),
 		columnHelper.accessor( 'start', {
 			id: 'schedule',
@@ -892,19 +985,26 @@ export function BookingsTable( {
 			size: 148,
 			enableHiding: false,
 			meta: { label: 'Schedule' },
-			sortingFn: ( rowA, rowB ) => rowA.original.date.localeCompare( rowB.original.date ) || timeInMinutes( rowA.original.start ) - timeInMinutes( rowB.original.start ),
+			sortingFn: scheduleSort,
 			cell: ( info ) => {
 				const booking = info.row.original;
-				const tzLine = customerTimezoneLine( booking, businessTimezone );
-				return <span className="pd-schedule-cell"><span className="pd-cell-value pd-time">{ info.getValue() }</span><small title={ tzLine ? `Customer time · ${ booking.timezone }` : undefined }>{ booking.dateLabel }</small>{ tzLine ? <small className="pd-schedule-tz">{ renderIcon( 'clock' ) }<span>{ tzLine }</span></small> : null }</span>;
+				// T-049: the caption prints the customer's OWN clock, so it cannot be read as a label
+				// for the business time above it. The full line is the tooltip — the column is narrow.
+				const tzLine = customerTimezoneLine( booking, businessTimezone, timeLabel );
+				return <span className="pd-schedule-cell"><span className="pd-cell-value pd-time">{ info.getValue() }</span><small title={ tzLine || undefined }>{ booking.dateLabel }</small>{ tzLine ? <small className="pd-schedule-tz" title={ tzLine }>{ renderIcon( 'clock' ) }<span>{ tzLine }</span></small> : null }</span>;
 			},
 		} ),
 		columnHelper.accessor( 'date', { id: 'date', header: 'Date', size: 100, enableHiding: false, enableSorting: false, meta: { label: 'Date', filterOnly: true }, filterFn: ( row, id, range ) => dateMatchesRange( row.getValue( id ), range ), cell: ( info ) => <span className="pd-cell-value">{ info.row.original.dateLabel }</span> } ),
-		columnHelper.accessor( 'customer', { header: 'Customer', size: 140, enableHiding: false, meta: { label: 'Customer' }, cell: ( info ) => <span className="pd-cell-value">{ info.getValue() }</span> } ),
+		// An unfinished checkout has no customer yet (T-038 / T-048): say so instead of an empty cell.
+		columnHelper.accessor( 'customer', { header: 'Customer', size: 140, enableHiding: false, meta: { label: 'Customer' }, cell: ( info ) => ( ! info.getValue() && isCheckoutHold( info.row.original )
+			? <span className="pd-cell-value pd-cell-muted">{ __( 'Checkout not finished', 'aponto' ) }</span>
+			: <span className="pd-cell-value">{ info.getValue() }</span> ) } ),
 		// The service/staff cells display the NAME; their facets filter on the row's
 		// `serviceId`/`staffId` (record identity), never on that name.
 		columnHelper.accessor( 'service', { header: 'Service', size: 150, meta: { label: 'Service' }, filterFn: SERVICE_FACET_FILTER, cell: ( info ) => <span className="pd-cell-value">{ info.getValue() }</span> } ),
-		columnHelper.accessor( 'location', { header: 'Location', size: 155, meta: { label: 'Location' }, filterFn: inArrayFilter, cell: ( info ) => <span className="pd-cell-value pd-cell-muted">{ info.getValue() }</span> } ),
+		// D-R63 fix round 1: the Location column (and its facet) exist only on a site WITH locations —
+		// on Free, or Premium with none, it would be a control over nothing.
+		...( hasLocations ? [ columnHelper.accessor( 'location', { header: 'Location', size: 155, meta: { label: 'Location' }, filterFn: LOCATION_FACET_FILTER, cell: ( info ) => <span className="pd-cell-value pd-cell-muted">{ info.getValue() }</span> } ) ] : [] ),
 		columnHelper.accessor( 'staff', { header: 'Staff', size: 105, meta: { label: 'Staff' }, filterFn: STAFF_FACET_FILTER, cell: ( info ) => <span className="pd-cell-value">{ info.getValue() }</span> } ),
 		columnHelper.accessor( 'status', {
 			header: 'Status',
@@ -914,20 +1014,27 @@ export function BookingsTable( {
 			cell: ( info ) => {
 				const displayedRows = info.table.getRowModel().rows;
 				const displayedIndex = displayedRows.findIndex( ( row ) => row.id === info.row.id );
-				return <StatusControl booking={ info.row.original } isOpen={ openStatusId === info.row.original.id } opensUp={ statusMenuOpensUp( displayedIndex, displayedRows.length ) } onOpenChange={ ( id ) => {
+				const control = <StatusControl booking={ info.row.original } isOpen={ openStatusId === info.row.original.id } opensUp={ statusMenuOpensUp( displayedIndex, displayedRows.length ) } onOpenChange={ ( id ) => {
 					setOpenActionId( null );
 					setOpenStatusId( id );
 				} } onStatusChange={ ( booking, status ) => {
 					onStatusChange?.( booking, status );
 					setRevision( ( value ) => value + 1 );
 				} } renderIcon={ renderIcon } />;
+				// T-056: a cancelled booking whose order is still paid says so in the list, whether
+				// or not the optional Payment column is shown — cancelling never refunds (D-R71k).
+				return needsRefundReview( info.row.original )
+					? <span className="pd-schedule-cell">{ control }<small title={ REFUND_REVIEW_LABEL }>{ REFUND_REVIEW_LABEL }</small></span>
+					: control;
 			},
 		} ),
 		columnHelper.accessor( 'total', { header: 'Total', size: 75, meta: { label: 'Total' }, cell: ( info ) => <span className="pd-cell-value">{ formatMoney( info.getValue(), info.row.original ) }</span> } ),
 		// The SAME badge the booking editor's Order section renders (`lib/payment-status.js`), minus
 		// the hold deadline: the list item carries no `hold_expires_at` (rest-contract §2.8), and a
-		// badge that invented one would be a promise the row cannot keep.
-		columnHelper.accessor( 'paymentStatus', {
+		// badge that invented one would be a promise the row cannot keep. Two row-level facts refine
+		// it (T-048 / T-056, `listPaymentBadge`): an unfinished checkout, and a cancelled booking
+		// that is still paid. The facet value is the D-R71 reason (deposit vs refund).
+		columnHelper.accessor( ( row ) => row.paymentReason || row.paymentStatus, {
 			id: 'payment',
 			header: __( 'Payment', 'aponto' ),
 			size: 118,
@@ -937,7 +1044,7 @@ export function BookingsTable( {
 			meta: { label: __( 'Payment', 'aponto' ) },
 			filterFn: inArrayFilter,
 			cell: ( info ) => {
-				const badge = paymentBadge( info.getValue() );
+				const badge = listPaymentBadge( info.row.original );
 
 				return <span className={ `pd-status ap-pay-${ badge.tone }` } title={ badge.title }>{ badge.label }</span>;
 			},
@@ -964,7 +1071,7 @@ export function BookingsTable( {
 				} } renderIcon={ renderIcon } />;
 			},
 		} ),
-	], [ businessTimezone, formatMoney, onBookingAction, onOpenBooking, onStatusChange, openActionId, openStatusId, pageIndex, currentPageSize, renderIcon, revision ] );
+	], [ hasLocations, businessTimezone, formatMoney, onBookingAction, onOpenBooking, onStatusChange, openActionId, openStatusId, pageIndex, currentPageSize, renderIcon, revision ] );
 
 	const table = useReactTable( {
 		data: tableData,
@@ -1009,7 +1116,7 @@ export function BookingsTable( {
 
 	return (
 		<>
-			<BookingsToolbar data={ tableData } globalFilter={ globalFilter } onExport={ onExport } onNewBooking={ onNewBooking } renderIcon={ renderIcon } setGlobalFilter={ setGlobalFilter } table={ table } businessTimezone={ businessTimezone } />
+			<BookingsToolbar data={ tableData } definitions={ hasLocations ? FILTER_DEFINITIONS : FILTER_DEFINITIONS.filter( ( definition ) => 'location' !== definition.columnId ) } globalFilter={ globalFilter } onExport={ onExport } onNewBooking={ onNewBooking } renderIcon={ renderIcon } setGlobalFilter={ setGlobalFilter } table={ table } businessTimezone={ businessTimezone } />
 			{ rows.length ? (
 				<>
 					<div className="pd-table-wrap">
@@ -1094,5 +1201,25 @@ export function BookingsTable( {
 
 export const bookingsTableDefaults = {
 	columnOrder: DEFAULT_COLUMN_ORDER,
+	columnVisibility: DEFAULT_COLUMN_VISIBILITY,
 	sorting: DEFAULT_SORTING,
 };
+
+/**
+ * Whether a column layout shows exactly what the defaults show, in the default order — the test
+ * for "nothing worth saving". It compares what the operator SEES rather than the raw state, because
+ * the same screen has several spellings: the mount state carries forced keys (`schedule: true`)
+ * that the Columns "Reset" never writes, and a column absent from the map is visible.
+ *
+ * @param {Object} layout                  `{ columnVisibility, columnOrder }`.
+ * @param {Object} layout.columnVisibility Column id → visible.
+ * @param {Array}  layout.columnOrder      Column ids.
+ * @return {boolean} True for the default layout.
+ */
+export function isDefaultColumnLayout( { columnVisibility = {}, columnOrder = [] } = {} ) {
+	const visible = ( map, id ) => map[ id ] !== false;
+	const order = normalizeColumnOrder( columnOrder );
+
+	return DEFAULT_COLUMN_ORDER.every( ( id ) => visible( columnVisibility, id ) === visible( DEFAULT_COLUMN_VISIBILITY, id ) )
+		&& order.every( ( id, index ) => id === DEFAULT_COLUMN_ORDER[ index ] );
+}

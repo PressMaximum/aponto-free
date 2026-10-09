@@ -152,7 +152,8 @@ final class Migration_0001_InitialSchema implements Migration {
 		$statements[] = "CREATE TABLE {$p}aponto_staff (
 	id bigint unsigned NOT NULL AUTO_INCREMENT,
 	type varchar(20) NOT NULL DEFAULT 'human',
-	name varchar(191) NOT NULL,
+	first_name varchar(191) NOT NULL,
+	last_name varchar(191) NOT NULL DEFAULT '',
 	email varchar(191) NOT NULL,
 	phone varchar(64) NOT NULL DEFAULT '',
 	avatar_id bigint unsigned NULL,
@@ -202,7 +203,8 @@ final class Migration_0001_InitialSchema implements Migration {
 
 		$statements[] = "CREATE TABLE {$p}aponto_customers (
 	id bigint unsigned NOT NULL AUTO_INCREMENT,
-	name varchar(191) NOT NULL,
+	first_name varchar(191) NOT NULL,
+	last_name varchar(191) NOT NULL DEFAULT '',
 	email varchar(191) NOT NULL,
 	email_norm varchar(191) NOT NULL,
 	phone varchar(64) NOT NULL DEFAULT '',

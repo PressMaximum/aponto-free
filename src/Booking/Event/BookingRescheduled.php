@@ -31,11 +31,16 @@ final class BookingRescheduled {
 	 * @param \DateTimeImmutable $from_start_utc      Previous start instant (UTC).
 	 * @param \DateTimeImmutable $to_start_utc        New start instant (UTC).
 	 * @param string             $notification_policy `send` or `suppress`.
+	 * @param Booking|null       $previous            The booking as it was BEFORE the move (D-R78): its
+	 *                                                staff member, start and location tell a listener
+	 *                                                what actually changed. Internal to the outbox —
+	 *                                                the public action signature is unchanged.
 	 */
 	public function __construct(
 		public readonly Booking $booking,
 		public readonly \DateTimeImmutable $from_start_utc,
 		public readonly \DateTimeImmutable $to_start_utc,
-		public readonly string $notification_policy = 'send'
+		public readonly string $notification_policy = 'send',
+		public readonly ?Booking $previous = null
 	) {}
 }

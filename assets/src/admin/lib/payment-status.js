@@ -14,9 +14,13 @@
 import { __, sprintf } from '@wordpress/i18n';
 
 import { authoritativeDecimals } from './format.js';
+import { isCheckoutHold, needsRefundReview } from '../bookings/dashboard-stats.js';
 
 /** The order `payment_status` enum, in the server's own order (`BookingsController::index` args). */
 export const PAYMENT_STATUSES = [ 'none', 'pending', 'paid', 'partial', 'refunded' ];
+
+/** Derived reasons distinguish deposit balances from refunded full payments (D-R71). */
+export const PAYMENT_REASONS = [ 'none', 'pending', 'paid', 'deposit_paid', 'deposit_partially_refunded', 'partially_refunded', 'refunded' ];
 
 /**
  * Badge copy + tone for an order's payment status.
@@ -24,8 +28,8 @@ export const PAYMENT_STATUSES = [ 'none', 'pending', 'paid', 'partial', 'refunde
  * TONES, and why each is what it is:
  *   - `none` is NEUTRAL, not a warning. Most sites take no online payment at all, and painting
  *     every one of their bookings amber would make the normal state look broken.
- *   - `pending` is AMBER and carries a DEADLINE, because it is the only state with a clock on it:
- *     the slot is held and will be released if nobody pays (D-R38a/g).
+ *   - `pending` is AMBER. Only an unfinished, eligible checkout carries a deadline;
+ *     accepted appointments and uncertain payments retain their own contextual labels.
  *   - `partial` is amber for the same reason a half-finished refund is not a finished one.
  *   - `refunded` is neutral: the money is settled, just in the other direction. Green would
  *     celebrate it and red would read as a failure; it is neither.
@@ -34,28 +38,53 @@ export const PAYMENT_STATUSES = [ 'none', 'pending', 'paid', 'partial', 'refunde
  * @param {Object}   [options] Presentation options.
  * @param {string}   [options.holdExpiresAt] UTC instant the hold lapses, for the pending deadline.
  * @param {Function} [options.formatTime]    `( utc ) => string` in business time.
+ * @param {boolean}  [options.holdDeadlineApplies] Whether the deadline currently governs checkout.
+ * @param {string}   [options.paymentStateReason] Server-derived payment context.
  * @return {{tone: string, label: string, title: string}} Badge descriptor.
  */
-export function paymentBadge( status, { holdExpiresAt = '', formatTime = null } = {} ) {
+export function paymentBadge( status, { holdExpiresAt = '', formatTime = null, holdDeadlineApplies = false, paymentStateReason = '' } = {} ) {
 	switch ( status ) {
 		case 'pending':
+			if ( paymentStateReason === 'completed_unpaid' ) {
+				return { tone: 'pending', label: __( 'Unpaid · Appointment completed', 'aponto' ), title: __( 'The appointment is completed, but payment has not been recorded.', 'aponto' ) };
+			}
+			if ( paymentStateReason === 'cash_on_delivery' ) {
+				// The title names no booking status (re-test N2): this reason also reaches a PENDING
+				// booking, and "The appointment is confirmed" was untrue there.
+				return { tone: 'pending', label: __( 'Awaiting payment · Cash on delivery', 'aponto' ), title: __( 'The customer pays at the appointment. Payment has not been recorded.', 'aponto' ) };
+			}
+			if ( paymentStateReason === 'awaiting_offline_payment' ) {
+				// Placed, and the CUSTOMER still has to pay outside the site (a bank transfer, a
+				// cheque) — not something being verified (re-test N7).
+				return { tone: 'pending', label: __( 'Awaiting offline payment', 'aponto' ), title: __( 'The order is placed and the customer still has to pay it outside this site, for example by bank transfer or cheque. The checkout deadline alone cannot release this slot.', 'aponto' ) };
+			}
+			if ( paymentStateReason === 'verifying_payment' ) {
+				// "Verifying payment" read as if something automatic were running (persona QA
+				// 2026-10-05, T-047): for a bank transfer on hold nothing is — somebody has to
+				// confirm the money arrived.
+				return { tone: 'pending', label: __( 'Awaiting payment confirmation', 'aponto' ), title: __( 'The order is placed and its payment has not been confirmed yet. The checkout deadline alone cannot release this slot.', 'aponto' ) };
+			}
 			return {
 				tone: 'pending',
 				label:
-					holdExpiresAt && formatTime
+					holdDeadlineApplies && holdExpiresAt && formatTime
 						? sprintf(
 								/* translators: %s: local time the payment hold expires, e.g. "3:48 PM". */
 								__( 'Hold until %s', 'aponto' ),
 								formatTime( holdExpiresAt )
 						  )
 						: __( 'Awaiting payment', 'aponto' ),
-				title: __(
-					'The slot is held while the customer pays. It is released automatically if they do not.',
-					'aponto'
-				),
+				title: holdDeadlineApplies
+					? __( 'The slot is held while the customer pays. Expiry requires verified nonpayment.', 'aponto' )
+					: __( 'Payment has not been recorded. The checkout hold deadline does not apply.', 'aponto' ),
 			};
 		case 'paid':
 			return { tone: 'paid', label: __( 'Paid', 'aponto' ), title: __( 'Paid in full.', 'aponto' ) };
+		case 'deposit_paid':
+			return { tone: 'partial', label: __( 'Deposit paid', 'aponto' ), title: __( 'The balance is due on site.', 'aponto' ) };
+		case 'deposit_partially_refunded':
+			return { tone: 'partial', label: __( 'Deposit partly refunded', 'aponto' ), title: __( 'Some or all of the deposit has been refunded; a balance remains.', 'aponto' ) };
+		case 'partially_refunded':
 		case 'partial':
 			return {
 				tone: 'partial',
@@ -77,8 +106,33 @@ export function paymentBadge( status, { holdExpiresAt = '', formatTime = null } 
 	}
 }
 
+/** The cue a cancelled-but-still-paid booking carries wherever it is shown (T-056, D-R71k). */
+export const REFUND_REVIEW_LABEL = __( 'Paid — review refund', 'aponto' );
+
+/**
+ * The payment badge of one BOOKINGS-LIST row (persona QA 2026-10-05, T-048 / T-056).
+ *
+ * The list item carries only `order.payment_status`, so two different situations used to read the
+ * same "Awaiting payment": a checkout the customer has not finished (a slot hold with no customer
+ * on it yet) and an order waiting for its payment to be confirmed. And a cancelled booking whose
+ * order is still paid read plainly "Paid", with nothing to say a refund is waiting.
+ *
+ * @param {Object} row Adapted booking row.
+ * @return {{tone: string, label: string, title: string}} Badge descriptor.
+ */
+export function listPaymentBadge( row ) {
+	if ( isCheckoutHold( row ) ) {
+		return { tone: 'pending', label: __( 'Checkout not finished', 'aponto' ), title: __( 'The slot is held while the customer pays. It is released automatically if they do not.', 'aponto' ) };
+	}
+	if ( needsRefundReview( row ) ) {
+		return { tone: 'pending', label: REFUND_REVIEW_LABEL, title: __( 'This booking was cancelled but its payment was not refunded. Cancelling never refunds automatically.', 'aponto' ) };
+	}
+
+	return paymentBadge( row?.paymentReason || row?.paymentStatus );
+}
+
 /** Facet/filter option labels — the badge words, so the facet and the badge cannot disagree. */
-export const PAYMENT_FILTER_OPTIONS = PAYMENT_STATUSES.map( ( value ) => ( {
+export const PAYMENT_FILTER_OPTIONS = PAYMENT_REASONS.map( ( value ) => ( {
 	value,
 	label: paymentBadge( value ).label,
 } ) );
@@ -99,14 +153,18 @@ export function gatewayLabel( gateway ) {
 	const names = {
 		payments_stripe: 'Stripe',
 		payments_paypal: 'PayPal',
+		payments_woocommerce: 'WooCommerce',
 	};
 
 	return names[ gateway ] || '—';
 }
 
 /** Transaction row labels — `kind` and `status` are both server enums. */
-export const TRANSACTION_KIND_LABELS = { charge: __( 'Payment', 'aponto' ), refund: __( 'Refund', 'aponto' ) };
+export const TRANSACTION_KIND_LABELS = {
+	balance: __( 'Balance payment', 'aponto' ), onsite_refund: __( 'On-site refund', 'aponto' ),
+	onsite: __( 'On-site balance', 'aponto' ), charge: __( 'Payment', 'aponto' ), refund: __( 'Refund', 'aponto' ) };
 export const TRANSACTION_STATUS_LABELS = {
+	reversed: __( 'Reversed', 'aponto' ),
 	pending: __( 'Pending', 'aponto' ),
 	succeeded: __( 'Succeeded', 'aponto' ),
 	failed: __( 'Failed', 'aponto' ),
@@ -114,8 +172,43 @@ export const TRANSACTION_STATUS_LABELS = {
 	// (D-R38a(2)); it is short-lived but it CAN be on screen, and an unlabelled status would
 	// render as a raw enum.
 	voiding: __( 'Cancelling', 'aponto' ),
+	// `capturing` is the claim a charge carries while its payment is being taken (D-R40c). For a
+	// checkout platform it lasts until the platform's order is paid, so it is routinely on screen.
+	// "Awaiting confirmation", not "Processing" (T-047): nothing is being processed while a bank
+	// transfer is on hold — the row waits for the payment to be confirmed.
+	capturing: __( 'Awaiting confirmation', 'aponto' ),
 	cancelled: __( 'Cancelled', 'aponto' ),
 };
+
+/**
+ * The reference worth showing for one ledger row (QA run 2 BUG-5).
+ *
+ * A CHARGE is best identified by what the gateway calls the payment; a REFUND by the refund's own
+ * id, which since D-R40d lives in `gateway_ref` (rest-contract §2.21). Falling back the other way
+ * keeps rows written before that change readable, where the refund id sat in `payment_ref`.
+ *
+ * A charge that has no payment reference yet falls back to `gateway_ref` — except on an order
+ * settled through an external checkout platform. There `gateway_ref` is Aponto's own internal
+ * checkout reference (a 64-character hash nobody can look up anywhere), and the order is already
+ * identified by the "External order" row above the ledger, so the cell stays empty.
+ *
+ * The same holds BEFORE that order exists (a held booking whose customer has not placed the
+ * external order yet): the only reference is still the internal one. It is recognised by its
+ * shape — 64 lowercase hex characters, which no payment provider uses for an id a person looks
+ * up — and the cell stays empty rather than printing a truncated hash (F18).
+ *
+ * @param {Object}  t                Transaction DTO (adapter shape).
+ * @param {boolean} hasExternalOrder Whether the order carries an external order record.
+ * @return {string} Reference to display.
+ */
+export function transactionRef( t, hasExternalOrder = false ) {
+	if ( t.kind === 'refund' ) {
+		return t.gatewayRef || t.paymentRef || '';
+	}
+	const internal = hasExternalOrder || /^[a-f0-9]{64}$/.test( t.gatewayRef || '' );
+
+	return t.paymentRef || ( internal ? '' : t.gatewayRef || '' );
+}
 
 /**
  * A gateway reference, shortened for a table cell.

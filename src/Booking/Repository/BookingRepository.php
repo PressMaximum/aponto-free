@@ -47,6 +47,23 @@ final class BookingRepository {
 	}
 
 	/**
+	 * Attach identity to a provisional booking under the caller's order lock and transaction.
+	 *
+	 * @param int    $booking_id Booking id.
+	 * @param int    $customer_id Real customer id.
+	 * @param string $note Checkout note.
+	 * @param string $now UTC write timestamp.
+	 * @throws StorageException When identity was already attached or persistence fails.
+	 */
+	public function attachCustomer( int $booking_id, int $customer_id, string $note, string $now ): void {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- All identifiers and values are prepared; caller holds the order lock.
+		$result = $this->wpdb->query( $this->wpdb->prepare( 'UPDATE %i SET customer_id = %d, customer_note = %s, updated_at = %s, mutation_version = mutation_version + 1 WHERE id = %d AND customer_id = 0', $this->wpdb->prefix . 'aponto_bookings', $customer_id, $note, $now, $booking_id ) );
+		if ( 1 !== $result || $customer_id < 1 ) {
+			throw StorageException::because( 'checkout customer attachment failed' );
+		}
+	}
+
+	/**
 	 * Insert a booking row and return its id. The row starts at `mutation_version = 1` (R4-1).
 	 *
 	 * @param array<string, mixed> $data Column => value map (already sanitized/typed by the service).
@@ -219,6 +236,9 @@ final class BookingRepository {
 		'ics_sequence'       => '%d',
 		'status'             => '%s',
 		'updated_at'         => '%s',
+		// D-R63: a location move rides the reschedule write (RescheduleService), and its
+		// compensation restores it — through this one versioned write path like every column.
+		'location_id'        => '%d',
 	);
 
 	/**

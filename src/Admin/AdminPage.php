@@ -29,6 +29,7 @@ use Aponto\Rest\Policy;
 use Aponto\Support\AssetManifest;
 use Aponto\Support\Assets;
 use Aponto\Support\Settings;
+use Aponto\Support\SiteTimezone;
 
 /**
  * Registers the `Aponto` admin menu + submenus, enqueues the admin bundle only on
@@ -94,6 +95,7 @@ final class AdminPage {
 		self::$wizard = $wizard;
 		add_action( 'admin_menu', array( self::class, 'registerMenu' ) );
 		add_action( 'admin_enqueue_scripts', array( self::class, 'enqueueAssets' ) );
+		add_action( 'admin_enqueue_scripts', array( self::class, 'menuIconStyle' ) );
 		// Plugins-page row "Settings" link (C11 — finding U4: the first-run reflex is to click the
 		// plugin's own Settings link; without it the app feels hidden). Deep-links to the SPA
 		// Settings route.
@@ -103,6 +105,24 @@ final class AdminPage {
 		// `wp-admin/includes/menu.php`, right after the `admin_menu` action completes (admin_init
 		// would be TOO LATE: the access check wp_die()s first).
 		add_action( 'admin_menu', array( self::class, 'redirectCompletedWizard' ), PHP_INT_MAX );
+	}
+
+	/**
+	 * The admin-menu icon: the Aponto symbol (logo mark) instead of a generic dashicon
+	 * (founder review 2026-10-01). Drawn as a CSS mask filled with `currentColor`, so it
+	 * follows the admin colour scheme's idle / hover / current colours exactly like a
+	 * dashicon — a data-URI `menu_icon` would go through WordPress's svg-painter, which
+	 * rewrites every `fill` and would flatten the mark's cut-outs. `dashicons-calendar-alt`
+	 * stays registered as the fallback if this stylesheet is ever missing.
+	 */
+	public static function menuIconStyle(): void {
+		$mask = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 208 208'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='208' height='208' fill='%23fff'/%3E%3Cpath d='M85.8135 55.2393C93.8964 41.2393 114.104 41.2393 122.187 55.2393L161.685 123.652C169.768 137.652 159.664 155.152 143.498 155.152H64.5018C48.336 155.152 38.2323 137.652 46.3152 123.652L85.8135 55.2393Z' fill='%23000'/%3E%3Ccircle cx='144.413' cy='87.8912' r='34.7609' fill='%23fff'/%3E%3Ccircle cx='144.413' cy='87.8912' r='23.7609' fill='%23000'/%3E%3C/mask%3E%3C/defs%3E%3Ccircle cx='104' cy='104' r='104' mask='url%28%23m%29'/%3E%3C/svg%3E";
+		$css  = sprintf(
+			'#adminmenu #toplevel_page_aponto .wp-menu-image::before,#adminmenu #toplevel_page_aponto-setup .wp-menu-image::before{content:"";display:block;box-sizing:border-box;width:20px;height:20px;margin:7px auto 0;padding:0;background-color:currentColor;-webkit-mask:url("%s") center/18px 18px no-repeat;mask:url("%s") center/18px 18px no-repeat;}',
+			$mask,
+			$mask
+		);
+		wp_add_inline_style( 'admin-menu', $css );
 	}
 
 	/**
@@ -170,6 +190,12 @@ final class AdminPage {
 	 * appears and the wizard page stays registered but hidden (re-entry from
 	 * Settings). Submenu items other than the default deep-link into the SPA via a
 	 * hash on the same page slug; highlight sync for the active hash is client-side.
+	 *
+	 * Modules may contribute an item through `aponto_admin_menu_items` (extension-surface §3.3,
+	 * D-R56) — core ships the registry, a separately distributed bundle ships the entry, so a
+	 * premium route can sit beside Staff without an edition-owned control entering the wp.org
+	 * archive (D-R41). The collapsed onboarding branch above returns FIRST and contributes
+	 * nothing: while setup is pending the menu is the wizard and nothing else.
 	 */
 	public static function registerMenu(): void {
 		$capability = Policy::MANAGE_BOOKINGS;
@@ -220,21 +246,58 @@ final class AdminPage {
 			'calendar'  => __( 'Calendar', 'aponto' ),
 			'customers' => __( 'Customers', 'aponto' ),
 			'services'  => __( 'Services', 'aponto' ),
-			'staff'     => __( 'Staff', 'aponto' ),
-			'modules'   => __( 'Modules', 'aponto' ),
-			'settings'  => __( 'Settings', 'aponto' ),
+		);
+		if ( Plan::instance()->has( 'coupons' ) ) {
+			// D-R67: Coupons is an operational catalog, so Premium exposes its existing module
+			// detail route directly beside Services without creating a second screen or bundle.
+			$items['modules/coupons'] = __( 'Coupons', 'aponto' );
+		}
+		$items += array(
+			'staff'    => __( 'Staff', 'aponto' ),
+			'modules'  => __( 'Modules', 'aponto' ),
+			'settings' => __( 'Settings', 'aponto' ),
 		);
 
-		foreach ( $items as $route => $label ) {
+		/**
+		 * Filter the module-contributed admin menu items (extension-surface §3.3, D-R56).
+		 *
+		 * A contribution is a {@see ModuleMenuItem}; everything else is dropped, as is an item
+		 * whose module the plan does not have or whose slug the registry does not grant it —
+		 * see {@see self::mergeMenuItems()}.
+		 *
+		 * @param list<ModuleMenuItem> $items Contributed menu items.
+		 */
+		$contributed = apply_filters( 'aponto_admin_menu_items', array() );
+
+		$plan = Plan::instance();
+		$menu = self::mergeMenuItems(
+			$items,
+			is_array( $contributed ) ? $contributed : array(),
+			Plan::FEATURES,
+			static function ( string $code ) use ( $plan ): bool {
+				return $plan->has( $code );
+			},
+			static function ( string $cap ): bool {
+				return current_user_can( $cap );
+			}
+		);
+
+		foreach ( $menu as $entry ) {
+			$route = $entry['route'];
 			// The first submenu re-uses the parent slug so the default landing renders
 			// the app (which then resolves the hash, defaulting to Dashboard). Every
 			// other item is a hash deep-link on the same page.
 			$menu_slug = 'dashboard' === $route ? self::SLUG : 'admin.php?page=' . self::SLUG . '#' . $route;
 
+			// EVERY item — core and contributed alike — registers with the PARENT capability.
+			// A contributed item's own capability is an ADDITIONAL requirement, already applied
+			// inside the merge; registering the submenu with it instead would advertise a deep
+			// link into a page the visitor may not be able to open at all (`page=aponto` itself
+			// is `MANAGE_BOOKINGS`), which is a broken link, not an access grant.
 			add_submenu_page(
 				self::SLUG,
-				$label,
-				$label,
+				$entry['label'],
+				$entry['label'],
 				$capability,
 				$menu_slug,
 				'dashboard' === $route ? array( self::class, 'renderRoot' ) : ''
@@ -262,6 +325,134 @@ final class AdminPage {
 				remove_submenu_page( self::SLUG, WizardPage::slug() );
 			}
 		}
+	}
+
+	/**
+	 * The core menu items plus every module contribution that earns a place, in MENU ORDER
+	 * (extension-surface §3.3, D-R56).
+	 *
+	 * Pure, like {@see self::resolveModuleBundles()} and for the same reason: the interesting
+	 * part is a set of drop rules, and they are worth asserting without a WordPress menu, a
+	 * build or an edition. Production binds `$features` to `Plan::FEATURES` and `$has` to
+	 * `Plan::has()`.
+	 *
+	 * A contribution is KEPT only when every one of these holds:
+	 *
+	 *   1. it is a {@see ModuleMenuItem}. The filter is open to any plugin, so anything else —
+	 *      an array, a string, a stdClass with the right fields — is not a contract, it is a
+	 *      guess, and it is dropped.
+	 *   2. `moduleCode` is a registry key. A code the registry does not know has no owner and
+	 *      therefore no claim (fail-closed, same rule as {@see self::resolveModuleBundles()}).
+	 *   3. `$has( moduleCode )` — THE gate (§5 invariant 3). Free, downgraded and switched-off
+	 *      all land here, which is why the Free menu has no Locations item at all rather than a
+	 *      locked one.
+	 *   4. `slug` is `[a-z0-9-]+` AND equals that module's registry `menu` value. This is the
+	 *      rule that keeps an open FILTER from becoming an open MENU: the registry is the one
+	 *      list of which module may own which slug, so a third-party callback cannot invent an
+	 *      entry, and a module cannot rename its own route past review.
+	 *   5. `slug` is not a core route — a contribution may extend the IA, never shadow it.
+	 *   6. `capability` is one of the four `Policy::MANAGE_*` capabilities. WordPress would
+	 *      happily register a menu against `manage_options` or an unknown string; neither is a
+	 *      capability this plugin grants.
+	 *   7. `$can( capability )` — the CURRENT user actually holds it. It is an ADDITIONAL
+	 *      requirement on top of reaching the host page, never a way in: the merged menu is
+	 *      registered entirely with the PARENT page's capability (see {@see self::registerMenu()}),
+	 *      because `admin.php?page=aponto` is itself `Policy::MANAGE_BOOKINGS` and a submenu
+	 *      advertising a laxer or a different capability would be a link into a page its own
+	 *      visitor cannot open. So a role with bookings but not settings sees the core IA and
+	 *      simply does not see Locations.
+	 *   8. the slug is still free. Two contributions for one slug means two owners, and the
+	 *      first wins rather than the last, so a later plugin cannot relabel someone's item.
+	 *
+	 * PLACEMENT: after the core item named by `after`, else immediately before `modules` —
+	 * "somewhere in the IA, never past the tools cluster" is the honest default for an item
+	 * whose anchor we do not recognize. With no `modules` item to anchor against (a shape only
+	 * a test produces) the leftovers land at the end.
+	 *
+	 * @param array<string, string>               $core     Core route => label, in menu order.
+	 * @param array<int|string, mixed>            $items    Raw filter output.
+	 * @param array<string, array<string, mixed>> $features Module registry.
+	 * @param callable(string): bool              $has      Entitlement gate for a module code.
+	 * @param callable(string): bool              $can      Capability check for the current user.
+	 * @return list<array{route: string, label: string}> Merged menu, in order.
+	 */
+	public static function mergeMenuItems( array $core, array $items, array $features, callable $has, callable $can ): array {
+		$routes     = array_keys( $core );
+		$accepted   = array();
+		$taken      = array();
+		$allowed    = array( Policy::MANAGE_SETTINGS, Policy::MANAGE_SERVICES, Policy::MANAGE_STAFF, Policy::MANAGE_BOOKINGS );
+		$slug_shape = '/^[a-z0-9-]+$/';
+
+		foreach ( $items as $item ) {
+			if ( ! $item instanceof ModuleMenuItem ) {
+				continue;
+			}
+			$meta = $features[ $item->moduleCode ] ?? null;
+			if ( ! is_array( $meta ) || ! $has( $item->moduleCode ) ) {
+				continue;
+			}
+			if ( 1 !== preg_match( $slug_shape, $item->slug ) || ( $meta['menu'] ?? null ) !== $item->slug ) {
+				continue;
+			}
+			if ( in_array( $item->slug, $routes, true ) || isset( $taken[ $item->slug ] ) ) {
+				continue;
+			}
+			if ( ! in_array( $item->capability, $allowed, true ) || ! $can( $item->capability ) ) {
+				continue;
+			}
+
+			$taken[ $item->slug ] = true;
+			$accepted[]           = array(
+				'route' => $item->slug,
+				'label' => $item->label,
+				'after' => $item->after,
+			);
+		}
+
+		$merged  = array();
+		$orphans = array();
+		foreach ( $accepted as $entry ) {
+			if ( ! in_array( $entry['after'], $routes, true ) ) {
+				$orphans[] = $entry;
+			}
+		}
+
+		foreach ( $core as $route => $label ) {
+			$route = (string) $route;
+			if ( 'modules' === $route ) {
+				foreach ( $orphans as $entry ) {
+					$merged[] = self::menuEntry( $entry );
+				}
+				$orphans = array();
+			}
+			$merged[] = array(
+				'route' => $route,
+				'label' => (string) $label,
+			);
+			foreach ( $accepted as $entry ) {
+				if ( $entry['after'] === $route ) {
+					$merged[] = self::menuEntry( $entry );
+				}
+			}
+		}
+		foreach ( $orphans as $entry ) {
+			$merged[] = self::menuEntry( $entry );
+		}
+
+		return $merged;
+	}
+
+	/**
+	 * Drop the placement hint from an accepted contribution, leaving the menu-entry shape.
+	 *
+	 * @param array{route: string, label: string, after: string} $entry Accepted contribution.
+	 * @return array{route: string, label: string}
+	 */
+	private static function menuEntry( array $entry ): array {
+		return array(
+			'route' => $entry['route'],
+			'label' => $entry['label'],
+		);
 	}
 
 	/**
@@ -469,6 +660,16 @@ final class AdminPage {
 				true
 			);
 			\Aponto\Support\Translations::setScriptTranslations( $handle );
+			$style = Assets::filename( $entry . '.css' );
+			if ( is_file( Assets::path( $style ) ) ) {
+				wp_enqueue_style(
+					$handle,
+					$base_url . '/' . $style,
+					array( 'aponto-admin' ),
+					isset( $asset['version'] ) ? (string) $asset['version'] : APONTO_VERSION
+				);
+				Assets::addStyleVariantData( $handle, $style );
+			}
 		}
 	}
 
@@ -620,7 +821,11 @@ final class AdminPage {
 
 		$tz_string = (string) wp_timezone_string();
 		$business  = array(
-			'timezone'     => $tz_string,
+			// ALWAYS an IANA name (D-R63 fix round 1, browser QA B1): the admin sends this as `tz` to
+			// routes that accept IANA only, and a manual-offset site used to publish `+07:00` and get
+			// 422 → "No available times". The LABELS stay the site's own words: `timezoneCity` is
+			// computed from the raw setting and `utcOffset` is the offset label, exactly as before.
+			'timezone'     => SiteTimezone::iana( $tz_string ),
 			'timezoneCity' => self::timezoneCity( $tz_string ),
 			'utcOffset'    => self::timezoneOffsetLabel(),
 			'name'         => $name,
@@ -687,6 +892,11 @@ final class AdminPage {
 			// Privacy launcher (§5). None of these fit the values-only REST DTOs, hence boot data.
 			'settingsSchema'   => $settings->uiSchema(),
 			'modules'          => self::modulesForBoot(),
+			// D-R79: whether an ENABLED payment module declares itself the site's exclusive
+			// checkout — ready or not. With it the Dashboard can tell "paid services are booked
+			// unpaid" from "paid services cannot be booked" by the server's own rule
+			// ({@see \Aponto\Payments\PaymentRegistry::requiredButUnavailable()}). Names no gateway.
+			'paymentExclusive' => '' !== \Aponto\Payments\PaymentRegistry::exclusiveCode( \Aponto\Payments\PaymentRegistry::activeCodes() ),
 			// Integration surface (extension-surface §4.1). `integrationRedirectUri` is DERIVED, not a
 			// setting: the site owner has to paste it into their own OAuth client, so the panel must be
 			// able to show the exact value core will honour. `integrationNotice` is the one-shot result
@@ -706,7 +916,36 @@ final class AdminPage {
 				'services' => current_user_can( Policy::MANAGE_SERVICES ),
 				'staff'    => current_user_can( Policy::MANAGE_STAFF ),
 				'settings' => current_user_can( Policy::MANAGE_SETTINGS ),
+				// NOT an Aponto capability: `upload_files` is WordPress's own, and the media
+				// modal needs it. Published so the staff editor can hide "Choose photo" for a
+				// role that has staff management but no media rights, instead of offering a
+				// button whose modal opens empty (D-R51, Codex P2-3). Display-only, like every
+				// other flag here — the write path re-checks `read_post` on the attachment.
+				'media'    => current_user_can( 'upload_files' ),
 			),
+			// The operator's own Bookings list column layout, or null for the defaults
+			// (D-R74, rest-contract §2.23). Boot data so the list paints those columns on first render.
+			'preferences'      => array(
+				'bookingsTable' => self::bookingsTableBoot(),
+			),
+		);
+	}
+
+	/**
+	 * The current user's Bookings list column layout in the bundle's camelCase, or null.
+	 *
+	 * @return array{columnVisibility: object, columnOrder: list<string>}|null
+	 */
+	private static function bookingsTableBoot(): ?array {
+		$layout = BookingsTablePreferences::get( get_current_user_id() );
+		if ( null === $layout ) {
+			return null;
+		}
+
+		return array(
+			// An object even when empty: `[]` would reach the bundle as an array, not a map.
+			'columnVisibility' => (object) $layout['column_visibility'],
+			'columnOrder'      => $layout['column_order'],
 		);
 	}
 
@@ -749,7 +988,22 @@ final class AdminPage {
 	 * `null` means the module did not answer the seam, which is not the same as `false` and must not
 	 * be rendered as one.
 	 *
-	 * @return list<array{code:string, category:string, kind:string, edition:string, phase:string, has_settings:bool, industries:list<string>, status:'included'|'planned', available:bool, toggleable:bool, enabled:bool, configured:bool, connected_count:int, used_count:int, payment_mode:string, ready:bool|null}>
+	 * `menu` is the seventeenth (D-R56) and is the ONLY registry field here that is not
+	 * presentation: it is the ALLOW-LIST. `mergeMenuItems()` already refuses a contributed
+	 * WordPress submenu whose slug is not the module's registry `menu`, and publishing the same
+	 * value lets `assets/src/admin/lib/admin-routes.js` hold the SPA's `registerAdminRoute()` to
+	 * the identical rule — without it the browser half was laxer than the server half, and any
+	 * available module could have claimed any route id. It is a SLUG, not a control and not a
+	 * capability: it says which hash a module may own, never whether it may do anything. `provider`
+	 * stays excluded — nothing in the browser has any use for an FQCN. Boot data only, added
+	 * additively: REST `/v1` is untouched (§5 invariant 9), and there is no `GET /modules`
+	 * collection route for this projection to be part of.
+	 *
+	 * `scope` is the eighteenth (D-R65) and is published beside `category` because the two are
+	 * read together: `per_staff` or `site` — does this module's configuration belong to a PERSON
+	 * or to the SITE? Presentation only, added additively like every field above it.
+	 *
+	 * @return list<array{code:string, category:string, scope:string, kind:string, edition:string, phase:string, has_settings:bool, industries:list<string>, status:'included'|'planned', available:bool, toggleable:bool, enabled:bool, configured:bool, connected_count:int, used_count:int, payment_mode:string, ready:bool|null, menu:string|null}>
 	 */
 	private static function modulesForBoot(): array {
 		$out    = array();
@@ -774,6 +1028,12 @@ final class AdminPage {
 			$out[] = array(
 				'code'            => (string) $code,
 				'category'        => (string) $meta['category'],
+				// The eighteenth field (D-R65) and the companion of `category`: `per_staff` or
+				// `site`. Published beside `category` because the two are read together — a
+				// per-person surface such as the Staff editor's "Calendar connections" card asks
+				// for `scope === 'per_staff'`, not for the connections TAB, which also holds
+				// site-level `sms` and `webhooks`.
+				'scope'           => (string) $meta['scope'],
 				'kind'            => (string) $meta['kind'],
 				'edition'         => (string) $meta['edition'],
 				'phase'           => (string) $meta['phase'],
@@ -794,6 +1054,10 @@ final class AdminPage {
 				// for every card rather than only for payments: a calendar connector whose token was
 				// revoked has the same thing to say, and one vocabulary is the point of the seam.
 				'ready'           => \Aponto\Extension\ModuleStatus::readyFlag( (string) $code ),
+				// The registry slug this module is GRANTED (D-R56) — the browser half of the same
+				// allow-list `mergeMenuItems()` applies to the WordPress submenu. `null` for the
+				// 27 entries that own no route, which is most of them.
+				'menu'            => null === $meta['menu'] ? null : (string) $meta['menu'],
 			);
 		}
 
@@ -972,7 +1236,11 @@ final class AdminPage {
 	 * Booking-page readiness (Dashboard card): the page the wizard created
 	 * (`aponto_booking_page_id`), or null when absent/trashed.
 	 *
-	 * @return array{id:int, status:string, url:string, editUrl:string}|null
+	 * `hasForm` (persona QA 2026-10-05, T-040, additive) is the same answer Settings → Booking gives
+	 * ({@see \Aponto\Support\BookingPage::dto()}): whether the page contains the booking-form block.
+	 * Without it the Dashboard said "Online booking is live" for a published page with no form on it.
+	 *
+	 * @return array{id:int, status:string, url:string, editUrl:string, hasForm:bool}|null
 	 */
 	private static function bookingPage(): ?array {
 		$page_id = (int) get_option( WizardService::BOOKING_PAGE_OPTION, 0 );
@@ -989,6 +1257,10 @@ final class AdminPage {
 			'status'  => (string) $post->post_status,
 			'url'     => (string) get_permalink( $post ),
 			'editUrl' => (string) get_edit_post_link( $page_id, 'raw' ),
+			// Server-computed, the same answer `GET /settings` gives as `booking_page.has_form`
+			// (D-R75): the Dashboard said "Online booking is live" for ANY published page, including
+			// one that does not contain the form (persona QA 2026-10-05, T-085).
+			'hasForm' => has_block( \Aponto\Support\BookingPage::BLOCK, $post ),
 		);
 	}
 

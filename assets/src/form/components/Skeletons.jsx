@@ -80,3 +80,36 @@ export function SlotsSkeleton() {
 		</div>
 	);
 }
+
+/**
+ * The one-page frame while the catalogue loads (D-R80): the intro column shaped like the panel
+ * that is coming (title, two meta rows, a description), so a pinned block never flashes the
+ * wizard's catalogue or the summary's "Start with a service" state on its way in.
+ */
+export function IntroSkeleton() {
+	return (
+		<aside class="ap-intro" aria-hidden="true">
+			<div class="ap-intro-body">
+				<Bar w="72%" h={ 28 } mb={ 24 } />
+				<Bar w="46%" h={ 13 } mb={ 12 } />
+				<Bar w="38%" h={ 13 } mb={ 16 } />
+				<Bar h={ 12 } mb={ 7 } />
+				<Bar w="94%" h={ 12 } mb={ 7 } />
+				<Bar w="60%" h={ 12 } />
+			</div>
+		</aside>
+	);
+}
+
+/** …and the screen beside it: heading, calendar and slot chips (D-R80). */
+export function DateTimeSkeleton() {
+	return (
+		<div aria-hidden="true">
+			<Bar w="190px" h={ 22 } mb={ 24 } />
+			<CalendarSkeleton />
+			<div style={ { marginTop: '18px' } }>
+				<SlotsSkeleton />
+			</div>
+		</div>
+	);
+}

@@ -79,6 +79,49 @@ final class Policy {
 	}
 
 	/**
+	 * Customer CSV import uses the customer capability and the feature gate (D-R72).
+	 *
+	 * @return true|\WP_Error
+	 */
+	public static function importCustomers() {
+		$permission = self::manageBookings();
+		if ( true !== $permission ) {
+			return $permission;
+		}
+		return \Aponto\Plan::instance()->has( 'csv_import' ) ? true : Errors::notFound();
+	}
+
+	/**
+	 * Entity-specific capability is checked again by the import application service.
+	 *
+	 * @return true|\WP_Error
+	 */
+	public static function importData() {
+		if ( ! is_user_logged_in() ) {
+			return Errors::unauthenticated(); }
+		if ( ! \Aponto\Plan::instance()->has( 'csv_import' ) ) {
+			return Errors::notFound(); }
+		foreach ( array( self::MANAGE_BOOKINGS, self::MANAGE_SERVICES, self::MANAGE_STAFF, self::MANAGE_SETTINGS ) as $cap ) {
+			if ( current_user_can( $cap ) ) {
+				return true; }
+		}
+		return Errors::forbidden();
+	}
+
+	/** Require authentication and a domain capability before export reads. */
+	public static function exportData(): bool|\WP_Error {
+		if ( ! is_user_logged_in() ) {
+			return Errors::unauthenticated();
+		}
+		foreach ( array( self::MANAGE_BOOKINGS, self::MANAGE_SERVICES, self::MANAGE_STAFF, self::MANAGE_SETTINGS ) as $cap ) {
+			if ( current_user_can( $cap ) ) {
+				return true;
+			}
+		}
+		return Errors::forbidden();
+	}
+
+	/**
 	 * Apply the shared 401/403 capability policy behind every named private callback.
 	 *
 	 * @param string $capability Capability slug.

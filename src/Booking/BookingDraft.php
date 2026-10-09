@@ -33,7 +33,7 @@ final class BookingDraft {
 	 * @param int|null                   $staff_id          Staff id, or null for any-staff resolution.
 	 * @param int                        $location_id       Location id (0 = no location).
 	 * @param \DateTimeImmutable         $start_utc         Slot start instant (UTC) — the slot identity.
-	 * @param CustomerInput              $customer          Customer identity.
+	 * @param CustomerInput|null         $customer          Customer identity.
 	 * @param string                     $customer_timezone Customer IANA timezone (may be empty).
 	 * @param bool                       $consent           Whether the customer ticked consent.
 	 * @param string|null                $idempotency_key   Raw idempotency key, or null (admin scope).
@@ -50,13 +50,27 @@ final class BookingDraft {
 	 *                                              `''` for none / pay on site (D-R38). Validated
 	 *                                              against `PaymentRegistry::activeCodes()` at the
 	 *                                              boundary; the engine only carries it.
+	 * @param string                     $coupon_code Canonical coupon code, or `''` when none.
+	 * @param int                        $coupon_user_id Server-resolved WordPress user id for coupon
+	 *                                              scope: the LOGGED-IN visitor on the public path
+	 *                                              (D-R67e), the customer's admin-linked account on
+	 *                                              the admin path, or `0`.
+	 * @param int|null                   $quoted_total_minor The total the boundary priced this draft at
+	 *                                              (and decided the payment requirement from), or
+	 *                                              null when not asserted. The reservation re-prices
+	 *                                              under its locks and refuses a draft whose free vs
+	 *                                              payable classification moved (D-R67m).
+	 * @param string                     $exact_hash sha256 of the exact submitted body, stored on
+	 *                                              the idempotency claim for early replay (D-R67u).
+	 * @param string                     $amount_mode Validated initial payment choice: deposit or full.
+	 * @param bool                       $deferred_checkout Trusted customerless external checkout hold.
 	 */
 	public function __construct(
 		public readonly int $service_id,
 		public readonly ?int $staff_id,
 		public readonly int $location_id,
 		public readonly \DateTimeImmutable $start_utc,
-		public readonly CustomerInput $customer,
+		public readonly ?CustomerInput $customer,
 		public readonly string $customer_timezone = '',
 		public readonly bool $consent = false,
 		public readonly ?string $idempotency_key = null,
@@ -65,7 +79,13 @@ final class BookingDraft {
 		public readonly string $scope = 'public',
 		public readonly ?string $status = null,
 		public readonly array $custom_fields = array(),
-		public readonly string $payment_method = ''
+		public readonly string $payment_method = '',
+		public readonly string $coupon_code = '',
+		public readonly int $coupon_user_id = 0,
+		public readonly ?int $quoted_total_minor = null,
+		public readonly string $exact_hash = '',
+		public readonly string $amount_mode = 'deposit',
+		public readonly bool $deferred_checkout = false
 	) {}
 
 	/**
@@ -88,7 +108,13 @@ final class BookingDraft {
 			$this->scope,
 			$this->status,
 			$this->custom_fields,
-			$this->payment_method
+			$this->payment_method,
+			$this->coupon_code,
+			$this->coupon_user_id,
+			$this->quoted_total_minor,
+			$this->exact_hash,
+			$this->amount_mode,
+			$this->deferred_checkout
 		);
 	}
 }

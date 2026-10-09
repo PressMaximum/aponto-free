@@ -59,7 +59,7 @@ export function ServiceReorder( { categoryIdentity, services, onCancel, onSaved,
 		const fullIds = global.map( ( s ) => ( inCategory( s ) ? order[ cursor++ ] : s.id ) );
 		try {
 			await api.post( '/services/reorder', { ids: fullIds } );
-			showToast( 'Service order saved.' );
+			showToast( 'Service order saved.', 'success' );
 			onSaved?.();
 		} catch ( err ) {
 			showToast( err.message, 'danger' );

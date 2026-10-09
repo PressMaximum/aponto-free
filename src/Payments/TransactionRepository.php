@@ -47,6 +47,19 @@ final class TransactionRepository {
 	public const KIND_REFUND = 'refund';
 
 	/**
+	 * A balance an operator recorded as paid on site (D-R71 #3). No gateway, no references; the
+	 * operator and the moment live in the booking activity. Gateway queries select `charge`/`refund`
+	 * explicitly, so these rows never take part in capture, void or refund.
+	 */
+	public const KIND_ONSITE = 'onsite';
+
+	/** A later online collection of the entire balance. */
+	public const KIND_BALANCE = 'balance';
+
+	/** Money returned on site, linked to its original onsite collection. */
+	public const KIND_ONSITE_REFUND = 'onsite_refund';
+
+	/**
 	 * Written, not yet resolved.
 	 */
 	public const STATUS_PENDING = 'pending';
@@ -60,6 +73,12 @@ final class TransactionRepository {
 	 * The attempt is over and money did not move.
 	 */
 	public const STATUS_FAILED = 'failed';
+
+	/**
+	 * An `onsite` record the operator reversed (D-R71 #3). Kept for the audit trail; it no longer
+	 * counts towards money collected.
+	 */
+	public const STATUS_REVERSED = 'reversed';
 
 	/**
 	 * A void is IN FLIGHT for this charge (Codex #10).
@@ -192,6 +211,7 @@ final class TransactionRepository {
 	 * @param int|null                $parent_id       For a refund, the charge it refunds.
 	 * @return int Inserted row id.
 	 * @throws StorageException When the insert fails.
+	 * @param string                  $configuration_hash Non-secret gateway configuration binding for balance recovery.
 	 */
 	public function insertPending(
 		int $order_id,
@@ -202,7 +222,8 @@ final class TransactionRepository {
 		string $currency,
 		string $idempotency_key,
 		?\DateTimeImmutable $expires_at = null,
-		?int $parent_id = null
+		?int $parent_id = null,
+		string $configuration_hash = ''
 	): int {
 		$now = $this->clock->nowSql();
 
@@ -223,7 +244,7 @@ final class TransactionRepository {
 				'idempotency_key' => $idempotency_key,
 				'failure_code'    => '',
 				'expires_at'      => null === $expires_at ? null : $expires_at->format( 'Y-m-d H:i:s' ),
-				'meta'            => null,
+				'meta'            => '' === $configuration_hash ? null : (string) wp_json_encode( array( 'configuration_hash' => $configuration_hash ) ),
 				'created_at'      => $now,
 				'updated_at'      => $now,
 			),
@@ -252,7 +273,9 @@ final class TransactionRepository {
 	 * @throws StorageException When the update fails.
 	 */
 	public function markBegun( int $id, string $gateway_ref, array $client_params, ?\DateTimeImmutable $expires_at ): bool {
-		$meta = array() === $client_params ? '' : (string) wp_json_encode( self::metaFor( $client_params ) );
+		$durable = $this->retainedMeta( $id );
+		$kept    = null === $durable ? array() : json_decode( $durable, true );
+		$meta    = (string) wp_json_encode( self::metaFor( $client_params ) + ( is_array( $kept ) ? $kept : array() ) );
 
 		// The expiry clause is BRANCHED rather than wrapped in `COALESCE( %s, … )` because
 		// `wpdb::prepare()` casts a null `%s` argument to the empty string, which MySQL would then
@@ -672,7 +695,30 @@ final class TransactionRepository {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
 		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $id ), ARRAY_A );
 
-		return is_array( $row ) ? $row : null;
+		return is_array( $row ) ? self::typed( $row ) : null;
+	}
+
+	/**
+	 * The integer columns of a ledger row as integers. `wpdb` on MySQL answers every column as a
+	 * string while the SQLite tier answers integers, so a row returned to a caller (the refund
+	 * result's `transaction`) would otherwise change type with the engine. Nullable ids stay null.
+	 *
+	 * @param array<string, mixed> $row Raw row.
+	 * @return array<string, mixed>
+	 */
+	private static function typed( array $row ): array {
+		foreach ( array( 'id', 'order_id', 'amount_minor' ) as $column ) {
+			if ( array_key_exists( $column, $row ) && null !== $row[ $column ] ) {
+				$row[ $column ] = (int) $row[ $column ];
+			}
+		}
+		foreach ( array( 'booking_id', 'parent_id' ) as $column ) {
+			if ( array_key_exists( $column, $row ) && null !== $row[ $column ] && '' !== $row[ $column ] ) {
+				$row[ $column ] = (int) $row[ $column ];
+			}
+		}
+
+		return $row;
 	}
 
 	/**
@@ -680,13 +726,49 @@ final class TransactionRepository {
 	 *
 	 * @param int $order_id Order id.
 	 * @return list<array<string, mixed>>
+	 * @throws StorageException When the ledger cannot be read.
 	 */
 	public function forOrder( int $order_id ): array {
 		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE order_id = %d ORDER BY id ASC';
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
 		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $order_id ), ARRAY_A );
+		if ( '' !== (string) $this->wpdb->last_error || ! is_array( $rows ) ) {
+			throw StorageException::fromSqlError( esc_html( 'order ledger read' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
 
 		return is_array( $rows ) ? array_values( $rows ) : array();
+	}
+
+	/**
+	 * Find the unresolved balance attempt, including a declined but still payable intent.
+	 *
+	 * @param int $order_id Order id.
+	 * @return array<string,mixed>|null
+	 */
+	public function pendingBalance( int $order_id ): ?array {
+		foreach ( array_reverse( $this->forOrder( $order_id ) ) as $row ) {
+			if ( self::KIND_BALANCE === $row['kind'] && self::STATUS_SUCCEEDED !== $row['status'] && ! in_array( $row['failure_code'], array( 'balance_voided', 'balance_expired' ), true ) ) {
+				return $row;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Refund reservations and settled refunds for one original collection only.
+	 *
+	 * @param int  $order_id Order id.
+	 * @param int  $parent_id Original collection.
+	 * @param bool $settled_only Exclude pending reservations.
+	 */
+	public function refundedForCharge( int $order_id, int $parent_id, bool $settled_only = false ): int {
+		$total = 0;
+		foreach ( $this->forOrder( $order_id ) as $row ) {
+			if ( (int) $row['parent_id'] === $parent_id && in_array( $row['kind'], array( self::KIND_REFUND, self::KIND_ONSITE_REFUND ), true ) && ( self::STATUS_SUCCEEDED === $row['status'] || ( ! $settled_only && self::STATUS_PENDING === $row['status'] ) ) ) {
+				$total += (int) $row['amount_minor'];
+			}
+		}
+		return $total;
 	}
 
 	/**
@@ -721,15 +803,23 @@ final class TransactionRepository {
 	 * just overwritten. The fence therefore matched nothing, the row stayed `voiding`, and a failed
 	 * void could not be retried until the 300 s lease expired instead of on the very next tick.
 	 *
-	 * @param int $id Transaction id.
+	 * **`$take_live_capture`** (2026-10-05) takes a `capturing` claim over whatever its age. Only the
+	 * customer's cancellation of a placed pay-at-the-appointment order passes it
+	 * ({@see PaymentService::releaseHoldForCancel()}): its gateway states that no capture can be on
+	 * the network for that order, so the claim left by placing it protects nothing. The caller
+	 * keeps the claim's own `updated_at` and gives it back unchanged when the void is refused
+	 * ({@see self::restoreCaptureClaim()}). A live `voiding` claim is never taken.
+	 *
+	 * @param int  $id                Transaction id.
+	 * @param bool $take_live_capture Whether a live capture claim may be taken over too.
 	 * @return string The claim's `updated_at` when THIS call owns the void, '' when it does not.
 	 * @throws StorageException When the update fails.
 	 */
-	public function claimForVoid( int $id ): string {
+	public function claimForVoid( int $id, bool $take_live_capture = false ): string {
 		$stale = $this->clock->now()->sub( new \DateInterval( 'PT' . self::VOID_LEASE_SECONDS . 'S' ) )->format( 'Y-m-d H:i:s' );
 		$lease = $this->clock->nowSql();
 		$sql   = 'UPDATE ' . $this->table() . ' SET status = %s, updated_at = %s'
-			. ' WHERE id = %d AND ( status = %s OR ( status IN ( %s, %s ) AND updated_at < %s ) )';
+			. ' WHERE id = %d AND ( status = %s OR ( status = %s AND updated_at < %s ) OR ( status = %s AND updated_at < %s ) )';
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); void-claim compare-and-swap.
 		$affected = $this->wpdb->query(
@@ -740,8 +830,10 @@ final class TransactionRepository {
 				$id,
 				self::STATUS_PENDING,
 				self::STATUS_VOIDING,
+				$stale,
 				self::STATUS_CAPTURING,
-				$stale
+				// Every stored lease is older than this bound, so a live capture claim matches too.
+				$take_live_capture ? '9999-12-31 23:59:59' : $stale
 			)
 		);
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -751,6 +843,29 @@ final class TransactionRepository {
 		}
 
 		return (int) $affected > 0 ? $lease : '';
+	}
+
+	/**
+	 * Give a void claim that took over a LIVE capture claim back exactly as it was (2026-10-05).
+	 *
+	 * The void was refused, so nothing about the order changed: the row is `capturing` again with
+	 * the capture claim's own `updated_at`. That value is the claim's identity — an external
+	 * checkout's prepared quote stores it as its lease — so the refused cancellation leaves no
+	 * trace and the claim still expires when it would have.
+	 *
+	 * @param int    $id            Transaction id.
+	 * @param string $void_lease    The `updated_at` {@see self::claimForVoid()} wrote (the fence).
+	 * @param string $capture_lease The capture claim's `updated_at` read before the takeover.
+	 * @throws StorageException When the update fails.
+	 */
+	public function restoreCaptureClaim( int $id, string $void_lease, string $capture_lease ): void {
+		$sql = 'UPDATE ' . $this->table() . ' SET status = %s, updated_at = %s WHERE id = %d AND status = %s AND updated_at = %s';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; every value bound via prepare(); fenced claim hand-back.
+		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, self::STATUS_CAPTURING, $capture_lease, $id, self::STATUS_VOIDING, $void_lease ) );
+		if ( false === $affected ) {
+			throw StorageException::fromSqlError( esc_html( 'payment transaction capture claim restore' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
 	}
 
 	/**
@@ -816,6 +931,32 @@ final class TransactionRepository {
 		}
 
 		return (int) $affected > 0 ? $lease : '';
+	}
+
+	/**
+	 * Finalize the expected amount on the exact pending external attempt.
+	 *
+	 * Caller holds the order lock and a transaction; capture claim follows before commit.
+	 *
+	 * @param int $id Charge transaction id.
+	 * @param int $amount Exact final minor units.
+	 * @throws StorageException When the write fails.
+	 */
+	public function finalizeCheckoutAmount( int $id, int $amount ): void {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Financial ledger; caller owns the order lock and transaction.
+		$result = $this->wpdb->update(
+			$this->table(),
+			array( 'amount_minor' => $amount ),
+			array(
+				'id'     => $id,
+				'status' => self::STATUS_PENDING,
+			),
+			array( '%d' ),
+			array( '%d', '%s' )
+		);
+		if ( false === $result ) {
+			throw StorageException::fromSqlError( esc_html( 'checkout charge quote' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
 	}
 
 	/**
@@ -1041,20 +1182,148 @@ final class TransactionRepository {
 	 * @param int $order_id Order id.
 	 */
 	public function settledRefundMinor( int $order_id ): int {
-		$sql = 'SELECT COALESCE( SUM(amount_minor), 0 ) FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s AND status = %s';
+		$sql = 'SELECT COALESCE( SUM(amount_minor), 0 ) FROM ' . $this->table() . ' WHERE order_id = %d AND kind IN ( %s, %s ) AND status = %s';
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
-		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $order_id, self::KIND_REFUND, self::STATUS_SUCCEEDED ) );
+		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $order_id, self::KIND_REFUND, self::KIND_ONSITE_REFUND, self::STATUS_SUCCEEDED ) );
+	}
+
+	/**
+	 * Settled money per kind for an order (D-R71): Σ succeeded `charge`, Σ succeeded `onsite`,
+	 * Σ succeeded `refund`. One portable query (D-R54: CASE, no engine-specific builtin). The input of
+	 * every derived amount in {@see \Aponto\Payments\OrderAmounts}.
+	 *
+	 * @param int $order_id Order id.
+	 * @return array{charged: int, onsite: int, refunded: int}
+	 * @throws StorageException When the read fails; money preconditions fail closed.
+	 */
+	public function ledgerTotals( int $order_id ): array {
+		$sql = 'SELECT'
+			. ' COALESCE( SUM( CASE WHEN kind IN ( %s, %s ) THEN amount_minor ELSE 0 END ), 0 ) AS charged,'
+			. ' COALESCE( SUM( CASE WHEN kind = %s THEN amount_minor ELSE 0 END ), 0 ) AS onsite,'
+			. ' COALESCE( SUM( CASE WHEN kind IN ( %s, %s ) THEN amount_minor ELSE 0 END ), 0 ) AS refunded'
+			. ' FROM ' . $this->table() . ' WHERE order_id = %d AND status = %s';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, self::KIND_CHARGE, self::KIND_BALANCE, self::KIND_ONSITE, self::KIND_REFUND, self::KIND_ONSITE_REFUND, $order_id, self::STATUS_SUCCEEDED ), ARRAY_A );
+		if ( '' !== (string) $this->wpdb->last_error || ! is_array( $row ) ) {
+			throw StorageException::fromSqlError( esc_html( 'payment ledger totals' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
+
+		return array(
+			'charged'  => (int) ( $row['charged'] ?? 0 ),
+			'onsite'   => (int) ( $row['onsite'] ?? 0 ),
+			'refunded' => (int) ( $row['refunded'] ?? 0 ),
+		);
+	}
+
+	/**
+	 * Record a balance paid on site (D-R71 #3). The caller holds the per-order lock and has checked
+	 * the preconditions; the row is born `succeeded` because no gateway is involved.
+	 *
+	 * @param int      $order_id        Order id.
+	 * @param int      $booking_id      Booking id.
+	 * @param int      $amount_minor    Balance recorded.
+	 * @param string   $currency        Order currency.
+	 * @param string   $idempotency_key `onsite:{order_id}:{n}`.
+	 * @return int Row id.
+	 * @throws StorageException When the insert fails.
+	 * @param string   $kind Onsite collection or refund.
+	 * @param int|null $parent_id Original onsite collection when refunding.
+	 */
+	public function insertOnsite( int $order_id, int $booking_id, int $amount_minor, string $currency, string $idempotency_key, string $kind = self::KIND_ONSITE, ?int $parent_id = null ): int {
+		$now = $this->clock->nowSql();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Ledger insert; no cache layer applies to a money row.
+		$inserted = $this->wpdb->insert(
+			$this->table(),
+			array(
+				'order_id'        => $order_id,
+				'booking_id'      => $booking_id > 0 ? $booking_id : null,
+				'gateway'         => '',
+				'kind'            => $kind,
+				'status'          => self::STATUS_SUCCEEDED,
+				'amount_minor'    => $amount_minor,
+				'currency'        => $currency,
+				'gateway_ref'     => '',
+				'payment_ref'     => '',
+				'parent_id'       => $parent_id,
+				'idempotency_key' => $idempotency_key,
+				'failure_code'    => '',
+				'expires_at'      => null,
+				'meta'            => null,
+				'created_at'      => $now,
+				'updated_at'      => $now,
+			),
+			array( '%d', '%d', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s' )
+		);
+		if ( false === $inserted || (int) $this->wpdb->insert_id <= 0 ) {
+			throw StorageException::fromSqlError( esc_html( 'onsite settlement insert' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
+
+		return (int) $this->wpdb->insert_id;
+	}
+
+	/**
+	 * The live (`succeeded`) on-site record of an order, if any.
+	 *
+	 * @param int $order_id Order id.
+	 * @return array<string, mixed>|null
+	 * @throws StorageException When the read fails; money preconditions fail closed.
+	 */
+	public function succeededOnsite( int $order_id ): ?array {
+		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s AND status = %s ORDER BY id DESC LIMIT 1';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $order_id, self::KIND_ONSITE, self::STATUS_SUCCEEDED ), ARRAY_A );
+		if ( '' !== (string) $this->wpdb->last_error ) {
+			throw StorageException::fromSqlError( esc_html( 'onsite settlement read' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
+
+		return is_array( $row ) ? $row : null;
+	}
+
+	/**
+	 * Reverse an on-site record (CAS `succeeded → reversed`).
+	 *
+	 * @param int $id Row id.
+	 * @return bool Whether this call reversed it.
+	 */
+	public function markOnsiteReversed( int $id ): bool {
+		$sql = 'UPDATE ' . $this->table() . ' SET status = %s, updated_at = %s WHERE id = %d AND kind = %s AND status = %s';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		return 1 === $this->wpdb->query( $this->wpdb->prepare( $sql, self::STATUS_REVERSED, $this->clock->nowSql(), $id, self::KIND_ONSITE, self::STATUS_SUCCEEDED ) );
+	}
+
+	/**
+	 * Whether any refund row (any status) was created after a given ledger row.
+	 *
+	 * @param int $order_id Order id.
+	 * @param int $after_id Ledger row id.
+	 * @throws StorageException When the read fails; money preconditions fail closed.
+	 */
+	public function hasRefundAfter( int $order_id, int $after_id ): bool {
+		$sql = 'SELECT COUNT(*) FROM ' . $this->table() . ' WHERE order_id = %d AND kind IN ( %s, %s ) AND id > %d';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
+		$count = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $order_id, self::KIND_REFUND, self::KIND_ONSITE_REFUND, $after_id ) );
+		if ( '' !== (string) $this->wpdb->last_error || null === $count ) {
+			throw StorageException::fromSqlError( esc_html( 'refund precondition read' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
+
+		return (int) $count > 0;
 	}
 
 	/**
 	 * Whether a refund is in flight for an order (Codex #7).
 	 *
 	 * @param int $order_id Order id.
+	 * @throws StorageException When the read fails; money preconditions fail closed.
 	 */
 	public function hasPendingRefund( int $order_id ): bool {
 		$sql = 'SELECT COUNT(*) FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s AND status = %s';
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
-		return (int) $this->wpdb->get_var( $this->wpdb->prepare( $sql, $order_id, self::KIND_REFUND, self::STATUS_PENDING ) ) > 0;
+		$count = $this->wpdb->get_var( $this->wpdb->prepare( $sql, $order_id, self::KIND_REFUND, self::STATUS_PENDING ) );
+		if ( '' !== (string) $this->wpdb->last_error || null === $count ) {
+			throw StorageException::fromSqlError( esc_html( 'refund precondition read' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
+
+		return (int) $count > 0;
 	}
 
 	/**
@@ -1089,12 +1358,13 @@ final class TransactionRepository {
 	 * @param int    $amount   Amount in minor units.
 	 * @param string $currency ISO-4217 currency.
 	 * @return array<string, mixed>|null
+	 * @param int    $parent_id Original charge, or zero for legacy callers.
 	 */
-	public function findPendingRefundMatching( int $order_id, int $amount, string $currency ): ?array {
+	public function findPendingRefundMatching( int $order_id, int $amount, string $currency, int $parent_id = 0 ): ?array {
 		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE order_id = %d AND kind = %s AND status = %s'
-			. ' AND amount_minor = %d AND UPPER(currency) = %s ORDER BY id ASC LIMIT 1';
+			. ' AND amount_minor = %d AND UPPER(currency) = %s AND ( %d = 0 OR parent_id = %d ) ORDER BY id ASC LIMIT 1';
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
-		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $order_id, self::KIND_REFUND, self::STATUS_PENDING, $amount, strtoupper( $currency ) ), ARRAY_A );
+		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $order_id, self::KIND_REFUND, self::STATUS_PENDING, $amount, strtoupper( $currency ), $parent_id, $parent_id ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
 	}
@@ -1207,9 +1477,9 @@ final class TransactionRepository {
 		if ( '' === $payment_ref ) {
 			return null;
 		}
-		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE gateway = %s AND payment_ref = %s AND kind = %s ORDER BY id DESC LIMIT 1';
+		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE gateway = %s AND payment_ref = %s AND kind IN ( %s, %s ) ORDER BY id DESC LIMIT 1';
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
-		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $gateway, $payment_ref, self::KIND_CHARGE ), ARRAY_A );
+		$row = $this->wpdb->get_row( $this->wpdb->prepare( $sql, $gateway, $payment_ref, self::KIND_CHARGE, self::KIND_BALANCE ), ARRAY_A );
 
 		return is_array( $row ) ? $row : null;
 	}
@@ -1251,7 +1521,7 @@ final class TransactionRepository {
 	 *
 	 * @var list<string>
 	 */
-	public const DURABLE_META_KEYS = array( 'mode' );
+	public const DURABLE_META_KEYS = array( 'mode', 'configuration_hash' );
 
 	/**
 	 * The `meta` payload for an in-flight attempt: the browser parameters, plus a copy of the durable

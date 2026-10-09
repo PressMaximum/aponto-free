@@ -62,6 +62,18 @@ use WP_Error;
  * new); a failure writes a retry intent and the 5-minute `aponto_integrations_tick` picks it up with
  * backoff over roughly a day before giving up and marking the booking `sync_failed`.
  *
+ * ## A booking moved to another staff member (D-R78)
+ *
+ * The remote event lives on ONE staff member's calendar and is reachable only through that staff
+ * member's connection, so a booking that changes hands is never an `update`: the event is deleted
+ * through the connection that wrote it and a new one is pushed through the new staff member's. The
+ * reference records its owner ({@see RemoteEventRef::$staff_id}); the moment the owner and the
+ * booking disagree the reference is PARKED under its own key (a local write, no HTTP), which frees
+ * the booking to be pushed as if it had never been synced. The two legs are independent — the
+ * parked delete has its own lease, attempt counter and due row, so a calendar that refuses the
+ * delete never holds back the new staff member's event, and the other way round
+ * ({@see self::releaseMovedEvents()}).
+ *
  * ## No orphan cron
  *
  * The tick is scheduled only while at least one connection exists and unscheduled the moment the
@@ -187,7 +199,7 @@ final class RemoteEventSync {
 	public function register(): void {
 		add_action( 'aponto_booking_created', array( $this, 'onBookingChanged' ) );
 		add_action( 'aponto_booking_status_changed', array( $this, 'onBookingChanged' ) );
-		add_action( 'aponto_booking_rescheduled', array( $this, 'onBookingChanged' ) );
+		add_action( 'aponto_booking_rescheduled', array( $this, 'onBookingRescheduled' ), 10, 4 );
 
 		add_filter( 'cron_schedules', array( self::class, 'addSchedule' ) ); // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- A remote calendar that rejected a write must not stay wrong for an hour; five minutes is the retry resolution this queue needs, and it no-ops in one option read when nothing is queued.
 		add_action( 'init', array( self::class, 'syncSchedule' ) );
@@ -211,11 +223,29 @@ final class RemoteEventSync {
 		if ( ! isset( $schedules[ self::SCHEDULE ] ) ) {
 			$schedules[ self::SCHEDULE ] = array(
 				'interval' => self::INTERVAL,
-				'display'  => __( 'Every five minutes (Aponto)', 'aponto' ),
+				'display'  => self::scheduleLabel(),
 			);
 		}
 
 		return $schedules;
+	}
+
+	/**
+	 * The schedule's display name — translated only once WordPress can load translations.
+	 *
+	 * `cron_schedules` is filtered whenever anything calls `wp_get_schedules()`, and a plugin
+	 * installer may do that BEFORE `init` (WooCommerce's does, on activation). Translating there
+	 * makes WordPress 6.7+ load the `aponto` text domain "just in time" and log
+	 * `_load_textdomain_just_in_time was called incorrectly` (persona QA 2026-10-05, T-090 — seen
+	 * by all three testers). The label is display-only (Tools → Cron screens), so before `init`
+	 * the English source string is returned as it is; every later read is translated.
+	 */
+	private static function scheduleLabel(): string {
+		if ( ! did_action( 'init' ) && ! doing_action( 'init' ) ) {
+			return 'Every five minutes (Aponto)';
+		}
+
+		return __( 'Every five minutes (Aponto)', 'aponto' );
 	}
 
 	/**
@@ -277,9 +307,40 @@ final class RemoteEventSync {
 		if ( ! $booking instanceof Booking ) {
 			return;
 		}
+		$this->reconcileInline( $booking, 0 );
+	}
+
+	/**
+	 * Post-commit listener for a reschedule: the same reconcile, told who had the booking before.
+	 *
+	 * The previous STAFF MEMBER is the one fact of the transition this class needs (D-R78, Codex
+	 * review 2026-10-06): a reference written before {@see RemoteEventRef::$staff_id} existed does
+	 * not say whose calendar the event is on, and after the move the booking no longer says it
+	 * either. It is a staff id, not a status, so the "derive, do not hardcode" rule above stands.
+	 *
+	 * @param mixed $booking  Booking snapshot (new state).
+	 * @param mixed $from     Previous start (unused).
+	 * @param mixed $to       New start (unused).
+	 * @param mixed $previous The booking before the move, when the dispatcher knows it.
+	 */
+	public function onBookingRescheduled( $booking, $from = null, $to = null, $previous = null ): void {
+		unset( $from, $to );
+		if ( ! $booking instanceof Booking ) {
+			return;
+		}
+		$this->reconcileInline( $booking, $previous instanceof Booking ? $previous->staff_id : 0 );
+	}
+
+	/**
+	 * Run the inline first attempt for every active integration.
+	 *
+	 * @param Booking $booking        Booking snapshot.
+	 * @param int     $previous_staff Staff member before a reschedule, or 0 when unknown.
+	 */
+	private function reconcileInline( Booking $booking, int $previous_staff ): void {
 		foreach ( IntegrationRegistry::activeCodes() as $code ) {
 			try {
-				$this->reconcile( $code, $booking, true );
+				$this->reconcile( $code, $booking, true, $previous_staff );
 			} catch ( \Throwable $e ) {
 				// A post-commit listener MUST NOT throw (extension-surface §1): the booking is already
 				// committed, and an exception escaping here aborts the rest of the action chain — which
@@ -300,6 +361,22 @@ final class RemoteEventSync {
 	public function drain(): void {
 		$now = $this->clock->nowSql();
 		foreach ( IntegrationRegistry::activeCodes() as $code ) {
+			// The PARKED deletes of bookings that changed staff member (D-R78) have their own due row,
+			// because the retirement rule below is about the booking's CURRENT staff member and would
+			// throw away a delete that belongs to the previous one.
+			foreach ( $this->meta->dueByKey( self::movedRetryKey( $code ), $now, self::BATCH ) as $booking_id ) {
+				$booking = $this->bookings->find( $booking_id );
+				if ( null === $booking ) {
+					$this->clearMoved( $code, $booking_id );
+					continue;
+				}
+				try {
+					$this->releaseMovedEvents( $code, $booking, false );
+				} catch ( \Throwable $e ) {
+					$this->health->recordFailure( $code, 'sync', 'Retry of a moved event threw ' . get_class( $e ) . '.', $booking->staff_id );
+				}
+			}
+
 			foreach ( $this->meta->dueByKey( self::retryKey( $code ), $now, self::BATCH ) as $booking_id ) {
 				$booking = $this->bookings->find( $booking_id );
 				if ( null === $booking ) {
@@ -330,11 +407,296 @@ final class RemoteEventSync {
 	/**
 	 * Bring ONE booking into agreement with ONE integration.
 	 *
+	 * Three steps, in this order:
+	 *
+	 *   1. PLACE the stored references (local writes only): an event on another staff member's
+	 *      calendar is parked for deletion, so step 3 can never patch it through the wrong connection.
+	 *   2. DELETE the parked events through the connections that own them. Guarded: whatever happens
+	 *      here — a refused delete, a storage failure, a throwing driver — step 3 still runs.
+	 *   3. The ordinary push / update / delete for the booking's current staff member.
+	 *
+	 * @param string  $code           Module code.
+	 * @param Booking $booking        Booking snapshot.
+	 * @param bool    $inline         Whether this is the inline first attempt.
+	 * @param int     $previous_staff Staff member before a reschedule, or 0 when unknown.
+	 */
+	private function reconcile( string $code, Booking $booking, bool $inline, int $previous_staff = 0 ): void {
+		$this->placeStoredRefs( $code, $booking, $previous_staff );
+
+		try {
+			$this->releaseMovedEvents( $code, $booking, $inline );
+		} catch ( \Throwable $e ) {
+			// The delete leg armed its own retry before dispatching; it must not cost the new staff
+			// member their event.
+			$this->health->recordFailure( $code, 'sync', 'Removing a moved event threw ' . get_class( $e ) . '.', $booking->staff_id );
+		}
+
+		$this->reconcileCurrent( $code, $booking, $inline );
+	}
+
+	/**
+	 * Where each stored reference belongs once the booking's staff member is known. PURE.
+	 *
+	 * - The current reference stays current while its owner is the booking's staff member. An
+	 *   unrecorded owner (`staff_id` 0, written before the field existed) is the staff member the
+	 *   reschedule moved the booking FROM when the caller knows it, else the booking's own — the
+	 *   behaviour every such reference had until now.
+	 * - A current reference owned by somebody else is PARKED: it can only be deleted, and only
+	 *   through its owner's connection.
+	 * - A parked reference owned by the booking's staff member is taken BACK as current (the booking
+	 *   returned before the delete ran): updating the event that is still there beats deleting it
+	 *   and pushing a twin, and a provider with deterministic event ids would answer the twin's
+	 *   insert with "already exists".
+	 * - A parked duplicate of the current reference is dropped — it is the trace of a write that was
+	 *   interrupted between the two rows, and deleting it would delete the live event.
+	 *
+	 * @param RemoteEventRef|null  $current        Stored current reference.
+	 * @param list<RemoteEventRef> $parked         Stored parked references.
+	 * @param int                  $booking_staff  The booking's staff member now.
+	 * @param int                  $previous_staff Staff member before a reschedule, or 0 when unknown.
+	 * @return array{current: RemoteEventRef|null, parked: list<RemoteEventRef>}
+	 */
+	public static function placeRefs( ?RemoteEventRef $current, array $parked, int $booking_staff, int $previous_staff = 0 ): array {
+		if ( null !== $current ) {
+			$owner = $current->staff_id;
+			if ( $owner <= 0 ) {
+				$owner = $previous_staff > 0 ? $previous_staff : $booking_staff;
+			}
+			if ( $owner !== $booking_staff ) {
+				$parked[] = $current->withStaff( $owner );
+				$current  = null;
+			}
+		}
+
+		$kept = array();
+		foreach ( $parked as $ref ) {
+			if ( $ref->staff_id === $booking_staff ) {
+				if ( null === $current ) {
+					$current = $ref;
+				}
+				if ( $current->remote_id === $ref->remote_id ) {
+					continue;
+				}
+			}
+			$key = $ref->staff_id . '|' . $ref->remote_id;
+			if ( ! isset( $kept[ $key ] ) ) {
+				$kept[ $key ] = $ref;
+			}
+		}
+
+		return array(
+			'current' => $current,
+			'parked'  => array_values( $kept ),
+		);
+	}
+
+	/**
+	 * Apply {@see self::placeRefs()} to the stored rows. Local writes only — no HTTP.
+	 *
+	 * WRITE ORDER: whichever row GAINS a reference is written first, so an interruption between the
+	 * two statements leaves the reference in both places (which the next pass folds back into one)
+	 * and never in neither — a lost reference is an event nobody will ever delete.
+	 *
+	 * @param string  $code           Module code.
+	 * @param Booking $booking        Booking snapshot.
+	 * @param int     $previous_staff Staff member before a reschedule, or 0 when unknown.
+	 * @throws StorageException When a row does not persist.
+	 */
+	private function placeStoredRefs( string $code, Booking $booking, int $previous_staff ): void {
+		$current = $this->remoteRef( $code, $booking->id );
+		$moved   = $this->movedEvents( $code, $booking->id );
+		if ( null === $current && array() === $moved['refs'] ) {
+			return;
+		}
+
+		$placed = self::placeRefs( $current, $moved['refs'], $booking->staff_id, $previous_staff );
+
+		$gained = array_values(
+			array_filter(
+				$placed['parked'],
+				static fn ( RemoteEventRef $ref ): bool => ! self::holdsRef( $moved['refs'], $ref )
+			)
+		);
+		if ( array() !== $gained ) {
+			// The UNION first: a reference about to leave the current row must already be parked
+			// before that row changes. New delete work, so its ladder starts over.
+			$this->writeMoved( $code, $booking->id, 0, array_merge( $moved['refs'], $gained ) );
+		}
+
+		if ( ! self::sameRefs( array_filter( array( $current ) ), array_filter( array( $placed['current'] ) ) ) ) {
+			$key     = IntegrationRegistry::remoteEventKey( $code );
+			$written = null === $placed['current']
+				? $this->meta->deleteKey( $booking->id, $key )
+				: $this->meta->setKey( $booking->id, $key, (string) wp_json_encode( $placed['current']->toArray() ) );
+			if ( ! $written ) {
+				throw StorageException::fromSqlError(
+					esc_html( 'integration remote event reference' ),
+					esc_html( 'the remote event reference did not persist' )
+				);
+			}
+		}
+
+		if ( ! self::sameRefs( $placed['parked'], array() !== $gained ? array_merge( $moved['refs'], $gained ) : $moved['refs'] ) ) {
+			$this->writeMoved( $code, $booking->id, array() !== $gained ? 0 : $moved['attempts'], $placed['parked'] );
+		}
+	}
+
+	/**
+	 * Whether two reference lists hold the same references in the same order.
+	 *
+	 * @param array<array-key, RemoteEventRef> $a One list.
+	 * @param array<array-key, RemoteEventRef> $b The other.
+	 */
+	private static function sameRefs( array $a, array $b ): bool {
+		$shape = static fn ( RemoteEventRef $ref ): array => $ref->toArray();
+
+		return array_map( $shape, array_values( $a ) ) === array_map( $shape, array_values( $b ) );
+	}
+
+	/**
+	 * Whether a list holds exactly this reference.
+	 *
+	 * @param list<RemoteEventRef> $refs List.
+	 * @param RemoteEventRef       $ref  Reference looked for.
+	 */
+	private static function holdsRef( array $refs, RemoteEventRef $ref ): bool {
+		foreach ( $refs as $candidate ) {
+			if ( $candidate->toArray() === $ref->toArray() ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Delete the events a booking left behind on a previous staff member's calendar (D-R78).
+	 *
+	 * Its own small ladder rather than the main one, because the main intent belongs to the booking's
+	 * CURRENT staff member: it is cleared when there is nothing to do for them and retired when they
+	 * have no connection — either of which would silently drop a delete owed to somebody else.
+	 *
+	 * - SERIALIZED by a lease (inline and cron alike): one worker at a time, and a worker that dies
+	 *   releases it by expiry.
+	 * - DURABLE BEFORE DISPATCH: the attempt number and the next due time are stored first, so a
+	 *   process killed mid-call leaves a retry, not a forgotten event.
+	 * - IDEMPOTENT: the driver contract already reads "not there any more" as deleted, so a retry of
+	 *   a delete whose answer was lost is a no-op at the provider.
+	 * - An owner with NO active connection cannot be reached at all (and core reads no busy time from
+	 *   a calendar it is not connected to), so its reference is dropped rather than retried for a day.
+	 *
+	 * @param string  $code    Module code.
+	 * @param Booking $booking Booking snapshot (passed to the driver; it describes the booking NOW).
+	 * @param bool    $inline  Whether this is the inline first attempt.
+	 * @throws StorageException When the retry intent does not persist.
+	 */
+	private function releaseMovedEvents( string $code, Booking $booking, bool $inline ): void {
+		$moved = $this->movedEvents( $code, $booking->id );
+		if ( array() === $moved['refs'] ) {
+			return;
+		}
+
+		if ( ! $inline ) {
+			$due = $this->meta->getKey( $booking->id, self::movedRetryKey( $code ) );
+			if ( null !== $due && $due > $this->clock->nowSql() ) {
+				return; // The main queue reached this booking first; the delete keeps its own backoff.
+			}
+		}
+
+		$now = $this->clock->now();
+		if ( ! $this->meta->leaseKey(
+			$booking->id,
+			self::movedLeaseKey( $code ),
+			$now->format( 'Y-m-d H:i:s' ),
+			$now->modify( '-' . self::LEASE_SECONDS . ' seconds' )->format( 'Y-m-d H:i:s' )
+		) ) {
+			return;
+		}
+
+		try {
+			$attempt = $moved['attempts'] + 1;
+			$final   = $attempt >= self::MAX_ATTEMPTS;
+
+			$this->writeMoved( $code, $booking->id, $attempt, $moved['refs'] );
+			if ( $final ) {
+				$this->meta->deleteKey( $booking->id, self::movedRetryKey( $code ) );
+			} else {
+				$due_at = $now->modify( '+' . self::BACKOFF[ $attempt - 1 ] . ' seconds' )->format( 'Y-m-d H:i:s' );
+				if ( ! $this->meta->setKey( $booking->id, self::movedRetryKey( $code ), $due_at ) ) {
+					throw StorageException::fromSqlError(
+						esc_html( 'integration retry intent' ),
+						esc_html( 'the retry intent did not persist' )
+					);
+				}
+			}
+
+			$deadline = $now->getTimestamp() + ( $inline ? self::INLINE_DEADLINE : self::CRON_DEADLINE );
+			$done     = array();
+			$failed   = '';
+			foreach ( $moved['refs'] as $ref ) {
+				$connection = $this->activeConnection( $code, $ref->staff_id );
+				if ( null === $connection ) {
+					$done[] = $ref;
+					continue;
+				}
+
+				$context = new RemoteEventContext( $code . ':' . $booking->id . ':' . $ref->sequence . ':delete', 'delete', $attempt, $deadline, $inline );
+				try {
+					$result = $this->dispatch( $code, 'delete', $booking, $ref, $connection, $context );
+				} catch ( \Throwable $e ) {
+					$result = self::retryableError( 'aponto_integration_error' );
+				}
+
+				if ( ! $result instanceof WP_Error ) {
+					$done[] = $ref;
+					continue;
+				}
+
+				$failed = (string) $result->get_error_code();
+				if ( $final || self::isTerminal( $result ) ) {
+					// No retry can help (a revoked authorization, an absent driver) or the ladder is
+					// spent: stop carrying the reference, and say so.
+					$done[] = $ref;
+					$this->health->recordFailure( $code, 'sync', 'Removing a moved event stopped after ' . $attempt . ' attempts (' . $failed . ').', $ref->staff_id );
+					continue;
+				}
+				$this->health->recordFailure( $code, 'sync', 'Removing a moved event failed (' . $failed . ').', $ref->staff_id );
+			}
+
+			// RE-READ before writing back: a reschedule that committed while the calls above were in
+			// flight may have parked another reference, and writing this call's own copy would lose it.
+			$left  = array();
+			$fresh = false;
+			foreach ( $this->movedEvents( $code, $booking->id )['refs'] as $ref ) {
+				if ( self::holdsRef( $done, $ref ) ) {
+					continue;
+				}
+				$left[] = $ref;
+				$fresh  = $fresh || ! self::holdsRef( $moved['refs'], $ref );
+			}
+			if ( array() === $left ) {
+				$this->clearMoved( $code, $booking->id );
+			} elseif ( $fresh ) {
+				// That reschedule's own inline attempt could not take the lease this call holds, so
+				// its reference has no due row yet: make it due now, on a ladder of its own.
+				$this->writeMoved( $code, $booking->id, 0, $left );
+				$this->meta->setKey( $booking->id, self::movedRetryKey( $code ), $this->clock->nowSql() );
+			} else {
+				$this->writeMoved( $code, $booking->id, $attempt, $left );
+			}
+		} finally {
+			$this->meta->deleteKey( $booking->id, self::movedLeaseKey( $code ) );
+		}
+	}
+
+	/**
+	 * The push / update / delete owed to the booking's CURRENT staff member.
+	 *
 	 * @param string  $code    Module code.
 	 * @param Booking $booking Booking snapshot.
 	 * @param bool    $inline  Whether this is the inline first attempt.
 	 */
-	private function reconcile( string $code, Booking $booking, bool $inline ): void {
+	private function reconcileCurrent( string $code, Booking $booking, bool $inline ): void {
 		$connection = $this->connectionFor( $code, $booking );
 		if ( null === $connection ) {
 			return;
@@ -580,7 +942,9 @@ final class RemoteEventSync {
 				'' !== $result->remote_id ? $result->remote_id : ( $remote instanceof RemoteEventRef ? $remote->remote_id : '' ),
 				$result->etag,
 				$verb,
-				$booking->ics_sequence
+				$booking->ics_sequence,
+				// WHOSE calendar this is (D-R78): the connection the verb just went through.
+				$booking->staff_id
 			);
 			// CHECKED (Codex P1 #7). The remote side already succeeded; if the local reference cannot
 			// be stored, the intent must STAY so the next attempt reconciles — and it will collide with
@@ -765,10 +1129,20 @@ final class RemoteEventSync {
 	 * @param Booking $booking Booking snapshot.
 	 */
 	private function connectionFor( string $code, Booking $booking ): ?ConnectionRef {
-		if ( $booking->staff_id <= 0 || ! in_array( $booking->staff_id, $this->connections->activeStaffIds( $code ), true ) ) {
+		return $this->activeConnection( $code, $booking->staff_id );
+	}
+
+	/**
+	 * A staff member's ACTIVE connection, or null.
+	 *
+	 * @param string $code     Module code.
+	 * @param int    $staff_id Staff id.
+	 */
+	private function activeConnection( string $code, int $staff_id ): ?ConnectionRef {
+		if ( $staff_id <= 0 || ! in_array( $staff_id, $this->connections->activeStaffIds( $code ), true ) ) {
 			return null;
 		}
-		$connection = $this->connections->find( $code, $booking->staff_id );
+		$connection = $this->connections->find( $code, $staff_id );
 
 		return ( null !== $connection && $connection->isActive() ) ? $connection : null;
 	}
@@ -807,6 +1181,80 @@ final class RemoteEventSync {
 		$decoded = json_decode( $raw, true );
 
 		return is_array( $decoded ) ? RemoteEventRef::fromArray( $decoded ) : null;
+	}
+
+	/**
+	 * The parked references of a booking — events on a previous staff member's calendar that still
+	 * have to be deleted — and how many delete attempts were made.
+	 *
+	 * @param string $code       Module code.
+	 * @param int    $booking_id Booking id.
+	 * @return array{attempts: int, refs: list<RemoteEventRef>}
+	 */
+	private function movedEvents( string $code, int $booking_id ): array {
+		$out = array(
+			'attempts' => 0,
+			'refs'     => array(),
+		);
+		$raw = $this->meta->getKey( $booking_id, self::movedKey( $code ) );
+		if ( null === $raw || '' === $raw ) {
+			return $out;
+		}
+		$decoded = json_decode( $raw, true );
+		if ( ! is_array( $decoded ) ) {
+			return $out;
+		}
+
+		$out['attempts'] = max( 0, (int) ( $decoded['attempts'] ?? 0 ) );
+		foreach ( is_array( $decoded['refs'] ?? null ) ? $decoded['refs'] : array() as $stored ) {
+			$ref = is_array( $stored ) ? RemoteEventRef::fromArray( $stored ) : null;
+			if ( null !== $ref && $ref->staff_id > 0 ) {
+				$out['refs'][] = $ref;
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Store the parked references, or remove the row when none is left.
+	 *
+	 * @param string               $code       Module code.
+	 * @param int                  $booking_id Booking id.
+	 * @param int                  $attempts   Delete attempts made so far.
+	 * @param list<RemoteEventRef> $refs       Parked references.
+	 * @throws StorageException When the row does not persist.
+	 */
+	private function writeMoved( string $code, int $booking_id, int $attempts, array $refs ): void {
+		if ( array() === $refs ) {
+			$this->clearMoved( $code, $booking_id );
+
+			return;
+		}
+
+		$payload = (string) wp_json_encode(
+			array(
+				'attempts' => $attempts,
+				'refs'     => array_map( static fn ( RemoteEventRef $ref ): array => $ref->toArray(), $refs ),
+			)
+		);
+		if ( ! $this->meta->setKey( $booking_id, self::movedKey( $code ), $payload ) ) {
+			throw StorageException::fromSqlError(
+				esc_html( 'integration moved events' ),
+				esc_html( 'the moved event references did not persist' )
+			);
+		}
+	}
+
+	/**
+	 * Drop the parked references and their due row.
+	 *
+	 * @param string $code       Module code.
+	 * @param int    $booking_id Booking id.
+	 */
+	private function clearMoved( string $code, int $booking_id ): void {
+		$this->meta->deleteKey( $booking_id, self::movedKey( $code ) );
+		$this->meta->deleteKey( $booking_id, self::movedRetryKey( $code ) );
 	}
 
 	/**
@@ -889,6 +1337,35 @@ final class RemoteEventSync {
 	 */
 	private static function leaseKeyName( string $code ): string {
 		return IntegrationRegistry::namespacePrefix( $code ) . 'lease';
+	}
+
+	/**
+	 * Booking-meta key holding the references parked for deletion after a staff change (D-R78).
+	 *
+	 * Inside the module's own namespace, so a module uninstall removes it with everything else.
+	 *
+	 * @param string $code Module code.
+	 */
+	private static function movedKey( string $code ): string {
+		return IntegrationRegistry::namespacePrefix( $code ) . 'moved_events';
+	}
+
+	/**
+	 * Booking-meta key holding the due stamp of the next parked-delete retry (bare `Y-m-d H:i:s`).
+	 *
+	 * @param string $code Module code.
+	 */
+	private static function movedRetryKey( string $code ): string {
+		return IntegrationRegistry::namespacePrefix( $code ) . 'moved_retry_at';
+	}
+
+	/**
+	 * Booking-meta key holding the parked-delete lease.
+	 *
+	 * @param string $code Module code.
+	 */
+	private static function movedLeaseKey( string $code ): string {
+		return IntegrationRegistry::namespacePrefix( $code ) . 'moved_lease';
 	}
 
 	/**

@@ -17,7 +17,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Aponto\Support\Clock;
 use Aponto\Support\Crypto;
-use Aponto\Support\DatabaseEngine;
 use Aponto\Support\Logger;
 use Aponto\Support\Settings;
 
@@ -430,10 +429,12 @@ final class ManageToken {
 	 * Persist a sealed secret ONLY if the site does not have one yet — a genuine single-winner
 	 * claim, unlike `add_option()`.
 	 *
-	 * Engine-aware for the same reason the three other dialect divergences are (D-R20): `INSERT
-	 * IGNORE` is MySQL, `INSERT OR IGNORE` is SQLite. Both are atomic against the `option_name`
-	 * unique key, so exactly one concurrent minter wins and the losers' rows are discarded rather
-	 * than overwriting the winner. `autoload = 'no'`: the secret is read on the booking and email
+	 * `INSERT IGNORE` on BOTH engines (D-R71g): the SQLite drop-in accepts MySQL syntax and maps it
+	 * to SQLite's insert-or-ignore itself. The former SQLite branch sent `INSERT OR IGNORE`, which
+	 * the 3.x driver cannot parse: the secret was never stored, and inside a caller's transaction
+	 * the parse error rolled the whole transaction back (a settling payment that queued customer
+	 * mail was silently erased). Atomic against the `option_name` unique key, so exactly one
+	 * concurrent minter wins and the losers' rows are discarded rather than overwriting the winner. `autoload = 'no'`: the secret is read on the booking and email
 	 * paths only, never on a plain page view.
 	 *
 	 * The option caches are cleared afterwards because this bypassed the options API — without it
@@ -443,8 +444,7 @@ final class ManageToken {
 	 * @param string $sealed Sealed secret blob.
 	 */
 	private function claim( string $option, string $sealed ): void {
-		$verb = DatabaseEngine::isSqlite( $this->wpdb ) ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
-		$sql  = $verb . " INTO {$this->wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, %s)";
+		$sql = "INSERT IGNORE INTO {$this->wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, %s)";
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Core options table; values bound via prepare(); insert-if-absent is not expressible through the options API (add_option upserts).
 		$this->wpdb->query( $this->wpdb->prepare( $sql, $option, $sealed, 'no' ) );

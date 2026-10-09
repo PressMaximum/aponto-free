@@ -91,12 +91,24 @@ export function generateUuid() {
  * one Jest test and one PHPUnit test over the same drafts so the two field sets
  * cannot silently drift apart.
  *
+ * The customer name is fingerprinted as its two parts, `first_name` and
+ * `last_name` (name split, D-R69), exactly as the server hashes them.
+ *
  * `custom_fields` is included only when the draft carries answers, matching the
  * server, so a site collecting none fingerprints exactly as it did before.
  * `payment_method` follows the same rule (D-R38): a site that takes no online
  * payment fingerprints byte-identically to the pre-payment build, and switching
  * between "pay now" and "pay on site" rotates the key — which it must, because
  * that is a different booking request, not a retry of the same one.
+ *
+ * `location_id` (D-R62) is the value the widget SENDS, and it joins only when non-null. The
+ * server hashes the CLIENT-SENT `location_id ?? 0` — never the id it resolved (rest-contract §3.3
+ * addendum 2026-09-23) — so the two sides agree exactly: a null here is `0` there, which is the
+ * hash every site produced before D-R61, and changing branch changes both. Without this field a
+ * branch change would keep the key and the retry would come back `409
+ * aponto_idempotency_conflict`. Hashing the sent value rather than the resolved one is also what
+ * lets a retry REPLAY after the server's own assignment moved (a branch archived between the two
+ * attempts) instead of colliding.
  *
  * @param {Object} draft Booking draft.
  * @return {string} Fingerprint.
@@ -109,14 +121,26 @@ export function draftFingerprint( draft ) {
 		staff_id: d.staff_id ?? null,
 		start_utc: d.start_utc ?? null,
 		tz: d.tz ?? null,
-		name: ( c.name || '' ).trim(),
+		// The two stored parts replace the pre-split `name` (founder 2026-10-01,
+		// D-R69): moving a word between them is a different booking request.
+		first_name: ( c.first_name || '' ).trim(),
+		last_name: ( c.last_name || '' ).trim(),
 		email: ( c.email || '' ).trim().toLowerCase(),
 		phone: ( c.phone || '' ).trim(),
 		note: c.note || '',
 		consent: !! d.consent,
 	};
+	if ( d.location_id ) {
+		canonical.location_id = d.location_id;
+	}
 	if ( d.payment_method ) {
 		canonical.payment_method = d.payment_method;
+	}
+	if ( d.payment_amount_mode === 'full' ) {
+		canonical.payment_amount_mode = 'full';
+	}
+	if ( d.coupon_code ) {
+		canonical.coupon_code = d.coupon_code;
 	}
 	const custom = d.custom_fields || {};
 	const slugs = Object.keys( custom ).sort();

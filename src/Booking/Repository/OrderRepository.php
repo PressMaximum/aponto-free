@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Aponto\Booking\TokenGenerator;
 use Aponto\Database\StorageException;
+use Aponto\Payments\OrderPrice;
 use Aponto\Support\Clock;
 
 /**
@@ -67,14 +68,16 @@ final class OrderRepository {
 	/**
 	 * Create the order and its single booking item; returns `{id, code}`.
 	 *
-	 * @param int      $booking_id  Booking id.
-	 * @param int|null $price_minor Snapshot price in minor units, or null (unpriced).
-	 * @param string   $currency    ISO-4217 currency (from settings — always valid).
+	 * @param int             $booking_id  Booking id.
+	 * @param int|null        $price_minor Snapshot price in minor units, or null (unpriced).
+	 * @param string          $currency    ISO-4217 currency (from settings — always valid).
+	 * @param OrderPrice|null $snapshot Validated final price, or null for the base price.
 	 * @return array{id: int, code: string}
 	 * @throws StorageException When an insert fails (non-collision) or the code retries run out.
 	 */
-	public function createWithItem( int $booking_id, ?int $price_minor, string $currency ): array {
-		$amount = null === $price_minor ? 0 : $price_minor;
+	public function createWithItem( int $booking_id, ?int $price_minor, string $currency, ?OrderPrice $snapshot = null ): array {
+		$price  = $snapshot ?? OrderPrice::base( $price_minor, $currency );
+		$amount = $price->subtotal_minor;
 		$meta   = null === $price_minor ? 'unpriced' : '';
 		$now    = $this->clock->nowSql();
 		$orders = $this->wpdb->prefix . 'aponto_orders';
@@ -85,27 +88,25 @@ final class OrderRepository {
 			$code = $this->tokens->orderCode();
 
 			$suppressed = $this->wpdb->suppress_errors( true );
-			$ok         = $this->wpdb->insert(
-				$orders,
-				array(
-					'code'           => $code,
-					'total_minor'    => $amount,
-					'currency'       => $currency,
-					'payment_status' => 'none',
-					'created_at'     => $now,
-					'updated_at'     => $now,
-				),
-				array( '%s', '%d', '%s', '%s', '%s', '%s' )
-			);
+			// An expected code collision must not abort the surrounding SQLite reservation transaction.
+			$coupon = null === $price->coupon_id ? 'NULL' : '%d';
+			$args   = array( $orders, $code, $price->subtotal_minor, $price->discount_minor, $price->total_minor, $price->currency );
+			if ( null !== $price->coupon_id ) {
+				$args[] = $price->coupon_id;
+			}
+			array_push( $args, $price->coupon_code, $now, $now );
+			$sql = "INSERT IGNORE INTO %i (code, subtotal_minor, discount_minor, total_minor, currency, coupon_id, coupon_code, payment_status, created_at, updated_at) VALUES (%s, %d, %d, %d, %s, {$coupon}, %s, 'none', %s, %s)";
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table bound as an identifier (%i); fixed NULL or placeholder fragment; every value bound via prepare(). Atomic unique claim.
+			$ok = $this->wpdb->query( $this->wpdb->prepare( $sql, ...$args ) );
 			$this->wpdb->suppress_errors( $suppressed );
 
-			if ( false !== $ok && $this->wpdb->insert_id > 0 ) {
+			if ( 1 === $ok && $this->wpdb->insert_id > 0 ) {
 				$order_id = (int) $this->wpdb->insert_id;
 				break;
 			}
 
 			$error = (string) $this->wpdb->last_error;
-			if ( ! $this->codeExists( $code ) ) {
+			if ( false === $ok || ! $this->codeExists( $code ) ) {
 				// A non-collision failure — snapshot NOW and fail closed (E4).
 					throw StorageException::fromSqlError( esc_html( 'order insert' ), esc_html( $error ) );
 			}
@@ -138,6 +139,88 @@ final class OrderRepository {
 			'id'   => $order_id,
 			'code' => $code,
 		);
+	}
+
+	/**
+	 * Store a deposit order's payable-now snapshot (D-R71). Called inside the reserve transaction
+	 * right after {@see self::createWithItem()}; full-payment orders never call it and keep `NULL`.
+	 *
+	 * @param int $order_id    Order id.
+	 * @param int $payable_now Deposit amount, `0 < payable_now < total` (validated by the caller).
+	 * @throws StorageException When the update fails or affects no row.
+	 */
+	public function setPayableNow( int $order_id, int $payable_now ): void {
+		$table = $this->wpdb->prefix . 'aponto_orders';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching -- Write inside the reserve transaction.
+		$updated = $this->wpdb->update(
+			$table,
+			array( 'payable_now_minor' => $payable_now ),
+			array( 'id' => $order_id ),
+			array( '%d' ),
+			array( '%d' )
+		);
+		if ( 1 !== $updated ) {
+			throw StorageException::fromSqlError( esc_html( 'order payable-now write' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
+	}
+
+	/**
+	 * Read the single booking item for external quote finalization.
+	 *
+	 * @param int $order_id Order id.
+	 * @return array<string, mixed>|null Null also refuses multi-item orders.
+	 */
+	public function checkoutItem( int $order_id ): ?array {
+		$table = $this->wpdb->prefix . 'aponto_order_items';
+		$sql   = "SELECT * FROM {$table} WHERE order_id = %d ORDER BY id ASC LIMIT 2";
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare().
+		$rows = $this->wpdb->get_results( $this->wpdb->prepare( $sql, $order_id ), ARRAY_A );
+
+		return is_array( $rows ) && 1 === count( $rows ) && 'booking' === (string) $rows[0]['item_type'] ? $rows[0] : null;
+	}
+
+	/**
+	 * Replace an unpaid order's exact quote, inside the caller's order lock and transaction.
+	 *
+	 * @param int                            $order_id Order id.
+	 * @param int                            $item_id Booking item id, already verified by the service.
+	 * @param \Aponto\Payments\CheckoutQuote $quote Authoritative external financial snapshot.
+	 * @throws StorageException When either financial snapshot cannot be written.
+	 */
+	public function finalizeCheckoutQuote( int $order_id, int $item_id, \Aponto\Payments\CheckoutQuote $quote ): void {
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Called inside the service's transaction; core financial snapshots.
+		$order_result = $this->wpdb->update(
+			$this->wpdb->prefix . 'aponto_orders',
+			array(
+				'subtotal_minor' => $quote->subtotal_minor + $quote->tax_minor + $quote->fee_minor,
+				'discount_minor' => $quote->discount_minor,
+				'total_minor'    => $quote->total_minor,
+				'updated_at'     => $this->clock->nowSql(),
+			),
+			array(
+				'id'             => $order_id,
+				'payment_status' => 'pending',
+			),
+			array( '%d', '%d', '%d', '%s' ),
+			array( '%d', '%s' )
+		);
+		if ( false === $order_result ) {
+			throw StorageException::fromSqlError( esc_html( 'checkout order quote' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
+		$item_result = $this->wpdb->update(
+			$this->wpdb->prefix . 'aponto_order_items',
+			array( 'amount_minor' => $quote->total_minor ),
+			array(
+				'id'       => $item_id,
+				'order_id' => $order_id,
+			),
+			array( '%d' ),
+			array( '%d', '%d' )
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		if ( false === $item_result ) {
+			throw StorageException::fromSqlError( esc_html( 'checkout item quote' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
 	}
 
 	/**
@@ -210,6 +293,51 @@ final class OrderRepository {
 	}
 
 	/**
+	 * Replace the pre-payment coupon snapshot under the caller's order lock (D-R67b).
+	 *
+	 * The expected coupon identity makes this a compare-and-swap even though the caller also holds
+	 * the row lock. That second belt matters on SQLite, where `FOR UPDATE` is translated away and
+	 * serialization comes from the transaction/lock driver rather than this SELECT clause.
+	 *
+	 * @param int        $order_id          Order id.
+	 * @param OrderPrice $price             Recomputed server-owned snapshot.
+	 * @param int        $expected_coupon_id Previous coupon id, or 0.
+	 * @param string     $expected_code      Previous snapshot code, or ''.
+	 * @throws StorageException When persistence fails or the expected row changed.
+	 */
+	public function replaceCouponSnapshot( int $order_id, OrderPrice $price, int $expected_coupon_id, string $expected_code ): void {
+		$table             = $this->wpdb->prefix . 'aponto_orders';
+		$coupon_assignment = null === $price->coupon_id ? 'coupon_id = NULL' : 'coupon_id = %d';
+		$sql               = "UPDATE {$table}
+			SET subtotal_minor = %d, discount_minor = %d, total_minor = %d,
+				currency = %s, {$coupon_assignment}, coupon_code = %s, updated_at = %s
+			WHERE id = %d AND payment_status = 'none'
+				AND COALESCE(coupon_id, 0) = %d AND COALESCE(coupon_code, '') = %s";
+		$args              = array(
+			$price->subtotal_minor,
+			$price->discount_minor,
+			$price->total_minor,
+			$price->currency,
+		);
+		if ( null !== $price->coupon_id ) {
+			$args[] = $price->coupon_id;
+		}
+		$args[] = $price->coupon_code;
+		$args[] = $this->clock->nowSql();
+		$args[] = $order_id;
+		$args[] = max( 0, $expected_coupon_id );
+		$args[] = $expected_code;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Constant table from wpdb prefix; every value is bound via prepare(); compare-and-swap under the order lock.
+		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $args ) );
+		if ( false === $affected ) {
+			throw StorageException::fromSqlError( esc_html( 'order coupon snapshot update' ), esc_html( (string) $this->wpdb->last_error ) );
+		}
+		if ( 1 !== (int) $affected ) {
+			throw StorageException::because( esc_html( 'order coupon snapshot update affected no row' ) );
+		}
+	}
+
+	/**
 	 * The booking id an order belongs to, or 0 (V1 = one booking item per order).
 	 *
 	 * @param int $order_id Order id.
@@ -268,13 +396,16 @@ final class OrderRepository {
 	 * @param string $payment_ref Gateway payment reference.
 	 * @return bool Whether THIS call performed the transition.
 	 * @throws StorageException When the update fails.
+	 * @param string $status Settled status: paid for full payment, partial for a deposit.
 	 */
-	public function markPaid( int $order_id, string $gateway, string $payment_ref ): bool {
-		$table = $this->wpdb->prefix . 'aponto_orders';
-		$sql   = "UPDATE {$table} SET payment_status = 'paid', gateway = %s, transaction_ref = %s, hold_expires_at = NULL, updated_at = %s"
+	public function markPaid( int $order_id, string $gateway, string $payment_ref, string $status = 'paid' ): bool {
+		// `partial` = a deposit settled with the balance still due on site (D-R71 #4).
+		$status = 'partial' === $status ? 'partial' : 'paid';
+		$table  = $this->wpdb->prefix . 'aponto_orders';
+		$sql    = "UPDATE {$table} SET payment_status = %s, gateway = %s, transaction_ref = %s, hold_expires_at = NULL, updated_at = %s"
 			. " WHERE id = %d AND payment_status IN ( 'none', 'pending' )";
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare(); compare-and-swap.
-		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $gateway, $payment_ref, $this->clock->nowSql(), $order_id ) );
+		$affected = $this->wpdb->query( $this->wpdb->prepare( $sql, $status, $gateway, $payment_ref, $this->clock->nowSql(), $order_id ) );
 		if ( false === $affected ) {
 			throw StorageException::fromSqlError( esc_html( 'order paid write' ), esc_html( (string) $this->wpdb->last_error ) );
 		}
@@ -417,13 +548,15 @@ final class OrderRepository {
 	 * @param string $retry_before UTC `Y-m-d H:i:s`; an escalated order is eligible again only when
 	 *                             its `payments.void_unresolved` marker is at or before this stamp.
 	 *                             '' disables the filter (every expired hold is returned).
+	 * @param int    $after_id     Return only orders with a greater id (the caller's page cursor;
+	 *                             used with `$retry_before` only).
 	 * @return list<int>
 	 */
-	public function expiredHoldIds( string $cutoff, int $limit, string $retry_before = '' ): array {
+	public function expiredHoldIds( string $cutoff, int $limit, string $retry_before = '', int $after_id = 0 ): array {
 		$p = $this->wpdb->prefix;
 
 		if ( '' === $retry_before ) {
-			$sql = "SELECT id FROM {$p}aponto_orders WHERE payment_status = 'pending' AND hold_expires_at IS NOT NULL AND hold_expires_at < %s ORDER BY id ASC LIMIT %d";
+			$sql = "SELECT DISTINCT o.id FROM {$p}aponto_orders o INNER JOIN {$p}aponto_order_items oi ON oi.order_id = o.id AND oi.item_type = 'booking' INNER JOIN {$p}aponto_bookings b ON b.id = oi.booking_id AND b.status = 'pending' WHERE o.payment_status = 'pending' AND o.hold_expires_at IS NOT NULL AND o.hold_expires_at < %s ORDER BY o.id ASC LIMIT %d";
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; values bound via prepare().
 			$ids = $this->wpdb->get_col( $this->wpdb->prepare( $sql, $cutoff, max( 1, $limit ) ) );
 
@@ -432,12 +565,13 @@ final class OrderRepository {
 
 		$sql = "SELECT DISTINCT o.id FROM {$p}aponto_orders o
 			LEFT JOIN {$p}aponto_order_items oi ON oi.order_id = o.id AND oi.item_type = 'booking'
+			INNER JOIN {$p}aponto_bookings b ON b.id = oi.booking_id AND b.status = 'pending'
 			LEFT JOIN {$p}aponto_booking_meta bm ON bm.booking_id = oi.booking_id AND bm.meta_key = %s AND bm.meta_value > %s
 			WHERE o.payment_status = 'pending' AND o.hold_expires_at IS NOT NULL
-			AND o.hold_expires_at < %s AND bm.id IS NULL
+			AND o.hold_expires_at < %s AND bm.id IS NULL AND o.id > %d
 			ORDER BY o.id ASC LIMIT %d";
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant tables; values bound via prepare().
-		$ids = $this->wpdb->get_col( $this->wpdb->prepare( $sql, self::VOID_UNRESOLVED_META_KEY, $retry_before, $cutoff, max( 1, $limit ) ) );
+		$ids = $this->wpdb->get_col( $this->wpdb->prepare( $sql, self::VOID_UNRESOLVED_META_KEY, $retry_before, $cutoff, max( 0, $after_id ), max( 1, $limit ) ) );
 
 		return array_map( 'intval', is_array( $ids ) ? $ids : array() );
 	}
@@ -464,6 +598,7 @@ final class OrderRepository {
 		// failure leaves an order eligible again.
 		$sql = "SELECT o.id FROM {$p}aponto_orders o
 			INNER JOIN {$p}aponto_order_items oi ON oi.order_id = o.id AND oi.item_type = 'booking'
+			INNER JOIN {$p}aponto_bookings b ON b.id = oi.booking_id AND b.status = 'pending'
 			LEFT JOIN {$p}aponto_booking_meta bm ON bm.booking_id = oi.booking_id AND bm.meta_key = %s
 			WHERE o.payment_status = 'pending' AND o.hold_expires_at IS NOT NULL
 			AND o.hold_expires_at > %s AND o.updated_at <= %s AND bm.id IS NULL
@@ -526,9 +661,10 @@ final class OrderRepository {
 	 * Delete every order and order item attached to a booking.
 	 *
 	 * @param int $booking_id Booking id.
+	 * @return list<int> Deleted order IDs; the caller publishes only after commit.
 	 * @throws StorageException When any delete fails or a resolved order vanishes.
 	 */
-	public function deleteForBooking( int $booking_id ): void {
+	public function deleteForBooking( int $booking_id ): array {
 		$items = $this->wpdb->prefix . 'aponto_order_items';
 		$sql   = "SELECT DISTINCT order_id FROM {$items} WHERE booking_id = %d FOR UPDATE";
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; booking id bound via prepare().
@@ -559,6 +695,7 @@ final class OrderRepository {
 				throw StorageException::because( esc_html( 'order delete affected no row' ) );
 			}
 		}
+		return array_values( array_map( 'intval', $order_ids ) );
 	}
 
 	/**

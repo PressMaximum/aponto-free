@@ -167,9 +167,33 @@ final class EligibilityController implements Controller {
 			return Errors::notFound();
 		}
 
-		$locked = $this->replaceSerialized( $id, $assignments );
+		$previous = array();
+		$locked   = $this->replaceSerialized( $id, $assignments, $previous );
 		if ( $locked instanceof \WP_Error ) {
 			return $locked;
+		}
+
+		// Assignment order is not meaningful; only a changed set emits after lock release.
+		$current_pairs  = $assignments;
+		$previous_pairs = $previous;
+		sort( $current_pairs );
+		sort( $previous_pairs );
+		if ( $current_pairs !== $previous_pairs ) {
+			try {
+				do_action(
+					'aponto_service_eligibility_changed',
+					array(
+						'service_id'  => $id,
+						'assignments' => $assignments,
+					),
+					array(
+						'service_id'  => $id,
+						'assignments' => $previous,
+					)
+				);
+			} catch ( \Throwable $listener_failure ) {
+				unset( $listener_failure ); // A listener cannot invalidate the committed replacement.
+			}
 		}
 
 		return new WP_REST_Response( $this->dto( $id ), 200 );
@@ -202,9 +226,10 @@ final class EligibilityController implements Controller {
 	 *
 	 * @param int                                        $id          Service id.
 	 * @param list<array{staff_id:int, location_id:int}> $assignments Distinct pairs.
+	 * @param list<array{staff_id:int, location_id:int}> $previous Previous pairs, captured under lock.
 	 * @return \WP_Error|null Error, or null on success.
 	 */
-	private function replaceSerialized( int $id, array $assignments ): ?\WP_Error {
+	private function replaceSerialized( int $id, array $assignments, array &$previous ): ?\WP_Error {
 		$guard = new TransactionGuard( $this->wpdb );
 		$lock  = ( new StaffLockFactory( $this->wpdb ) )->forService( $id );
 		if ( ! $lock->acquire( 3 ) ) {

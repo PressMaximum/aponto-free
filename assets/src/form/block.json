@@ -2,7 +2,7 @@
   "$schema": "https://schemas.wp.org/trunk/block.json",
   "apiVersion": 3,
   "name": "aponto/booking-form",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "title": "Aponto Booking Form",
   "category": "widgets",
   "icon": "calendar-alt",
@@ -22,9 +22,16 @@
     "staffId": {
       "type": "integer"
     },
+    "locationId": {
+      "type": "integer"
+    },
     "layout": {
       "type": "string",
-      "default": "default"
+      "default": "default",
+      "enum": [
+        "default",
+        "one-page"
+      ]
     },
     "accent": {
       "type": "string",
@@ -37,10 +44,80 @@
       "type": "string",
       "default": "light"
     },
-    "align": {
+    "maxWidth": {
+      "type": "number"
+    },
+    "summaryMode": {
       "type": "string",
-      "default": "wide"
+      "default": "always",
+      "enum": [
+        "always",
+        "step2",
+        "off"
+      ]
+    },
+    "stepDisplay": {
+      "type": "string",
+      "default": "horizontal",
+      "enum": [
+        "fraction",
+        "horizontal"
+      ]
+    },
+    "staffLayout": {
+      "type": "string",
+      "default": "",
+      "enum": [
+        "",
+        "list",
+        "cards"
+      ]
+    },
+    "align": {
+      "type": "string"
+    },
+    "shadow": {
+      "type": "string",
+      "default": "sm",
+      "enum": [
+        "flat",
+        "sm",
+        "md",
+        "lg"
+      ]
+    },
+    "contactHelp": {
+      "type": "boolean",
+      "default": true
+    },
+    "contactText": {
+      "type": "string",
+      "default": ""
+    },
+    "preselectDate": {
+      "type": "boolean"
+    },
+    "showHost": {
+      "type": "boolean"
+    },
+    "meetingType": {
+      "type": "string",
+      "default": "",
+      "enum": [
+        "",
+        "in_person",
+        "phone",
+        "online",
+        "custom"
+      ]
+    },
+    "meetingText": {
+      "type": "string",
+      "default": ""
     }
+  },
+  "example": {
+    "viewportWidth": 960
   },
   "supports": {
     "html": false,

@@ -28,6 +28,9 @@ use Aponto\Rest\Policy;
 use Aponto\Rest\RequestValidator;
 use Aponto\Rest\Services;
 use Aponto\Rest\Support\Format;
+use Aponto\Rest\Support\RequestFields;
+use Aponto\Rest\Support\StaffAvatar;
+use Aponto\Support\PersonName;
 use WP_Error;
 use WP_Post;
 use WP_REST_Request;
@@ -41,6 +44,18 @@ use WP_REST_Response;
  * lifecycle §4.4).
  */
 final class StaffController implements Controller {
+
+	/**
+	 * Maximum `title` length — the `varchar(191)` column width (migration 0011).
+	 */
+	private const TITLE_MAX = 191;
+
+	/**
+	 * Maximum `bio` length. A PRODUCT ceiling, not a column one: the column is `text`, and the
+	 * booking form's staff row has room for a sentence or two, not an essay. The admin
+	 * counter counts down to this same number (D-R51).
+	 */
+	private const BIO_MAX = 600;
 
 	/**
 	 * Staff data gateway.
@@ -193,6 +208,17 @@ final class StaffController implements Controller {
 			return Errors::notFound();
 		}
 
+		try {
+			/**
+			 * Fires after a staff is created and business locks are released (extension-surface §2).
+			 *
+			 * @param array<string, mixed> $row Persisted domain row.
+			 */
+			do_action( 'aponto_staff_creation_committed', PersonName::withDisplayName( $row ) );
+		} catch ( \Throwable $listener_failure ) {
+			unset( $listener_failure ); // Post-commit extensions cannot invalidate the saved operation.
+		}
+
 		return new WP_REST_Response( $this->toDto( $row ), 201 );
 	}
 
@@ -227,8 +253,9 @@ final class StaffController implements Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function update( WP_REST_Request $request ) {
-		$id = (int) $request->get_param( 'id' );
-		if ( null === $this->gateway->find( $id ) ) {
+		$id     = (int) $request->get_param( 'id' );
+		$before = $this->gateway->find( $id );
+		if ( null === $before ) {
 			return Errors::notFound();
 		}
 
@@ -257,6 +284,20 @@ final class StaffController implements Controller {
 		$row = $this->gateway->find( $id );
 		if ( null === $row ) {
 			return Errors::notFound();
+		}
+
+		if ( $before !== $row ) {
+			try {
+				/**
+				 * Fires after a staff is updated and business locks are released (extension-surface §2).
+				 *
+				 * @param array<string, mixed> $row Persisted domain row.
+				 * @param array<string, mixed> $before Previous domain row.
+				 */
+				do_action( 'aponto_staff_updated', PersonName::withDisplayName( $row ), PersonName::withDisplayName( $before ) );
+			} catch ( \Throwable $listener_failure ) {
+				unset( $listener_failure ); // Post-commit extensions cannot invalidate the saved operation.
+			}
 		}
 
 		return new WP_REST_Response( $this->toDto( $row ), 200 );
@@ -471,6 +512,17 @@ final class StaffController implements Controller {
 		$integrations->revokeRemoved( $removed_connections );
 		RemoteEventSync::syncSchedule();
 
+		try {
+			/**
+			 * Fires after a staff is deleted and business locks are released (extension-surface §2).
+			 *
+			 * @param array<string, mixed> $row Deleted row pre-image.
+			 */
+			do_action( 'aponto_staff_deleted', PersonName::withDisplayName( $row ) );
+		} catch ( \Throwable $listener_failure ) {
+			unset( $listener_failure ); // Post-commit extensions cannot invalidate the saved operation.
+		}
+
 		return new WP_REST_Response(
 			array(
 				'deleted' => true,
@@ -494,8 +546,14 @@ final class StaffController implements Controller {
 		if ( $this->wants( $request, $partial, 'type' ) ) {
 			$data['type'] = $v->enum( 'type', $request->get_param( 'type' ) ?? 'human', array( 'human', 'resource' ) );
 		}
-		if ( $this->wants( $request, $partial, 'name' ) ) {
-			$data['name'] = $v->name( 'name', $request->get_param( 'name' ) );
+		// Name split (founder 2026-10-01, N3, D-R69): `first_name` is required on POST, `last_name`
+		// is optional (a `resource` row — a room, a chair — has no surname), and a PATCH may send
+		// either part alone. There is no `name` input any more (N2).
+		if ( $this->wants( $request, $partial, 'first_name' ) ) {
+			$data['first_name'] = $v->namePart( 'first_name', $request->get_param( 'first_name' ), 'first' );
+		}
+		if ( $this->wants( $request, $partial, 'last_name' ) ) {
+			$data['last_name'] = $v->namePart( 'last_name', $request->get_param( 'last_name' ), 'last', false );
 		}
 		if ( $this->wants( $request, $partial, 'email' ) ) {
 			$data['email'] = $v->email( 'email', $request->get_param( 'email' ) );
@@ -512,6 +570,22 @@ final class StaffController implements Controller {
 		if ( $this->wants( $request, $partial, 'status' ) ) {
 			$data['status'] = $v->enum( 'status', $request->get_param( 'status' ) ?? 'active', array( 'active', 'archived' ) );
 		}
+		// The PUBLIC PROFILE trio (D-R51). Core owns them in BOTH editions — the Free single
+		// profile fills the same three fields — because the booking form that renders them is
+		// pixel-identical across editions (§1 product rule: never gate form quality).
+		if ( $this->wants( $request, $partial, 'title' ) ) {
+			$data['title'] = $v->boundedText( 'title', $request->get_param( 'title' ) ?? '', self::TITLE_MAX );
+		}
+		if ( $this->wants( $request, $partial, 'bio' ) ) {
+			// PLAIN TEXT, never HTML: this string is rendered inside the booking widget's shadow
+			// root as a text node, and a `bio` that could carry markup would be a stored-XSS
+			// surface reachable by anyone who can edit staff.
+			$data['bio'] = $v->boundedText( 'bio', $request->get_param( 'bio' ) ?? '', self::BIO_MAX, true );
+		}
+		if ( $this->wants( $request, $partial, 'is_public' ) ) {
+			$raw               = $request->get_param( 'is_public' );
+			$data['is_public'] = ( null === $raw ? true : $v->bool( $raw ) ) ? 1 : 0;
+		}
 		if ( $request->has_param( 'position' ) ) {
 			$position = $request->get_param( 'position' );
 			if ( ! is_numeric( $position ) || (int) $position < 0 ) {
@@ -519,6 +593,13 @@ final class StaffController implements Controller {
 			} else {
 				$data['position'] = (int) $position;
 			}
+		}
+
+		// The legacy single `name` is REFUSED, never silently dropped (N2, D-R69) — and before the
+		// "at least one field" check, so a PATCH carrying only `name` names the real problem.
+		// Exactly this one key: the admin routes keep no allow-list.
+		if ( RequestFields::submitted( $request, 'name' ) ) {
+			$v->unknownField( 'name' );
 		}
 
 		if ( $v->failed() ) {
@@ -539,9 +620,37 @@ final class StaffController implements Controller {
 	 */
 	private function checkForeignKeys( array $data ): ?WP_Error {
 		if ( isset( $data['avatar_id'] ) && null !== $data['avatar_id'] ) {
-			$attachment = get_post( (int) $data['avatar_id'] );
+			$attachment_id = (int) $data['avatar_id'];
+			$attachment    = get_post( $attachment_id );
 			if ( ! $attachment instanceof WP_Post || 'attachment' !== $attachment->post_type ) {
 				return Errors::notFound();
+			}
+
+			// THE ID IS USER INPUT, AND THE RESULT IS PUBLISHED UNAUTHENTICATED (Codex P2-3).
+			// `aponto_manage_staff` is a booking capability; it says nothing about the media
+			// library. Without this check a role granted staff management but not media access
+			// could guess a private or draft attachment id, attach it, and have its URL served
+			// to every visitor by the public roster (§3.1). `read_post` is the meta capability
+			// WordPress itself uses to decide whether someone may see an attachment, so the
+			// answer stays whatever the site's own roles and any media plugin already decided.
+			//
+			// The refusal is the SAME `404 aponto_not_found` an unknown id gets, deliberately:
+			// distinguishing "does not exist" from "exists but is not yours" would confirm the
+			// existence of a post the caller may not see, which is exactly what the probing
+			// this check exists to stop is looking for. It also needs no new registry code and
+			// no contract change — `404` for a bad `avatar_id` reference is already §2.5.
+			if ( ! current_user_can( 'read_post', $attachment_id ) ) {
+				return Errors::notFound();
+			}
+
+			// An attachment that EXISTS and is READABLE but is not a picture is a validation
+			// failure, not a "not found" (D-R51): the record is right there, and `422` with the
+			// field named is the only answer an operator who just picked a PDF can act on. It
+			// is tested LAST so a `422` can never tell an unauthorized caller a mime type.
+			if ( ! StaffAvatar::isImageAttachment( $attachment_id ) ) {
+				return Errors::validation(
+					array( 'avatar_id' => __( 'The photo must be an image file.', 'aponto' ) )
+				);
 			}
 		}
 		if ( isset( $data['wp_user_id'] ) && null !== $data['wp_user_id'] && false === get_userdata( (int) $data['wp_user_id'] ) ) {
@@ -563,6 +672,21 @@ final class StaffController implements Controller {
 	}
 
 	/**
+	 * The fields {@see StaffAvatar} needs from a staff row (D-R51).
+	 *
+	 * @param array<string, mixed> $row Raw row.
+	 * @return array{id:int, avatar_id:int|null, email:string, wp_user_id:int|null}
+	 */
+	private static function avatarSubject( array $row ): array {
+		return array(
+			'id'         => (int) $row['id'],
+			'avatar_id'  => Format::intOrNull( $row['avatar_id'] ?? null ),
+			'email'      => (string) ( $row['email'] ?? '' ),
+			'wp_user_id' => Format::intOrNull( $row['wp_user_id'] ?? null ),
+		);
+	}
+
+	/**
 	 * Serialize a staff row to its DTO.
 	 *
 	 * @param array<string, mixed> $row Raw row.
@@ -572,13 +696,24 @@ final class StaffController implements Controller {
 		return array(
 			'id'         => (int) $row['id'],
 			'type'       => (string) $row['type'],
-			'name'       => (string) $row['name'],
+			// The composed display name (never stored) beside the two stored parts (N2, D-R69).
+			'name'       => PersonName::display( (string) $row['first_name'], (string) $row['last_name'] ),
+			'first_name' => (string) $row['first_name'],
+			'last_name'  => (string) $row['last_name'],
 			'email'      => (string) $row['email'],
 			'phone'      => (string) $row['phone'],
 			'avatar_id'  => Format::intOrNull( $row['avatar_id'] ),
 			'wp_user_id' => Format::intOrNull( $row['wp_user_id'] ),
 			'status'     => (string) $row['status'],
 			'position'   => (int) $row['position'],
+			// PUBLIC PROFILE (D-R51). `avatar` is the RESOLVED pair beside the raw `avatar_id`,
+			// which stays because the editor round-trips the id, not a URL; `avatar` is null
+			// whenever the attachment is gone, so the admin shows the initials fallback for
+			// exactly the rows the booking form will.
+			'title'      => (string) ( $row['title'] ?? '' ),
+			'bio'        => (string) ( $row['bio'] ?? '' ),
+			'is_public'  => (bool) ( $row['is_public'] ?? 1 ),
+			'avatar'     => StaffAvatar::admin( self::avatarSubject( $row ) ),
 			'created_at' => Format::utcDatetime( (string) $row['created_at'] ),
 			'updated_at' => Format::utcDatetime( (string) $row['updated_at'] ),
 		);

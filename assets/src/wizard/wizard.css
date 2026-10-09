@@ -493,6 +493,22 @@ body.aponto-wizard-fullscreen {
 	font-size: var(--ap-font-size-caption);
 }
 
+/* Step 6: the hand-built-page instructions, closed by default (persona QA 2026-10-05, T-085). */
+.aponto-wizard .aponto-wizard-disclosure > summary {
+	color: var(--ap-color-text-muted);
+	font-size: var(--ap-font-size-meta);
+	cursor: pointer;
+}
+
+.aponto-wizard .aponto-wizard-disclosure[open] > summary {
+	margin-bottom: var(--ap-space-2);
+}
+
+.aponto-wizard .aponto-wizard-disclosure .aponto-wizard-block-markup {
+	margin: var(--ap-space-2) 0;
+	overflow-wrap: anywhere;
+}
+
 .aponto-wizard .aponto-wizard-muted {
 	color: var(--ap-color-text-soft);
 	font-size: var(--ap-font-size-caption);

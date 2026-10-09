@@ -15,7 +15,9 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { PMDKDataTable } from '@pressmaximum/dashboard-kit/table';
 import { api } from '../lib/api.js';
 import { config } from '../lib/config.js';
+import { moduleAvailable } from '../modules/catalog.js';
 import { longDate } from '../lib/format.js';
+import { displayNameOf, initials } from '../../shared/person-name.js';
 import { renderIcon } from '../lib/icon.jsx';
 import { PageHeader } from '../lib/ui.jsx';
 import { InflowWorkspace } from '../lib/InflowWorkspace.jsx';
@@ -32,18 +34,37 @@ const FACETS = [
 	{ id: 'tzDiffers', label: 'Timezone differs on last booking', type: 'toggle' },
 ];
 
-function toRow( dto ) {
+/**
+ * GET /customers item → table row.
+ *
+ * Persona QA 2026-10-05, T-051: the Bookings figure leaves CANCELLED bookings out (they are
+ * labelled beside it instead) and "Last booking" is the latest one that was not cancelled, so a
+ * customer who only ever cancelled does not read as a regular. A DTO older than
+ * `cancelled_count` / `last_active_booking` keeps the previous figures.
+ *
+ * @param {Object} dto Customer DTO (rest-contract §2.10).
+ * @return {Object} Row.
+ */
+export function toRow( dto ) {
+	const cancelled = Number( dto.cancelled_count ) || 0;
+	const hasActive = Object.prototype.hasOwnProperty.call( dto, 'last_active_booking' );
+
 	return {
 		id: dto.id,
-		name: dto.name,
+		// ONE Name column: the server-composed display name (name split, 2026-10-01); the parts
+		// ride along for the inspector's two inputs, the search haystack and the CSV.
+		name: displayNameOf( dto ),
+		firstName: dto.first_name || '',
+		lastName: dto.last_name || '',
 		email: dto.email || '',
 		phone: dto.phone || '',
 		note: dto.note || '',
 		wpUserId: dto.wp_user_id ?? null,
-		bookingsCount: Number( dto.bookings_count ) || 0,
+		bookingsCount: Math.max( 0, ( Number( dto.bookings_count ) || 0 ) - cancelled ),
+		cancelledCount: cancelled,
 		noShowCount: Number( dto.no_show_count ) || 0,
 		upcoming: Number( dto.upcoming ) || 0,
-		lastBooking: dto.last_booking || null,
+		lastBooking: ( hasActive ? dto.last_active_booking : dto.last_booking ) || null,
 		timezone: dto.timezone || null,
 		upcomingBool: ( Number( dto.upcoming ) || 0 ) > 0,
 		tzDiffers: Boolean( dto.timezone && dto.timezone !== TZ ),
@@ -56,7 +77,7 @@ function customerGlobalFilter( row, _columnId, value ) {
 		return true;
 	}
 	const c = row.original;
-	return `${ c.name } ${ c.email } ${ c.phone } ${ c.note }`.toLowerCase().includes( query );
+	return [ c.name, c.firstName, c.lastName, c.email, c.phone, c.note ].filter( Boolean ).join( ' ' ).toLowerCase().includes( query );
 }
 
 function csvCell( value ) {
@@ -69,8 +90,8 @@ function csvCell( value ) {
 }
 
 function exportSelectedCsv( rows ) {
-	const header = [ 'Name', 'Email', 'Phone', 'Bookings', 'Last booking' ];
-	const body = rows.map( ( r ) => [ r.name, r.email, r.phone, r.bookingsCount, r.lastBooking ? longDate( r.lastBooking ) : '' ] );
+	const header = [ 'First name', 'Last name', 'Email', 'Phone', 'Bookings', 'Cancelled', 'No-shows', 'Last booking' ];
+	const body = rows.map( ( r ) => [ r.firstName, r.lastName, r.email, r.phone, r.bookingsCount, r.cancelledCount, r.noShowCount, r.lastBooking ? longDate( r.lastBooking ) : '' ] );
 	const csv = [ header, ...body ].map( ( cols ) => cols.map( csvCell ).join( ',' ) ).join( '\n' );
 	const url = URL.createObjectURL( new Blob( [ csv ], { type: 'text/csv;charset=utf-8' } ) );
 	const link = document.createElement( 'a' );
@@ -145,15 +166,18 @@ export function Customers() {
 			meta: { label: 'Name' },
 			cell: ( info ) => (
 				<span className="ap-cell-identity">
-					<span className="pmdk-avatar" aria-hidden="true">{ ( info.getValue() || '?' ).trim().charAt( 0 ).toUpperCase() }</span>
-					<span className="pmdk-cell-value pmdk-cell-strong">{ info.getValue() }</span>
+					<span className="pmdk-avatar" aria-hidden="true">{ initials( info.row.original.firstName, info.row.original.lastName ) || initials( info.getValue(), '' ) || '?' }</span>
+					<span className="pmdk-cell-value pmdk-cell-strong" title={ info.getValue() }>{ info.getValue() }</span>
 				</span>
 			),
 		} ),
 		columnHelper.accessor( 'email', { header: 'Email', size: 190, meta: { label: 'Email' }, cell: ( info ) => <span className="pmdk-cell-value pmdk-cell-muted pd-ltr">{ info.getValue() || '—' }</span> } ),
 		columnHelper.accessor( 'phone', { header: 'Phone', size: 130, meta: { label: 'Phone' }, cell: ( info ) => <span className="pmdk-cell-value pmdk-cell-muted pd-ltr">{ info.getValue() || '—' }</span> } ),
 		columnHelper.accessor( 'note', { header: 'Notes', size: 200, enableSorting: false, meta: { label: 'Notes' }, cell: ( info ) => <span className="pmdk-cell-value pmdk-cell-muted ap-cell-truncate" title={ info.getValue() || undefined }>{ info.getValue() || '—' }</span> } ),
-		columnHelper.accessor( 'bookingsCount', { id: 'bookings', header: 'Bookings', size: 90, meta: { label: 'Bookings', numeric: true }, cell: ( info ) => <span className="pmdk-cell-value pmdk-cell-numeric">{ info.getValue() }</span> } ),
+		// Cancelled bookings are not counted, and are named in the tooltip (T-051).
+		columnHelper.accessor( 'bookingsCount', { id: 'bookings', header: 'Bookings', size: 90, meta: { label: 'Bookings', numeric: true }, cell: ( info ) => <span className="pmdk-cell-value pmdk-cell-numeric" title={ info.row.original.cancelledCount ? `${ info.row.original.cancelledCount } cancelled, not counted` : undefined }>{ info.getValue() }</span> } ),
+		// The no-show count was in the inspector only (T-051); a dash keeps a clean record quiet.
+		columnHelper.accessor( 'noShowCount', { id: 'noShows', header: 'No-shows', size: 90, meta: { label: 'No-shows', numeric: true }, cell: ( info ) => <span className="pmdk-cell-value pmdk-cell-numeric">{ info.getValue() || '—' }</span> } ),
 		columnHelper.accessor( 'lastBooking', {
 			id: 'lastBooking',
 			header: 'Last booking',
@@ -230,14 +254,7 @@ export function Customers() {
 					primaryAction={ <button className="pmdk-button primary sm" type="button" onClick={ () => setInspector( { mode: 'create' } ) }>{ renderIcon( 'plus' ) }<span>New customer</span></button> }
 					menuItems={ [
 						{ id: 'export', label: 'Export customers (CSV)', icon: renderIcon( 'csv' ), onSelect: exportAll },
-						/*
-						 * No "Import customers" row: CSV import is not built yet, and the kit's
-						 * `menuItems` renders every entry as a live button — it supports no
-						 * disabled/aria-disabled row — so keeping it would be a control whose
-						 * only effect is a toast explaining itself after the click. The
-						 * "CSV import — Free, coming soon" card on the Modules screen is where
-						 * that promise lives until this row can actually do something.
-						 */
+						...( config.caps.bookings && moduleAvailable( config, 'csv_import' ) ? [ { id: 'import', label: 'Import customers (CSV)', icon: renderIcon( 'import' ), onSelect: () => { window.location.hash = 'modules/csv_import'; } } ] : [] ),
 					] }
 					defaultColumnVisibility={ { upcomingBool: false, tzDiffers: false } }
 					defaultSorting={ [ { id: 'name', desc: false } ] }

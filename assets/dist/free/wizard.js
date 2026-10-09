@@ -2,6 +2,170 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./assets/src/admin/lib/copy-text.js"
+/*!*******************************************!*\
+  !*** ./assets/src/admin/lib/copy-text.js ***!
+  \*******************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   copyText: () => (/* binding */ copyText)
+/* harmony export */ });
+/**
+ * Copy text to the clipboard, falling back to a selection copy when the async API is unavailable.
+ *
+ * An admin served over plain HTTP is not a secure context, so `navigator.clipboard` is undefined
+ * there and calling it throws a raw TypeError at the operator (webhooks UI review W-UI-04). The
+ * legacy `execCommand( 'copy' )` path still works in every browser the admin supports; when that
+ * fails too the caller gets `false` and owes the operator a manual-copy hint.
+ *
+ * Same behaviour as the private helpers in the Google/Outlook/PayPal panels, which predate this
+ * module and can move onto it in a follow-up.
+ *
+ * @param {string} text Text to copy.
+ * @return {Promise<boolean>} Whether the copy succeeded.
+ */
+async function copyText(text) {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) {
+    // Fall through to the legacy path.
+  }
+  try {
+    const field = document.createElement('textarea');
+    field.value = text;
+    field.setAttribute('readonly', '');
+    field.style.position = 'fixed';
+    field.style.opacity = '0';
+    document.body.appendChild(field);
+    field.select();
+    const ok = typeof document.execCommand === 'function' && document.execCommand('copy');
+    document.body.removeChild(field);
+    return Boolean(ok);
+  } catch (e) {
+    return false;
+  }
+}
+
+/***/ },
+
+/***/ "./assets/src/shared/person-name.js"
+/*!******************************************!*\
+  !*** ./assets/src/shared/person-name.js ***!
+  \******************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   displayName: () => (/* binding */ displayName),
+/* harmony export */   displayNameOf: () => (/* binding */ displayNameOf),
+/* harmony export */   initials: () => (/* binding */ initials),
+/* harmony export */   initialsOf: () => (/* binding */ initialsOf),
+/* harmony export */   normalizePart: () => (/* binding */ normalizePart)
+/* harmony export */ });
+/**
+ * The ONE person-name rule on the JS side (name split, 2026-10-01).
+ *
+ * Customers and staff are stored as `first_name` + `last_name`; every REST DTO also carries a
+ * server-composed `name`. This module is the JS twin of `Aponto\Support\PersonName` (PHP) and is
+ * pinned to it by `tests/fixtures/person-name-lockstep.json` — a Jest test and a PHP unit test
+ * both run the same `display` and `initials` cases, so the two sides cannot drift.
+ *
+ * Framework-free and dependency-free on purpose: the admin SPA (React), the wizard and the
+ * booking widget (Preact) all import it by relative path and webpack inlines a copy into each
+ * bundle, so nothing here may pull in a runtime.
+ *
+ * Display order "First Last" lives ONLY in `displayName()`.
+ */
+
+/**
+ * The whitespace class, matching PHP's `/[\s\p{Z}]+/u`: PCRE `\s` under `/u` is the ASCII set
+ * (space, tab, LF, VT, FF, CR) and `\p{Z}` adds every Unicode separator (NBSP, U+3000, …).
+ * Spelled out rather than JS `\s`, which also treats U+FEFF as whitespace and PHP does not, and
+ * with the `\p{Z}` members listed (Zs + U+2028 Zl + U+2029 Zp) so no transpiler expands a
+ * property escape into a large character table inside every bundle.
+ */
+const WHITESPACE_RUN = /[\t\n\v\f\r \u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+/g;
+
+/**
+ * One name part, normalized: Unicode whitespace trimmed and every internal run collapsed to a
+ * single ASCII space. `null`/`undefined` read as ''.
+ *
+ * @param {*} part Raw first or last name.
+ * @return {string} Normalized part ('' when blank).
+ */
+function normalizePart(part) {
+  return String(part ?? '').replace(WHITESPACE_RUN, ' ').replace(/^ | $/g, '');
+}
+
+/**
+ * The display name: "First Last", or whichever part is non-empty.
+ *
+ * @param {*} first First name.
+ * @param {*} last  Last name.
+ * @return {string} Display name ('' when both parts are blank).
+ */
+function displayName(first, last) {
+  return [normalizePart(first), normalizePart(last)].filter(Boolean).join(' ');
+}
+
+/**
+ * Up to two upper-cased initials: the first code point of the FIRST word and of the LAST word of
+ * the display name — so "Ana Maria" + "Silva" is AS, a one-word name yields one letter, and a
+ * blank name yields ''. Spread-based, so an astral first character stays whole.
+ *
+ * @param {*} first First name.
+ * @param {*} last  Last name.
+ * @return {string} 0–2 characters (more only when upper-casing expands, e.g. ß → SS).
+ */
+function initials(first, last) {
+  const words = displayName(first, last).split(' ').filter(Boolean);
+  if (!words.length) {
+    return '';
+  }
+  const head = [...words[0]][0] || '';
+  const tail = words.length > 1 ? [...words[words.length - 1]][0] || '' : '';
+  return (head + tail).toUpperCase();
+}
+
+/**
+ * The display name of a person DTO (customer, staff, a booking's `customer`/`staff` block).
+ *
+ * The server composes `name` with the same rule, so it wins when present; the parts are the
+ * fallback for a payload that carries only them.
+ *
+ * @param {?Object} person DTO with `name` and/or `first_name`/`last_name`.
+ * @return {string} Display name ('' for a missing or nameless record).
+ */
+function displayNameOf(person) {
+  if (!person || 'object' !== typeof person) {
+    return '';
+  }
+  const composed = normalizePart(person.name);
+  return composed || displayName(person.first_name, person.last_name);
+}
+
+/**
+ * The initials of a person DTO — from its parts when it has them, else from its composed name
+ * (whose words are the parts' words, so the answer is the same).
+ *
+ * @param {?Object} person DTO with `first_name`/`last_name` and/or `name`.
+ * @return {string} 0–2 characters.
+ */
+function initialsOf(person) {
+  if (!person || 'object' !== typeof person) {
+    return '';
+  }
+  const fromParts = initials(person.first_name, person.last_name);
+  return fromParts || initials(person.name, '');
+}
+
+/***/ },
+
 /***/ "./assets/src/wizard/Chrome.jsx"
 /*!**************************************!*\
   !*** ./assets/src/wizard/Chrome.jsx ***!
@@ -278,11 +442,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
 /* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
-/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ui_jsx__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ui.jsx */ "./assets/src/wizard/ui.jsx");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _ui_jsx__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ui.jsx */ "./assets/src/wizard/ui.jsx");
+/* harmony import */ var _options_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./options.js */ "./assets/src/wizard/options.js");
+/* harmony import */ var _admin_lib_copy_text_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../admin/lib/copy-text.js */ "./assets/src/admin/lib/copy-text.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__);
 /**
  * Wizard step 6 — "Publish your booking page" + the completion action (SPEC-P1 §4 step 6).
  *
@@ -306,6 +474,9 @@ __webpack_require__.r(__webpack_exports__);
  * Failure-mode guard: when a page exists but carries no usable address, NOTHING silently no-ops —
  * the open action is disabled and an explanatory warning is shown instead.
  */
+
+
+
 
 
 
@@ -374,68 +545,106 @@ function DoneStep({
   headingRef
 }) {
   const links = bookingPageLinks(page);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_ui_jsx__WEBPACK_IMPORTED_MODULE_2__.StepShell, {
+  // '' | 'copied' | 'failed' — the outcome of the last "Copy" press on the block markup.
+  const [copied, setCopied] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)('');
+  const copyMarkup = async () => {
+    setCopied((await (0,_admin_lib_copy_text_js__WEBPACK_IMPORTED_MODULE_5__.copyText)(_options_js__WEBPACK_IMPORTED_MODULE_4__.BOOKING_FORM_BLOCK)) ? 'copied' : 'failed');
+  };
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_ui_jsx__WEBPACK_IMPORTED_MODULE_3__.StepShell, {
     headingRef: headingRef,
-    title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Publish your booking page', 'aponto'),
-    subtitle: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Add the Aponto Booking Form block to any page — we can make one for you.', 'aponto'),
-    footer: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Flex, {
+    title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Publish your booking page', 'aponto'),
+    subtitle: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Customers book on a page that holds the Aponto Booking Form — we can make that page for you.', 'aponto'),
+    footer: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Flex, {
       className: "aponto-wizard-actions",
       justify: "space-between",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.FlexItem, {
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.FlexItem, {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
           variant: "tertiary",
           onClick: onBack,
-          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Back', 'aponto')
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Back', 'aponto')
         })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Flex, {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Flex, {
         className: "aponto-wizard-actions-end",
         justify: "flex-end",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.FlexItem, {
-          children: links.hasPage ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
-            variant: "secondary",
-            href: links.openable ? links.viewUrl : undefined,
-            target: "_blank",
-            rel: "noreferrer",
-            disabled: !links.openable,
-            "aria-disabled": !links.openable,
-            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Open booking page', 'aponto')
-          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
-            variant: "secondary",
-            disabled: saving,
-            onClick: onCreatePage,
-            children: busyLabel((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Create booking page', 'aponto'))
-          })
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.FlexItem, {
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
-            variant: "primary",
-            disabled: saving,
-            onClick: onFinish,
-            children: busyLabel((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Finish setup', 'aponto'))
-          })
-        })]
+        children: links.hasPage ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.FlexItem, {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+              variant: "secondary",
+              href: links.openable ? links.viewUrl : undefined,
+              target: "_blank",
+              rel: "noreferrer",
+              disabled: !links.openable,
+              "aria-disabled": !links.openable,
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Open booking page', 'aponto')
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.FlexItem, {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+              variant: "primary",
+              disabled: saving,
+              onClick: onFinish,
+              children: busyLabel((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Finish setup', 'aponto'))
+            })
+          })]
+        }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.FlexItem, {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+              variant: "tertiary",
+              disabled: saving,
+              onClick: onFinish,
+              children: busyLabel((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Finish setup', 'aponto'))
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.FlexItem, {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+              variant: "primary",
+              disabled: saving,
+              onClick: onCreatePage,
+              children: busyLabel((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Create booking page', 'aponto'))
+            })
+          })]
+        })
       })]
     }),
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("p", {
-      className: "aponto-wizard-block-markup",
-      children: ["<!-- wp:aponto/booking-form ", '{"align":"wide"}', " /-->"]
-    }), links.hasPage && links.openable && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
+    children: [!links.hasPage && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+      className: "aponto-wizard-muted",
+      children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Without a booking page customers have nowhere to book yet. You can also create it later from the Dashboard.', 'aponto')
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("details", {
+      className: "aponto-wizard-disclosure",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("summary", {
+        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Add it to an existing page yourself', 'aponto')
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+        className: "aponto-wizard-muted",
+        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Edit the page, add the “Aponto Booking Form” block — or paste this into the code editor:', 'aponto')
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+        className: "aponto-wizard-block-markup",
+        children: _options_js__WEBPACK_IMPORTED_MODULE_4__.BOOKING_FORM_BLOCK
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+        variant: "secondary",
+        size: "small",
+        onClick: copyMarkup,
+        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Copy', 'aponto')
+      }), ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("span", {
+        className: "aponto-wizard-muted",
+        role: "status",
+        children: ['copied' === copied && (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Copied.', 'aponto'), 'failed' === copied && (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Could not copy — select the text and copy it by hand.', 'aponto')]
+      })]
+    }), links.hasPage && links.openable && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
       status: "success",
       isDismissible: false,
-      children: [(0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Your booking page is published and live.', 'aponto'), ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.ExternalLink, {
+      children: [(0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Your booking page is published and live.', 'aponto'), ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.ExternalLink, {
         href: links.viewUrl,
-        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('View page', 'aponto')
-      }), '' !== links.editUrl && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
-        children: [' · ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.ExternalLink, {
+        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('View page', 'aponto')
+      }), '' !== links.editUrl && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
+        children: [' · ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.ExternalLink, {
           href: links.editUrl,
-          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Edit page', 'aponto')
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Edit page', 'aponto')
         })]
       })]
-    }), links.hasPage && !links.openable && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
+    }), links.hasPage && !links.openable && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
       status: "warning",
       isDismissible: false,
-      children: [(0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Your booking page exists, but WordPress did not return a web address for it — check your permalink settings, then open the page from the Pages screen.', 'aponto'), ' ', '' !== links.editUrl && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.ExternalLink, {
+      children: [(0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Your booking page exists, but WordPress did not return a web address for it — check your permalink settings, then open the page from the Pages screen.', 'aponto'), ' ', '' !== links.editUrl && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.ExternalLink, {
         href: links.editUrl,
-        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Edit page', 'aponto')
+        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Edit page', 'aponto')
       })]
     })]
   });
@@ -571,6 +780,212 @@ async function wizardPost(boot, doAction, payload) {
       clearTimeout(timer);
     }
   }
+}
+
+/***/ },
+
+/***/ "./assets/src/wizard/options.js"
+/*!**************************************!*\
+  !*** ./assets/src/wizard/options.js ***!
+  \**************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BOOKING_FORM_BLOCK: () => (/* binding */ BOOKING_FORM_BLOCK),
+/* harmony export */   currencyLabel: () => (/* binding */ currencyLabel),
+/* harmony export */   groupTimezones: () => (/* binding */ groupTimezones),
+/* harmony export */   hoursSeed: () => (/* binding */ hoursSeed),
+/* harmony export */   phoneLooksValid: () => (/* binding */ phoneLooksValid),
+/* harmony export */   priceProblem: () => (/* binding */ priceProblem),
+/* harmony export */   stepNeedsSave: () => (/* binding */ stepNeedsSave)
+/* harmony export */ });
+/**
+ * Pure option/validation helpers for the wizard steps (persona QA 2026-10-05).
+ *
+ * Kept out of `index.js` so they are unit-testable under plain node: that file mounts the app on
+ * import.
+ */
+
+/**
+ * Timezone choices grouped by region, for `<optgroup>`s (T-089).
+ *
+ * The step used to be one flat native select of ~420 IANA identifiers; finding "Australia/Sydney"
+ * meant scrolling past every African and American city. Grouping by the identifier's own first
+ * segment costs no data and no translation table. Identifiers with no region (`UTC`) and a
+ * prefilled raw offset (`+07:00`, see `WizardService::prefillTimezone()`) stay ungrouped at the
+ * top, where the owner can see what their site currently has.
+ *
+ * @param {string[]} zones    IANA identifiers from the server.
+ * @param {string}   selected The prefilled value; kept selectable even when it is not in `zones`.
+ * @return {{loose: Array<{value: string, label: string}>, groups: Array<{label: string, options: Array<{value: string, label: string}>}>}} Grouped options.
+ */
+function groupTimezones(zones, selected = '') {
+  const list = Array.isArray(zones) ? zones.slice() : [];
+  if (selected && !list.includes(selected)) {
+    list.unshift(selected);
+  }
+  const loose = [];
+  const byRegion = new Map();
+  list.forEach(zone => {
+    const id = String(zone);
+    const slash = id.indexOf('/');
+    if (slash < 1) {
+      loose.push({
+        value: id,
+        label: /^[+-]/.test(id) ? `UTC${id}` : id
+      });
+      return;
+    }
+    const region = id.slice(0, slash);
+    if (!byRegion.has(region)) {
+      byRegion.set(region, []);
+    }
+    byRegion.get(region).push({
+      value: id,
+      label: id.slice(slash + 1).replace(/_/g, ' ').replace(/\//g, ' / ')
+    });
+  });
+  return {
+    loose,
+    groups: [...byRegion.entries()].map(([label, options]) => ({
+      label,
+      options
+    }))
+  };
+}
+
+/**
+ * "USD — US Dollar" for a currency code (T-089), or the bare code when the browser cannot name it.
+ *
+ * `Intl.DisplayNames` already carries every ISO-4217 name in the reader's language, so the menu
+ * needs no shipped name table. An unknown code echoes itself, which reads as "no name" here.
+ *
+ * @param {string} code   ISO-4217 code.
+ * @param {string} locale BCP-47 locale for the name.
+ * @return {string} Option label.
+ */
+function currencyLabel(code, locale = 'en') {
+  const iso = String(code || '');
+  try {
+    if (typeof Intl !== 'undefined' && typeof Intl.DisplayNames === 'function') {
+      const name = new Intl.DisplayNames([locale, 'en'], {
+        type: 'currency'
+      }).of(iso);
+      if (name && name !== iso) {
+        return `${iso} — ${name}`;
+      }
+    }
+  } catch (e) {
+    // An invalid locale or code: fall through to the bare code.
+  }
+  return iso;
+}
+
+/**
+ * Whether a phone value is blank or loosely a phone number (T-088) — the client mirror of
+ * `WizardService::phoneAccepted()`: digits and `+ ( ) - .` / spaces only, at least five digits.
+ *
+ * @param {string} value Typed value.
+ * @return {boolean} Whether the step may post it.
+ */
+function phoneLooksValid(value) {
+  const phone = String(value ?? '').trim();
+  if ('' === phone) {
+    return true;
+  }
+  return /^[0-9+().\-\s]+$/.test(phone) && (phone.match(/[0-9]/g) || []).length >= 5;
+}
+
+/**
+ * Whether a typed first-service price is unusable (T-086) — the client mirror of
+ * `WizardService::servicePriceRefusal()`. Blank is "no price" and fine.
+ *
+ * @param {string} value Typed value, in the currency's major unit.
+ * @return {''|'nan'|'negative'} The problem, or '' when there is none.
+ */
+function priceProblem(value) {
+  const raw = String(value ?? '').trim();
+  if ('' === raw) {
+    return '';
+  }
+  const number = Number(raw);
+  if (!Number.isFinite(number)) {
+    return 'nan';
+  }
+  return number < 0 ? 'negative' : '';
+}
+
+/**
+ * The block markup the Done step offers for a hand-built page (T-085) — the same string the
+ * server writes into the page it creates (`WizardService::BLOCK_MARKUP`).
+ */
+const BOOKING_FORM_BLOCK = '<!-- wp:aponto/booking-form {"align":"wide"} /-->';
+
+/**
+ * The hours step's week, seeded from what the site has stored (persona QA 2026-10-05, re-test N2).
+ *
+ * A re-opened wizard showed the factory 9–5 week and Continue REPLACED the owner's saved hours
+ * with it. `saved` is `WizardService::hoursPrefill()`: null on a first run (the factory week is
+ * then the right starting point), otherwise the stored week — with `split` true when a day holds
+ * more than one range, which this one-range-per-day step can neither show nor save back.
+ *
+ * @param {?{split: boolean, days: Array<{weekday: number, open: boolean, start: number, end: number}>}} saved Stored week.
+ * @return {{map: Object<number, {open: boolean, start: number, end: number}>, stored: boolean, split: boolean}} Step state.
+ */
+function hoursSeed(saved) {
+  const map = {};
+  for (let iso = 1; iso <= 7; iso++) {
+    map[iso] = {
+      open: iso <= 5,
+      start: 540,
+      end: 1020
+    };
+  }
+  const days = saved && Array.isArray(saved.days) ? saved.days : null;
+  if (!days) {
+    return {
+      map,
+      stored: false,
+      split: false
+    };
+  }
+  for (let iso = 1; iso <= 7; iso++) {
+    map[iso] = {
+      open: false,
+      start: 540,
+      end: 1020
+    };
+  }
+  days.forEach(day => {
+    const iso = Number(day && day.weekday);
+    if (iso >= 1 && iso <= 7) {
+      map[iso] = {
+        open: Boolean(day.open),
+        start: Number.isFinite(Number(day.start)) ? Number(day.start) : 540,
+        end: Number.isFinite(Number(day.end)) ? Number(day.end) : 1020
+      };
+    }
+  });
+  return {
+    map,
+    stored: true,
+    split: Boolean(saved.split)
+  };
+}
+
+/**
+ * Whether a step must be POSTED when the owner presses Continue (re-test N2): always on a first
+ * run, and on a re-run only when what is on screen differs from what the step was seeded with. A
+ * re-opened wizard that is clicked through therefore writes nothing.
+ *
+ * @param {boolean} stored  Whether the step was seeded from values the site already has.
+ * @param {*}       seed    The values the step opened with.
+ * @param {*}       current The values on screen now.
+ * @return {boolean} Whether to post the step.
+ */
+function stepNeedsSave(stored, seed, current) {
+  return !stored || JSON.stringify(seed) !== JSON.stringify(current);
 }
 
 /***/ },
@@ -856,11 +1271,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var _api_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./api.js */ "./assets/src/wizard/api.js");
-/* harmony import */ var _ui_jsx__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./ui.jsx */ "./assets/src/wizard/ui.jsx");
-/* harmony import */ var _DoneStep_jsx__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./DoneStep.jsx */ "./assets/src/wizard/DoneStep.jsx");
-/* harmony import */ var _Chrome_jsx__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./Chrome.jsx */ "./assets/src/wizard/Chrome.jsx");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__);
+/* harmony import */ var _shared_person_name_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/person-name.js */ "./assets/src/shared/person-name.js");
+/* harmony import */ var _ui_jsx__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./ui.jsx */ "./assets/src/wizard/ui.jsx");
+/* harmony import */ var _DoneStep_jsx__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./DoneStep.jsx */ "./assets/src/wizard/DoneStep.jsx");
+/* harmony import */ var _Chrome_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./Chrome.jsx */ "./assets/src/wizard/Chrome.jsx");
+/* harmony import */ var _options_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./options.js */ "./assets/src/wizard/options.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__);
 /**
  * Aponto onboarding wizard (SPEC-P1 §4) — React + @wordpress/components.
  *
@@ -884,6 +1301,8 @@ __webpack_require__.r(__webpack_exports__);
 // Design tokens first, then the wizard's own chrome. The token sheet is the product's single
 // source for color/space/type roles (`--ap-*`); it is imported from the admin style folder rather
 // than copied so the wizard can never drift from the SPA's palette.
+
+
 
 
 
@@ -986,7 +1405,7 @@ function Wizard() {
     if (!Number.isFinite(resume)) {
       return 0;
     }
-    return Math.min(Math.max(resume, 0), _Chrome_jsx__WEBPACK_IMPORTED_MODULE_8__.STEPS.length - 1);
+    return Math.min(Math.max(resume, 0), _Chrome_jsx__WEBPACK_IMPORTED_MODULE_9__.STEPS.length - 1);
   });
   const [saving, setSaving] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useState)(false);
   const [error, setError] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useState)('');
@@ -1007,26 +1426,52 @@ function Wizard() {
     timezone: prefill.timezone || 'UTC',
     currency: prefill.currency || 'USD'
   });
-  const [hours, setHours] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useState)(() => {
-    const map = {};
-    for (let iso = 1; iso <= 7; iso++) {
-      map[iso] = {
-        open: iso <= 5,
-        start: 540,
-        end: 1020
-      };
-    }
-    return map;
-  });
-  const [staff, setStaff] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useState)({
-    name: prefill.currentUser && prefill.currentUser.name || '',
-    email: prefill.currentUser && prefill.currentUser.email || ''
+
+  // WHAT THE SITE ALREADY HAS (persona QA 2026-10-05, re-test N2). A re-opened wizard showed the
+  // factory 9–5 week and the WordPress user, and Continue wrote them over the owner's saved
+  // hours and first staff member. Steps 3 and 4 are seeded from the stored values instead, and a
+  // step is posted only when the owner changed it (`stepNeedsSave`) — clicking through a
+  // re-opened wizard writes nothing. A stored week with split shifts cannot be shown in this
+  // one-range-per-day grid, so the step then only says where those hours are edited.
+  const saved = prefill.saved || {};
+  const seededHours = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useMemo)(() => (0,_options_js__WEBPACK_IMPORTED_MODULE_10__.hoursSeed)(saved.hours), []);
+  const [hours, setHours] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useState)(seededHours.map);
+
+  // Name split (2026-10-01): the server prefills the WordPress user's `first_name` /
+  // `last_name` meta (falling back to a split of the display name) and the step saves the parts.
+  const [staff, setStaff] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useState)(() => {
+    const person = saved.staff || prefill.currentUser || {};
+    return {
+      first_name: person.first_name || '',
+      last_name: person.last_name || '',
+      email: person.email || ''
+    };
   });
   const [service, setService] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useState)({
     name: '',
     duration: 60,
     price: ''
   });
+
+  // What each step opened with, and whether that came from the site's stored values. Updated
+  // when a step is saved, so Back → Continue does not post the same values twice.
+  const seeds = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useRef)(null);
+  if (null === seeds.current) {
+    seeds.current = {
+      business: {
+        stored: true === saved.business,
+        values: business
+      },
+      hours: {
+        stored: seededHours.stored,
+        values: hours
+      },
+      staff: {
+        stored: Boolean(saved.staff),
+        values: staff
+      }
+    };
+  }
 
   // Timezone menu from the IANA list; keep the prefilled value selectable even when it is not in
   // it — the same rule the currency menu below uses. A site that never picked a city prefills a
@@ -1035,15 +1480,10 @@ function Wizard() {
   // name a country the business is not in. Offset 0 is normalized to `UTC` server-side
   // (WizardService::prefillTimezone); any other offset stays visible AS the offset, so the owner
   // sees what their site actually has and picks a city on purpose.
-  const tzOptions = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useMemo)(() => {
-    const zones = BOOT.timezones || [];
-    const selected = prefill.timezone || '';
-    const list = selected && !zones.includes(selected) ? [selected, ...zones] : zones;
-    return list.map(z => ({
-      label: /^[+-]/.test(z) ? `UTC${z}` : z,
-      value: z
-    }));
-  }, []);
+  //
+  // Grouped by region (persona QA 2026-10-05, T-089): one flat list of ~420 identifiers made
+  // the owner scroll past two continents to find their own city.
+  const tzChoices = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useMemo)(() => (0,_options_js__WEBPACK_IMPORTED_MODULE_10__.groupTimezones)(BOOT.timezones || [], prefill.timezone || ''), []);
 
   // Currency menu from the neutral global list; keep the prefilled code selectable even if it is
   // not in the curated list (the store accepts any valid 3-letter code).
@@ -1051,8 +1491,11 @@ function Wizard() {
     const codes = BOOT.currencies || [];
     const selected = prefill.currency || '';
     const list = selected && !codes.includes(selected) ? [selected, ...codes] : codes;
+    // "USD — US Dollar", named by the browser in the admin's own language (T-089): a bare
+    // three-letter code is a guess for anyone who does not already know theirs.
+    const locale = typeof document !== 'undefined' && document.documentElement.lang || 'en';
     return list.map(c => ({
-      label: c,
+      label: (0,_options_js__WEBPACK_IMPORTED_MODULE_10__.currencyLabel)(c, locale),
       value: c
     }));
   }, []);
@@ -1119,16 +1562,41 @@ function Wizard() {
   // Continue button used to be the ONLY sign of that, with nothing on the field to say why
   // (beta report 2026-08-02); the server refuses the same value with the same message now, and
   // skipping the step still posts nothing at all rather than posting a blank.
-  const staffNameError = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useMemo)(() => {
-    const name = (staff.name || '').trim();
-    if ('' === name) {
-      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('A name is required.', 'aponto');
+  //
+  // The SERVER's rule, per part: `first_name` is required, `last_name` is optional, and each is
+  // at most 191 characters after the same normalization the server stores (trimmed, inner
+  // whitespace collapsed). Counted in code points, as `mb_strlen` counts them.
+  // Step 2 refusals the owner can see BEFORE pressing Continue (persona QA 2026-10-05, T-086 /
+  // T-088): an empty business name and "abc not a phone" were both saved verbatim. Client-side
+  // they hold the commit and say why; the server refuses them on its own
+  // (`WizardService::saveBusiness()`), which is what `fieldErrors` carries.
+  const businessNameError = '' === (business.name || '').trim() ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Enter your business name.', 'aponto') : '';
+  const businessPhoneError = (0,_options_js__WEBPACK_IMPORTED_MODULE_10__.phoneLooksValid)(business.phone) ? '' : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Enter a phone number using digits, spaces and + ( ) - . only, or leave it blank.', 'aponto');
+
+  // Step 5: a negative price used to become a FREE service without a word (T-086).
+  const servicePriceError = (() => {
+    const problem = (0,_options_js__WEBPACK_IMPORTED_MODULE_10__.priceProblem)(service.price);
+    if ('negative' === problem) {
+      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('A price cannot be negative. Leave it blank for a free service.', 'aponto');
     }
-    if (name.length > MAX_FIELD) {
+    return 'nan' === problem ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Enter the price as a number, or leave it blank.', 'aponto') : '';
+  })();
+  const staffFirstNameError = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useMemo)(() => {
+    const first = (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_6__.normalizePart)(staff.first_name);
+    if ('' === first) {
+      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('A first name is required.', 'aponto');
+    }
+    if ([...first].length > MAX_FIELD) {
       return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('This name is too long.', 'aponto');
     }
     return '';
-  }, [staff.name]);
+  }, [staff.first_name]);
+  const staffLastNameError = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useMemo)(() => {
+    if ([...(0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_6__.normalizePart)(staff.last_name)].length > MAX_FIELD) {
+      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('This name is too long.', 'aponto');
+    }
+    return '';
+  }, [staff.last_name]);
 
   // QA B — a staff email is where every booking notification for this staff member lands, so a
   // typo is lost mail. Blank stays allowed (the field is optional and the whole step is skippable);
@@ -1182,7 +1650,16 @@ function Wizard() {
     setIndex(0);
     persistStep(0);
   }
+
+  // One request per press (persona QA 2026-10-05, T-066 family). `saving` disables the buttons
+  // only from the NEXT render, so two taps in one frame both posted — and the service step is a
+  // create. The ref is synchronous; every request path below takes it and releases it.
+  const inFlight = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useRef)(false);
   async function save(doAction, payload, next) {
+    if (inFlight.current) {
+      return false;
+    }
+    inFlight.current = true;
     setSaving(true);
     setError('');
     setFieldErrors({});
@@ -1192,16 +1669,46 @@ function Wizard() {
         setIndex(next);
         persistStep(next);
       }
+      return true;
     } catch (e) {
       setError(e.message);
       // A refused step names its fields (SPEC-P1 §4); every other failure carries none, and
       // the notice alone is the right report for those.
       setFieldErrors(e && e.fields ? e.fields : {});
+      return false;
     } finally {
+      inFlight.current = false;
       setSaving(false);
     }
   }
+
+  /**
+   * Continue on a step that edits stored values: post it only when it changed (re-test N2).
+   *
+   * @param {string} key      Step key in `seeds`.
+   * @param {*}      current  The values on screen.
+   * @param {string} doAction Wizard action.
+   * @param {Object} payload  Request payload.
+   * @param {number} next     Step index to advance to.
+   */
+  async function commitStep(key, current, doAction, payload, next) {
+    const seed = seeds.current[key];
+    if (!(0,_options_js__WEBPACK_IMPORTED_MODULE_10__.stepNeedsSave)(seed.stored, seed.values, current)) {
+      go(next);
+      return;
+    }
+    if (await save(doAction, payload, next)) {
+      seeds.current[key] = {
+        stored: true,
+        values: current
+      };
+    }
+  }
   async function skipWizard() {
+    if (inFlight.current) {
+      return;
+    }
+    inFlight.current = true;
     setSaving(true);
     setError('');
     try {
@@ -1221,6 +1728,7 @@ function Wizard() {
     } catch (e) {
       setError(e.message);
     } finally {
+      inFlight.current = false;
       setSaving(false);
     }
   }
@@ -1231,6 +1739,10 @@ function Wizard() {
    * exact dead-button symptom this step was reported for.
    */
   async function createPage() {
+    if (inFlight.current) {
+      return;
+    }
+    inFlight.current = true;
     setSaving(true);
     setError('');
     try {
@@ -1242,6 +1754,7 @@ function Wizard() {
     } catch (e) {
       setError(e.message);
     } finally {
+      inFlight.current = false;
       setSaving(false);
     }
   }
@@ -1253,11 +1766,15 @@ function Wizard() {
    * cursor is deliberately left alone so a later re-entry from Settings still resumes (C10).
    */
   async function finishSetup() {
+    if (inFlight.current) {
+      return;
+    }
+    inFlight.current = true;
     setSaving(true);
     setError('');
     try {
       await apiPost('finish', {});
-      const target = (0,_DoneStep_jsx__WEBPACK_IMPORTED_MODULE_7__.dashboardUrl)(BOOT.adminUrl);
+      const target = (0,_DoneStep_jsx__WEBPACK_IMPORTED_MODULE_8__.dashboardUrl)(BOOT.adminUrl);
       if ('' !== target) {
         window.location.assign(target);
         return;
@@ -1266,12 +1783,13 @@ function Wizard() {
     } catch (e) {
       setError(e.message);
     } finally {
+      inFlight.current = false;
       setSaving(false);
     }
   }
   function busyLabel(label) {
-    return saving ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.Fragment, {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Spinner, {}), " ", (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Saving…', 'aponto')]
+    return saving ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.Fragment, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Spinner, {}), " ", (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Saving…', 'aponto')]
     }) : label;
   }
 
@@ -1281,31 +1799,31 @@ function Wizard() {
   // than wrapped in a locally-defined component, which React would treat as a NEW component type
   // on every render and remount the whole step (losing focus and every field's state).
   if (done) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.Fragment, {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Chrome_jsx__WEBPACK_IMPORTED_MODULE_8__.WizardHeader, {
-        index: _Chrome_jsx__WEBPACK_IMPORTED_MODULE_8__.STEPS.length - 1,
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.Fragment, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_Chrome_jsx__WEBPACK_IMPORTED_MODULE_9__.WizardHeader, {
+        index: _Chrome_jsx__WEBPACK_IMPORTED_MODULE_9__.STEPS.length - 1,
         onExit: null,
         exitBusy: saving
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("main", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("main", {
         className: "aponto-wizard-main",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
           className: "aponto-wizard-content",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.StepShell, {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_ui_jsx__WEBPACK_IMPORTED_MODULE_7__.StepShell, {
             headingRef: headingRef,
             title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('You’re all set', 'aponto'),
             subtitle: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('You can reopen this setup anytime from Settings → Open setup wizard.', 'aponto'),
-            footer: BOOT.adminUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
+            footer: BOOT.adminUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
               className: "aponto-wizard-actions-end",
               justify: "flex-end",
-              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                   variant: "primary",
                   href: BOOT.adminUrl,
                   children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Go to dashboard', 'aponto')
                 })
               })
             }) : null,
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("p", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
               children: 'finished' === done ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Setup is complete. Aponto is ready in the main menu.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Setup was skipped. Add a service and a booking page whenever you’re ready.', 'aponto')
             })
           })
@@ -1313,30 +1831,30 @@ function Wizard() {
       })]
     });
   }
-  const step = _Chrome_jsx__WEBPACK_IMPORTED_MODULE_8__.STEPS[index];
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.Fragment, {
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Chrome_jsx__WEBPACK_IMPORTED_MODULE_8__.WizardHeader, {
+  const step = _Chrome_jsx__WEBPACK_IMPORTED_MODULE_9__.STEPS[index];
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_Chrome_jsx__WEBPACK_IMPORTED_MODULE_9__.WizardHeader, {
       index: index,
       onExit: skipWizard,
       exitBusy: saving
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("main", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("main", {
       className: "aponto-wizard-main",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
         className: "aponto-wizard-content",
-        children: [index > 0 && step !== 'done' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+        children: [index > 0 && step !== 'done' ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
           className: "aponto-wizard-toolbar",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
             variant: "tertiary",
             disabled: saving,
             onClick: startOver,
             children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Start over', 'aponto')
           })
-        }) : null, error && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Notice, {
+        }) : null, error && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Notice, {
           status: "error",
           isDismissible: true,
           onRemove: () => setError(''),
           children: error
-        }), step === 'welcome' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.StepShell, {
+        }), step === 'welcome' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_ui_jsx__WEBPACK_IMPORTED_MODULE_7__.StepShell, {
           headingRef: headingRef
           // A title, a subtitle and one sentence do not need three ruled
           // sections. `is-plain` drops the card's internal rules so Welcome
@@ -1345,54 +1863,54 @@ function Wizard() {
           variant: "is-plain",
           title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Welcome to Aponto', 'aponto'),
           subtitle: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Want a hand getting set up? It takes about three minutes.', 'aponto'),
-          footer: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
+          footer: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
             className: "aponto-wizard-actions",
             justify: "flex-end",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                 variant: "tertiary",
                 disabled: saving,
                 onClick: skipWizard,
                 children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('I’ll do it myself', 'aponto')
               })
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                 variant: "primary",
                 onClick: () => go(1),
                 children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Yes, guide me', 'aponto')
               })
             })]
           }),
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("p", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
             children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('We’ll confirm your business details, set your hours, add you as staff, and create your first service and booking page.', 'aponto')
           })
-        }), step === 'business' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.StepShell, {
+        }), step === 'business' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_ui_jsx__WEBPACK_IMPORTED_MODULE_7__.StepShell, {
           headingRef: headingRef,
           title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Confirm your business info', 'aponto'),
           subtitle: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('We prefilled this from WordPress — fix anything that’s off.', 'aponto'),
-          footer: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
+          footer: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
             className: "aponto-wizard-actions",
             justify: "space-between",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                 variant: "tertiary",
                 onClick: () => go(0),
                 children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Back', 'aponto')
               })
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
               className: "aponto-wizard-actions-end",
               justify: "flex-end",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                   variant: "tertiary",
                   onClick: () => go(2),
                   children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Skip', 'aponto')
                 })
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                   variant: "primary",
-                  disabled: saving,
-                  onClick: () => save('business', {
+                  disabled: saving || '' !== businessNameError || '' !== businessPhoneError,
+                  onClick: () => commitStep('business', business, 'business', {
                     name: business.name,
                     address: business.address,
                     phone: business.phone,
@@ -1407,16 +1925,22 @@ function Wizard() {
               })]
             })]
           }),
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
             __next40pxDefaultSize: true,
             label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Business name', 'aponto'),
             value: business.name,
-            onChange: v => setBusiness({
-              ...business,
-              name: v
-            }),
+            onChange: v => {
+              setBusiness({
+                ...business,
+                name: v
+              });
+              setFieldErrors({});
+            },
             __nextHasNoMarginBottom: true
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextareaControl, {
+          }), '' !== (businessNameError || fieldErrors.name || '') && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
+            className: "aponto-wizard-field-error",
+            children: businessNameError || fieldErrors.name
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextareaControl, {
             rows: 3,
             label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Address', 'aponto'),
             help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Used in confirmation emails and the calendar file. Leave blank if you’re online-only.', 'aponto'),
@@ -1426,27 +1950,46 @@ function Wizard() {
               address: v
             }),
             __nextHasNoMarginBottom: true
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
             __next40pxDefaultSize: true,
             label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Phone', 'aponto'),
+            type: "tel",
             value: business.phone,
-            onChange: v => setBusiness({
-              ...business,
-              phone: v
-            }),
+            onChange: v => {
+              setBusiness({
+                ...business,
+                phone: v
+              });
+              setFieldErrors({});
+            },
             __nextHasNoMarginBottom: true
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.SelectControl, {
+          }), '' !== (businessPhoneError || fieldErrors.phone || '') && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
+            className: "aponto-wizard-field-error",
+            children: businessPhoneError || fieldErrors.phone
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.SelectControl, {
             __next40pxDefaultSize: true,
-            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Timezone', 'aponto'),
-            help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Bookings are shown to each visitor in their own timezone; this is your studio’s.', 'aponto'),
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Timezone', 'aponto')
+            // No hard-coded business noun (D-R52; persona QA T-059): this
+            // said "your studio’s" to a hair salon and a medical clinic.
+            ,
+            help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Bookings are shown to each visitor in their own timezone; this is the local time at the business.', 'aponto'),
             value: business.timezone,
-            options: tzOptions,
             onChange: v => setBusiness({
               ...business,
               timezone: v
             }),
-            __nextHasNoMarginBottom: true
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.SelectControl, {
+            __nextHasNoMarginBottom: true,
+            children: [tzChoices.loose.map(o => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("option", {
+              value: o.value,
+              children: o.label
+            }, o.value)), tzChoices.groups.map(group => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("optgroup", {
+              label: group.label,
+              children: group.options.map(o => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("option", {
+                value: o.value,
+                children: o.label
+              }, o.value))
+            }, group.label))]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.SelectControl, {
             __next40pxDefaultSize: true,
             label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Currency', 'aponto'),
             help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Used for service prices and order totals. You can change it later in Settings.', 'aponto'),
@@ -1457,38 +2000,38 @@ function Wizard() {
               currency: v
             }),
             __nextHasNoMarginBottom: true
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("p", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
             className: "aponto-wizard-muted aponto-wizard-formats",
-            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.sprintf)(/* translators: 1: date format, 2: time format. */
-            (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Date and time formats (%1$s, %2$s) and week start are confirmed from WordPress.', 'aponto'), prefill.dateFormat || '', prefill.timeFormat || '')
+            children: prefill.dateExample && prefill.timeExample ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.sprintf)(/* translators: 1: today's date in the site's date format, 2: the current time in the site's time format. */
+            (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Dates and times will look like this: %1$s, %2$s. The format and the week start come from WordPress; you can change them later in Settings.', 'aponto'), prefill.dateExample, prefill.timeExample) : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('The date and time format and the week start come from WordPress; you can change them later in Settings.', 'aponto')
           })]
-        }), step === 'hours' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.StepShell, {
+        }), step === 'hours' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_ui_jsx__WEBPACK_IMPORTED_MODULE_7__.StepShell, {
           headingRef: headingRef,
           title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Set your business hours', 'aponto'),
           subtitle: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Staff inherit these hours. You can fine-tune later.', 'aponto'),
-          footer: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
+          footer: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
             className: "aponto-wizard-actions",
             justify: "space-between",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                 variant: "tertiary",
                 onClick: () => go(1),
                 children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Back', 'aponto')
               })
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
               className: "aponto-wizard-actions-end",
               justify: "flex-end",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                   variant: "tertiary",
                   onClick: () => go(3),
                   children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Skip', 'aponto')
                 })
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                   variant: "primary",
-                  disabled: saving || hasHourErrors,
-                  onClick: () => save('hours', {
+                  disabled: saving || !seededHours.split && hasHourErrors,
+                  onClick: () => seededHours.split ? go(3) : commitStep('hours', hours, 'hours', {
                     days: Object.keys(hours).map(iso => ({
                       weekday: Number(iso),
                       open: hours[iso].open,
@@ -1505,16 +2048,19 @@ function Wizard() {
           // instead of the 16px field-group gap.
           ,
           gap: 2,
-          children: [openDays.length >= 2 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+          children: [seededHours.split && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
+            className: "aponto-wizard-muted",
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Your business hours are already set, with more than one range on some days. This step keeps them as they are — change them in Settings → Business hours.', 'aponto')
+          }), !seededHours.split && openDays.length >= 2 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
             className: "aponto-wizard-hours-toolbar",
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
               className: "aponto-wizard-hours-apply",
               variant: "tertiary",
               onClick: applyToAllOpen,
               children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.sprintf)(/* translators: %s: weekday name, e.g. Monday. */
               (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Apply %s’s hours to all open days', 'aponto'), weekdayName(openDays[0]))
             })
-          }), dayOrder.map(iso => {
+          }), (seededHours.split ? [] : dayOrder).map(iso => {
             const day = hours[iso];
             const dayName = weekdayName(iso);
             // The client's own check first; the server's message for this day
@@ -1531,13 +2077,13 @@ function Wizard() {
                  rhythm is owned by one CSS rule. The wrapper exists so an
                  invalid range can put its message UNDER its own row instead
                  of at the bottom of the card (QA A). */
-              (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+              (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
                 className: "aponto-wizard-hours-item",
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
                   className: 'aponto-wizard-hours-row' + (day.open ? '' : ' is-closed'),
-                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
                     className: "aponto-wizard-hours-day",
-                    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.ToggleControl, {
+                    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.ToggleControl, {
                       label: dayName
                       // Accessible name so screen-reader/keyboard users can tell
                       // which day each switch controls (fleet-r1 Fix 9e; finding
@@ -1555,13 +2101,19 @@ function Wizard() {
                       }),
                       __nextHasNoMarginBottom: true
                     })
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
                     className: "aponto-wizard-hours-times",
-                    children: day.open ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.Fragment, {
-                      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+                    children: day.open ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.Fragment, {
+                      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
                         className: "aponto-wizard-hours-time",
-                        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.SelectControl, {
-                          __next40pxDefaultSize: true,
+                        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.SelectControl, {
+                          __next40pxDefaultSize: true
+                          // The two selects of a row had no name at all (T-078):
+                          // a screen reader announced "combo box, 9:00 AM" seven
+                          // times over.
+                          ,
+                          "aria-label": (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.sprintf)(/* translators: %s: weekday name. */
+                          (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('%s opens at', 'aponto'), dayName),
                           value: String(day.start),
                           options: timeOptions,
                           onChange: v => updateHours({
@@ -1573,14 +2125,16 @@ function Wizard() {
                           }),
                           __nextHasNoMarginBottom: true
                         })
-                      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("span", {
+                      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("span", {
                         className: "aponto-wizard-hours-sep",
                         "aria-hidden": "true",
                         children: "\u2013"
-                      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+                      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
                         className: "aponto-wizard-hours-time",
-                        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.SelectControl, {
+                        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.SelectControl, {
                           __next40pxDefaultSize: true,
+                          "aria-label": (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.sprintf)(/* translators: %s: weekday name. */
+                          (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('%s closes at', 'aponto'), dayName),
                           value: String(day.end),
                           options: timeOptions,
                           onChange: v => updateHours({
@@ -1593,47 +2147,51 @@ function Wizard() {
                           __nextHasNoMarginBottom: true
                         })
                       })]
-                    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("span", {
+                    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("span", {
                       className: "aponto-wizard-muted",
                       children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Closed', 'aponto')
                     })
                   })]
-                }), '' !== dayError && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("p", {
+                }), '' !== dayError && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
                   className: "aponto-wizard-field-error",
                   "data-weekday": iso,
                   children: dayError
                 })]
               }, iso)
             );
+          }), !seededHours.split && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
+            className: "aponto-wizard-muted",
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Lunch breaks and split shifts: add more hours per day later in Settings → Business hours.', 'aponto')
           })]
-        }), step === 'staff' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.StepShell, {
+        }), step === 'staff' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_ui_jsx__WEBPACK_IMPORTED_MODULE_7__.StepShell, {
           headingRef: headingRef,
           title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Who takes the bookings?', 'aponto'),
           subtitle: MULTI_STAFF ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('We prefilled you. You can add the rest of your team from the Staff screen.', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('We prefilled you. Add more staff later with Premium.', 'aponto'),
-          footer: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
+          footer: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
             className: "aponto-wizard-actions",
             justify: "space-between",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                 variant: "tertiary",
                 onClick: () => go(2),
                 children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Back', 'aponto')
               })
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
               className: "aponto-wizard-actions-end",
               justify: "flex-end",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                   variant: "tertiary",
                   onClick: () => go(4),
                   children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Skip', 'aponto')
                 })
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                   variant: "primary",
-                  disabled: saving || '' !== staffNameError || '' !== staffEmailError,
-                  onClick: () => save('staff', {
-                    name: staff.name,
+                  disabled: saving || '' !== staffFirstNameError || '' !== staffLastNameError || '' !== staffEmailError,
+                  onClick: () => commitStep('staff', staff, 'staff', {
+                    first_name: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_6__.normalizePart)(staff.first_name),
+                    last_name: (0,_shared_person_name_js__WEBPACK_IMPORTED_MODULE_6__.normalizePart)(staff.last_name),
                     email: staff.email
                   }, 4),
                   children: busyLabel((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Continue', 'aponto'))
@@ -1641,24 +2199,41 @@ function Wizard() {
               })]
             })]
           }),
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
             __next40pxDefaultSize: true,
-            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Name', 'aponto'),
-            value: staff.name,
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('First name', 'aponto'),
+            autoComplete: "given-name",
+            value: staff.first_name,
             onChange: v => {
               setStaff({
                 ...staff,
-                name: v
+                first_name: v
               });
               // The server's verdict described the value that was just
               // replaced — drop it as soon as the founder edits the field.
               setFieldErrors({});
             },
             __nextHasNoMarginBottom: true
-          }), '' !== (staffNameError || fieldErrors.name || '') && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("p", {
+          }), '' !== (staffFirstNameError || fieldErrors.first_name || '') && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
             className: "aponto-wizard-field-error",
-            children: staffNameError || fieldErrors.name
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
+            children: staffFirstNameError || fieldErrors.first_name
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
+            __next40pxDefaultSize: true,
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Last name', 'aponto'),
+            autoComplete: "family-name",
+            value: staff.last_name,
+            onChange: v => {
+              setStaff({
+                ...staff,
+                last_name: v
+              });
+              setFieldErrors({});
+            },
+            __nextHasNoMarginBottom: true
+          }), '' !== (staffLastNameError || fieldErrors.last_name || '') && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
+            className: "aponto-wizard-field-error",
+            children: staffLastNameError || fieldErrors.last_name
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
             __next40pxDefaultSize: true,
             label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Email', 'aponto'),
             type: "email",
@@ -1673,36 +2248,36 @@ function Wizard() {
               setFieldErrors({});
             },
             __nextHasNoMarginBottom: true
-          }), '' !== (staffEmailError || fieldErrors.email || '') && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("p", {
+          }), '' !== (staffEmailError || fieldErrors.email || '') && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
             className: "aponto-wizard-field-error",
             children: staffEmailError || fieldErrors.email
           })]
-        }), step === 'service' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_ui_jsx__WEBPACK_IMPORTED_MODULE_6__.StepShell, {
+        }), step === 'service' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_ui_jsx__WEBPACK_IMPORTED_MODULE_7__.StepShell, {
           headingRef: headingRef,
           title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Add your first service', 'aponto'),
           subtitle: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('What can people book? You can add more later.', 'aponto'),
-          footer: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
+          footer: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
             className: "aponto-wizard-actions",
             justify: "space-between",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                 variant: "tertiary",
                 onClick: () => go(3),
                 children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Back', 'aponto')
               })
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Flex, {
               className: "aponto-wizard-actions-end",
               justify: "flex-end",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                   variant: "tertiary",
                   onClick: () => go(5),
                   children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Skip', 'aponto')
                 })
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
-                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.FlexItem, {
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
                   variant: "primary",
-                  disabled: saving || !service.name,
+                  disabled: saving || !service.name.trim() || '' !== servicePriceError,
                   onClick: () => save('service', {
                     name: service.name,
                     duration: service.duration,
@@ -1713,17 +2288,30 @@ function Wizard() {
               })]
             })]
           }),
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
             __next40pxDefaultSize: true,
             label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Service name', 'aponto'),
             placeholder: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('e.g. Haircut', 'aponto'),
             value: service.name,
-            onChange: v => setService({
-              ...service,
-              name: v
-            }),
+            onChange: v => {
+              setService({
+                ...service,
+                name: v
+              });
+              setFieldErrors({});
+            },
             __nextHasNoMarginBottom: true
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.SelectControl, {
+          }), fieldErrors.name ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
+            className: "aponto-wizard-field-error",
+            children: fieldErrors.name
+          }) : null, !fieldErrors.name && !service.name.trim() ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
+            className: "aponto-wizard-muted",
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Enter a name for the service to create it, or skip this step.', 'aponto')
+          }) : null, Number(saved.services) > 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
+            className: "aponto-wizard-muted",
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.sprintf)(/* translators: %d: number of services the site already has. */
+            (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__._n)('You already have %d service. Create another here, or skip this step.', 'You already have %d services. Create another here, or skip this step.', Number(saved.services), 'aponto'), Number(saved.services))
+          }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.SelectControl, {
             __next40pxDefaultSize: true,
             label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Duration', 'aponto'),
             value: String(service.duration),
@@ -1737,18 +2325,30 @@ function Wizard() {
               duration: Number(v)
             }),
             __nextHasNoMarginBottom: true
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
-            __next40pxDefaultSize: true,
-            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Price (optional)', 'aponto'),
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
+            __next40pxDefaultSize: true
+            // The currency the owner picked two steps ago, in the label (T-086):
+            // a bare "Price" field does not say what the number is a price IN.
+            ,
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.sprintf)(/* translators: %s: currency code, e.g. USD. */
+            (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Price in %s (optional)', 'aponto'), business.currency),
             type: "number",
+            min: "0",
+            step: "any",
             value: service.price,
-            onChange: v => setService({
-              ...service,
-              price: v
-            }),
+            onChange: v => {
+              setService({
+                ...service,
+                price: v
+              });
+              setFieldErrors({});
+            },
             __nextHasNoMarginBottom: true
+          }), '' !== (servicePriceError || fieldErrors.price || '') && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
+            className: "aponto-wizard-field-error",
+            children: servicePriceError || fieldErrors.price
           })]
-        }), step === 'done' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_DoneStep_jsx__WEBPACK_IMPORTED_MODULE_7__.DoneStep, {
+        }), step === 'done' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_DoneStep_jsx__WEBPACK_IMPORTED_MODULE_8__.DoneStep, {
           headingRef: headingRef,
           page: page,
           saving: saving,
@@ -1763,7 +2363,7 @@ function Wizard() {
 }
 const root = document.getElementById('aponto-wizard-root');
 if (root) {
-  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.createRoot)(root).render(/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(Wizard, {}));
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.createRoot)(root).render(/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(Wizard, {}));
 }
 })();
 

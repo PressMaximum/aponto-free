@@ -39,8 +39,8 @@ export class ApiError extends Error {
 	}
 }
 
-async function request( method, path, { query, body } = {} ) {
-	const headers = { 'X-WP-Nonce': config.nonce };
+async function request( method, path, { query, body, extraHeaders } = {} ) {
+	const headers = { ...extraHeaders, 'X-WP-Nonce': config.nonce };
 	const init = { method, headers, credentials: 'same-origin' };
 	if ( body !== undefined ) {
 		headers[ 'Content-Type' ] = 'application/json';
@@ -72,8 +72,8 @@ async function request( method, path, { query, body } = {} ) {
 
 export const api = {
 	get: ( path, query ) => request( 'GET', path, { query } ),
-	post: ( path, body ) => request( 'POST', path, { body } ),
+	post: ( path, body, extraHeaders ) => request( 'POST', path, { body, extraHeaders } ),
 	patch: ( path, body ) => request( 'PATCH', path, { body } ),
 	put: ( path, body ) => request( 'PUT', path, { body } ),
-	del: ( path ) => request( 'DELETE', path ),
+	del: ( path, query, body ) => request( 'DELETE', path, { query, body } ),
 };

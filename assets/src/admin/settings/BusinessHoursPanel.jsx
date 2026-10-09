@@ -15,6 +15,7 @@ import { __ } from '@wordpress/i18n';
 
 import { api } from '../lib/api.js';
 import { config } from '../lib/config.js';
+import { useInFlight } from '../lib/in-flight.js';
 import {
 	WEEKDAYS,
 	WeeklyHoursGrid,
@@ -78,12 +79,27 @@ export default function BusinessHoursPanel() {
 
 	const dirty = JSON.stringify( weekly ) !== JSON.stringify( saved );
 
-	const save = () => {
+	// An edit answers the notice it was made for (persona QA 2026-10-05, T-070): "Monday: hours
+	// overlap" stayed on screen after the times had been fixed, and "Business hours saved." after
+	// the grid had been changed again — both then described a week that was no longer on screen.
+	const edit = ( next ) => {
+		setWeekly( next );
+		setError( '' );
+		setNotice( '' );
+	};
+
+	// One PUT per press (T-065). The button is disabled from `saving`, but state only reaches the
+	// DOM on the next render: two taps in one frame both sent the full replacement, and before the
+	// server serialized it they interleaved and stored every range twice.
+	const once = useInFlight();
+	const save = () => once( () => {
 		const invalid = validateWeekly( weekly );
 		if ( invalid ) {
-			setError( invalid );
+			// `validateWeekly()` answers `{ message, weekday, index }` since 2026-09-21; this
+			// panel has no scroll target to use the locator for, so it takes the sentence.
+			setError( invalid.message );
 			setNotice( '' );
-			return;
+			return undefined;
 		}
 		const sorted = sortWeekly( weekly );
 		setSaving( true );
@@ -98,12 +114,18 @@ export default function BusinessHoursPanel() {
 				} ) ),
 			} ) ),
 		};
-		api
+		return api
 			.put( '/business-hours', payload )
 			.then( ( res ) => {
 				const map = toMap( res.weekly );
 				setWeekly( map );
 				setSaved( map );
+				// The boot snapshot other screens resolve inherited hours against (the staff
+				// editor's "inherits business hours" list, the Calendar's shading) is a page-load
+				// copy: without this it kept showing the OLD week until a reload (re-test N10).
+				if ( Array.isArray( res.weekly ) ) {
+					config.businessHours = res.weekly;
+				}
 				setSaving( false );
 				setNotice( __( 'Business hours saved.', 'aponto' ) );
 			} )
@@ -115,7 +137,7 @@ export default function BusinessHoursPanel() {
 					setError( err.message || __( 'Could not save business hours.', 'aponto' ) );
 				}
 			} );
-	};
+	} );
 
 	return (
 		<Card className="ap-settings-card" id="ap-business-hours">
@@ -145,7 +167,7 @@ export default function BusinessHoursPanel() {
 					<Spinner />
 				) : (
 					<>
-						<WeeklyHoursGrid weekly={ weekly } onChange={ setWeekly } busy={ saving } timeFormat={ config.settings.timeFormat } />
+						<WeeklyHoursGrid weekly={ weekly } onChange={ edit } busy={ saving } timeFormat={ config.settings.timeFormat } />
 						<div className="ap-hours-save">
 							<Button
 								variant="primary"

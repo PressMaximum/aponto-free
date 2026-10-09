@@ -12,54 +12,69 @@
  * shadow's `:host` defaults, a per-block accent wins and every derived token
  * recomputes from it — no remount needed for a live token change.
  */
-import { render } from 'preact';
-import { App } from './app.jsx';
-import { SHADOW_CSS } from './styles.js';
+import { render } from "preact";
+import { App } from "./app.jsx";
+import { BalanceEntry, balanceToken } from "@aponto/form-balance";
+import { SHADOW_CSS } from "./styles.js";
+// Edition-resolved (webpack alias): Premium adds its coupon rules, Free adds ''.
+import { formCouponCss } from "@aponto/form-coupons";
+import { readGlobalConfig, parseProps, resolveConfig } from "./lib/config.js";
 import {
-	readGlobalConfig,
-	parseProps,
-	resolveConfig,
-} from './lib/config.js';
-import {
-	resolveAppearanceVars,
-	resolveColorScheme,
-} from './lib/appearance.js';
+  resolveAppearanceVars,
+  resolveColorScheme,
+  resolveShadow,
+} from "./lib/appearance.js";
 
 /**
  * Mount the widget onto a single host element (idempotent per host).
  *
  * @param {HTMLElement} hostEl Element carrying `data-aponto-form`.
  */
-export function mountWidget( hostEl ) {
-	if ( ! hostEl || hostEl.__apMounted ) {
-		return;
-	}
-	hostEl.__apMounted = true;
+export function mountWidget(hostEl) {
+  if (!hostEl || hostEl.__apMounted) {
+    return;
+  }
+  hostEl.__apMounted = true;
 
-	const props = parseProps( hostEl.getAttribute( 'data-props' ) );
-	const config = resolveConfig( readGlobalConfig( window ), props );
+  const props = parseProps(hostEl.getAttribute("data-props"));
+  const config = resolveConfig(readGlobalConfig(window), props);
 
-	// Appearance → inline custom properties on the host (override :host defaults).
-	const vars = resolveAppearanceVars( config.appearance );
-	Object.keys( vars ).forEach( ( name ) => {
-		hostEl.style.setProperty( name, vars[ name ] );
-	} );
+  // Appearance → inline custom properties on the host (override :host defaults).
+  const vars = resolveAppearanceVars(config.appearance);
+  Object.keys(vars).forEach((name) => {
+    hostEl.style.setProperty(name, vars[name]);
+  });
 
-	// Color scheme → host attribute, which selects the shadow stylesheet's opt-in
-	// dark preset. Always written (even for the `light` default) so the resolved
-	// scheme is visible in the DOM and never inferred from the OS by accident.
-	hostEl.setAttribute(
-		'data-ap-color-scheme',
-		resolveColorScheme( config.appearance )
-	);
+  // Color scheme → host attribute, which selects the shadow stylesheet's opt-in
+  // dark preset. Always written (even for the `light` default) so the resolved
+  // scheme is visible in the DOM and never inferred from the OS by accident.
+  hostEl.setAttribute(
+    "data-ap-color-scheme",
+    resolveColorScheme(config.appearance),
+  );
+  // Card elevation → host attribute, same reasoning as the scheme.
+  hostEl.setAttribute("data-ap-shadow", resolveShadow(config.appearance));
 
-	const shadow = hostEl.attachShadow( { mode: 'open' } );
-	injectCss( shadow, SHADOW_CSS );
+  const shadow = hostEl.attachShadow({ mode: "open" });
+  injectCss(shadow, SHADOW_CSS + formCouponCss);
 
-	const mountPoint = ( shadow.ownerDocument || document ).createElement( 'div' );
-	shadow.appendChild( mountPoint );
+  const mountPoint = (shadow.ownerDocument || document).createElement("div");
+  shadow.appendChild(mountPoint);
 
-	render( <App config={ config } />, mountPoint );
+  // A standalone payment page binds its token server-side. A fragment cannot
+  // replace that booking, and this host must never open the new-booking flow.
+  const standalone = hostEl.hasAttribute("data-aponto-balance-token");
+  const token = standalone
+    ? hostEl.getAttribute("data-aponto-balance-token")
+    : balanceToken(window.location.hash);
+  render(
+    standalone || token ? (
+      <BalanceEntry config={config} token={token} standalone={standalone} />
+    ) : (
+      <App config={config} />
+    ),
+    mountPoint,
+  );
 }
 
 /**
@@ -70,20 +85,20 @@ export function mountWidget( hostEl ) {
  * @param {ShadowRoot} shadow Shadow root.
  * @param {string} cssText CSS.
  */
-function injectCss( shadow, cssText ) {
-	const doc = shadow.ownerDocument || document;
-	const win = doc.defaultView || window;
-	try {
-		if ( win.CSSStyleSheet && 'adoptedStyleSheets' in doc ) {
-			const sheet = new win.CSSStyleSheet();
-			sheet.replaceSync( cssText );
-			shadow.adoptedStyleSheets = [ ...shadow.adoptedStyleSheets, sheet ];
-			return;
-		}
-	} catch ( e ) {
-		// Fall through to a <style> element.
-	}
-	const style = doc.createElement( 'style' );
-	style.textContent = cssText;
-	shadow.appendChild( style );
+function injectCss(shadow, cssText) {
+  const doc = shadow.ownerDocument || document;
+  const win = doc.defaultView || window;
+  try {
+    if (win.CSSStyleSheet && "adoptedStyleSheets" in doc) {
+      const sheet = new win.CSSStyleSheet();
+      sheet.replaceSync(cssText);
+      shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, sheet];
+      return;
+    }
+  } catch (e) {
+    // Fall through to a <style> element.
+  }
+  const style = doc.createElement("style");
+  style.textContent = cssText;
+  shadow.appendChild(style);
 }

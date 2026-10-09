@@ -39,7 +39,7 @@ import {
 	__experimentalConfirmDialog as ConfirmDialog,
 } from '@wordpress/components';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import {
 	SchemaForm,
 	SaveBar,
@@ -54,8 +54,13 @@ import { currencyChangeRequiresConfirm } from '../lib/currency-guard.js';
 import { useConfirmDialog } from '../lib/confirm.jsx';
 import { setNavGuard, clearNavGuard } from '../lib/nav-guard.js';
 import { RouteError, RouteLoading } from '../lib/ui.jsx';
-import { FIELD_META, PANEL_META, controlForType } from './catalog.js';
+import { useInFlight } from '../lib/in-flight.js';
+import { FIELD_META, PANEL_META, controlForType, visibleSchemaEntries } from './catalog.js';
+
 import BusinessHoursPanel from './BusinessHoursPanel.jsx';
+import BookingPagePanel from './BookingPagePanel.jsx';
+import { BOOKING_PAGE_KEY, bootBookingPage, flatForSave, savedBookingPage } from './booking-page.js';
+import { exampleInstant, phpDateExample } from './php-format.js';
 
 /** Textarea control — extends the kit's base field types (address, consent text). */
 function TextareaField( { field, value, onChange } ) {
@@ -138,7 +143,107 @@ function DurationField( { field, value, onChange } ) {
 	);
 }
 
-const FIELD_TYPES = { ...BASE_FIELD_TYPES, textarea: TextareaField, duration: DurationField };
+/**
+ * A PHP date/time format, chosen by EXAMPLE (persona QA 2026-10-05, T-080).
+ *
+ * The stored value is still the PHP format string `wp_date()` needs; the owner picks it by what it
+ * produces ("October 5, 2026", "14:30") instead of typing "F j, Y". "Custom…" keeps a hand-written
+ * format possible — and is where a stored format outside the presets shows up — with a live
+ * example under the box, so a typo is visible before it is saved.
+ */
+function FormatField( { field, value, onChange } ) {
+	const presets = Array.isArray( field.presets ) ? field.presets : [];
+	const current = value === null || value === undefined ? '' : String( value );
+	const [ custom, setCustom ] = useState( () => ! presets.includes( current ) );
+	const [ inputId ] = useState( () => `ap-format-${ Math.random().toString( 36 ).slice( 2, 9 ) }` );
+	const instant = exampleInstant();
+	const example = ( format ) => phpDateExample( format, instant, config.locale );
+	const isCustom = custom || ! presets.includes( current );
+
+	return (
+		<BaseControl __nextHasNoMarginBottom label={ field.label } help={ field.description } id={ inputId } className="ap-duration-field">
+			<div className="ap-duration-controls">
+				<select
+					id={ inputId }
+					className="components-select-control__input"
+					value={ isCustom ? '__custom' : current }
+					onChange={ ( e ) => {
+						if ( '__custom' === e.target.value ) {
+							setCustom( true );
+							return;
+						}
+						setCustom( false );
+						onChange( e.target.value );
+					} }
+				>
+					{ presets.map( ( format ) => <option key={ format } value={ format }>{ example( format ) }</option> ) }
+					<option value="__custom">{ __( 'Custom…', 'aponto' ) }</option>
+				</select>
+				{ isCustom ? (
+					<input
+						type="text"
+						className="components-text-control__input"
+						aria-label={ __( 'Custom format (PHP date format)', 'aponto' ) }
+						value={ current }
+						onChange={ ( e ) => onChange( e.target.value ) }
+					/>
+				) : null }
+			</div>
+			{ isCustom && current ? (
+				<p className="ap-settings-card-desc">
+					{ /* translators: %s: an example date or time in the custom format. */ }
+					{ sprintf( __( 'Looks like: %s', 'aponto' ), example( current ) ) }
+				</p>
+			) : null }
+		</BaseControl>
+	);
+}
+
+const FIELD_TYPES = { ...BASE_FIELD_TYPES, textarea: TextareaField, duration: DurationField, format: FormatField };
+
+/**
+ * The edits still PENDING after a save answered (persona QA 2026-10-05, S2-80).
+ *
+ * A successful save used to clear every pending edit. A field changed while the request was on the
+ * wire was therefore dropped from the dirty set — the bar ended on "No unsaved changes", the
+ * screen kept showing the new value, and nothing had stored it (reproduced twice by the tester).
+ * What the response settles is exactly what was SENT: an edit is cleared only when its value is
+ * still the one that went out, or already equals what the server now holds.
+ *
+ * @param {Object} current Edits on screen when the response arrived, by flat key.
+ * @param {Object} sent    Edits as they were when the request was built.
+ * @param {Object} stored  The flattened response — what the server holds now.
+ * @return {Object} Edits that are still unsaved.
+ */
+export function editsAfterSave( current, sent, stored ) {
+	const out = {};
+	Object.keys( current || {} ).forEach( ( key ) => {
+		const value = current[ key ];
+		const wasSent = Object.prototype.hasOwnProperty.call( sent || {}, key ) && Object.is( sent[ key ], value );
+		if ( ! wasSent && ! Object.is( value, ( stored || {} )[ key ] ) ) {
+			out[ key ] = value;
+		}
+	} );
+	return out;
+}
+
+/**
+ * Keys whose STORED value is not the value that was sent (S2-81) — the server pulled it into the
+ * range it owns (a 5-minute payment hold is stored as 10). The field shows the stored value from
+ * here on; this is what lets the screen say so instead of changing a number in silence.
+ *
+ * @param {Object} sent   Edits that were sent, by flat key.
+ * @param {Object} stored The flattened response.
+ * @return {string[]} Adjusted keys.
+ */
+export function adjustedKeys( sent, stored ) {
+	return Object.keys( sent || {} ).filter( ( key ) => {
+		if ( key.startsWith( 'booking_page.' ) || ! Object.prototype.hasOwnProperty.call( stored || {}, key ) ) {
+			return false;
+		}
+		return String( sent[ key ] ?? '' ) !== String( stored[ key ] ?? '' );
+	} );
+}
 
 /** Flatten the nested `GET /settings` DTO into the flat, dotted schema keys. */
 function flatten( dto ) {
@@ -186,6 +291,34 @@ function coerce( type, raw ) {
 	return raw === null || raw === undefined ? '' : String( raw );
 }
 
+/**
+ * Bring `config.settings` — the boot snapshot `AdminPage::bootConfig()` printed — in step with a
+ * settings payload that was just saved (persona QA 2026-10-05, T-071).
+ *
+ * Only keys the payload actually carries are touched, and each keeps the coercion `lib/config.js`
+ * applies at boot, so a partial or older payload can never blank a value another screen reads.
+ *
+ * @param {Object} target The live boot config.
+ * @param {Object} flat   Flattened `GET|PUT /settings` payload.
+ */
+export function refreshBootSettings( target, flat ) {
+	if ( ! target?.settings || ! flat ) {
+		return;
+	}
+	const text = { date_format: 'dateFormat', time_format: 'timeFormat', default_booking_status: 'defaultBookingStatus', 'customer_fields.phone': 'phoneField' };
+	const numeric = { slot_step_default: 'slotStep', min_lead_minutes: 'minLeadMinutes', max_horizon_days: 'maxHorizonDays', week_starts_on: 'weekStartsOn' };
+	Object.keys( text ).forEach( ( key ) => {
+		if ( typeof flat[ key ] === 'string' && flat[ key ] ) {
+			target.settings[ text[ key ] ] = flat[ key ];
+		}
+	} );
+	Object.keys( numeric ).forEach( ( key ) => {
+		if ( flat[ key ] !== null && flat[ key ] !== undefined && Number.isFinite( Number( flat[ key ] ) ) ) {
+			target.settings[ numeric[ key ] ] = Number( flat[ key ] );
+		}
+	} );
+}
+
 export default function SettingsApp( { panels = [], extras = [] } ) {
 	const { confirm, dialog } = useConfirmDialog();
 	const [ savedFlat, setSavedFlat ] = useState( null );
@@ -205,10 +338,16 @@ export default function SettingsApp( { panels = [], extras = [] } ) {
 		schema.forEach( ( entry ) => {
 			map[ entry.key ] = entry.type;
 		} );
+		// Not a schema key (D-R75): the booking page id rides the same edit/dirty path as one.
+		map[ BOOKING_PAGE_KEY ] = 'int';
 		return map;
 	}, [ schema ] );
 
 	const isDirty = Object.keys( edited ).length > 0;
+	// The edits as they are NOW, readable from a save's response handler — which closed over the
+	// edits as they were when the request was sent (S2-80).
+	const editedRef = useRef( edited );
+	editedRef.current = edited;
 
 	const { setDirty } = useDirtyState( 'aponto-settings', {
 		onDiscard: () => {
@@ -309,15 +448,23 @@ export default function SettingsApp( { panels = [], extras = [] } ) {
 		setNotice( '' );
 	};
 
-	const save = async () => {
+	// One PUT per press (persona QA 2026-10-05, T-065 family): `saving` reaches the SaveBar on the
+	// next render, so a double tap sent the full-replacement PUT twice — and the second one, built
+	// from the same revision, came back as a settings conflict against the operator's own save.
+	const once = useInFlight();
+	const saveNow = async () => {
 		// Currency changes re-interpret every stored price at the new ISO exponent — explicit
 		// in-app confirm before proceeding (Codex review item 1; C13 / review F item 3 replaced
 		// the browser-native confirm with the shared Modal dialog).
 		if ( currencyChangeRequiresConfirm( savedFlat, edited ) ) {
 			const ok = await confirm( {
 				title: __( 'Change the store currency?', 'aponto' ),
+				// Truthful about decimals (persona QA 2026-10-05, S2-71). This promised that prices
+				// "keep their numbers", which holds only between currencies with the same number of
+				// decimals: nothing is converted OR re-scaled here, so A$90.00 (stored 9000) reads as
+				// ¥9,000 in a zero-decimal currency.
 				message: __(
-					'Existing prices keep their numbers but will be read in the new currency — review your service prices after saving.',
+					'Prices are not converted. Between currencies with the same number of decimals they keep their numbers; otherwise the stored amounts are read differently (for example 90.00 becomes 9,000 in a currency without decimals). Review your service prices after saving.',
 					'aponto'
 				),
 				confirmText: __( 'Change currency', 'aponto' ),
@@ -330,15 +477,59 @@ export default function SettingsApp( { panels = [], extras = [] } ) {
 		setError( '' );
 		setNotice( '' );
 		setFieldErrors( {} );
-		const payload = unflatten( { ...savedFlat, ...edited } );
-		api
+		// `booking_page` is sent only when the page itself was edited — absent means "unchanged"
+		// to the server (D-R75), so an unrelated save can never rewrite or clear it.
+		// What THIS request carries. Edits made after this line are not in it, and must still be
+		// pending when it answers (S2-80).
+		const sent = edited;
+		const payload = unflatten( flatForSave( savedFlat, edited ) );
+		const pageEdited = Object.prototype.hasOwnProperty.call( edited, BOOKING_PAGE_KEY );
+		return api
 			.put( '/settings', payload )
 			.then( ( dto ) => {
-				setSavedFlat( flatten( dto ) );
-				setEdited( {} );
+				const flat = flatten( dto );
+				if ( pageEdited ) {
+					// Keep the Dashboard card's boot snapshot in step without a reload.
+					config.bookingPage = bootBookingPage( savedBookingPage( flat ) );
+				}
+				// …and the rest of the boot snapshot other screens format with (T-071): the hour
+				// pickers kept showing AM/PM after the time format was changed to 24-hour, until
+				// a full page reload.
+				refreshBootSettings( config, flat );
+				if ( typeof flat.currency === 'string' && flat.currency && flat.currency !== config.currency && ! Object.keys( editsAfterSave( editedRef.current, sent, flat ) ).length ) {
+					// The whole app formats money from the boot snapshot — the currency AND its
+					// minor-unit exponent, which only PHP knows (S2-71). Until a reload the Services
+					// list and the Dashboard kept printing the old currency, so reload once the
+					// change is stored; nothing is pending, so nothing is lost.
+					try {
+						window.location.reload();
+					} catch ( reloadError ) {
+						// A host that cannot reload keeps the saved state; the next visit is right.
+					}
+				}
+				// The new `revision` rides `flat`, so the next save — including the one for the
+				// edits kept below — is built on the state this response describes.
+				setSavedFlat( flat );
+				const remaining = editsAfterSave( editedRef.current, sent, flat );
+				setEdited( remaining );
 				setSaving( false );
 				setConflict( false );
-				setNotice( __( 'Settings saved.', 'aponto' ) );
+				const adjusted = adjustedKeys( sent, flat ).filter( ( key ) => ! Object.prototype.hasOwnProperty.call( remaining, key ) );
+				if ( adjusted.length ) {
+					// Said, not silent (S2-81): the field now shows the stored value, and this
+					// names which one moved and to what.
+					setNotice(
+						sprintf(
+							/* translators: %s: a list of settings and the value each was stored as, e.g. "Hold the slot for: 10". */
+							__( 'Settings saved. Adjusted to the allowed range — %s.', 'aponto' ),
+							adjusted.map( ( key ) => `${ FIELD_META[ key ]?.label || key }: ${ flat[ key ] }` ).join( '; ' )
+						)
+					);
+				} else if ( Object.keys( remaining ).length ) {
+					setNotice( __( 'Settings saved. The changes you made while saving are not saved yet — save again.', 'aponto' ) );
+				} else {
+					setNotice( __( 'Settings saved.', 'aponto' ) );
+				}
 			} )
 			.catch( ( err ) => {
 				setSaving( false );
@@ -354,6 +545,7 @@ export default function SettingsApp( { panels = [], extras = [] } ) {
 				}
 			} );
 	};
+	const save = () => once( saveNow );
 
 	const discard = async () => {
 		// In-app dialog (C13 / review F item 3): destructive styling — the edits are lost for good.
@@ -438,6 +630,14 @@ export default function SettingsApp( { panels = [], extras = [] } ) {
 			     path — and the Dashboard "Manage" deep link — can still reach them
 			     on the default settings landing (U4-03a). */ }
 			{ extras.includes( 'business-hours' ) ? <BusinessHoursPanel /> : null }
+			{ extras.includes( 'booking-page' ) ? (
+				<BookingPagePanel
+					value={ currentValue( BOOKING_PAGE_KEY ) }
+					saved={ savedBookingPage( savedFlat ) }
+					error={ fieldErrors[ BOOKING_PAGE_KEY ] }
+					onFieldChange={ onFieldChange }
+				/>
+			) : null }
 			{ extras.includes( 'appearance-hint' ) ? <AppearanceHint /> : null }
 			{ extras.includes( 'privacy-launcher' ) ? <PrivacyLauncher /> : null }
 			{ extras.includes( 'system-status' ) ? <SystemStatus /> : null }
@@ -483,18 +683,15 @@ export default function SettingsApp( { panels = [], extras = [] } ) {
  * their values still round-trip through the full-replacement PUT.
  */
 function panelsForSection( schema, panels, currentValue, fieldErrors ) {
-	const allowed = Array.isArray( panels ) ? panels : [];
 	const order = [];
 	const byPanel = {};
-	schema
-		.filter( ( entry ) => allowed.includes( entry.panel ) )
-		.forEach( ( entry ) => {
-			if ( ! byPanel[ entry.panel ] ) {
-				byPanel[ entry.panel ] = [];
-				order.push( entry.panel );
-			}
-			byPanel[ entry.panel ].push( entry );
-		} );
+	visibleSchemaEntries( schema, panels, config ).forEach( ( entry ) => {
+		if ( ! byPanel[ entry.panel ] ) {
+			byPanel[ entry.panel ] = [];
+			order.push( entry.panel );
+		}
+		byPanel[ entry.panel ].push( entry );
+	} );
 
 	return order.map( ( panelId ) => {
 		const meta = PANEL_META[ panelId ] || { label: panelId };
@@ -541,6 +738,7 @@ function buildField( entry, fieldErrors, value ) {
 		description,
 		options,
 		units: meta.units,
+		presets: meta.presets,
 		min: meta.min,
 		max: meta.max,
 		maxLength: meta.maxLength,

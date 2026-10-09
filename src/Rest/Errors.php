@@ -93,6 +93,8 @@ final class Errors {
 				// NEVER the provider's own text: it can carry key fragments, internal URLs or the
 				// customer's own data, and this string reaches a public response.
 				return __( 'The payment provider could not complete this request. Please try again.', 'aponto' );
+			case 'aponto_coupon_invalid':
+				return __( 'This coupon is not available.', 'aponto' );
 			default:
 				return __( 'The request could not be completed.', 'aponto' );
 		}

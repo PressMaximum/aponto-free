@@ -19,6 +19,7 @@
  *    navigation, grouping and the "one of N" announcement come from the platform
  *    rather than from code that has to be maintained.
  */
+import { DepositLines } from './DepositLines.jsx';
 import { StepHeader } from './StepHeader.jsx';
 import { Footer } from './Footer.jsx';
 import { Banner } from './feedback.jsx';
@@ -63,6 +64,11 @@ export function PaymentStep( {
 	method,
 	onMethod,
 	totalLabel,
+	paymentTerms = null,
+	paymentChoice = null,
+	currency,
+	locale,
+	currencyExponent,
 	gatewayLoading,
 	gatewayReady,
 	// True while a gateway that owns the CTA has an attempt in flight (D-R40,
@@ -81,6 +87,7 @@ export function PaymentStep( {
 	onRetry,
 	onPayOnsite,
 	stepIndex,
+	progress,
 	stepCount,
 	focusOnMount,
 	onBack,
@@ -92,7 +99,8 @@ export function PaymentStep( {
 	// PayPal's buttons open their popup from a click on PayPal's own iframe, so
 	// a primary button beside them could not start the payment even if it looked
 	// like it should. The step drops its CTA rather than showing a dead one.
-	const ctaOwned = online && gatewayOwnsCta( method );
+	const methodCopy = online ? gatewayCopy( gateways.find( ( gateway ) => gateway.code === method ) || method ) : null;
+	const ctaOwned = online && gatewayOwnsCta( method ) && ! methodCopy?.footerLabel;
 
 	return (
 		<div class="ap-step">
@@ -100,6 +108,7 @@ export function PaymentStep( {
 				title={ COPY.payment_title }
 				sub={ COPY.payment_sub }
 				stepIndex={ stepIndex }
+				progress={ progress }
 				stepCount={ stepCount }
 				focusOnMount={ focusOnMount }
 			/>
@@ -145,6 +154,8 @@ export function PaymentStep( {
 				</p>
 			) : null }
 
+			{ paymentChoice }
+			<DepositLines order={ paymentTerms } currency={ currency } locale={ locale } currencyExponent={ currencyExponent } />
 			<div class="ap-pay-list">
 				{ methods.map( ( m ) => (
 					<label
@@ -184,7 +195,10 @@ export function PaymentStep( {
 				>
 					<p class="cap">
 						<span>{ gatewayCopy( g ).panel }</span>
-						<span>{ COPY.pay_secure }</span>
+						{ /* Not a claim to make on a page served over plain http (persona QA 2026-10-05, T-031). */ }
+						{ typeof window !== 'undefined' && window.location?.protocol === 'https:' ? (
+							<span>{ COPY.pay_secure }</span>
+						) : null }
 					</p>
 					{ gatewayLoading && method === g.code && (
 						<p class="ap-pay-loading">{ COPY.pay_loading }</p>
@@ -202,7 +216,7 @@ export function PaymentStep( {
 				<p class="ap-pay-hint">
 					{ locked
 						? COPY.pay_cta_gateway_busy
-						: COPY.pay_cta_gateway }
+						: methodCopy?.ctaHint || COPY.pay_cta_gateway }
 				</p>
 			) }
 
@@ -214,7 +228,7 @@ export function PaymentStep( {
 
 			<div class="ap-note">
 				{ online
-					? sprintf( COPY.pay_note_now, totalLabel )
+					? methodCopy?.checkoutNote || sprintf( COPY.pay_note_now, totalLabel )
 					: sprintf( COPY.pay_note_onsite, totalLabel ) }
 			</div>
 
@@ -224,7 +238,7 @@ export function PaymentStep( {
 				onPrimary={ ctaOwned ? null : onSubmit }
 				primaryLabel={
 					online
-						? sprintf(
+						? methodCopy?.footerLabel || sprintf(
 								resuming ? COPY.pay_cta_resume : COPY.pay_cta,
 								totalLabel
 						  )
@@ -232,7 +246,7 @@ export function PaymentStep( {
 				}
 				primaryDisabled={ online && ! gatewayReady }
 				busy={ submitting }
-				busyLabel={ COPY.pay_busy }
+				busyLabel={ methodCopy?.busyLabel || COPY.pay_busy }
 			/>
 		</div>
 	);

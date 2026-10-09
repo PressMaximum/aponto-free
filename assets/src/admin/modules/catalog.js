@@ -75,7 +75,7 @@ export const MODULE_META = {
 	calendar_outlook: { label: __( 'Outlook Calendar', 'aponto' ), description: __( 'Two-way sync with Outlook and Microsoft 365 calendars.', 'aponto' ), icon: 'calendar' },
 	video_links: { label: __( 'Video meeting links', 'aponto' ), description: __( 'Auto-create Zoom or Google Meet links for online bookings.', 'aponto' ), icon: 'video' },
 	custom_fields: { label: __( 'Custom fields', 'aponto' ), description: __( 'Collect extra details on the booking form.', 'aponto' ), icon: 'sliders' },
-	csv_import: { label: __( 'CSV import', 'aponto' ), description: __( 'Bulk-import customers and bookings from a spreadsheet.', 'aponto' ), icon: 'import' },
+	csv_import: { label: __( 'CSV import', 'aponto' ), description: __( 'Import booking data from CSV files with column mapping and a preview.', 'aponto' ), icon: 'import' },
 	// `deposits` is a separate Premium module (D-R22) — Stripe copy must not promise it. The
 	// sentence names the two facts that decide whether an owner clicks: the customer never leaves
 	// the booking form (D-R38c, inline — not a hosted redirect), and the money lands in the owner's
@@ -95,7 +95,7 @@ export const MODULE_META = {
 	waitlist: { label: __( 'Waitlist', 'aponto' ), description: __( 'Let customers join a waitlist when slots are full.', 'aponto' ), icon: 'hourglass' },
 	sms: { label: __( 'SMS notifications', 'aponto' ), description: __( 'Send confirmations and reminders by text message.', 'aponto' ), icon: 'chat' },
 	webhooks: { label: __( 'Webhooks', 'aponto' ), description: __( 'Send booking events to external services in real time.', 'aponto' ), icon: 'plug' },
-	woo_gateway: { label: __( 'WooCommerce', 'aponto' ), description: __( 'Use WooCommerce as the checkout and payment gateway.', 'aponto' ), icon: 'box' },
+	payments_woocommerce: { label: __( 'WooCommerce', 'aponto' ), description: __( 'Use WooCommerce as the checkout and payment gateway.', 'aponto' ), icon: 'box' },
 	service_catalog: { label: __( 'Service catalog', 'aponto' ), description: __( 'Public service pages with descriptions and galleries.', 'aponto' ), icon: 'browser' },
 	roles: { label: __( 'Team roles', 'aponto' ), description: __( 'Fine-grained permissions for staff and managers.', 'aponto' ), icon: 'shield' },
 	white_label: { label: __( 'White label', 'aponto' ), description: __( 'Replace Aponto branding with your own.', 'aponto' ), icon: 'palette' },
@@ -109,7 +109,7 @@ export const MODULE_META = {
 	booking_reminder: { label: __( '24-hour reminder', 'aponto' ), description: __( 'One automatic email reminder about 24 hours before confirmed bookings.', 'aponto' ), icon: 'bell' },
 	email_notifications: { label: __( 'Email notifications', 'aponto' ), description: __( 'Event-triggered emails with editable templates and placeholders.', 'aponto' ), icon: 'mail' },
 	ics_export: { label: __( 'Calendar links', 'aponto' ), description: __( 'ICS downloads and add-to-Google links on every confirmation.', 'aponto' ), icon: 'calendar' },
-	csv_export: { label: __( 'CSV export', 'aponto' ), description: __( 'Export bookings for spreadsheets and reporting.', 'aponto' ), icon: 'csv' },
+	csv_export: { label: __( 'CSV export', 'aponto' ), description: __( 'Download CSV files compatible with CSV import.', 'aponto' ), icon: 'csv' },
 };
 
 /**
@@ -313,31 +313,89 @@ export function moduleToggleAllowed( mod, planEdition = 'free' ) {
 }
 
 /**
- * Whether switching a module ON has to be followed by a page reload (Codex A2, 2026-09-04).
+ * The THREE honest states of one module, from the boot record alone (D-R57).
  *
- * TRUE for an `integration` module being ENABLED, and for nothing else.
+ * ONE derivation, shared by every surface that has to explain a single module — the catalog
+ * card and the `#modules/{code}` page. They disagreed before: the card already knew that
+ * "switched off" and "not built for this site" are opposite messages (D-R31), while the panel
+ * route collapsed both into "This module is not available on this site." — telling an owner who
+ * had just flipped the switch themselves that their own site cannot have the module.
  *
- * The reason is server-side and deliberate (rest-contract §2.12b): the boot projection computes
- * `configured`, `connected_count`, `used_count` — and, for a gateway, `payment_mode` — only for
- * `IntegrationRegistry::activeCodes()`, i.e. the modules that were switched ON when the page was
- * built. A module enabled mid-session therefore has no such fields anywhere in this document, and
- * `PUT /modules/{code}` answers `{code, enabled}` rather than a fresh projection. The session store
- * can flip `enabled`/`available` honestly, but it cannot invent state nobody computed — so the card
- * would sit at "Setup needed" and a payments card would report no mode, both of which are lies
- * about a module that may be fully configured.
+ *   `enabled`     — `available` is `Plan::has()` for this build, so it is the whole answer.
+ *   `disabled`    — NOT available, but this build may switch it: shipped, edition-allowed and
+ *                   registry-toggleable (`moduleToggleAllowed()`). The owner turned it off and
+ *                   can turn it back on; nothing was deleted (D-R31).
+ *   `unavailable` — everything else: a premium module on a Free build, an unshipped code, a
+ *                   display-only capability card, an unknown code, and boot data older than
+ *                   this bundle. Never claim a capability that cannot be confirmed.
  *
- * DISABLING never needs one: `applyModuleEnabled()` already makes every surface treat the module as
- * gone, and the stale projection it leaves behind is hidden rather than shown.
+ * NO EDITION COMPARISON of its own: it reads the fields the server already computed, exactly
+ * like `moduleCardState()` — which is now expressed in terms of this function so the card and
+ * the page cannot drift apart again. Display only: REST re-checks `Plan::has()` on every read
+ * and write (§5 invariant 3).
  *
- * A capability or engine_flag module keeps today's behaviour — it has no projection to be missing,
- * so reloading would cost the operator their scroll position and their filters for nothing.
+ * @param {{available?: boolean, edition?: string, toggleable?: boolean, status?: string}} mod         Module record from boot data.
+ * @param {string}                                                                         planEdition Site plan edition (`free`|`premium`).
+ * @return {'enabled'|'disabled'|'unavailable'} The module's state on this site.
+ */
+export function moduleAvailability( mod, planEdition = 'free' ) {
+	if ( mod?.available === true ) {
+		return 'enabled';
+	}
+
+	return moduleToggleAllowed( mod, planEdition ) ? 'disabled' : 'unavailable';
+}
+
+/**
+ * Whether switching a module ON has to be followed by a page reload (Codex A2, 2026-09-04;
+ * WIDENED by D-R57).
  *
- * @param {{kind?: string}} mod  Module boot record.
- * @param {boolean}         next Requested switch position.
+ * TRUE for a module being ENABLED that owns a settings surface (`has_settings`) or a registry
+ * route slug (`menu`), and for nothing else. It used to name `kind: 'integration'`; every
+ * `integration` entry in the registry declares `has_settings`, so the old set is contained in
+ * this one and the original reason below is unchanged, not replaced.
+ *
+ * TWO REASONS, both server-side and both deliberate, and the page can fix neither:
+ *
+ *   1. THE PROJECTION DOES NOT EXIST (the original). The boot document computes `configured`,
+ *      `connected_count`, `used_count` — and, for a gateway, `payment_mode` — only for
+ *      `IntegrationRegistry::activeCodes()`, i.e. the modules that were switched ON when the page
+ *      was built (rest-contract §2.12b). A module enabled mid-session therefore has no such
+ *      fields anywhere in this document, and `PUT /modules/{code}` answers `{code, enabled}`
+ *      rather than a fresh projection. The session store can flip `enabled`/`available` honestly,
+ *      but it cannot invent state nobody computed — so the card would sit at "Setup needed" and a
+ *      payments card would report no mode, both of which are lies about a module that may be
+ *      fully configured.
+ *   2. THE BUNDLE WAS NEVER ENQUEUED (added by D-R57). `AdminPage::enqueueModuleBundles()` runs
+ *      when the PAGE is built, so a module switched on afterwards has no script on it: its
+ *      settings panel never registers (`lib/module-panels.js`) and neither does any admin route
+ *      it contributes through `registerAdminRoute()` (D-R56) — Resources → Locations is simply
+ *      absent until the document is rebuilt.
+ *
+ * So the caller RELOADS, and does not ask first (D-R57): neither surface that can toggle a module
+ * holds a form — `#modules` is a catalog, and the disabled card on `#modules/{code}` is shown
+ * precisely when the module's panel is not rendered — so there is nothing to lose, and a card that
+ * lies or a menu missing an entry is worse than one reload the operator asked for by pressing the
+ * switch.
+ *
+ * DISABLING never needs one: `applyModuleEnabled()` already makes every surface treat the module
+ * as gone, and the stale projection it leaves behind is hidden rather than shown.
+ *
+ * A module with neither a panel nor a route keeps today's behaviour — it has no projection to be
+ * missing and no script to be absent, so reloading would cost the operator their scroll position
+ * and their filters for nothing.
+ *
+ * @param {{has_settings?: boolean, menu?: ?string}} mod  Module boot record.
+ * @param {boolean}                                  next Requested switch position.
  * @return {boolean} Whether to reload after the server confirms.
  */
 export function enablingNeedsReload( mod, next ) {
-	return true === next && 'integration' === mod?.kind;
+	if ( true !== next ) {
+		return false;
+	}
+	const menu = typeof mod?.menu === 'string' ? mod.menu.trim() : '';
+
+	return true === mod?.has_settings || '' !== menu;
 }
 
 /**
@@ -392,8 +450,10 @@ export function moduleCardState( mod, planEdition = 'free' ) {
 		? { label: __( 'Premium', 'aponto' ), isPremium: true }
 		: { label: __( 'Free', 'aponto' ), variant: 'free' };
 	const toggle = moduleToggleAllowed( mod, planEdition );
+	// ONE derivation, shared with the `#modules/{code}` page (D-R57) — see `moduleAvailability()`.
+	const availability = moduleAvailability( mod, planEdition );
 
-	if ( mod?.available === true ) {
+	if ( 'enabled' === availability ) {
 		return {
 			state: 'enabled',
 			tier,
@@ -408,7 +468,7 @@ export function moduleCardState( mod, planEdition = 'free' ) {
 	// disabled module falls into the planned/upsell copy below and tells the owner their own
 	// choice is a roadmap item (D-R31). The card keeps the Included shape so flipping the switch
 	// back is obviously the way out; the kit mutes it via the `disabled` state.
-	if ( toggle ) {
+	if ( 'disabled' === availability ) {
 		return {
 			state: 'disabled',
 			tier,
@@ -501,7 +561,7 @@ function comingSoonLabel( phase ) {
  *   email_notifications      the `booking_reminder_customer` template's enabled
  *                            flag, and every other event email lives on the same
  *                            leaf (settings/ia.js: Notifications is ONE surface).
- *   csv_export            → Bookings, which owns the export action + its filters
+ *   csv_export            → Dedicated import-compatible CSV download panel
  *                            (routes/Bookings.jsx `onExport`).
  *   availability_engine   → Settings → Booking → Policy, the panel described as
  *                            "Availability rules applied to every service"
@@ -524,7 +584,7 @@ function comingSoonLabel( phase ) {
 export const INCLUDED_CARD_ROUTES = {
 	booking_reminder: '#settings/notifications',
 	email_notifications: '#settings/notifications',
-	csv_export: '#bookings',
+	csv_export: '#modules/csv_export',
 	availability_engine: '#settings/booking/policy',
 	multi_staff: '#staff',
 };
@@ -631,7 +691,7 @@ export const COMPARE_SECTIONS = [
 		label: __( 'Site & tools', 'aponto' ),
 		rows: [
 			{ id: 'csv_export', label: __( 'CSV export', 'aponto' ), free: true, pro: true },
-			{ id: 'csv_import', label: __( 'CSV import', 'aponto' ), free: __( 'Coming', 'aponto' ), pro: true },
+			{ id: 'csv_import', label: __( 'CSV import', 'aponto' ), free: true, pro: true },
 			{ id: 'service_catalog', label: __( 'Service catalog pages', 'aponto' ), free: __( 'Coming', 'aponto' ), pro: true },
 			{ id: 'roles', label: __( 'Team roles', 'aponto' ), free: false, pro: true },
 			{ id: 'white_label', label: __( 'White label', 'aponto' ), free: false, pro: true },

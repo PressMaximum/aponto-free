@@ -33,3 +33,86 @@ export function locationRowValue( { locationId, locationName, rowLocation, busin
 	}
 	return businessAddress || 'No location';
 }
+
+/**
+ * Options for the booking editor's Location `<select>` (D-R63): "No location" (`0`, labelled with
+ * the business name — the place a no-location booking actually happens) first, then the ACTIVE
+ * branches in catalog order. A booking already sitting at a branch the active catalog does not list
+ * (archived since) keeps its own entry, so the control never claims the booking is somewhere else.
+ *
+ * Only ever called with ≥1 active location: with none, the editor renders the read-only row it
+ * always has, which is what keeps Free byte-identical.
+ *
+ * @param {Object} args
+ * @param {Array}  args.locations      Active catalog `[ { id, name } ]`.
+ * @param {number} [args.currentId]    The booking's own location id (edit), `0`/absent on create.
+ * @param {string} [args.currentName]  Its resolved name, for the archived case.
+ * @param {string} [args.businessName] Site business name.
+ * @param {string} args.noLocation     Translated "No location".
+ * @return {Array} `[ { id, label } ]`.
+ */
+export function locationSelectOptions( { locations, currentId = 0, currentName = '', businessName = '', noLocation } ) {
+	const options = [ { id: 0, label: businessName ? `${ noLocation } · ${ businessName }` : noLocation } ];
+	( locations || [] ).forEach( ( location ) => options.push( { id: location.id, label: location.name } ) );
+	const current = Number( currentId ) || 0;
+	if ( current && ! options.some( ( option ) => option.id === current ) ) {
+		options.push( { id: current, label: currentName || `#${ current }` } );
+	}
+	return options;
+}
+
+/**
+ * The `location_id` a booking write should carry for a picked location (D-R63): `undefined` for
+ * `0` on CREATE, so a site with no branch picked sends the exact pre-D-R63 body; on a MOVE the
+ * target is returned whenever it differs from where the booking already is (`0` included — moving
+ * a booking back to "no location" is a real move), else `undefined` (nothing to move).
+ *
+ * @param {number}  picked   Picked location id.
+ * @param {?number} [current] The booking's current location (edit); omit on create.
+ * @return {number|undefined} Value to send, or undefined to omit the key.
+ */
+export function locationToSend( picked, current ) {
+	const next = Number( picked ) || 0;
+	if ( current === undefined || current === null ) {
+		return next > 0 ? next : undefined;
+	}
+	return next !== ( Number( current ) || 0 ) ? next : undefined;
+}
+
+/**
+ * Options for the "Edit time" Staff `<select>` (D-R78): the ACTIVE staff members assigned to the
+ * booking's service at the picked location — a pair at that location or the wildcard `0`, the same
+ * terms the engine's eligibility read applies — in catalog order. The booking's own staff member
+ * always keeps an entry (archived or unassigned since), so the control never claims the booking
+ * belongs to somebody else.
+ *
+ * `assignments === null` means the eligibility read was not available (it needs the services
+ * capability): every active member is offered, and the server refuses an ineligible pick.
+ *
+ * @param {Object}     args
+ * @param {Array}      args.staff         Active staff options `[ { id, label } ]`.
+ * @param {?Array}     args.assignments   Pairs `{ staff_id, location_id }` of the service, or null.
+ * @param {number}     [args.locationId]  Picked location (`0` = none).
+ * @param {number}     [args.currentId]   The booking's own staff id.
+ * @param {string}     [args.currentName] Its name, for a member the list no longer carries.
+ * @return {Array} `[ { id, label } ]`.
+ */
+export function rescheduleStaffOptions( { staff, assignments, locationId = 0, currentId = 0, currentName = '' } ) {
+	const place = Number( locationId ) || 0;
+	const eligible = null === assignments || undefined === assignments
+		? null
+		: new Set( assignments
+			.filter( ( pair ) => {
+				const at = Number( pair?.location_id ) || 0;
+				return 0 === at || at === place;
+			} )
+			.map( ( pair ) => Number( pair.staff_id ) ) );
+	const options = ( staff || [] )
+		.filter( ( member ) => null === eligible || eligible.has( Number( member.id ) ) )
+		.map( ( member ) => ( { id: Number( member.id ), label: member.label } ) );
+	const current = Number( currentId ) || 0;
+	if ( current && ! options.some( ( option ) => option.id === current ) ) {
+		options.unshift( { id: current, label: currentName || `#${ current }` } );
+	}
+	return options;
+}

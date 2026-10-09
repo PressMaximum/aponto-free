@@ -7,7 +7,12 @@
  * item list + handlers. This is the B4b consumer of `createMenu` (the same
  * behavior BookingsTable hand-rolls, now shared).
  *
- * items: [{ action, label, hint?, icon?, danger?, separatorBefore? }]
+ * items: [{ action, label, hint?, icon?, danger?, disabled?, separatorBefore? }]
+ *
+ * `disabled` (D-R56 fix round 2) renders a natively disabled `<button role="menuitem">`: it fires
+ * no click, so the kit's `onSelect` cannot reach a handler, and assistive tech is told the same
+ * thing the pointer is. Used while a row-scoped mutation is in flight, so a second Archive cannot
+ * be issued on top of the first.
  */
 import { useEffect, useRef } from 'react';
 import { createMenu } from '@pressmaximum/dashboard-kit/primitives';
@@ -57,6 +62,8 @@ export function RowMenu( { items, label, renderIcon, onSelect } ) {
 							type="button"
 							role="menuitem"
 							data-action={ item.action }
+							disabled={ item.disabled || undefined }
+							aria-disabled={ item.disabled ? 'true' : undefined }
 							key={ item.action }
 						>
 							{ item.icon ? renderIcon( item.icon ) : null }

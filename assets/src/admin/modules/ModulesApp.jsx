@@ -25,10 +25,10 @@ import { __, _n, sprintf } from '@wordpress/i18n';
 import { CompareTable } from '@pressmaximum/dashboard-kit';
 import { PMDKModuleCard } from '@pressmaximum/dashboard-kit/module-card';
 
-import { api } from '../lib/api.js';
 import { config } from '../lib/config.js';
 import { renderIcon } from '../lib/icon.jsx';
 import { useToast } from '../lib/toast.jsx';
+import { useConfirmDialog } from '../lib/confirm.jsx';
 import { PageHeader } from '../lib/ui.jsx';
 import {
 	CATEGORY_META,
@@ -36,7 +36,6 @@ import {
 	COMPARE_SECTIONS,
 	INDUSTRY_OPTIONS,
 	MODULE_META,
-	enablingNeedsReload,
 	moduleStateLabel,
 	kindLabel,
 	moduleCardState,
@@ -44,9 +43,10 @@ import {
 	moduleSearchText,
 	upgradeUrl,
 } from './catalog.js';
+import { setModuleEnabled, useModuleBusy } from './enable.js';
 import { CATEGORY_ALL, INDUSTRY_ALL, filterModules, hasBrowseFilters } from './filters.js';
 import { ModulesSubnav } from './ModulesSubnav.jsx';
-import { applyModuleEnabled, useModules } from './module-state.js';
+import { useModules } from './module-state.js';
 
 /** Controlled category tablist matching the kit `.pmdk-section-tabs` ARIA contract. */
 function CategoryTabs( { tabs, active, onSelect } ) {
@@ -109,7 +109,17 @@ function CategoryTabs( { tabs, active, onSelect } ) {
  *     destination map + the "no destination → no link" rule live in catalog.js.
  * Free/planned cards and included cards without a surface keep no action at all.
  */
-function ModuleCard( { module: mod, planEdition, onToggle } ) {
+/**
+ * Whether switching this module OFF should ask first (S2-74): an enabled payment module.
+ *
+ * @param {Object} mod Module record.
+ * @return {boolean} Whether to confirm.
+ */
+export function paymentModuleNeedsConfirm( mod ) {
+	return 'payments' === mod?.category && true === mod?.enabled;
+}
+
+function ModuleCard( { module: mod, planEdition, busy, onToggle } ) {
 	const meta = MODULE_META[ mod.code ] || { label: mod.code };
 	const category = CATEGORY_META[ mod.category ] || { label: mod.category, icon: 'cube' };
 	const iconName = meta.icon || category.icon;
@@ -163,6 +173,10 @@ function ModuleCard( { module: mod, planEdition, onToggle } ) {
 			tier={ card.tier }
 			state={ card.state }
 			toggle={ card.toggle }
+			// ONE write per module at a time (`enable.js`): a switch that stays live while its own
+			// PUT is unanswered lets the operator queue responses that resolve out of order, and
+			// the loser overwrites the winner.
+			toggleDisabled={ busy }
 			statusLabel={ card.statusLabel }
 			plannedLabel={ card.plannedLabel }
 			action={ action }
@@ -219,47 +233,60 @@ export default function ModulesApp() {
 	// toggle away — the card came back Enabled and the panel route mounted an editor for a module
 	// the server had already stopped serving. `modules/module-state.js` outlives the route.
 	const modules = useModules();
+	// Codes with a write in flight (or a reload pending) — their switches go inert until it lands.
+	const busyCodes = useModuleBusy();
 
 	/**
-	 * Flip a module, optimistically. On failure the switch snaps back and says why — a toggle that
-	 * silently lies about the server state is worse than one that is slow.
+	 * Flip a module. The write, the rollback, the toasts and the reload all live in `enable.js`,
+	 * shared verbatim with the "Enable module" action on a switched-off module's own page — two
+	 * places to turn a module on, one behaviour.
 	 *
 	 * @param {string}  code Module code.
 	 * @param {boolean} next Requested state.
 	 */
-	const onToggle = ( code, next ) => {
-		const record = modules.find( ( mod ) => mod.code === code );
-		const previous = record?.enabled === true;
-		applyModuleEnabled( code, next );
-
-		api.put( `/modules/${ code }`, { enabled: next } ).then(
-			( res ) => {
-				// Trust the server's answer over the optimistic guess.
-				const enabled = res?.enabled === true;
-				applyModuleEnabled( code, enabled );
-
-				// An integration switched ON has no boot projection in THIS document (see
-				// `enablingNeedsReload`), so the card would keep saying "Setup needed" about a module
-				// that may already hold credentials. Reload rather than guess. The state above is
-				// applied FIRST so a blocked or slow reload still leaves the switch honest, and the
-				// toast gets a beat to paint — a message the reload eats is not a message.
-				if ( enabled && enablingNeedsReload( record, next ) ) {
-					showToast( __( 'Module enabled — reloading to load its settings.', 'aponto' ) );
-					window.setTimeout( () => window.location.reload(), 600 );
-				}
-			},
-			( err ) => {
-				applyModuleEnabled( code, previous );
-				showToast( err?.message || __( 'The module could not be updated.', 'aponto' ), 'danger' );
+	const { confirm, dialog } = useConfirmDialog();
+	const onToggle = async ( code, next ) => {
+		// Switching OFF a module that takes money asks first (persona QA 2026-10-05, S2-74). It
+		// used to flip instantly, even with checkouts still awaiting payment — and an off module's
+		// settings and refund action are unreachable until it is on again. Keyed on the registry
+		// CATEGORY, so core names no gateway; no module publishes a count of its open work yet, so
+		// the question cannot say how many there are and is asked for every payment module.
+		const mod = modules.find( ( entry ) => entry?.code === code );
+		if ( ! next && paymentModuleNeedsConfirm( mod ) ) {
+			const label = MODULE_META[ code ]?.label || code;
+			const ok = await confirm( {
+				title: sprintf(
+					/* translators: %s: module name, e.g. "Stripe payments". */
+					__( 'Turn off %s?', 'aponto' ),
+					label
+				),
+				message: __(
+					'Customers can no longer pay with it. Bookings still waiting for a payment through it keep their place, but refunds and payment reviews from Aponto are unavailable — and its settings are hidden — until you turn it on again.',
+					'aponto'
+				),
+				confirmText: __( 'Turn off', 'aponto' ),
+				destructive: true,
+			} );
+			if ( ! ok ) {
+				return;
 			}
-		);
+		}
+		setModuleEnabled( code, next, showToast );
 	};
 	// Plan-marketing chrome — the page-level "Compare plans" CTA, the per-card upsell links and
 	// the free-vs-premium table — is for people deciding whether to buy. A site that already has
 	// Premium is shown none of it (founder, 2026-08-28). This is presentation only: what each
 	// module can DO is `available` (`Plan::has()`), and REST enforces it regardless.
 	const showPlanMarketing = config.planEdition !== 'premium';
-	const [ active, setActive ] = useState( CATEGORY_ALL );
+	// A cross-route "open the catalog on this tab" (the Dashboard's payment warning, re-test N3) —
+	// the same one-shot window seam the Bookings route reads for "open this booking".
+	const [ active, setActive ] = useState( () => {
+		const wanted = typeof window !== 'undefined' ? window.__apontoModulesCategory : '';
+		if ( typeof window !== 'undefined' ) {
+			window.__apontoModulesCategory = '';
+		}
+		return CATEGORY_TABS.some( ( tab ) => tab.id === wanted ) ? wanted : CATEGORY_ALL;
+	} );
 	const [ query, setQuery ] = useState( '' );
 	const [ industry, setIndustry ] = useState( INDUSTRY_ALL );
 
@@ -359,7 +386,13 @@ export default function ModulesApp() {
 						hidden={ filtered.length === 0 }
 					>
 						{ filtered.map( ( mod ) => (
-							<ModuleCard key={ mod.code } module={ mod } planEdition={ config.planEdition } onToggle={ onToggle } />
+							<ModuleCard
+								key={ mod.code }
+								module={ mod }
+								planEdition={ config.planEdition }
+								busy={ busyCodes.indexOf( mod.code ) !== -1 }
+								onToggle={ onToggle }
+							/>
 						) ) }
 					</div>
 
@@ -420,6 +453,7 @@ export default function ModulesApp() {
 					) }
 				</>
 			) }
+			{ dialog }
 		</div>
 	);
 }

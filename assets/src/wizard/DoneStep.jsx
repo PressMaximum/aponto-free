@@ -22,8 +22,11 @@
  * the open action is disabled and an explanatory warning is shown instead.
  */
 import { Button, Notice, Flex, FlexItem, ExternalLink } from '@wordpress/components';
+import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { StepShell } from './ui.jsx';
+import { BOOKING_FORM_BLOCK } from './options.js';
+import { copyText } from '../admin/lib/copy-text.js';
 
 /**
  * Normalize the page DTO into the links the step can actually render.
@@ -91,13 +94,18 @@ export function DoneStep( {
 	headingRef,
 } ) {
 	const links = bookingPageLinks( page );
+	// '' | 'copied' | 'failed' — the outcome of the last "Copy" press on the block markup.
+	const [ copied, setCopied ] = useState( '' );
+	const copyMarkup = async () => {
+		setCopied( ( await copyText( BOOKING_FORM_BLOCK ) ) ? 'copied' : 'failed' );
+	};
 
 	return (
 		<StepShell
 			headingRef={ headingRef }
 			title={ __( 'Publish your booking page', 'aponto' ) }
 			subtitle={ __(
-				'Add the Aponto Booking Form block to any page — we can make one for you.',
+				'Customers book on a page that holds the Aponto Booking Form — we can make that page for you.',
 				'aponto'
 			) }
 			footer={
@@ -107,47 +115,91 @@ export function DoneStep( {
 							{ __( 'Back', 'aponto' ) }
 						</Button>
 					</FlexItem>
+					{ /* The PRIMARY action is the one the step is named for (persona QA 2026-10-05,
+					     T-085). "Finish setup" used to be the blue button from the start, so three
+					     owners pressed it and left the wizard with no booking page — the one thing
+					     step 1 promised. Until a page exists, creating it is primary and finishing
+					     without one is the quiet alternative; once it exists, finishing is primary. */ }
 					<Flex className="aponto-wizard-actions-end" justify="flex-end">
-						<FlexItem>
-							{ links.hasPage ? (
-								<Button
-									variant="secondary"
-									href={ links.openable ? links.viewUrl : undefined }
-									target="_blank"
-									rel="noreferrer"
-									disabled={ ! links.openable }
-									aria-disabled={ ! links.openable }
-								>
-									{ __( 'Open booking page', 'aponto' ) }
-								</Button>
-							) : (
-								<Button
-									variant="secondary"
-									disabled={ saving }
-									onClick={ onCreatePage }
-								>
-									{ busyLabel(
-										__( 'Create booking page', 'aponto' )
-									) }
-								</Button>
-							) }
-						</FlexItem>
-						<FlexItem>
-							<Button
-								variant="primary"
-								disabled={ saving }
-								onClick={ onFinish }
-							>
-								{ busyLabel( __( 'Finish setup', 'aponto' ) ) }
-							</Button>
-						</FlexItem>
+						{ links.hasPage ? (
+							<>
+								<FlexItem>
+									<Button
+										variant="secondary"
+										href={ links.openable ? links.viewUrl : undefined }
+										target="_blank"
+										rel="noreferrer"
+										disabled={ ! links.openable }
+										aria-disabled={ ! links.openable }
+									>
+										{ __( 'Open booking page', 'aponto' ) }
+									</Button>
+								</FlexItem>
+								<FlexItem>
+									<Button
+										variant="primary"
+										disabled={ saving }
+										onClick={ onFinish }
+									>
+										{ busyLabel( __( 'Finish setup', 'aponto' ) ) }
+									</Button>
+								</FlexItem>
+							</>
+						) : (
+							<>
+								<FlexItem>
+									<Button
+										variant="tertiary"
+										disabled={ saving }
+										onClick={ onFinish }
+									>
+										{ busyLabel( __( 'Finish setup', 'aponto' ) ) }
+									</Button>
+								</FlexItem>
+								<FlexItem>
+									<Button
+										variant="primary"
+										disabled={ saving }
+										onClick={ onCreatePage }
+									>
+										{ busyLabel(
+											__( 'Create booking page', 'aponto' )
+										) }
+									</Button>
+								</FlexItem>
+							</>
+						) }
 					</Flex>
 				</Flex>
 			}
 		>
-			<p className="aponto-wizard-block-markup">
-				&lt;!-- wp:aponto/booking-form {'{"align":"wide"}'} /--&gt;
-			</p>
+			{ ! links.hasPage && (
+				<p className="aponto-wizard-muted">
+					{ __(
+						'Without a booking page customers have nowhere to book yet. You can also create it later from the Dashboard.',
+						'aponto'
+					) }
+				</p>
+			) }
+			{ /* The raw block comment is for someone building the page by hand, so it sits behind
+			     a disclosure with a Copy button instead of being the first thing on the card. */ }
+			<details className="aponto-wizard-disclosure">
+				<summary>{ __( 'Add it to an existing page yourself', 'aponto' ) }</summary>
+				<p className="aponto-wizard-muted">
+					{ __(
+						'Edit the page, add the “Aponto Booking Form” block — or paste this into the code editor:',
+						'aponto'
+					) }
+				</p>
+				<p className="aponto-wizard-block-markup">{ BOOKING_FORM_BLOCK }</p>
+				<Button variant="secondary" size="small" onClick={ copyMarkup }>
+					{ __( 'Copy', 'aponto' ) }
+				</Button>{ ' ' }
+				<span className="aponto-wizard-muted" role="status">
+					{ 'copied' === copied && __( 'Copied.', 'aponto' ) }
+					{ 'failed' === copied && __( 'Could not copy — select the text and copy it by hand.', 'aponto' ) }
+				</span>
+			</details>
 			{ links.hasPage && links.openable && (
 				<Notice status="success" isDismissible={ false }>
 					{ __( 'Your booking page is published and live.', 'aponto' ) }{ ' ' }

@@ -180,6 +180,34 @@ export function createApi( config ) {
 		},
 
 		/**
+		 * Generic JSON POST against the public namespace, with the same headers
+		 * (including `X-WP-Nonce` when the page has one) and error normalisation
+		 * as every other call. Edition-owned seams (e.g. Premium order
+		 * adjustments) use it so this Free-shipped client names no paid route.
+		 *
+		 * @param {string} path Path under the REST base, e.g. `/public/x`.
+		 * @param {Object} body JSON body.
+		 * @return {Promise<Object>} Decoded response.
+		 */
+		requestJson( path, method = 'GET', body ) {
+			return request( path, {
+				method,
+				headers: headers( { 'Content-Type': 'application/json' } ),
+				credentials: 'same-origin',
+				...( method === 'GET' ? {} : { body: JSON.stringify( body || {} ) } ),
+			} );
+		},
+
+		postJson( path, body ) {
+			return request( path, {
+				method: 'POST',
+				headers: headers( { 'Content-Type': 'application/json' } ),
+				credentials: 'same-origin',
+				body: JSON.stringify( body || {} ),
+			} );
+		},
+
+		/**
 		 * POST /public/payments/{gateway}/confirm (rest-contract §3.8).
 		 *
 		 * The widget reports a REFERENCE, never an outcome: the server asks the

@@ -7,6 +7,7 @@
  *
  * Pure module: no Preact, no DOM. Unit-testable.
  */
+import { COPY } from './copy.js';
 
 /**
  * Fraction digits for a currency: the SERVER's ISO exponent when it sent one,
@@ -67,6 +68,43 @@ export function formatMoney( minor, currency, locale, exponent ) {
 	} catch {
 		return String( major ) + ( currency ? ' ' + currency : '' );
 	}
+}
+
+/**
+ * Whether a SERVICE price is exactly zero — a free service, as opposed to an unpriced one
+ * (`null`, which prints nothing).
+ *
+ * @param {?number} minor Minor units, or null.
+ * @return {boolean} Free.
+ */
+export function isFreePrice( minor ) {
+	return (
+		minor !== null &&
+		minor !== undefined &&
+		minor !== '' &&
+		Number( minor ) === 0
+	);
+}
+
+/**
+ * The customer-facing label of a SERVICE price (D-R81, founder 2026-10-03): the translated
+ * "Free" for exactly 0, nothing for an unpriced service, the formatted amount otherwise. The ONE
+ * place every service-price surface of the form goes through — Service step rows and category
+ * "from" lines, the summary / intro meta line — so a free booking
+ * never reads "$0.00" on one of them and "Free" on another. Order TOTALS keep
+ * {@link formatMoney}: a coupon that brings a positive price to 0 is arithmetic and shows its
+ * sum.
+ *
+ * @param {?number} minor      Minor units, or null.
+ * @param {string}  currency   ISO-4217 code.
+ * @param {string}  [locale]   Locale.
+ * @param {?number} [exponent] Server exponent.
+ * @return {string} Label or ''.
+ */
+export function formatPrice( minor, currency, locale, exponent ) {
+	return isFreePrice( minor )
+		? COPY.price_free
+		: formatMoney( minor, currency, locale, exponent );
 }
 
 /**

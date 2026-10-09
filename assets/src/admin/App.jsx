@@ -13,9 +13,13 @@
  * mockup index.html:113-116) whose resolved value drives `data-ap-color-scheme`
  * on the token scope; the runtime + persistence contract lives in lib/theme.js.
  */
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useRoute, syncWpMenu, moduleRouteCode } from './lib/router.js';
+import { ROUTE_TITLES, routeTitleParts, setRouteTitle } from './lib/page-title.js';
+import { adminRouteIsOpen, orderAdminRouteItems, useAdminRoutes } from './lib/admin-routes.js';
+import { findModuleRecord } from './modules/catalog.js';
+import { useModules } from './modules/module-state.js';
 import { renderIcon } from './lib/icon.jsx';
 import { config } from './lib/config.js';
 import { menuRovingKeydown } from './lib/ui.jsx';
@@ -51,6 +55,10 @@ import { Placeholder } from './routes/Placeholder.jsx';
 // The setup surfaces below are opened occasionally, are self-contained, and carry the
 // heaviest imports in the app (the settings/module screens are the only consumers of the
 // dashboard-kit main entry), so each is its own chunk. See lib/lazy.jsx.
+const CsvImport = lazySurface(
+	() => import( /* webpackChunkName: "admin-chunk-import" */ './routes/CsvImport.jsx' ),
+	{ pick: 'CsvImport', label: __( 'Loading import…', 'aponto' ) }
+);
 const Services = lazySurface(
 	() => import( /* webpackChunkName: "admin-chunk-services" */ './routes/Services.jsx' ),
 	{ pick: 'Services', label: __( 'Loading services…', 'aponto' ) }
@@ -78,6 +86,10 @@ const DAILY = [
 	{ id: 'calendar', label: 'Calendar' },
 	{ id: 'customers', label: 'Customers' },
 ];
+// The STATIC core entries of the two section menus. A module-owned screen is NOT listed here:
+// it registers itself (`lib/admin-routes.js`, D-R56) and is appended below, because hard-coding
+// an edition-owned nav item into this free-shipped file would ship a paid control in the wp.org
+// archive (D-R41).
 const OFFERINGS = [
 	{ id: 'services', label: 'Services', description: 'Bookable services & categories' },
 	{ id: 'events', label: 'Events', description: 'Fixed sessions & attendance', badge: __( 'Premium', 'aponto' ) },
@@ -86,12 +98,6 @@ const RESOURCES = [
 	{ id: 'staff', label: 'Staff', description: 'People who take bookings' },
 	{ id: 'shared-assets', label: 'Shared assets', description: 'Rooms & equipment', badge: __( 'Premium', 'aponto' ) },
 ];
-
-const TITLES = {
-	dashboard: 'Dashboard', bookings: 'Bookings', calendar: 'Calendar', customers: 'Customers',
-	services: 'Services', events: 'Events', staff: 'Staff',
-	'shared-assets': 'Shared assets', modules: 'Modules', settings: 'Settings',
-};
 
 /** Appearance menu copy, in the mockup's order (index.html:114-116). */
 const THEME_LABELS = { light: 'Light', dark: 'Dark', system: 'System' };
@@ -212,6 +218,30 @@ function routeMenuItems( entries, route, onNavigate ) {
 
 export function App() {
 	const { route, segments, navigate } = useRoute();
+	// Module-owned routes (D-R56). Listed only while the owning module is `available` AND the
+	// registry granted it this slug — one predicate, `adminRouteIsOpen()`, shared with the hash
+	// router so the menu, the URL and the rendered screen cannot disagree. The module records come
+	// from the session store, the same source `modules/ModuleSettingsRoute.jsx` reads, so a module
+	// switched off in this session leaves the menu at once. Display only: REST re-checks every
+	// write (§5 invariant 3).
+	const adminRoutes = useAdminRoutes();
+	const modules = useModules();
+	const moduleRoutes = useMemo(
+		() => adminRoutes.filter( ( entry ) => adminRouteIsOpen( entry, modules ) ),
+		[ adminRoutes, modules ]
+	);
+	// `orderAdminRouteItems` honours each descriptor's `after`, so the dropdown and the WordPress
+	// submenu agree: Locations sits directly behind Staff in both, not behind the Premium
+	// "Shared assets" placeholder at the end of the menu (browser QA, 2026-09-21).
+	const offerings = useMemo(
+		() => orderAdminRouteItems( OFFERINGS, moduleRoutes.filter( ( entry ) => entry.group === 'offerings' ) ),
+		[ moduleRoutes ]
+	);
+	const resources = useMemo(
+		() => orderAdminRouteItems( RESOURCES, moduleRoutes.filter( ( entry ) => entry.group === 'resources' ) ),
+		[ moduleRoutes ]
+	);
+	const moduleRoute = moduleRoutes.find( ( entry ) => entry.id === route ) || null;
 	const [ openMenu, setOpenMenu ] = useState( null );
 	const [ helpOpen, setHelpOpen ] = useState( false );
 	const [ workspaceOpen, setWorkspaceOpen ] = useState( false );
@@ -241,11 +271,28 @@ export function App() {
 
 	// Keep the WordPress submenu highlight in sync with the active route.
 	useEffect( () => {
-		syncWpMenu( route );
+		syncWpMenu( route, segments );
 		setOpenMenu( null );
 		setHelpOpen( false );
 		setWorkspaceOpen( false );
+	}, [ route, segments ] );
+
+	// Keep the CURRENT section in view when the header row scrolls (≤1100px of app width — see
+	// "Narrow-shell nav guard" in admin-extra.css). On a phone the row opened on "Dashboard Boo…"
+	// whatever route was on screen, so the operator could not see where they were (T-084).
+	useEffect( () => {
+		const current = document.querySelector( '.ap-admin .pd-navigation [aria-current="page"]' );
+		if ( current && typeof current.scrollIntoView === 'function' ) {
+			current.scrollIntoView( { block: 'nearest', inline: 'nearest' } );
+		}
 	}, [ route ] );
+
+	// The browser tab names the screen (first-run QA D26; persona QA T-076): WordPress printed
+	// "Dashboard ‹ …" once for the SPA's single menu page. Editors and module panels prepend their
+	// own name on top of this through `usePageTitle()`.
+	useEffect( () => {
+		setRouteTitle( routeTitleParts( route, segments, moduleRoute ) );
+	}, [ route, segments, moduleRoute ] );
 
 	// Fullscreen (ca trực): the app root goes fixed inset-0 and the WP menu folds.
 	useEffect( () => {
@@ -364,16 +411,16 @@ export function App() {
 						<NavDropdown
 							id="offerings"
 							label="Offerings"
-							items={ routeMenuItems( OFFERINGS, route, onNavigate ) }
-							active={ OFFERINGS.some( ( item ) => item.id === route ) }
+							items={ routeMenuItems( offerings, route, onNavigate ) }
+							active={ offerings.some( ( item ) => item.id === route ) }
 							openMenu={ openMenu }
 							setOpenMenu={ setOpenMenu }
 						/>
 						<NavDropdown
 							id="resources"
 							label="Resources"
-							items={ routeMenuItems( RESOURCES, route, onNavigate ) }
-							active={ RESOURCES.some( ( item ) => item.id === route ) }
+							items={ routeMenuItems( resources, route, onNavigate ) }
+							active={ resources.some( ( item ) => item.id === route ) }
 							openMenu={ openMenu }
 							setOpenMenu={ setOpenMenu }
 						/>
@@ -503,22 +550,30 @@ export function App() {
 			     same way, but structurally (admin-extra.css `.pd-main:has(…)`) so a route
 			     that renders a full-page editor instead of the list keeps its gutter. */ }
 			<main className={ `pd-main${ route === 'settings' ? ' is-settings' : '' }` } id="aponto-view" tabIndex="-1">
-				<Route route={ route } segments={ segments } onNavigate={ onNavigate } />
+				<Route
+					route={ route }
+					segments={ segments }
+					onNavigate={ onNavigate }
+					moduleRoute={ moduleRoute }
+					modules={ modules }
+				/>
 			</main>
 		</>
 	);
 }
 
-function Route( { route, segments, onNavigate } ) {
+function Route( { route, segments, onNavigate, moduleRoute = null, modules = [] } ) {
 	switch ( route ) {
 		case 'dashboard':
 			return <Dashboard onNavigate={ onNavigate } />;
 		case 'bookings':
-			return <Bookings />;
+			return <Bookings segments={ segments } />;
 		case 'calendar':
 			return <Calendar onNavigate={ onNavigate } />;
 		case 'customers':
 			return <Customers />;
+		case 'import-csv':
+			return <CsvImport key={ segments.join( '/' ) } segments={ segments } />;
 		case 'services':
 			return <Services segments={ segments } onNavigate={ onNavigate } />;
 		case 'staff':
@@ -532,10 +587,26 @@ function Route( { route, segments, onNavigate } ) {
 			const code = moduleRouteCode( segments );
 
 			return code
-				? <ModuleSettingsRoute code={ code } onNavigate={ onNavigate } />
+				? <ModuleSettingsRoute code={ code } segments={ segments } onNavigate={ onNavigate } />
 				: <ModulesApp />;
 		}
-		default:
-			return <Placeholder route={ route } title={ TITLES[ route ] || 'Page' } onNavigate={ onNavigate } />;
+		default: {
+			// A module-owned screen (D-R56). The component is the module bundle's own NAMED lazy
+			// chunk, so it costs the first paint nothing; `module` is its boot-data record, the
+			// same prop the settings-panel registry hands a panel.
+			if ( moduleRoute ) {
+				const Screen = moduleRoute.component;
+
+				return (
+					<Screen
+						segments={ segments }
+						onNavigate={ onNavigate }
+						module={ findModuleRecord( { modules }, moduleRoute.moduleCode ) }
+					/>
+				);
+			}
+
+			return <Placeholder route={ route } title={ ROUTE_TITLES[ route ] || 'Page' } onNavigate={ onNavigate } />;
+		}
 	}
 }

@@ -58,9 +58,11 @@ final class CleanupRunner {
 	 */
 	public function run(): void {
 		$this->guard( fn () => $this->pruneIdempotency() );
+		$this->guard( fn () => ( new \Aponto\Import\Store( $this->services->wpdb(), $this->services->clock() ) )->prune() );
 		$this->guard( fn () => $this->pruneDeliveries() );
 		$this->guard( fn () => $this->pruneRateCounters() );
 		$this->guard( fn () => $this->prunePaymentEvents() );
+		$this->guard( fn () => \Aponto\Extension\RetainedData::prune( $this->services->wpdb(), $this->services->clock() ) );
 		// The payments tick's SAFETY NET (orchestrator finding). The five-minute tick owns hold
 		// expiry, but it can be unscheduled by a race; running an expiry pass here as well means the
 		// worst case for a stranded hold is one hour rather than forever, and re-syncing afterwards
@@ -250,34 +252,53 @@ final class CleanupRunner {
 		$bookings  = $wpdb->prefix . 'aponto_bookings';
 		$tx        = new \Aponto\Database\TransactionGuard( $wpdb );
 
-		$tx->begin();
+		$changed = \Aponto\Extension\RetainedData::run(
+			$wpdb,
+			function () use ( $wpdb, $customers, $bookings, $tx, $customer_id, $threshold ): bool {
+				$tx->begin();
+				try {
+					$lock_sql = "SELECT id, email_norm, created_at FROM {$customers} WHERE id = %d FOR UPDATE";
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); row lock for the re-check.
+					$row = $wpdb->get_row( $wpdb->prepare( $lock_sql, $customer_id ), ARRAY_A );
+
+					if ( ! is_array( $row ) || str_ends_with( (string) $row['email_norm'], '@invalid' ) ) {
+						$tx->rollback();
+
+						return false;
+					}
+
+					$anchor_sql = "SELECT COALESCE( MAX(end_datetime_utc), %s ) FROM {$bookings} WHERE customer_id = %d";
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); authoritative re-check under the row lock.
+					$anchor = (string) $wpdb->get_var( $wpdb->prepare( $anchor_sql, (string) $row['created_at'], $customer_id ) );
+
+					if ( '' === $anchor || $anchor >= $threshold ) {
+						// A booking committed after selection moved the anchor — no longer eligible.
+						$tx->rollback();
+
+						return false;
+					}
+
+					$this->anonymizer->applyInTransaction( $customer_id );
+					$tx->commit();
+				} catch ( \Throwable $failure ) {
+					$tx->rollback();
+					throw $failure;
+				}
+				return true;
+			}
+		);
+		if ( ! $changed ) {
+			return;
+		}
 		try {
-			$lock_sql = "SELECT id, email_norm, created_at FROM {$customers} WHERE id = %d FOR UPDATE";
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); row lock for the re-check.
-			$row = $wpdb->get_row( $wpdb->prepare( $lock_sql, $customer_id ), ARRAY_A );
-
-			if ( ! is_array( $row ) || str_ends_with( (string) $row['email_norm'], '@invalid' ) ) {
-				$tx->rollback();
-
-				return;
-			}
-
-			$anchor_sql = "SELECT COALESCE( MAX(end_datetime_utc), %s ) FROM {$bookings} WHERE customer_id = %d";
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare(); authoritative re-check under the row lock.
-			$anchor = (string) $wpdb->get_var( $wpdb->prepare( $anchor_sql, (string) $row['created_at'], $customer_id ) );
-
-			if ( '' === $anchor || $anchor >= $threshold ) {
-				// A booking committed after selection moved the anchor — no longer eligible.
-				$tx->rollback();
-
-				return;
-			}
-
-			$this->anonymizer->applyInTransaction( $customer_id );
-			$tx->commit();
-		} catch ( \Throwable $failure ) {
-			$tx->rollback();
-			throw $failure;
+			/**
+			 * Fires after a customer is anonymized and business locks are released (extension-surface §2).
+			 *
+			 * @param array<string, mixed> $row Erased subject identity.
+			 */
+			do_action( 'aponto_customer_anonymized', array( 'id' => $customer_id ) );
+		} catch ( \Throwable $listener_failure ) {
+			unset( $listener_failure ); // Post-commit extensions cannot invalidate the saved operation.
 		}
 	}
 

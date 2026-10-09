@@ -23,6 +23,7 @@ use Aponto\Rest\Policy;
 use Aponto\Rest\Services;
 use Aponto\Rest\Support\Format;
 use Aponto\Rest\Support\RawResponse;
+use Aponto\Support\PersonName;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -73,10 +74,12 @@ final class ExportController implements Controller {
 				'permission_callback' => array( Policy::class, 'manageBookings' ),
 				'callback'            => array( $this, 'bookings' ),
 				'args'                => array(
-					'status'     => Args::argEnum( array( 'pending', 'confirmed', 'cancelled', 'completed', 'no_show', 'all' ), 'all' ),
-					'service_id' => Args::argNullableId(),
-					'staff_id'   => Args::argNullableId(),
-					'search'     => Args::argSearch(),
+					'status'      => Args::argEnum( array( 'pending', 'confirmed', 'cancelled', 'completed', 'no_show', 'all' ), 'all' ),
+					'service_id'  => Args::argNullableId(),
+					'staff_id'    => Args::argNullableId(),
+					// D-R63: `0` = bookings with no location, so not argNullableId().
+					'location_id' => Args::argNullableIdOrZero(),
+					'search'      => Args::argSearch(),
 				),
 			)
 		);
@@ -131,17 +134,19 @@ final class ExportController implements Controller {
 			return Errors::validation( $fields );
 		}
 
-		$service = $request->get_param( 'service_id' );
-		$staff   = $request->get_param( 'staff_id' );
+		$service  = $request->get_param( 'service_id' );
+		$staff    = $request->get_param( 'staff_id' );
+		$location = $request->get_param( 'location_id' );
 
 		$rows = $this->reads->exportBookings(
 			array(
-				'status'     => (string) $request->get_param( 'status' ),
-				'service_id' => ( null === $service || '' === $service ) ? null : (int) $service,
-				'staff_id'   => ( null === $staff || '' === $staff ) ? null : (int) $staff,
-				'from'       => $from_sql,
-				'to'         => $to_sql,
-				'search'     => (string) $request->get_param( 'search' ),
+				'status'      => (string) $request->get_param( 'status' ),
+				'service_id'  => ( null === $service || '' === $service ) ? null : (int) $service,
+				'staff_id'    => ( null === $staff || '' === $staff ) ? null : (int) $staff,
+				'location_id' => ( null === $location || '' === $location ) ? null : (int) $location,
+				'from'        => $from_sql,
+				'to'          => $to_sql,
+				'search'      => (string) $request->get_param( 'search' ),
 			)
 		);
 
@@ -159,8 +164,15 @@ final class ExportController implements Controller {
 		// reason an accountant opens this file at all, and none of the three carries PII — the
 		// transaction ledger they come from is PII-free by construction (privacy-inventory).
 		// Appended after `customer_note` so the existing 16-column order is untouched.
+		//
+		// NAME SPLIT (founder 2026-10-01, D-R69) — the one deliberate exception to "append only":
+		// the stored parts sit BESIDE the composed name they belong to, `staff_first_name` /
+		// `staff_last_name` right after `staff` and `customer_first_name` / `customer_last_name`
+		// right after `customer_name`, which keep their meaning (the composed display name). The
+		// founder accepted the shift: the plugin has no installed base whose imports depend on
+		// positions (name-split plan §3.1).
 		$body = "\xEF\xBB\xBF" . RawResponse::csvRow(
-			array( 'id', 'status', 'start_utc', 'end_utc', 'service', 'staff', 'customer_name', 'customer_email', 'customer_phone', 'order_code', 'total_minor', 'currency', 'start_local', 'timezone', 'total', 'customer_note', 'payment_status', 'gateway', 'transaction_ref' )
+			array( 'id', 'status', 'start_utc', 'end_utc', 'service', 'staff', 'staff_first_name', 'staff_last_name', 'customer_name', 'customer_first_name', 'customer_last_name', 'customer_email', 'customer_phone', 'order_code', 'total_minor', 'currency', 'start_local', 'timezone', 'total', 'customer_note', 'payment_status', 'gateway', 'transaction_ref', 'subtotal_minor', 'discount_minor', 'coupon_code', 'payable_now_minor', 'balance_due_minor', 'payment_state_reason' )
 		);
 		foreach ( $rows as $row ) {
 			$currency = (string) ( $row['currency'] ?? '' );
@@ -171,8 +183,12 @@ final class ExportController implements Controller {
 					(string) Format::utcDatetime( (string) $row['start_datetime_utc'] ),
 					(string) Format::utcDatetime( (string) $row['end_datetime_utc'] ),
 					(string) ( $row['service_name'] ?? '' ),
-					(string) ( $row['staff_name'] ?? '' ),
-					(string) ( $row['customer_name'] ?? '' ),
+					PersonName::display( (string) ( $row['staff_first_name'] ?? '' ), (string) ( $row['staff_last_name'] ?? '' ) ),
+					(string) ( $row['staff_first_name'] ?? '' ),
+					(string) ( $row['staff_last_name'] ?? '' ),
+					PersonName::display( (string) ( $row['customer_first_name'] ?? '' ), (string) ( $row['customer_last_name'] ?? '' ) ),
+					(string) ( $row['customer_first_name'] ?? '' ),
+					(string) ( $row['customer_last_name'] ?? '' ),
 					(string) ( $row['customer_email'] ?? '' ),
 					(string) ( $row['customer_phone'] ?? '' ),
 					(string) ( $row['order_code'] ?? '' ),
@@ -190,6 +206,12 @@ final class ExportController implements Controller {
 					(string) ( $row['payment_status'] ?? 'none' ),
 					(string) ( $row['gateway'] ?? '' ),
 					(string) ( $row['transaction_ref'] ?? '' ),
+					Format::intOrNull( $row['subtotal_minor'] ?? null ) ?? ( Format::intOrNull( $row['total_minor'] ?? null ) ?? 0 ),
+					Format::intOrNull( $row['discount_minor'] ?? null ) ?? 0,
+					(string) ( $row['coupon_code'] ?? '' ),
+					(int) $row['payable_now_minor'],
+					(int) $row['balance_due_minor'],
+					(string) $row['payment_state_reason'],
 				)
 			);
 		}
@@ -226,12 +248,15 @@ final class ExportController implements Controller {
 	public function customers( WP_REST_Request $request ) {
 		$rows = $this->reads->exportCustomers( (string) $request->get_param( 'search' ) );
 
-		$body = "\xEF\xBB\xBF" . RawResponse::csvRow( array( 'id', 'name', 'email', 'phone', 'note', 'created_at' ) );
+		// `name` stays (the composed display name) after the two stored parts (D-R69).
+		$body = "\xEF\xBB\xBF" . RawResponse::csvRow( array( 'id', 'first_name', 'last_name', 'name', 'email', 'phone', 'note', 'created_at' ) );
 		foreach ( $rows as $row ) {
 			$body .= RawResponse::csvRow(
 				array(
 					(int) $row['id'],
-					(string) ( $row['name'] ?? '' ),
+					(string) ( $row['first_name'] ?? '' ),
+					(string) ( $row['last_name'] ?? '' ),
+					PersonName::display( (string) ( $row['first_name'] ?? '' ), (string) ( $row['last_name'] ?? '' ) ),
 					(string) ( $row['email'] ?? '' ),
 					(string) ( $row['phone'] ?? '' ),
 					(string) ( $row['note'] ?? '' ),

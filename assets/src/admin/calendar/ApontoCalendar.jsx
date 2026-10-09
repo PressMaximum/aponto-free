@@ -5,20 +5,39 @@
  */
 import { useRef, useLayoutEffect, useEffect, useState, useCallback } from 'react';
 import { createAdapter } from './ec-adapter.js';
-import { renderNowIndicator } from './now-indicator.js';
+import { renderNowIndicator, viewContainsNow } from './now-indicator.js';
 import { eventContent } from './event-content.js';
 import { TZ, toBusinessLocalDate, businessNowMinutes } from './constants.js';
 import { DEFAULT_SLOT_WINDOW, isFullDayBlock, scrollTopForWindow } from './window.js';
 import { SLOT_DURATION } from './slot-select.js';
 import { config } from '../lib/config.js';
+import { clockOptions } from '../lib/format.js';
 import { renderIcon } from '../lib/icon.jsx';
+
+/** The widest viewport still treated as a phone — the admin stylesheet's own narrow breakpoint. */
+export const PHONE_MAX_WIDTH = 700;
+
+/**
+ * Whether the calendar is opening on a phone-sized viewport.
+ *
+ * @param {Window} [win] Window (injectable for tests).
+ * @return {boolean} True at or below {@link PHONE_MAX_WIDTH}.
+ */
+export function phoneViewport( win = typeof window === 'undefined' ? null : window ) {
+	const width = Number( win?.innerWidth ) || 0;
+
+	return width > 0 && width <= PHONE_MAX_WIDTH;
+}
 
 export function ApontoCalendar( { events, slotWindow = DEFAULT_SLOT_WINDOW, onRangeChange, onEventClick, onSelect, onAdd, onPrint, toolbarExtra, isBlocking = false } ) {
 	const hostRef = useRef( null );
 	const adapterRef = useRef( null );
 	const dateInputRef = useRef( null );
 	const [ title, setTitle ] = useState( '' );
-	const [ view, setView ] = useState( 'timeGridWeek' );
+	// A phone opens on the DAY (persona QA 2026-10-05, S2-82): seven ~36px columns cannot show an
+	// event. Decided once at mount — the Day/Week switch stays the operator's from then on.
+	const initialView = useRef( phoneViewport() ? 'timeGridDay' : 'timeGridWeek' ).current;
+	const [ view, setView ] = useState( initialView );
 
 	// The EC instance is created ONCE (an option change re-creates it — that risk is the whole
 	// point of the adapter), so the handlers passed into `createAdapter` freeze the props of the
@@ -50,7 +69,9 @@ export function ApontoCalendar( { events, slotWindow = DEFAULT_SLOT_WINDOW, onRa
 			hostRef.current,
 			businessNowMinutes( TZ ),
 			windowRef.current.minMinutes,
-			windowRef.current.maxMinutes
+			windowRef.current.maxMinutes,
+			// Only on the range that contains today (T-052) — read at draw time, after EC's flush.
+			viewContainsNow( adapterRef.current?.getView(), toBusinessLocalDate( Date.now(), TZ ) )
 		), 0 );
 	}, [] );
 
@@ -71,7 +92,7 @@ export function ApontoCalendar( { events, slotWindow = DEFAULT_SLOT_WINDOW, onRa
 	// Mount once.
 	useLayoutEffect( () => {
 		const adapter = createAdapter( hostRef.current, {
-			view: 'timeGridWeek',
+			view: initialView,
 			date: toBusinessLocalDate( Date.now(), TZ ),
 			headerToolbar: { start: '', center: '', end: '' },
 			firstDay: config.settings.weekStartsOn,
@@ -104,7 +125,11 @@ export function ApontoCalendar( { events, slotWindow = DEFAULT_SLOT_WINDOW, onRa
 			// that would move the active range — `time-grid/lib.js`).
 			datesSet: ( info ) => { handlers.current.onRangeChange?.( { start: info.start, end: info.end } ); },
 			dayHeaderFormat: { weekday: 'short', day: 'numeric' },
-			slotLabelFormat: { hour: 'numeric', minute: '2-digit' },
+			// The axis and the event cards follow the site's 12/24-hour setting (persona QA
+			// 2026-10-05, T-071) — the grid printed "8:00 AM" on a site set to 14:30. Both take
+			// `Intl.DateTimeFormat` options; the locale stays the browser's.
+			slotLabelFormat: { ...clockOptions(), minute: '2-digit' },
+			eventTimeFormat: { ...clockOptions(), minute: '2-digit' },
 			events: events || [],
 			eventContent,
 			// Native tooltip over the whole blocked-period event (C3) — the reason, on hover.
@@ -264,6 +289,14 @@ export function ApontoCalendar( { events, slotWindow = DEFAULT_SLOT_WINDOW, onRa
 		onPrint?.( v && v.currentStart ? new Date( v.currentStart ) : new Date() );
 	};
 
+	// "+ Add" reports the day being VIEWED (T-052): the first day on screen when the grid is on a
+	// range that does not contain today, nothing (= today) when it does.
+	const addBooking = () => {
+		const v = adapterRef.current?.getView();
+		const viewed = v?.currentStart && ! viewContainsNow( v, toBusinessLocalDate( Date.now(), TZ ) ) ? new Date( v.currentStart ) : null;
+		onAdd?.( viewed );
+	};
+
 	return (
 		<div className={ `ap-cal${ isBlocking ? ' is-blocking' : '' }` }>
 			<div className="ap-cal-toolbar">
@@ -291,7 +324,7 @@ export function ApontoCalendar( { events, slotWindow = DEFAULT_SLOT_WINDOW, onRa
 						<button className="ap-cal-seg-btn" type="button" aria-pressed={ view === 'timeGridDay' } onClick={ () => go( () => adapterRef.current?.setView( 'timeGridDay' ) ) }>Day</button>
 						<button className="ap-cal-seg-btn" type="button" aria-pressed={ view === 'timeGridWeek' } onClick={ () => go( () => adapterRef.current?.setView( 'timeGridWeek' ) ) }>Week</button>
 					</div>
-					<button className="ap-cal-btn ap-cal-btn--primary" type="button" onClick={ () => onAdd?.() }>{ renderIcon( 'plus' ) }Add</button>
+					<button className="ap-cal-btn ap-cal-btn--primary" type="button" onClick={ addBooking }>{ renderIcon( 'plus' ) }Add</button>
 				</div>
 			</div>
 			<div className="ap-cal-host" ref={ hostRef } />

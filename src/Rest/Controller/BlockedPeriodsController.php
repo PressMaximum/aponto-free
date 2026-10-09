@@ -15,6 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	}
 }
 
+use Aponto\Database\LockFactory;
+use Aponto\Database\TransactionGuard;
 use Aponto\Rest\Args;
 use Aponto\Rest\Controller;
 use Aponto\Rest\Data\BlockedPeriodGateway;
@@ -41,11 +43,19 @@ final class BlockedPeriodsController implements Controller {
 	private BlockedPeriodGateway $gateway;
 
 	/**
+	 * Database handle (the duplicate-create lock + lookup — persona QA 2026-10-05, T-067).
+	 *
+	 * @var \wpdb
+	 */
+	private \wpdb $wpdb;
+
+	/**
 	 * Construct the controller.
 	 *
 	 * @param Services $services Service locator.
 	 */
 	public function __construct( Services $services ) {
+		$this->wpdb    = $services->wpdb();
 		$this->gateway = new BlockedPeriodGateway( $services->wpdb() );
 	}
 
@@ -146,22 +156,69 @@ final class BlockedPeriodsController implements Controller {
 			return Errors::validation( $v->errors() );
 		}
 
-		$id  = $this->gateway->create(
-			array(
-				'staff_id'           => $staff_id,
-				'location_id'        => $location_id,
-				'start_datetime_utc' => $start->format( 'Y-m-d H:i:s' ),
-				'end_datetime_utc'   => $end->format( 'Y-m-d H:i:s' ),
-				'reason'             => $reason,
-				'source'             => $source,
-			)
+		$data = array(
+			'staff_id'           => $staff_id,
+			'location_id'        => $location_id,
+			'start_datetime_utc' => $start->format( 'Y-m-d H:i:s' ),
+			'end_datetime_utc'   => $end->format( 'Y-m-d H:i:s' ),
+			'reason'             => $reason,
+			'source'             => $source,
 		);
+
+		// An identical block is created ONCE (persona QA 2026-10-05, T-067). "Add time off" pressed
+		// twice stored two rows for the same person and range — indistinguishable in the list, and
+		// each needing its own Remove. `(staff, location, start, end, source)` is the natural key of
+		// a block, so the repeat answers `200` with the row that already exists; the look-up and the
+		// insert share one per-staff lock, or two concurrent POSTs would both miss and both insert.
+		$guard = new TransactionGuard( $this->wpdb );
+		$lock  = ( new LockFactory( $this->wpdb ) )->named( 'apt:' . substr( hash( 'sha256', $this->wpdb->prefix . '|blocked-period-create|' . $staff_id ), 0, 48 ) );
+		if ( ! $lock->acquire( 3 ) ) {
+			return Errors::lockTimeout();
+		}
+
+		$status = 201;
+		try {
+			$id = $this->identicalBlockId( $data );
+			if ( $id > 0 ) {
+				$status = 200;
+			} else {
+				// E1 pre-write: a reconnect since acquire() silently dropped the lock.
+				if ( null === $lock->connectionId() || $lock->connectionId() !== $guard->currentConnectionId() ) {
+					return Errors::lockTimeout();
+				}
+				$id = $this->gateway->create( $data );
+			}
+		} finally {
+			if ( null !== $lock->connectionId() && $lock->connectionId() === $guard->currentConnectionId() ) {
+				$lock->release();
+			}
+		}
+
 		$row = $this->gateway->find( $id );
 		if ( null === $row ) {
 			return Errors::notFound();
 		}
 
-		return new WP_REST_Response( $this->toDto( $row ), 201 );
+		return new WP_REST_Response( $this->toDto( $row ), $status );
+	}
+
+	/**
+	 * The id of an existing block with the same staff, location, range and source, or 0.
+	 *
+	 * `reason` is deliberately NOT part of the identity: two blocks over the same range for the same
+	 * person block the same time whatever their notes say.
+	 *
+	 * @param array<string, mixed> $data Validated column data.
+	 */
+	private function identicalBlockId( array $data ): int {
+		$table = $this->wpdb->prefix . 'aponto_blocked_periods';
+		$sql   = "SELECT id FROM {$table}
+			WHERE staff_id = %d AND location_id = %d AND start_datetime_utc = %s AND end_datetime_utc = %s AND source = %s
+			ORDER BY id ASC LIMIT 1";
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; bound via prepare().
+		$id = $this->wpdb->get_var( $this->wpdb->prepare( $sql, (int) $data['staff_id'], (int) $data['location_id'], (string) $data['start_datetime_utc'], (string) $data['end_datetime_utc'], (string) $data['source'] ) );
+
+		return (int) $id;
 	}
 
 	/**

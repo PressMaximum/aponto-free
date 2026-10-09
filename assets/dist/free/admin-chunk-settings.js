@@ -15,14 +15,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   formatMinutes: () => (/* binding */ formatMinutes),
 /* harmony export */   minLabel: () => (/* binding */ minLabel),
 /* harmony export */   minToTime: () => (/* binding */ minToTime),
+/* harmony export */   nextPeriod: () => (/* binding */ nextPeriod),
 /* harmony export */   sortWeekly: () => (/* binding */ sortWeekly),
 /* harmony export */   timeToMin: () => (/* binding */ timeToMin),
 /* harmony export */   uses12h: () => (/* binding */ uses12h),
 /* harmony export */   validateWeekly: () => (/* binding */ validateWeekly)
 /* harmony export */ });
-/* harmony import */ var _icon_jsx__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./icon.jsx */ "./assets/src/admin/lib/icon.jsx");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _icon_jsx__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./icon.jsx */ "./assets/src/admin/lib/icon.jsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
 /**
  * Weekly opening-hours editor grid (SPEC-P1 §1.3), shared by the business-hours
  * panel (Settings → General) and the per-staff "Customize" work-hours editor
@@ -34,6 +37,7 @@ __webpack_require__.r(__webpack_exports__);
  * MINUTES from midnight. The component is controlled — every edit calls
  * `onChange( nextWeekly )`.
  */
+
 
 
 const WEEKDAYS = [[1, 'Monday'], [2, 'Tuesday'], [3, 'Wednesday'], [4, 'Thursday'], [5, 'Friday'], [6, 'Saturday'], [7, 'Sunday']];
@@ -100,13 +104,13 @@ function TimeSelect({
   timeFormat,
   disabled = false
 }) {
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("select", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("select", {
     className: "ap-hours-time",
     "aria-label": ariaLabel,
     value: value,
     disabled: disabled,
     onChange: e => onChange(Number(e.target.value)),
-    children: timeOptions(value, timeFormat).map(o => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("option", {
+    children: timeOptions(value, timeFormat).map(o => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("option", {
       value: o.value,
       children: o.label
     }, o.value))
@@ -137,19 +141,63 @@ function sortWeekly(weekly) {
  */
 function validateWeekly(weekly) {
   for (const [n, label] of WEEKDAYS) {
-    const periods = [...((weekly || {})[n] || [])].sort((a, b) => a.start - b.start);
+    // Sorted for the overlap test, but carrying each period's ORIGINAL index, because that
+    // is the one the grid rendered and therefore the only one a caller can address
+    // (founder QA 2026-09-21, round 3). Sorting away the index is what previously left
+    // `message` as the only thing this function could say.
+    const periods = ((weekly || {})[n] || []).map((period, index) => ({
+      ...period,
+      index
+    })).sort((a, b) => a.start - b.start);
     let prevEnd = -1;
     for (const p of periods) {
       if (p.end <= p.start) {
-        return `${label}: each period must end after it starts.`;
+        return {
+          message: `${label}: each period must end after it starts.`,
+          weekday: n,
+          index: p.index
+        };
       }
       if (p.start < prevEnd) {
-        return `${label}: hours overlap — adjust the times.`;
+        return {
+          message: `${label}: hours overlap — adjust the times.`,
+          weekday: n,
+          index: p.index
+        };
       }
       prevEnd = p.end;
     }
   }
   return null;
+}
+
+/**
+ * The period "Add hours" appends to a day (persona QA 2026-10-05, T-070).
+ *
+ * It was always 9:00–17:00, which OVERLAPS the range nearly every open day already has: pressing
+ * "Add hours" produced a grid that could not be saved until the operator worked out why. The new
+ * period now starts one hour after the day's LAST end (the usual break) and runs four hours,
+ * capped at midnight. A day with no room left after its last range gets the last possible
+ * five-minute slot rather than an overlapping one, and an empty day keeps the 9:00–17:00 default.
+ *
+ * @param {Array} periods The day's current periods (`{ start, end }` in minutes).
+ * @return {{start: number, end: number}} The period to append.
+ */
+function nextPeriod(periods) {
+  const list = periods || [];
+  if (!list.length) {
+    return {
+      start: 540,
+      end: 1020
+    };
+  }
+  const lastEnd = Math.max(...list.map(p => Number(p.end) || 0));
+  // Keep the same 5-minute grid the pickers offer; leave at least one slot before midnight.
+  const start = Math.min(lastEnd + 60, 1440 - TIME_STEP);
+  return {
+    start,
+    end: Math.min(start + 240, 1440)
+  };
 }
 
 /**
@@ -193,10 +241,7 @@ function WeeklyHoursGrid({
   });
   const addPeriod = n => onChange({
     ...weekly,
-    [n]: [...(weekly[n] || []), {
-      start: 540,
-      end: 1020
-    }]
+    [n]: [...(weekly[n] || []), nextPeriod(weekly[n])]
   });
   const removePeriod = (n, i) => onChange({
     ...weekly,
@@ -220,72 +265,84 @@ function WeeklyHoursGrid({
     });
     onChange(next);
   };
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
     className: `ap-hours-grid${busy ? ' is-busy' : ''}`,
     "aria-busy": busy,
-    children: [openDays.length >= 2 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+    children: [openDays.length >= 2 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
       className: "ap-hours-toolbar",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("button", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("button", {
         type: "button",
         className: "pd-button text sm",
         disabled: busy,
         onClick: applyToAllOpen,
-        children: [(0,_icon_jsx__WEBPACK_IMPORTED_MODULE_0__.renderIcon)('files'), "Apply ", WEEKDAYS.find(([n]) => n === openDays[0][0])[1], "\u2019s hours to all open days"]
+        children: [(0,_icon_jsx__WEBPACK_IMPORTED_MODULE_1__.renderIcon)('files'), "Apply ", WEEKDAYS.find(([n]) => n === openDays[0][0])[1], "\u2019s hours to all open days"]
       })
     }) : null, WEEKDAYS.map(([n, label]) => {
       const periods = weekly[n] || [];
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
         className: "ap-hours-day",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
           className: "ap-hours-day-head",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("strong", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("strong", {
             children: label
-          }), periods.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+          }), periods.length ?
+          /*#__PURE__*/
+          // The label names the ACTION (T-070). It read "Closed" on an open
+          // day and "Open" on a closed one — the state the press would produce,
+          // which four testers read as the day's current state.
+          (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
             type: "button",
             className: "pd-button text sm",
             disabled: busy,
             onClick: () => setDayClosed(n),
-            children: "Closed"
-          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Mark closed', 'aponto')
+          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
             type: "button",
             className: "pd-button text sm",
             disabled: busy,
             onClick: () => setDayOpen(n),
-            children: "Open"
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Open this day', 'aponto')
           })]
-        }), periods.length ? periods.map((p, i) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        }), periods.length ? periods.map((p, i) =>
+        /*#__PURE__*/
+        // Addressable by (weekday, period) so a failed save can focus the
+        // control that is actually wrong — see `validateWeekly()`. Data
+        // attributes only: no behaviour, no styling hook.
+        (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
           className: "ap-hours-period",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(TimeSelect, {
+          "data-weekday": n,
+          "data-period": i,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(TimeSelect, {
             value: p.start,
             onChange: min => setPeriod(n, i, 'start', min),
             ariaLabel: `${label} start`,
             timeFormat: timeFormat,
             disabled: busy
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
             children: "\u2013"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(TimeSelect, {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(TimeSelect, {
             value: p.end,
             onChange: min => setPeriod(n, i, 'end', min),
             ariaLabel: `${label} end`,
             timeFormat: timeFormat,
             disabled: busy
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
             type: "button",
             className: "pd-icon-button sm",
             "aria-label": "Remove period",
             disabled: busy,
             onClick: () => removePeriod(n, i),
-            children: (0,_icon_jsx__WEBPACK_IMPORTED_MODULE_0__.renderIcon)('close')
+            children: (0,_icon_jsx__WEBPACK_IMPORTED_MODULE_1__.renderIcon)('close')
           })]
-        }, i)) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
+        }, i)) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
           className: "ap-hours-closed",
           children: "Closed"
-        }), periods.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("button", {
+        }), periods.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("button", {
           type: "button",
           className: "pd-button text sm",
           disabled: busy,
           onClick: () => addPeriod(n),
-          children: [(0,_icon_jsx__WEBPACK_IMPORTED_MODULE_0__.renderIcon)('plus'), "Add hours"]
+          children: [(0,_icon_jsx__WEBPACK_IMPORTED_MODULE_1__.renderIcon)('plus'), "Add hours"]
         }) : null]
       }, n);
     })]
@@ -333,1032 +390,74 @@ function currencyChangeRequiresConfirm(savedFlat, edited) {
 
 /***/ },
 
-/***/ "./assets/src/admin/modules/catalog.js"
-/*!*********************************************!*\
-  !*** ./assets/src/admin/modules/catalog.js ***!
-  \*********************************************/
+/***/ "./assets/src/admin/lib/in-flight.js"
+/*!*******************************************!*\
+  !*** ./assets/src/admin/lib/in-flight.js ***!
+  \*******************************************/
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CATEGORY_META: () => (/* binding */ CATEGORY_META),
-/* harmony export */   CATEGORY_TABS: () => (/* binding */ CATEGORY_TABS),
-/* harmony export */   COMPARE_SECTIONS: () => (/* binding */ COMPARE_SECTIONS),
-/* harmony export */   INCLUDED_CARD_ROUTES: () => (/* binding */ INCLUDED_CARD_ROUTES),
-/* harmony export */   INDUSTRY_LABELS: () => (/* binding */ INDUSTRY_LABELS),
-/* harmony export */   INDUSTRY_OPTIONS: () => (/* binding */ INDUSTRY_OPTIONS),
-/* harmony export */   MODULE_META: () => (/* binding */ MODULE_META),
-/* harmony export */   enablingNeedsReload: () => (/* binding */ enablingNeedsReload),
-/* harmony export */   findModuleRecord: () => (/* binding */ findModuleRecord),
-/* harmony export */   integrationStateLabel: () => (/* binding */ integrationStateLabel),
-/* harmony export */   kindLabel: () => (/* binding */ kindLabel),
-/* harmony export */   moduleAvailable: () => (/* binding */ moduleAvailable),
-/* harmony export */   moduleCardState: () => (/* binding */ moduleCardState),
-/* harmony export */   moduleOpenHref: () => (/* binding */ moduleOpenHref),
-/* harmony export */   moduleSearchText: () => (/* binding */ moduleSearchText),
-/* harmony export */   moduleStateLabel: () => (/* binding */ moduleStateLabel),
-/* harmony export */   moduleToggleAllowed: () => (/* binding */ moduleToggleAllowed),
-/* harmony export */   paymentStateLabel: () => (/* binding */ paymentStateLabel),
-/* harmony export */   upgradeUrl: () => (/* binding */ upgradeUrl)
+/* harmony export */   runOnce: () => (/* binding */ runOnce),
+/* harmony export */   useInFlight: () => (/* binding */ useInFlight)
 /* harmony export */ });
-/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
-/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _filters_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./filters.js */ "./assets/src/admin/modules/filters.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /**
- * Presentation catalog + upsell data for the Modules surface (SPEC-P1 §6).
+ * One request per press (persona QA 2026-10-05, T-065 / T-066 / T-067).
  *
- * The registry (SPEC-P0 §3.2, shipped as `config.modules`) owns the entitlement
- * metadata — category, kind, edition, phase — plus the additive presentation flags
- * `status` (D-R22), `available` (D-R27) and `enabled`/`toggleable` (D-R31). This file
- * owns the display copy (label, one-line description, icon), the card-state mapping and
- * the free-vs-premium comparison matrix.
+ * Every Save in the admin disabled its button from a `saving` STATE, and state only reaches the
+ * DOM on the next render. Two taps that land in the same frame — routine on a phone, where a
+ * double tap is ~80 ms — both ran the handler while `saving` still read `false`, so both posted:
+ * two identical services, two identical time-off blocks, business hours stored twice.
  *
- * Cards + comparison + per-placement UTM links on the Premium cards only; no license
- * field and no fake controls (§6 + Guideline 5/11). The surface stopped being read-only
- * with D-R31: a shipped, toggleable module carries a REAL enable/disable switch, which is
- * the ONE control here and is backed by `PUT /modules/{code}`. Roadmap `phase` stays
- * code/registry-side only — never rendered on production cards
- * (plugin-dashboard-divergence.md §2.7), except the premium-build roadmap label below.
+ * A ref is synchronous. `useInFlight()` returns `run( task )`, which starts `task` only when no
+ * earlier one is still pending and releases when it settles — whether it resolved, rejected,
+ * threw, or returned early without a promise. A refused call returns `undefined` and does nothing:
+ * no request, no toast, no validation pass.
  *
- * COPY STATUS (C1 review fix 3): every user-facing string in this file — module
- * labels/descriptions, comparison rows, upsell wording — is DRAFT copy pending
- * founder approval before GA, and must stay honest: modules ship across the
- * premium roadmap, so no "unlock now" phrasing for not-yet-shipped modules.
- * The UTM base URL below also needs founder confirmation.
+ * The `saving` state stays where it was — it is still what paints "Saving…" and the disabled
+ * button — this only closes the window before that paint.
  */
 
 
-
-/** Category tabs, in order (SPEC-P1 §6). `all` is the default landing view. */
-const CATEGORY_TABS = [{
-  id: 'all',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('All', 'aponto')
-}, {
-  id: 'booking',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking', 'aponto')
-}, {
-  id: 'payments',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payments', 'aponto')
-}, {
-  id: 'connections',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Connections', 'aponto')
-}, {
-  id: 'site_tools',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Site & Tools', 'aponto')
-}];
-
 /**
- * Industry filter options, in display order (D-R21, founder-approved 2026-07-25).
- * The ids are the registry `industries` vocabulary; `all` is the sentinel that
- * both the select's default option and a universal module carry.
+ * The guard itself, outside React, so it can be unit-tested under plain node.
+ *
+ * @param {{current: boolean}} flag Mutable in-flight flag.
+ * @param {Function}           task The work; may return a promise.
+ * @return {*} What `task` returned (a promise when it was async), or `undefined` when refused.
  */
-const INDUSTRY_OPTIONS = [{
-  id: _filters_js__WEBPACK_IMPORTED_MODULE_1__.INDUSTRY_ALL,
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('All businesses', 'aponto')
-}, {
-  id: 'beauty',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Beauty & wellness', 'aponto')
-}, {
-  id: 'coaching',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coaching & consulting', 'aponto')
-}, {
-  id: 'fitness',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Fitness & classes', 'aponto')
-}, {
-  id: 'healthcare',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Healthcare', 'aponto')
-}, {
-  id: 'events',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Events & experiences', 'aponto')
-}, {
-  id: 'venues',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Venues & rentals', 'aponto')
-}, {
-  id: 'agencies',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Agencies & web', 'aponto')
-}, {
-  id: 'field_services',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Field services', 'aponto')
-}];
-
-/** Industry id → display label, for the select and the search haystack. */
-const INDUSTRY_LABELS = Object.fromEntries(INDUSTRY_OPTIONS.map(option => [option.id, option.label]));
-
-/** Category display label + fallback icon, keyed by the registry `category`. */
-const CATEGORY_META = {
-  booking: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking', 'aponto'),
-    icon: 'calendar'
-  },
-  payments: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payments', 'aponto'),
-    icon: 'card'
-  },
-  connections: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Connections', 'aponto'),
-    icon: 'plug'
-  },
-  site_tools: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Site & Tools', 'aponto'),
-    icon: 'wrench'
+function runOnce(flag, task) {
+  if (flag.current) {
+    return undefined;
   }
-};
-
-/** Per-module display copy + icon, keyed by registry code. */
-const MODULE_META = {
-  multi_staff: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple staff', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let several team members take bookings on their own schedules.', 'aponto'),
-    icon: 'users'
-  },
-  calendar_google: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Google Calendar', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Two-way sync so bookings land on staff Google calendars.', 'aponto'),
-    icon: 'calendar'
-  },
-  // A5 / D-R22: Free already ships one fixed 24h email reminder (SPEC-P1 §3.2 addendum
-  // 2026-07-20), so this Premium module means *advanced* reminders — custom offsets,
-  // multi-step sequences, follow-ups. SMS delivery is the separate `sms` module; this copy
-  // must claim neither the basic reminder nor SMS.
-  reminders: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Reminders', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Custom reminder schedules and follow-ups, on top of the built-in 24-hour email.', 'aponto'),
-    icon: 'bell'
-  },
-  calendar_outlook: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Outlook Calendar', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Two-way sync with Outlook and Microsoft 365 calendars.', 'aponto'),
-    icon: 'calendar'
-  },
-  video_links: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Video meeting links', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Auto-create Zoom or Google Meet links for online bookings.', 'aponto'),
-    icon: 'video'
-  },
-  custom_fields: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Custom fields', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Collect extra details on the booking form.', 'aponto'),
-    icon: 'sliders'
-  },
-  csv_import: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV import', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bulk-import customers and bookings from a spreadsheet.', 'aponto'),
-    icon: 'import'
-  },
-  // `deposits` is a separate Premium module (D-R22) — Stripe copy must not promise it. The
-  // sentence names the two facts that decide whether an owner clicks: the customer never leaves
-  // the booking form (D-R38c, inline — not a hosted redirect), and the money lands in the owner's
-  // OWN Stripe account. "Free" is stated because this is the one payment card in the catalog that
-  // is not an upsell.
-  payments_stripe: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Stripe payments', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Take card payments inside the booking form with your own Stripe account. Free.', 'aponto'),
-    icon: 'card'
-  },
-  // Same rule as Stripe above: `deposits` is a separate Premium module, so this copy must not
-  // promise it. Cards are Stripe's — PayPal's card funding is switched off in the widget when
-  // Stripe is present — so the promise here is the PayPal account itself (D-R40).
-  payments_paypal: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('PayPal payments', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let customers pay with their PayPal account at checkout.', 'aponto'),
-    icon: 'card'
-  },
-  deposits: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Deposits', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Require a partial payment to confirm a booking.', 'aponto'),
-    icon: 'coins'
-  },
-  coupons: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coupons', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Offer discount codes at checkout.', 'aponto'),
-    icon: 'tag'
-  },
-  group_capacity: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Group bookings', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Allow several attendees in a single time slot.', 'aponto'),
-    icon: 'people'
-  },
-  resources: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Shared assets', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Book rooms and equipment alongside services.', 'aponto'),
-    icon: 'cube'
-  },
-  recurring: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Recurring bookings', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let customers book repeating appointments.', 'aponto'),
-    icon: 'arrows'
-  },
-  multi_location: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple locations', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Run bookings across several business locations.', 'aponto'),
-    icon: 'pin'
-  },
-  waitlist: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Waitlist', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let customers join a waitlist when slots are full.', 'aponto'),
-    icon: 'hourglass'
-  },
-  sms: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('SMS notifications', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Send confirmations and reminders by text message.', 'aponto'),
-    icon: 'chat'
-  },
-  webhooks: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Webhooks', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Send booking events to external services in real time.', 'aponto'),
-    icon: 'plug'
-  },
-  woo_gateway: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('WooCommerce', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Use WooCommerce as the checkout and payment gateway.', 'aponto'),
-    icon: 'box'
-  },
-  service_catalog: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Service catalog', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Public service pages with descriptions and galleries.', 'aponto'),
-    icon: 'browser'
-  },
-  roles: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Team roles', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Fine-grained permissions for staff and managers.', 'aponto'),
-    icon: 'shield'
-  },
-  white_label: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('White label', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Replace Aponto branding with your own.', 'aponto'),
-    icon: 'palette'
-  },
-  // Free core capability cards (D-R22, 2026-07-27) — P1 capabilities that already ship as
-  // core code. Display entries only; they carry no gate (see the Plan registry docblock).
-  booking_form: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking form', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Gutenberg block and shortcode with styling controls — identical in Free and Premium.', 'aponto'),
-    icon: 'browser'
-  },
-  availability_engine: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Availability engine', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Weekly hours, date overrides, buffers, lead time and timezone-correct slots.', 'aponto'),
-    icon: 'clock'
-  },
-  // The due rule is SPEC-P1 §3.2: confirmed bookings only, and only those still at least
-  // 24h away when the reminder is scheduled — the copy must not promise "every booking".
-  booking_reminder: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('24-hour reminder', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('One automatic email reminder about 24 hours before confirmed bookings.', 'aponto'),
-    icon: 'bell'
-  },
-  email_notifications: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Email notifications', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Event-triggered emails with editable templates and placeholders.', 'aponto'),
-    icon: 'mail'
-  },
-  ics_export: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Calendar links', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('ICS downloads and add-to-Google links on every confirmation.', 'aponto'),
-    icon: 'calendar'
-  },
-  csv_export: {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV export', 'aponto'),
-    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Export bookings for spreadsheets and reporting.', 'aponto'),
-    icon: 'csv'
+  flag.current = true;
+  let result;
+  try {
+    result = task();
+  } catch (error) {
+    flag.current = false;
+    throw error;
   }
-};
-
-/**
- * Searchable display strings for one module — the `resolveText` seam of
- * `filters.js` (D-R21). Mirrors the mockup haystack: title, description,
- * category label and every industry label.
- *
- * @param {{code?: string, category?: string, industries?: string[]}} mod Module record.
- * @return {string[]} Searchable strings.
- */
-function moduleSearchText(mod) {
-  const meta = MODULE_META[mod?.code] || {};
-  const category = CATEGORY_META[mod?.category] || {};
-  const industries = Array.isArray(mod?.industries) ? mod.industries : [];
-  return [meta.label, meta.description, category.label, ...industries.map(id => INDUSTRY_LABELS[id])].filter(Boolean);
-}
-
-/** Human label for the module `kind`: integrations vs first-party modules. */
-function kindLabel(kind) {
-  return kind === 'integration' ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Integration', 'aponto') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Module', 'aponto');
-}
-
-/**
- * The integration 4-state, condensed into the card's meta line (extension-surface §4, D-R35).
- *
- * The catalog has to answer "what is the NEXT thing to do", and for an integration that is a
- * sequence: paste credentials → connect a staff member → it is serving services. A card that showed
- * only "Integration" made every step of that look identical, so an operator who had saved
- * credentials but connected nobody had no way to tell that from working.
- *
- * `configured` and `connected` stay SEPARATE phrases here for the same reason the server keeps them
- * separate fields (extension-surface §4): "add your credentials" and "now connect someone" are two
- * different instructions, and collapsing them produces one unexplained failure instead of two
- * actionable states.
- *
- * Returns '' for anything that is not an available integration — a locked or unshipped card has
- * nothing true to say about connections, and the boot fields are zeroed for it anyway.
- *
- * NOT FOR PAYMENT MODULES. A gateway is registered `kind: 'integration'` too, but it holds no
- * per-staff connections, so every phrase below would be a lie about it — see `paymentStateLabel()`,
- * and call `moduleStateLabel()` rather than either of them directly.
- *
- * @param {Object} mod Module boot record.
- * @return {string} A meta suffix, or '' when there is nothing to add.
- */
-function integrationStateLabel(mod) {
-  if ('integration' !== mod?.kind || true !== mod?.available) {
-    return '';
-  }
-  if (!mod.configured) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Setup needed', 'aponto');
-  }
-  const connected = Number(mod.connected_count) || 0;
-  if (connected < 1) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Configured · no staff connected', 'aponto');
-  }
-  const used = Number(mod.used_count) || 0;
-  const staff = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %d: number of staff members connected to an integration. */
-  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__._n)('%d staff connected', '%d staff connected', connected, 'aponto'), connected);
-  if (used < 1) {
-    return staff;
-  }
-  return staff + ' · ' + (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %d: number of services an integration acts for. */
-  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__._n)('%d service', '%d services', used, 'aponto'), used);
-}
-
-/**
- * The card meta suffix for a PAYMENT module (D-R39).
- *
- * A gateway is registered as `kind: 'integration'` — it is somebody else's service reached over
- * HTTP — but it has NO per-staff connections, so the connection phrases above are nonsense for it:
- * "0 staff connected" on a working Stripe account describes a state that cannot exist. The two
- * facts that actually matter are whether the credentials are in place (`configured`) and which
- * Stripe account they point at, and the second one is the reason this exists at all: a site owner
- * who leaves test keys in place sees bookings arrive and no money, and the catalog is the first
- * place that can tell them.
- *
- * `payment_mode` is DERIVED server-side from the key prefix and never stored (D-R39), and it is an
- * ADDITIVE boot field: boot data older than this bundle simply has no such key, which reads as ''
- * and degrades to a bare "Ready" rather than claiming a mode nobody confirmed.
- *
- * `ready` is the second additive field, and it OVERRIDES `configured` (Codex r1 #14). Credentials
- * being present is not the same fact as the gateway being offered: a site whose currency PayPal
- * does not accept, or whose saved webhook id belongs to the other environment, has every field
- * filled in and takes no payments at all. The server computes the whole predicate — the card only
- * reports it — and `null`/absent means "the server did not say", which falls back to the older
- * ladder rather than to a guess in either direction.
- *
- * @param {Object} mod Module boot record.
- * @return {string} A meta suffix, or '' when there is nothing to add.
- */
-function paymentStateLabel(mod) {
-  if (true !== mod?.available) {
-    return '';
-  }
-  if (!mod.configured || false === mod.ready) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Setup needed', 'aponto');
-  }
-  const mode = typeof mod.payment_mode === 'string' ? mod.payment_mode : '';
-  if ('test' === mode) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Ready · Test mode', 'aponto');
-  }
-  if ('live' === mode) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Ready · Live', 'aponto');
-  }
-  return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Ready', 'aponto');
-}
-
-/**
- * The card's next-step phrase, whichever kind of module it is.
- *
- * ONE entry point for the meta line so the cards cannot disagree about what a state means, and so
- * the payments branch cannot be reached by accident: it keys on the registry `category`, which is
- * the field that says what a module is FOR, rather than on `kind`, which every remote service
- * shares.
- *
- * @param {Object} mod Module boot record.
- * @return {string} A meta suffix, or '' when there is nothing to add.
- */
-function moduleStateLabel(mod) {
-  return 'payments' === mod?.category ? paymentStateLabel(mod) : integrationStateLabel(mod);
-}
-
-/**
- * The boot-data record for a module code, or null when the catalog has no such entry.
- * ONE lookup for every surface that resolves a code arriving from outside the catalog
- * grid — a hash segment, a card action — so they cannot disagree about what a code means.
- *
- * @param {{modules?: Array}} bootConfig Admin boot config (`lib/config.js`).
- * @param {string}            code       Registry module code.
- * @return {Object|null} Module record.
- */
-function findModuleRecord(bootConfig, code) {
-  const modules = Array.isArray(bootConfig?.modules) ? bootConfig.modules : [];
-  return modules.find(mod => mod?.code === code) || null;
-}
-
-/**
- * Whether a module code is usable on THIS site, read off the boot-data `available`
- * flag the server computed with `Plan::has()` (D-R27). Exported so any route can gate
- * display on the same single truth instead of re-deriving one from `edition`/`status`.
- *
- * Unknown codes and boot data older than this bundle both answer `false` — never
- * claim a capability that cannot be confirmed.
- *
- * @param {{modules?: Array}} bootConfig Admin boot config (`lib/config.js`).
- * @param {string}            code       Registry module code.
- * @return {boolean} Whether the module is available.
- */
-function moduleAvailable(bootConfig, code) {
-  return findModuleRecord(bootConfig, code)?.available === true;
-}
-
-/**
- * Whether this build may switch a module on or off (D-R31).
- *
- * The CLIENT MIRROR of the REST predicate in `ModulesController::isToggleable()`, and it is
- * mirrored for the same reason every UI gate is: to decide what to draw. It decides nothing —
- * the route re-checks all of it, so a card that renders a switch it should not have still cannot
- * write (§5 invariant 3).
- *
- * Deliberately NOT `available`: a module the owner just switched OFF is unavailable, and gating
- * the switch on availability would make disabling a one-way door in the UI exactly as it would in
- * the API. The terms are the ones that survive being turned off — the registry's own
- * `toggleable`, whether the code shipped in this build (`status`), and whether the edition allows
- * it at all.
- *
- * @param {{edition?: string, toggleable?: boolean, status?: string}} mod         Module record from boot data.
- * @param {string}                                                    planEdition Site plan edition.
- * @return {boolean} Whether to render a switch.
- */
-function moduleToggleAllowed(mod, planEdition = 'free') {
-  if (mod?.toggleable !== true || mod?.status !== 'included') {
-    return false;
-  }
-  return mod?.edition !== 'premium' || planEdition === 'premium';
-}
-
-/**
- * Whether switching a module ON has to be followed by a page reload (Codex A2, 2026-09-04).
- *
- * TRUE for an `integration` module being ENABLED, and for nothing else.
- *
- * The reason is server-side and deliberate (rest-contract §2.12b): the boot projection computes
- * `configured`, `connected_count`, `used_count` — and, for a gateway, `payment_mode` — only for
- * `IntegrationRegistry::activeCodes()`, i.e. the modules that were switched ON when the page was
- * built. A module enabled mid-session therefore has no such fields anywhere in this document, and
- * `PUT /modules/{code}` answers `{code, enabled}` rather than a fresh projection. The session store
- * can flip `enabled`/`available` honestly, but it cannot invent state nobody computed — so the card
- * would sit at "Setup needed" and a payments card would report no mode, both of which are lies
- * about a module that may be fully configured.
- *
- * DISABLING never needs one: `applyModuleEnabled()` already makes every surface treat the module as
- * gone, and the stale projection it leaves behind is hidden rather than shown.
- *
- * A capability or engine_flag module keeps today's behaviour — it has no projection to be missing,
- * so reloading would cost the operator their scroll position and their filters for nothing.
- *
- * @param {{kind?: string}} mod  Module boot record.
- * @param {boolean}         next Requested switch position.
- * @return {boolean} Whether to reload after the server confirms.
- */
-function enablingNeedsReload(mod, next) {
-  return true === next && 'integration' === mod?.kind;
-}
-
-/**
- * Card presentation for one module — the honest states of the catalog
- * (D-R22, founder-approved 2026-07-27; keyed on `available` since D-R27;
- * premium-build treatment founder-approved 2026-08-28).
- *
- *   available          → kit `enabled` chrome, the module's own tier badge, a static
- *                        "Included" label and — since D-R31 — a real ON switch where the
- *                        registry says the module is toggleable. NO upgrade link: the site
- *                        already owns this.
- *   available: false,  → kit `disabled` chrome: the Included shape, muted, switch OFF. NO
- *   but toggleable       "Coming soon" and NO upsell — the owner turned this off and can turn
- *                        it back on. Distinguishing it from "planned" is the whole point of
- *                        the state (D-R31): both are `available: false`, but telling someone
- *                        their own choice is a roadmap item is nonsense.
- *   free + planned     → kit `planned` chrome, green Free badge, "Coming soon".
- *                        NO upgrade link: the module WILL be free, so pointing at
- *                        the pricing page would be dishonest.
- *   premium, unshipped → depends on WHO IS LOOKING:
- *                        · FREE build    — unchanged locked card: `planned` chrome, amber
- *                          Premium badge, no status label, per-placement UTM compare link.
- *                        · PREMIUM build — neutral roadmap card: `planned` chrome, a
- *                          NEUTRAL (unamber) Premium label, "Coming soon · {phase}", and
- *                          NO upgrade link at all.
- *
- * WHY THE BUILD MATTERS HERE (founder, 2026-08-28): a paying customer must never be shown
- * plan-marketing chrome. Selling Premium to someone who already bought it is not an upsell,
- * it is noise — and the honest answer to "when do I get this" is the roadmap, not a pricing
- * page. Note this is CHROME SELECTION, not gating: `planEdition` decides how an unavailable
- * module is PRESENTED, while whether it is available at all stays `available`
- * (`Plan::has()`), and REST enforces the real thing. Do not "fix" this into a gate.
- *
- * WHY `available` AND NOT `status` (D-R27): `status` is `Plan::isShipped()`, and that
- * constant is EDITION-BLIND. The moment a premium module ships, a Free build would also
- * report `status: 'included'` for it — and keying the card on that would drop the lock
- * and the upsell for a capability the Free site does not own. `available` is
- * `Plan::has()` for the running build: edition × shipped-ness × the module toggle.
- *
- * A module older than this bundle (boot data with no `available`) reads as unavailable,
- * which is the conservative answer — it never claims a capability is present. An unknown
- * `planEdition` reads as `free`, which keeps the upsell rather than hiding it.
- *
- * @param {{edition?: string, available?: boolean, phase?: string}} mod         Module record from boot data.
- * @param {string}                                                 planEdition Site plan edition (`free`|`premium`).
- * @return {{state: string, tier: ?Object, toggle: boolean, statusLabel: ?string, plannedLabel: ?string, upgrade: boolean}} Card descriptor.
- */
-function moduleCardState(mod, planEdition = 'free') {
-  const premium = mod?.edition === 'premium';
-  const onPremiumBuild = planEdition === 'premium';
-  const tier = premium ? {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Premium', 'aponto'),
-    isPremium: true
-  } : {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Free', 'aponto'),
-    variant: 'free'
-  };
-  const toggle = moduleToggleAllowed(mod, planEdition);
-  if (mod?.available === true) {
-    return {
-      state: 'enabled',
-      tier,
-      toggle,
-      statusLabel: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Included', 'aponto'),
-      plannedLabel: null,
-      upgrade: false
+  if (result && typeof result.then === 'function') {
+    const release = () => {
+      flag.current = false;
     };
+    // Release on either outcome WITHOUT swallowing a rejection the caller may be awaiting.
+    result.then(release, release);
+    return result;
   }
-
-  // SWITCHED OFF — not "not built yet". Both are `available: false`, and without this branch a
-  // disabled module falls into the planned/upsell copy below and tells the owner their own
-  // choice is a roadmap item (D-R31). The card keeps the Included shape so flipping the switch
-  // back is obviously the way out; the kit mutes it via the `disabled` state.
-  if (toggle) {
-    return {
-      state: 'disabled',
-      tier,
-      toggle: true,
-      statusLabel: null,
-      plannedLabel: null,
-      upgrade: false
-    };
-  }
-  if (premium && onPremiumBuild) {
-    return {
-      state: 'planned',
-      // Deliberately NOT `isPremium`: that flag is what paints the amber "locked/paid"
-      // chrome (kit `tierVariantClass`). The label still names the plan the module
-      // belongs to — a catalog fact — but on neutral chrome, because nothing here is
-      // locked to this viewer.
-      tier: {
-        label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Premium', 'aponto')
-      },
-      toggle: false,
-      statusLabel: null,
-      plannedLabel: comingSoonLabel(mod?.phase),
-      upgrade: false
-    };
-  }
-  return {
-    state: 'planned',
-    tier,
-    toggle: false,
-    statusLabel: null,
-    // A locked Premium card carries the compare link instead of a "Coming soon"
-    // label — its answer to "when" is the pricing page, not a status word.
-    plannedLabel: premium ? null : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming soon', 'aponto'),
-    upgrade: premium
-  };
+  flag.current = false;
+  return result;
 }
 
 /**
- * "Coming soon", with the registry's roadmap phase appended when there is one.
- *
- * PHASE ON A CARD IS A DELIBERATE REVERSAL, scoped to premium builds (founder,
- * 2026-08-28). Production cards previously carried NO phase label at all
- * (plugin-dashboard-divergence.md §2.7 — the registry kept `phase` for docs and upsell
- * planning only), and that still holds for the Free build: a prospect is shown what a
- * plan includes, never a delivery schedule. A paying customer is in a different position
- * — they have already bought the roadmap, so "P2b" is the most honest answer available to
- * "when". It is a bare phase CODE on purpose: it commits to an ordering, not to a date.
- *
- * @param {string} phase Registry roadmap phase (e.g. `P2b`), or empty.
- * @return {string} Card label.
+ * @return {Function} `run( task )` — see {@link runOnce}.
  */
-function comingSoonLabel(phase) {
-  const code = typeof phase === 'string' ? phase.trim() : '';
-  if ('' === code) {
-    return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming soon', 'aponto');
-  }
-  return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: %s: roadmap phase code, e.g. "P2b". */
-  (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming soon · %s', 'aponto'), code);
-}
-
-// Roadmap phase (P2a/P3/…) is NOT surfaced on FREE-build cards — production copy shown to a
-// prospect carries no phase labels (divergence audit §2.7); the registry keeps it for docs and
-// upsell planning. The single exception, founder-approved 2026-08-28, is an unshipped premium
-// module on a PREMIUM build, where the phase replaces the upsell link as the honest answer to
-// "when" (see `comingSoonLabel()` above).
-
-/**
- * Free/Included card → the admin surface that ALREADY manages that capability
- * (D-R22 addendum, founder-approved 2026-07-27). An entry renders an internal
- * "Open" link on the card; it is navigation, never an upsell, so it carries no
- * UTM and never leaves the app.
- *
- * THE RULE: a code appears here ONLY when a real, shipped surface exists today.
- * A capability with no destination gets NO link — never a placeholder, never a
- * "coming soon" target, never a link to a page that does not manage it. Half a
- * destination is worse than none: a link that lands the owner somewhere
- * unrelated is exactly the fake affordance §6 / Guideline 5 forbids.
- *
- * Values are canonical hashes as the router spells them (lib/router.js +
- * settings/ia.js). Settings deep links use the full `settings/<parent>/<child>`
- * form, not a legacy alias — `#settings` and `#settings/booking` both resolve,
- * but SettingsRoute silently rewrites them, so linking the alias would make the
- * address bar change under the user.
- *
- *   booking_reminder      → Notifications. The reminder's real on/off switch is
- *   email_notifications      the `booking_reminder_customer` template's enabled
- *                            flag, and every other event email lives on the same
- *                            leaf (settings/ia.js: Notifications is ONE surface).
- *   csv_export            → Bookings, which owns the export action + its filters
- *                            (routes/Bookings.jsx `onExport`).
- *   availability_engine   → Settings → Booking → Policy, the panel described as
- *                            "Availability rules applied to every service"
- *                            (settings/catalog.js PANEL_META.policy): lead time,
- *                            booking window and buffers.
- *   multi_staff           → Staff, which owns staff records, their work hours and
- *                            their time off (D-R28, 2026-08-27). Per-service
- *                            eligibility is edited in the service editor, but Staff
- *                            is where the capability itself is managed. It is also
- *                            the first PREMIUM entry here — the map is keyed on
- *                            "a real surface already manages this", not on edition.
- *
- * DELIBERATELY ABSENT — both would need a placeholder to be listed:
- *   booking_form  — its configuration is the block Inspector (Q11 2026-07-18
- *                   moved form appearance there), which is a post-editor
- *                   surface, not an admin route this hash router can reach.
- *   ics_export    — ICS download / add-to-calendar links are emitted on
- *                   confirmations and emails; there is no admin screen for them.
- */
-const INCLUDED_CARD_ROUTES = {
-  booking_reminder: '#settings/notifications',
-  email_notifications: '#settings/notifications',
-  csv_export: '#bookings',
-  availability_engine: '#settings/booking/policy',
-  multi_staff: '#staff'
-};
-
-/**
- * The in-app destination for an Included card, or '' when it has none.
- *
- * Only an AVAILABLE module gets one (D-R27): a planned capability has nothing to open,
- * and a module the site does not own must keep the compare link as its single action
- * (§6). `available` — not `status` — is the test, for the same reason `moduleCardState`
- * uses it: `status` is edition-blind and would hand a Free build an "Open" link into a
- * premium module's settings.
- *
- * Two destinations, in priority order:
- *   1. `INCLUDED_CARD_ROUTES[code]` — the hand-mapped surface that ALREADY manages the
- *      capability (the D-R22 addendum map above). A capability whose management lives on
- *      an existing screen must land there, not on a generic panel page.
- *   2. `#modules/{code}` — the module's own settings route, for any available module that
- *      declares `has_settings`. That is where its registered panel renders.
- * Anything else gets NO link, which is still the rule: half a destination is worse
- * than none.
- *
- * @param {{code?: string, has_settings?: boolean, available?: boolean}} mod Module record from boot data.
- * @return {string} Canonical hash (e.g. `#bookings`), or '' for no link.
- */
-function moduleOpenHref(mod) {
-  if (mod?.available !== true) {
-    return '';
-  }
-  const mapped = INCLUDED_CARD_ROUTES[mod.code];
-  if (mapped) {
-    return mapped;
-  }
-  return mod?.has_settings === true ? `#modules/${mod.code}` : '';
-}
-const UPGRADE_BASE = 'https://pressmaximum.com/aponto/pricing/';
-
-/**
- * Per-placement upgrade link with UTM tracking (§6). `placement` is the
- * `utm_content`: `modules-{code}` for a card, `menu` for the page-level CTA.
- */
-function upgradeUrl(placement) {
-  const params = new URLSearchParams({
-    utm_source: 'aponto',
-    utm_medium: 'plugin',
-    utm_campaign: 'upsell',
-    utm_content: placement
-  });
-  return `${UPGRADE_BASE}?${params.toString()}`;
-}
-
-/** Free-vs-premium comparison matrix for the CompareTable at the page foot (§6). */
-const COMPARE_SECTIONS = [{
-  id: 'bookings',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bookings', 'aponto'),
-  rows: [{
-    id: 'unlimited',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Unlimited bookings', 'aponto'),
-    free: true,
-    pro: true
-  }, {
-    id: 'staff',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Staff members', 'aponto'),
-    free: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('1', 'aponto'),
-    pro: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Unlimited', 'aponto')
-  }, {
-    id: 'services',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Services & categories', 'aponto'),
-    free: true,
-    pro: true
-  },
-  // D-R43: Free books one business address (General -> Business, `location_id = 0`); named
-  // locations are the Premium `multi_location` module, whose registry `category` is `booking`.
-  {
-    id: 'locations',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Multiple locations', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'group',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Group bookings', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'recurring',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Recurring appointments', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'waitlist',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Waitlist', 'aponto'),
-    free: false,
-    pro: true
-  }]
-}, {
-  id: 'payments',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payments', 'aponto'),
-  rows: [{
-    id: 'manual',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Mark bookings paid / unpaid', 'aponto'),
-    free: true,
-    pro: true
-  },
-  // D-R22: Stripe is a Free module; PayPal stays Premium — the old single "Online
-  // payments (Stripe, PayPal)" row can no longer state one answer. Stripe SHIPPED in P3
-  // (D-R39), so the Free column is a tick: the shipped-truth rule says this table may
-  // never say "Coming" for a capability whose own card on the same screen reads
-  // "Ready" (QA BUG-8).
-  {
-    id: 'stripe',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Stripe payments', 'aponto'),
-    free: true,
-    pro: true
-  }, {
-    id: 'paypal',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('PayPal payments', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'deposits',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Deposits', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'coupons',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coupons', 'aponto'),
-    free: false,
-    pro: true
-  }]
-}, {
-  id: 'connections',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Connections', 'aponto'),
-  rows: [{
-    id: 'email',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Email notifications', 'aponto'),
-    free: true,
-    pro: true
-  },
-  // A5 / D-R22: the fixed 24h email reminder is core Free; only custom schedules
-  // (multi-step, follow-ups) are the Premium `reminders` module.
-  {
-    id: 'reminder',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('24-hour email reminder', 'aponto'),
-    free: true,
-    pro: true
-  }, {
-    id: 'reminders_advanced',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Custom reminder schedules', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'calendar',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Calendar sync (Google, Outlook)', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'sms',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('SMS reminders', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'video',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Video meeting links', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'webhooks',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Webhooks', 'aponto'),
-    free: false,
-    pro: true
-  }]
-}, {
-  id: 'site_tools',
-  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Site & tools', 'aponto'),
-  rows: [{
-    id: 'csv_export',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV export', 'aponto'),
-    free: true,
-    pro: true
-  }, {
-    id: 'csv_import',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('CSV import', 'aponto'),
-    free: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming', 'aponto'),
-    pro: true
-  }, {
-    id: 'service_catalog',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Service catalog pages', 'aponto'),
-    free: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Coming', 'aponto'),
-    pro: true
-  }, {
-    id: 'roles',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Team roles', 'aponto'),
-    free: false,
-    pro: true
-  }, {
-    id: 'white_label',
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('White label', 'aponto'),
-    free: false,
-    pro: true
-  }]
-}];
-
-/***/ },
-
-/***/ "./assets/src/admin/modules/filters.js"
-/*!*********************************************!*\
-  !*** ./assets/src/admin/modules/filters.js ***!
-  \*********************************************/
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CATEGORY_ALL: () => (/* binding */ CATEGORY_ALL),
-/* harmony export */   INDUSTRY_ALL: () => (/* binding */ INDUSTRY_ALL),
-/* harmony export */   INDUSTRY_IDS: () => (/* binding */ INDUSTRY_IDS),
-/* harmony export */   filterModules: () => (/* binding */ filterModules),
-/* harmony export */   hasBrowseFilters: () => (/* binding */ hasBrowseFilters),
-/* harmony export */   matchesCategory: () => (/* binding */ matchesCategory),
-/* harmony export */   matchesIndustry: () => (/* binding */ matchesIndustry),
-/* harmony export */   matchesQuery: () => (/* binding */ matchesQuery),
-/* harmony export */   moduleIndustries: () => (/* binding */ moduleIndustries)
-/* harmony export */ });
-/**
- * Pure browse-filter logic for the Modules catalog (D-R21, 2026-07-25).
- *
- * The Modules screen combines three independent filters with AND: the category
- * tabs, the Industry select and the free-text search box — the same combination
- * the mockup's `filteredModules()` applies (docs/mockups/v4/plugin-dashboard/
- * assets/js/plugin-dashboard.js). Kept framework- and i18n-free so it is unit
- * testable in the node Jest environment; every display string is injected by the
- * caller through `resolveText`.
- *
- * The mockup's Status and License selects are deliberately NOT part of this
- * module: D-R21 approved the Industry filter only, and D-R22 (mixed editions and
- * card states in the catalog) did not re-open that scope.
- */
-
-/** Sentinel industry id: matches every industry, on a module and as a filter value. */
-const INDUSTRY_ALL = 'all';
-
-/** Sentinel category id used by the "All" tab. */
-const CATEGORY_ALL = 'all';
-
-/**
- * The controlled industry vocabulary (D-R21), in display order. Mirrors the
- * registry's `industries` field; `all` is the sentinel and is not listed here.
- */
-const INDUSTRY_IDS = ['beauty', 'coaching', 'fitness', 'healthcare', 'events', 'venues', 'agencies', 'field_services'];
-
-/**
- * A module's industry tags, defensively normalized. A registry entry that ships
- * without the field (older boot data) reads as untagged.
- *
- * @param {{industries?: string[]}} mod Module record.
- * @return {string[]} Industry ids.
- */
-function moduleIndustries(mod) {
-  return Array.isArray(mod?.industries) ? mod.industries.filter(id => typeof id === 'string') : [];
-}
-
-/**
- * Industry predicate. `all` on either side matches; an untagged module stays
- * visible rather than disappearing from every industry view (forward-compat with
- * a bundle newer than its boot data).
- *
- * @param {{industries?: string[]}} mod      Module record.
- * @param {string}                  industry Selected industry id.
- * @return {boolean} Whether the module belongs to the industry.
- */
-function matchesIndustry(mod, industry) {
-  if (!industry || industry === INDUSTRY_ALL) {
-    return true;
-  }
-  const tags = moduleIndustries(mod);
-  if (tags.length === 0) {
-    return true;
-  }
-  return tags.includes(INDUSTRY_ALL) || tags.includes(industry);
-}
-
-/**
- * Category predicate (the tab strip).
- *
- * @param {{category?: string}} mod      Module record.
- * @param {string}              category Selected category id.
- * @return {boolean} Whether the module belongs to the category.
- */
-function matchesCategory(mod, category) {
-  return !category || category === CATEGORY_ALL || mod?.category === category;
-}
-
-/**
- * Free-text predicate over the caller-supplied display strings (title,
- * description, category label, industry labels). Matching is case-insensitive
- * substring, like the mockup's haystack.
- *
- * @param {Object}   mod         Module record.
- * @param {string}   query       Raw query string.
- * @param {Function} resolveText `( mod ) => string[]` searchable strings.
- * @return {boolean} Whether the module matches the query.
- */
-function matchesQuery(mod, query, resolveText) {
-  const needle = String(query || '').trim().toLowerCase();
-  if ('' === needle) {
-    return true;
-  }
-  const parts = typeof resolveText === 'function' ? resolveText(mod) : [];
-  const haystack = [mod?.code, ...(Array.isArray(parts) ? parts : [])].filter(part => typeof part === 'string' && '' !== part).join(' ').toLowerCase();
-  return haystack.includes(needle);
-}
-
-/**
- * Apply every active filter with AND, preserving registry order.
- *
- * @param {Object[]} modules             Module records.
- * @param {Object}   filters             Active filters.
- * @param {string}   [filters.category]  Category id (`all` = no filter).
- * @param {string}   [filters.industry]  Industry id (`all` = no filter).
- * @param {string}   [filters.query]     Free-text query.
- * @param {Function} [resolveText]       `( mod ) => string[]` searchable strings.
- * @return {Object[]} Matching modules.
- */
-function filterModules(modules, filters = {}, resolveText) {
-  const {
-    category = CATEGORY_ALL,
-    industry = INDUSTRY_ALL,
-    query = ''
-  } = filters;
-  const list = Array.isArray(modules) ? modules : [];
-  return list.filter(mod => matchesCategory(mod, category) && matchesIndustry(mod, industry) && matchesQuery(mod, query, resolveText));
-}
-
-/**
- * Whether any filter other than the category tab is narrowing the view — used to
- * decide between "this category is empty" and "clear a filter" copy.
- *
- * @param {Object} filters            Active filters.
- * @param {string} [filters.industry] Industry id.
- * @param {string} [filters.query]    Free-text query.
- * @return {boolean} Whether a browse filter is active.
- */
-function hasBrowseFilters(filters = {}) {
-  const {
-    industry = INDUSTRY_ALL,
-    query = ''
-  } = filters;
-  return industry !== INDUSTRY_ALL || '' !== String(query || '').trim();
+function useInFlight() {
+  const flag = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(task => runOnce(flag, task), []);
 }
 
 /***/ },
@@ -1371,7 +470,9 @@ function hasBrowseFilters(filters = {}) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ NotificationsApp)
+/* harmony export */   "default": () => (/* binding */ NotificationsApp),
+/* harmony export */   placeholderHelp: () => (/* binding */ placeholderHelp),
+/* harmony export */   triggerLabel: () => (/* binding */ triggerLabel)
 /* harmony export */ });
 /* harmony import */ var _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/api-fetch */ "@wordpress/api-fetch");
 /* harmony import */ var _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_0__);
@@ -1440,6 +541,69 @@ const TEMPLATE_LABELS = {
   payment_pending_customer: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Payment still needed', 'aponto'),
   payment_refunded_customer: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Refund issued', 'aponto')
 };
+
+/**
+ * What sends each template, in words (persona QA 2026-10-05, T-061). The row used to print the raw
+ * `trigger_event` key ("To: customer · no_show", "payment_pending"); a key added later than this
+ * map falls back to itself with the underscores opened up, never to a blank.
+ */
+const TRIGGER_LABELS = {
+  created: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('when a booking is made', 'aponto'),
+  confirmed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('when a booking is confirmed', 'aponto'),
+  rescheduled: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('when a booking is moved', 'aponto'),
+  cancelled: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('when a booking is cancelled', 'aponto'),
+  completed: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('when a booking is completed', 'aponto'),
+  no_show: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('when a booking is marked as a no-show', 'aponto'),
+  reminder: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('before the appointment', 'aponto'),
+  payment_pending: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('when a payment is still due', 'aponto'),
+  refund: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('when a refund is issued', 'aponto')
+};
+const triggerLabel = trigger => TRIGGER_LABELS[trigger] || String(trigger || '').replace(/_/g, ' ');
+
+/**
+ * One line per placeholder: what it prints (T-061). Shown as the chip's tooltip and, for the chip
+ * last used, under the chips. `{booking_time}` is the one that bites: it already carries the
+ * timezone — and the other clock when the customer's and the business's differ — so a template
+ * that adds `({booking_timezone})` after it prints the zone twice.
+ */
+const PLACEHOLDER_HELP = {
+  customer_name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The customer’s full name.', 'aponto'),
+  customer_first_name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The customer’s first name.', 'aponto'),
+  customer_last_name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The customer’s last name.', 'aponto'),
+  customer_email: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The customer’s email address.', 'aponto'),
+  customer_phone: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The customer’s phone number.', 'aponto'),
+  service_name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The booked service.', 'aponto'),
+  staff_name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The staff member’s full name.', 'aponto'),
+  staff_first_name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The staff member’s first name.', 'aponto'),
+  staff_last_name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The staff member’s last name.', 'aponto'),
+  booking_date: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The appointment date, in your date format.', 'aponto'),
+  booking_time: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The start time. Already includes the timezone — and the other clock when the customer’s timezone differs from yours — so do not add {booking_timezone} after it.', 'aponto'),
+  booking_end_time: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The end time (time only).', 'aponto'),
+  booking_timezone: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The timezone name on its own, e.g. “London (GMT+1)”. {booking_time} already includes it.', 'aponto'),
+  business_name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Your business name.', 'aponto'),
+  business_address: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The address of the booking’s location, or your business address.', 'aponto'),
+  business_phone: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Your business phone number.', 'aponto'),
+  site_name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Your site title.', 'aponto'),
+  booking_status: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The booking’s status.', 'aponto'),
+  order_code: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The booking reference, e.g. AP-7Q2F4.', 'aponto'),
+  cancel_reason: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Why the booking was cancelled. Empty for other emails.', 'aponto'),
+  manage_link: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Link to the customer’s page for this booking.', 'aponto'),
+  cancel_link: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Link the customer can cancel with.', 'aponto'),
+  ics_link: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Link to the calendar file (.ics).', 'aponto'),
+  booking_page_link: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Link to your booking page. The line is left out when no page is set.', 'aponto'),
+  payment_status: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Whether the booking is paid, in words.', 'aponto'),
+  amount_paid: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('What the customer has paid, with the currency.', 'aponto'),
+  amount_due: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('What is still to pay, with the currency.', 'aponto'),
+  refund_amount: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The amount refunded (refund email only).', 'aponto'),
+  payment_deadline: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('When an unpaid slot is released, in the customer’s time.', 'aponto'),
+  payment_link: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Link the customer can pay with. The line is left out when it cannot be built.', 'aponto'),
+  // Re-test 2026-10-05: the four newest placeholders were offered as chips with no explanation.
+  location_name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The name of the booking’s location. The line is left out when the booking has none.', 'aponto'),
+  location_address: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('The address of the booking’s location, or your business address.', 'aponto'),
+  admin_booking_link: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Link that opens the booking in wp-admin. Admin and staff emails only — empty in customer emails.', 'aponto'),
+  cancel_note: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('On a cancellation: what happens to a payment, or why the slot was released. Added before your sign-off when you leave it out.', 'aponto')
+};
+const placeholderHelp = token => PLACEHOLDER_HELP[token] || '';
 
 /**
  * Which group a template belongs to, in display order. Grouping by RECIPIENT is what makes the
@@ -2126,7 +1290,7 @@ function TemplateRow({
           fontSize: 12,
           color: 'var(--ap-color-text-muted, #646970)'
         },
-        children: [recipientLabel(template.recipient), " \xB7 ", template.trigger_event]
+        children: [recipientLabel(template.recipient), " \xB7 ", triggerLabel(template.trigger_event)]
       })]
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.ToggleControl, {
       __nextHasNoMarginBottom: true,
@@ -2158,6 +1322,10 @@ function Editor({
     start: e.target.selectionStart,
     end: e.target.selectionEnd
   });
+  // The placeholder whose one-line description shows under the chips (T-061): the one last
+  // pointed at or focused. `booking_time` first, because it is the one people get wrong.
+  const [helpFor, setHelpFor] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useState)('booking_time');
+  const helpToken = placeholders.includes(helpFor) ? helpFor : '';
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.Card, {
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.CardHeader, {
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("strong", {
@@ -2187,7 +1355,9 @@ function Editor({
         children: placeholders.map(token => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("button", {
           type: "button",
           onClick: () => onInsert(token),
-          title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Insert into body', 'aponto'),
+          title: placeholderHelp(token) || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Insert into body', 'aponto'),
+          onMouseEnter: () => setHelpFor(token),
+          onFocus: () => setHelpFor(token),
           style: {
             fontSize: 12,
             fontFamily: 'monospace',
@@ -2199,7 +1369,13 @@ function Editor({
           },
           children: `{${token}}`
         }, token))
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.TextareaControl, {
+      }), helpToken && placeholderHelp(helpToken) ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("p", {
+        className: "description",
+        "aria-live": "polite",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("code", {
+          children: `{${helpToken}}`
+        }), " \u2014 ", placeholderHelp(helpToken)]
+      }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.TextareaControl, {
         __nextHasNoMarginBottom: true,
         label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Body', 'aponto'),
         help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Plain text. Line breaks become paragraphs in the email.', 'aponto'),
@@ -2520,6 +1696,144 @@ function SettingsNode({
 
 /***/ },
 
+/***/ "./assets/src/admin/settings/BookingPagePanel.jsx"
+/*!********************************************************!*\
+  !*** ./assets/src/admin/settings/BookingPagePanel.jsx ***!
+  \********************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ BookingPagePanel)
+/* harmony export */ });
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _pressmaximum_dashboard_kit__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @pressmaximum/dashboard-kit */ "./node_modules/@pressmaximum/dashboard-kit/build/index.mjs");
+/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
+/* harmony import */ var _booking_page_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./booking-page.js */ "./assets/src/admin/settings/booking-page.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__);
+/**
+ * Settings → Booking → Form presentation → "Booking page" (D-R75).
+ *
+ * Which WordPress page hosts the booking form. The onboarding wizard records it once; this card
+ * is where it stays editable. One kit select through the same SchemaForm every schema panel uses,
+ * sharing SettingsApp's dirty state and SaveBar — there is no second Save button on the screen.
+ *
+ * Everything said ABOUT a page is server-computed and shown only for the SAVED page: the
+ * "no booking form on this page" warning comes from `booking_page.has_form`, and the "no longer
+ * published" notice from `booking_page.unpublished` (rest-contract §2.11 addendum D-R75). A page
+ * merely selected in the menu is described after it has been saved.
+ */
+
+
+
+
+
+
+
+const PANEL_ID = 'booking_page';
+function BookingPagePanel({
+  value,
+  saved,
+  error,
+  onFieldChange
+}) {
+  const [pages, setPages] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)([]);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
+    let alive = true;
+    fetch((0,_booking_page_js__WEBPACK_IMPORTED_MODULE_5__.pagesUrl)(_lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.restUrl), {
+      headers: {
+        'X-WP-Nonce': _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.nonce
+      },
+      credentials: 'same-origin'
+    }).then(response => response.ok ? response.json() : []).then(list => alive && Array.isArray(list) && setPages(list))
+    // The saved page is still offered (bookingPageOptions), so a failed list degrades
+    // to "keep or clear", never to a broken control.
+    .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const selected = Number(value) || 0;
+  const isSaved = selected === saved.id;
+  const help = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Email links, the “Pay now” link and checkout back-links open this page.', 'aponto');
+  const panel = {
+    id: PANEL_ID,
+    fields: [{
+      id: _booking_page_js__WEBPACK_IMPORTED_MODULE_5__.BOOKING_PAGE_KEY,
+      type: 'select',
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Page', 'aponto'),
+      description: error ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("span", {
+          children: [help, " "]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+          className: "ap-field-error",
+          children: error
+        })]
+      }) : help,
+      options: (0,_booking_page_js__WEBPACK_IMPORTED_MODULE_5__.bookingPageOptions)(pages, saved)
+    }]
+  };
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Card, {
+    className: "ap-settings-card",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardHeader, {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
+          id: (0,_pressmaximum_dashboard_kit__WEBPACK_IMPORTED_MODULE_3__.panelHeadingId)(PANEL_ID),
+          className: "ap-settings-card-title",
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Booking page', 'aponto')
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+          className: "ap-settings-card-desc",
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('The page on your site that customers book on.', 'aponto')
+        })]
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardBody, {
+      children: [saved.unpublished && selected === 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
+        status: "warning",
+        isDismissible: false,
+        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('The page that was set as your booking page is no longer published, so nothing links to it. Choose a published page.', 'aponto')
+      }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_pressmaximum_dashboard_kit__WEBPACK_IMPORTED_MODULE_3__.SchemaForm, {
+        panel: panel,
+        values: {
+          [PANEL_ID]: {
+            [_booking_page_js__WEBPACK_IMPORTED_MODULE_5__.BOOKING_PAGE_KEY]: String(selected)
+          }
+        },
+        onFieldChange: onFieldChange,
+        fieldTypes: _pressmaximum_dashboard_kit__WEBPACK_IMPORTED_MODULE_3__.BASE_FIELD_TYPES
+      }), isSaved && selected > 0 && !saved.hasForm ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
+        status: "warning",
+        isDismissible: false,
+        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('This page does not contain the Aponto booking form block. Add the block to the page so customers can book there.', 'aponto')
+      }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+        className: "ap-settings-actions-row",
+        children: [isSaved && selected > 0 && saved.permalink ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+          variant: "secondary",
+          href: saved.permalink,
+          target: "_blank",
+          rel: "noreferrer noopener",
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('View page', 'aponto')
+        }) : null, isSaved && selected > 0 && saved.editUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+          variant: "secondary",
+          href: saved.editUrl,
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Edit page', 'aponto')
+        }) : null, saved.id === 0 && selected === 0 && _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.wizardUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+          variant: "secondary",
+          href: _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.wizardUrl,
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Create a booking page', 'aponto')
+        }) : null]
+      })]
+    })]
+  });
+}
+
+/***/ },
+
 /***/ "./assets/src/admin/settings/BusinessHoursPanel.jsx"
 /*!**********************************************************!*\
   !*** ./assets/src/admin/settings/BusinessHoursPanel.jsx ***!
@@ -2538,9 +1852,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _lib_api_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lib/api.js */ "./assets/src/admin/lib/api.js");
 /* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
-/* harmony import */ var _lib_WeeklyHoursGrid_jsx__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/WeeklyHoursGrid.jsx */ "./assets/src/admin/lib/WeeklyHoursGrid.jsx");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _lib_in_flight_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../lib/in-flight.js */ "./assets/src/admin/lib/in-flight.js");
+/* harmony import */ var _lib_WeeklyHoursGrid_jsx__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../lib/WeeklyHoursGrid.jsx */ "./assets/src/admin/lib/WeeklyHoursGrid.jsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__);
 /**
  * Business hours panel (SPEC-P1 §1.3), folded into Settings → General so a founder
  * who SKIPPED the setup wizard still has a place to set weekly opening hours
@@ -2559,11 +1874,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 /** Response weekly (`[{weekday, periods:[{start_minute,end_minute}]}]`) → grid map with all 7 days present. */
 
 function toMap(weekly) {
   const map = {};
-  _lib_WeeklyHoursGrid_jsx__WEBPACK_IMPORTED_MODULE_5__.WEEKDAYS.forEach(([n]) => {
+  _lib_WeeklyHoursGrid_jsx__WEBPACK_IMPORTED_MODULE_6__.WEEKDAYS.forEach(([n]) => {
     map[n] = [];
   });
   (weekly || []).forEach(row => {
@@ -2612,19 +1928,35 @@ function BusinessHoursPanel() {
     return undefined;
   }, [loading]);
   const dirty = JSON.stringify(weekly) !== JSON.stringify(saved);
-  const save = () => {
-    const invalid = (0,_lib_WeeklyHoursGrid_jsx__WEBPACK_IMPORTED_MODULE_5__.validateWeekly)(weekly);
+
+  // An edit answers the notice it was made for (persona QA 2026-10-05, T-070): "Monday: hours
+  // overlap" stayed on screen after the times had been fixed, and "Business hours saved." after
+  // the grid had been changed again — both then described a week that was no longer on screen.
+  const edit = next => {
+    setWeekly(next);
+    setError('');
+    setNotice('');
+  };
+
+  // One PUT per press (T-065). The button is disabled from `saving`, but state only reaches the
+  // DOM on the next render: two taps in one frame both sent the full replacement, and before the
+  // server serialized it they interleaved and stored every range twice.
+  const once = (0,_lib_in_flight_js__WEBPACK_IMPORTED_MODULE_5__.useInFlight)();
+  const save = () => once(() => {
+    const invalid = (0,_lib_WeeklyHoursGrid_jsx__WEBPACK_IMPORTED_MODULE_6__.validateWeekly)(weekly);
     if (invalid) {
-      setError(invalid);
+      // `validateWeekly()` answers `{ message, weekday, index }` since 2026-09-21; this
+      // panel has no scroll target to use the locator for, so it takes the sentence.
+      setError(invalid.message);
       setNotice('');
-      return;
+      return undefined;
     }
-    const sorted = (0,_lib_WeeklyHoursGrid_jsx__WEBPACK_IMPORTED_MODULE_5__.sortWeekly)(weekly);
+    const sorted = (0,_lib_WeeklyHoursGrid_jsx__WEBPACK_IMPORTED_MODULE_6__.sortWeekly)(weekly);
     setSaving(true);
     setError('');
     setNotice('');
     const payload = {
-      weekly: _lib_WeeklyHoursGrid_jsx__WEBPACK_IMPORTED_MODULE_5__.WEEKDAYS.map(([n]) => ({
+      weekly: _lib_WeeklyHoursGrid_jsx__WEBPACK_IMPORTED_MODULE_6__.WEEKDAYS.map(([n]) => ({
         weekday: n,
         periods: (sorted[n] || []).map(p => ({
           start_minute: p.start,
@@ -2632,10 +1964,16 @@ function BusinessHoursPanel() {
         }))
       }))
     };
-    _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.put('/business-hours', payload).then(res => {
+    return _lib_api_js__WEBPACK_IMPORTED_MODULE_3__.api.put('/business-hours', payload).then(res => {
       const map = toMap(res.weekly);
       setWeekly(map);
       setSaved(map);
+      // The boot snapshot other screens resolve inherited hours against (the staff
+      // editor's "inherits business hours" list, the Calendar's shading) is a page-load
+      // copy: without this it kept showing the OLD week until a reload (re-test N10).
+      if (Array.isArray(res.weekly)) {
+        _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.businessHours = res.weekly;
+      }
       setSaving(false);
       setNotice((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Business hours saved.', 'aponto'));
     }).catch(err => {
@@ -2646,40 +1984,40 @@ function BusinessHoursPanel() {
         setError(err.message || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Could not save business hours.', 'aponto'));
       }
     });
-  };
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Card, {
+  });
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Card, {
     className: "ap-settings-card",
     id: "ap-business-hours",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardHeader, {
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardHeader, {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("h2", {
           className: "ap-settings-card-title",
           children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Business hours', 'aponto')
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("p", {
           className: "ap-settings-card-desc",
           children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('The weekly opening hours every staff member inherits. Set a day Closed to block it.', 'aponto')
         })]
       })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardBody, {
-      children: [error ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardBody, {
+      children: [error ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
         status: "error",
         isDismissible: true,
         onRemove: () => setError(''),
         children: error
-      }) : null, notice ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
+      }) : null, notice ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
         status: "success",
         isDismissible: true,
         onRemove: () => setNotice(''),
         children: notice
-      }) : null, loading ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Spinner, {}) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_lib_WeeklyHoursGrid_jsx__WEBPACK_IMPORTED_MODULE_5__.WeeklyHoursGrid, {
+      }) : null, loading ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Spinner, {}) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.Fragment, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_lib_WeeklyHoursGrid_jsx__WEBPACK_IMPORTED_MODULE_6__.WeeklyHoursGrid, {
           weekly: weekly,
-          onChange: setWeekly,
+          onChange: edit,
           busy: saving,
           timeFormat: _lib_config_js__WEBPACK_IMPORTED_MODULE_4__.config.settings.timeFormat
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
           className: "ap-hours-save",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
             variant: "primary",
             className: "pd-button primary sm",
             isBusy: saving,
@@ -2703,7 +2041,10 @@ function BusinessHoursPanel() {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ SettingsApp)
+/* harmony export */   adjustedKeys: () => (/* binding */ adjustedKeys),
+/* harmony export */   "default": () => (/* binding */ SettingsApp),
+/* harmony export */   editsAfterSave: () => (/* binding */ editsAfterSave),
+/* harmony export */   refreshBootSettings: () => (/* binding */ refreshBootSettings)
 /* harmony export */ });
 /* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
 /* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__);
@@ -2718,10 +2059,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _lib_confirm_jsx__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../lib/confirm.jsx */ "./assets/src/admin/lib/confirm.jsx");
 /* harmony import */ var _lib_nav_guard_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../lib/nav-guard.js */ "./assets/src/admin/lib/nav-guard.js");
 /* harmony import */ var _lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../lib/ui.jsx */ "./assets/src/admin/lib/ui.jsx");
-/* harmony import */ var _catalog_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./catalog.js */ "./assets/src/admin/settings/catalog.js");
-/* harmony import */ var _BusinessHoursPanel_jsx__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./BusinessHoursPanel.jsx */ "./assets/src/admin/settings/BusinessHoursPanel.jsx");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__);
+/* harmony import */ var _lib_in_flight_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../lib/in-flight.js */ "./assets/src/admin/lib/in-flight.js");
+/* harmony import */ var _catalog_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./catalog.js */ "./assets/src/admin/settings/catalog.js");
+/* harmony import */ var _BusinessHoursPanel_jsx__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./BusinessHoursPanel.jsx */ "./assets/src/admin/settings/BusinessHoursPanel.jsx");
+/* harmony import */ var _BookingPagePanel_jsx__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./BookingPagePanel.jsx */ "./assets/src/admin/settings/BookingPagePanel.jsx");
+/* harmony import */ var _booking_page_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./booking-page.js */ "./assets/src/admin/settings/booking-page.js");
+/* harmony import */ var _php_format_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./php-format.js */ "./assets/src/admin/settings/php-format.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__);
 /**
  * Settings sections (SPEC-P1 §1.6) rendered schema-driven from
  * `config.settingsSchema` (tab/panel metadata straight from the PHP schema,
@@ -2764,6 +2109,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+
+
 /** Textarea control — extends the kit's base field types (address, consent text). */
 
 function TextareaField({
@@ -2771,7 +2120,7 @@ function TextareaField({
   value,
   onChange
 }) {
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.TextareaControl, {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.TextareaControl, {
     __nextHasNoMarginBottom: true,
     label: field.label,
     help: field.description,
@@ -2830,15 +2179,15 @@ function DurationField({
     const canonical = Math.round(Number(raw) * active.factor);
     onChange(Math.min(maxCanonical, Math.max(minCanonical, canonical)));
   };
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.BaseControl, {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.BaseControl, {
     __nextHasNoMarginBottom: true,
     label: field.label,
     help: field.description,
     id: inputId,
     className: "ap-duration-field",
-    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
       className: "ap-duration-controls",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("input", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("input", {
         id: inputId,
         type: "number",
         min: minCanonical / active.factor,
@@ -2847,12 +2196,12 @@ function DurationField({
         className: "components-text-control__input ap-duration-number",
         value: amount,
         onChange: e => emit(e.target.value)
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("select", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("select", {
         className: "components-select-control__input ap-duration-unit",
         "aria-label": (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Unit', 'aponto'),
         value: unit,
         onChange: e => setUnit(e.target.value),
-        children: units.map(u => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("option", {
+        children: units.map(u => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("option", {
           value: u.value,
           children: u.label
         }, u.value))
@@ -2860,11 +2209,117 @@ function DurationField({
     })
   });
 }
+
+/**
+ * A PHP date/time format, chosen by EXAMPLE (persona QA 2026-10-05, T-080).
+ *
+ * The stored value is still the PHP format string `wp_date()` needs; the owner picks it by what it
+ * produces ("October 5, 2026", "14:30") instead of typing "F j, Y". "Custom…" keeps a hand-written
+ * format possible — and is where a stored format outside the presets shows up — with a live
+ * example under the box, so a typo is visible before it is saved.
+ */
+function FormatField({
+  field,
+  value,
+  onChange
+}) {
+  const presets = Array.isArray(field.presets) ? field.presets : [];
+  const current = value === null || value === undefined ? '' : String(value);
+  const [custom, setCustom] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(() => !presets.includes(current));
+  const [inputId] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(() => `ap-format-${Math.random().toString(36).slice(2, 9)}`);
+  const instant = (0,_php_format_js__WEBPACK_IMPORTED_MODULE_15__.exampleInstant)();
+  const example = format => (0,_php_format_js__WEBPACK_IMPORTED_MODULE_15__.phpDateExample)(format, instant, _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.locale);
+  const isCustom = custom || !presets.includes(current);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.BaseControl, {
+    __nextHasNoMarginBottom: true,
+    label: field.label,
+    help: field.description,
+    id: inputId,
+    className: "ap-duration-field",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+      className: "ap-duration-controls",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("select", {
+        id: inputId,
+        className: "components-select-control__input",
+        value: isCustom ? '__custom' : current,
+        onChange: e => {
+          if ('__custom' === e.target.value) {
+            setCustom(true);
+            return;
+          }
+          setCustom(false);
+          onChange(e.target.value);
+        },
+        children: [presets.map(format => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("option", {
+          value: format,
+          children: example(format)
+        }, format)), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("option", {
+          value: "__custom",
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Custom…', 'aponto')
+        })]
+      }), isCustom ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("input", {
+        type: "text",
+        className: "components-text-control__input",
+        "aria-label": (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Custom format (PHP date format)', 'aponto'),
+        value: current,
+        onChange: e => onChange(e.target.value)
+      }) : null]
+    }), isCustom && current ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("p", {
+      className: "ap-settings-card-desc",
+      children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.sprintf)((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Looks like: %s', 'aponto'), example(current))
+    }) : null]
+  });
+}
 const FIELD_TYPES = {
   ..._pressmaximum_dashboard_kit__WEBPACK_IMPORTED_MODULE_3__.BASE_FIELD_TYPES,
   textarea: TextareaField,
-  duration: DurationField
+  duration: DurationField,
+  format: FormatField
 };
+
+/**
+ * The edits still PENDING after a save answered (persona QA 2026-10-05, S2-80).
+ *
+ * A successful save used to clear every pending edit. A field changed while the request was on the
+ * wire was therefore dropped from the dirty set — the bar ended on "No unsaved changes", the
+ * screen kept showing the new value, and nothing had stored it (reproduced twice by the tester).
+ * What the response settles is exactly what was SENT: an edit is cleared only when its value is
+ * still the one that went out, or already equals what the server now holds.
+ *
+ * @param {Object} current Edits on screen when the response arrived, by flat key.
+ * @param {Object} sent    Edits as they were when the request was built.
+ * @param {Object} stored  The flattened response — what the server holds now.
+ * @return {Object} Edits that are still unsaved.
+ */
+function editsAfterSave(current, sent, stored) {
+  const out = {};
+  Object.keys(current || {}).forEach(key => {
+    const value = current[key];
+    const wasSent = Object.prototype.hasOwnProperty.call(sent || {}, key) && Object.is(sent[key], value);
+    if (!wasSent && !Object.is(value, (stored || {})[key])) {
+      out[key] = value;
+    }
+  });
+  return out;
+}
+
+/**
+ * Keys whose STORED value is not the value that was sent (S2-81) — the server pulled it into the
+ * range it owns (a 5-minute payment hold is stored as 10). The field shows the stored value from
+ * here on; this is what lets the screen say so instead of changing a number in silence.
+ *
+ * @param {Object} sent   Edits that were sent, by flat key.
+ * @param {Object} stored The flattened response.
+ * @return {string[]} Adjusted keys.
+ */
+function adjustedKeys(sent, stored) {
+  return Object.keys(sent || {}).filter(key => {
+    if (key.startsWith('booking_page.') || !Object.prototype.hasOwnProperty.call(stored || {}, key)) {
+      return false;
+    }
+    return String(sent[key] ?? '') !== String(stored[key] ?? '');
+  });
+}
 
 /** Flatten the nested `GET /settings` DTO into the flat, dotted schema keys. */
 function flatten(dto) {
@@ -2911,6 +2366,44 @@ function coerce(type, raw) {
   }
   return raw === null || raw === undefined ? '' : String(raw);
 }
+
+/**
+ * Bring `config.settings` — the boot snapshot `AdminPage::bootConfig()` printed — in step with a
+ * settings payload that was just saved (persona QA 2026-10-05, T-071).
+ *
+ * Only keys the payload actually carries are touched, and each keeps the coercion `lib/config.js`
+ * applies at boot, so a partial or older payload can never blank a value another screen reads.
+ *
+ * @param {Object} target The live boot config.
+ * @param {Object} flat   Flattened `GET|PUT /settings` payload.
+ */
+function refreshBootSettings(target, flat) {
+  if (!target?.settings || !flat) {
+    return;
+  }
+  const text = {
+    date_format: 'dateFormat',
+    time_format: 'timeFormat',
+    default_booking_status: 'defaultBookingStatus',
+    'customer_fields.phone': 'phoneField'
+  };
+  const numeric = {
+    slot_step_default: 'slotStep',
+    min_lead_minutes: 'minLeadMinutes',
+    max_horizon_days: 'maxHorizonDays',
+    week_starts_on: 'weekStartsOn'
+  };
+  Object.keys(text).forEach(key => {
+    if (typeof flat[key] === 'string' && flat[key]) {
+      target.settings[text[key]] = flat[key];
+    }
+  });
+  Object.keys(numeric).forEach(key => {
+    if (flat[key] !== null && flat[key] !== undefined && Number.isFinite(Number(flat[key]))) {
+      target.settings[numeric[key]] = Number(flat[key]);
+    }
+  });
+}
 function SettingsApp({
   panels = [],
   extras = []
@@ -2935,9 +2428,15 @@ function SettingsApp({
     schema.forEach(entry => {
       map[entry.key] = entry.type;
     });
+    // Not a schema key (D-R75): the booking page id rides the same edit/dirty path as one.
+    map[_booking_page_js__WEBPACK_IMPORTED_MODULE_14__.BOOKING_PAGE_KEY] = 'int';
     return map;
   }, [schema]);
   const isDirty = Object.keys(edited).length > 0;
+  // The edits as they are NOW, readable from a save's response handler — which closed over the
+  // edits as they were when the request was sent (S2-80).
+  const editedRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useRef)(edited);
+  editedRef.current = edited;
   const {
     setDirty
   } = (0,_pressmaximum_dashboard_kit__WEBPACK_IMPORTED_MODULE_3__.useDirtyState)('aponto-settings', {
@@ -3035,14 +2534,23 @@ function SettingsApp({
     });
     setNotice('');
   };
-  const save = async () => {
+
+  // One PUT per press (persona QA 2026-10-05, T-065 family): `saving` reaches the SaveBar on the
+  // next render, so a double tap sent the full-replacement PUT twice — and the second one, built
+  // from the same revision, came back as a settings conflict against the operator's own save.
+  const once = (0,_lib_in_flight_js__WEBPACK_IMPORTED_MODULE_10__.useInFlight)();
+  const saveNow = async () => {
     // Currency changes re-interpret every stored price at the new ISO exponent — explicit
     // in-app confirm before proceeding (Codex review item 1; C13 / review F item 3 replaced
     // the browser-native confirm with the shared Modal dialog).
     if ((0,_lib_currency_guard_js__WEBPACK_IMPORTED_MODULE_6__.currencyChangeRequiresConfirm)(savedFlat, edited)) {
       const ok = await confirm({
         title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Change the store currency?', 'aponto'),
-        message: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Existing prices keep their numbers but will be read in the new currency — review your service prices after saving.', 'aponto'),
+        // Truthful about decimals (persona QA 2026-10-05, S2-71). This promised that prices
+        // "keep their numbers", which holds only between currencies with the same number of
+        // decimals: nothing is converted OR re-scaled here, so A$90.00 (stored 9000) reads as
+        // ¥9,000 in a zero-decimal currency.
+        message: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Prices are not converted. Between currencies with the same number of decimals they keep their numbers; otherwise the stored amounts are read differently (for example 90.00 becomes 9,000 in a currency without decimals). Review your service prices after saving.', 'aponto'),
         confirmText: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Change currency', 'aponto')
       });
       if (!ok) {
@@ -3053,16 +2561,52 @@ function SettingsApp({
     setError('');
     setNotice('');
     setFieldErrors({});
-    const payload = unflatten({
-      ...savedFlat,
-      ...edited
-    });
-    _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.put('/settings', payload).then(dto => {
-      setSavedFlat(flatten(dto));
-      setEdited({});
+    // `booking_page` is sent only when the page itself was edited — absent means "unchanged"
+    // to the server (D-R75), so an unrelated save can never rewrite or clear it.
+    // What THIS request carries. Edits made after this line are not in it, and must still be
+    // pending when it answers (S2-80).
+    const sent = edited;
+    const payload = unflatten((0,_booking_page_js__WEBPACK_IMPORTED_MODULE_14__.flatForSave)(savedFlat, edited));
+    const pageEdited = Object.prototype.hasOwnProperty.call(edited, _booking_page_js__WEBPACK_IMPORTED_MODULE_14__.BOOKING_PAGE_KEY);
+    return _lib_api_js__WEBPACK_IMPORTED_MODULE_4__.api.put('/settings', payload).then(dto => {
+      const flat = flatten(dto);
+      if (pageEdited) {
+        // Keep the Dashboard card's boot snapshot in step without a reload.
+        _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.bookingPage = (0,_booking_page_js__WEBPACK_IMPORTED_MODULE_14__.bootBookingPage)((0,_booking_page_js__WEBPACK_IMPORTED_MODULE_14__.savedBookingPage)(flat));
+      }
+      // …and the rest of the boot snapshot other screens format with (T-071): the hour
+      // pickers kept showing AM/PM after the time format was changed to 24-hour, until
+      // a full page reload.
+      refreshBootSettings(_lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config, flat);
+      if (typeof flat.currency === 'string' && flat.currency && flat.currency !== _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.currency && !Object.keys(editsAfterSave(editedRef.current, sent, flat)).length) {
+        // The whole app formats money from the boot snapshot — the currency AND its
+        // minor-unit exponent, which only PHP knows (S2-71). Until a reload the Services
+        // list and the Dashboard kept printing the old currency, so reload once the
+        // change is stored; nothing is pending, so nothing is lost.
+        try {
+          window.location.reload();
+        } catch (reloadError) {
+          // A host that cannot reload keeps the saved state; the next visit is right.
+        }
+      }
+      // The new `revision` rides `flat`, so the next save — including the one for the
+      // edits kept below — is built on the state this response describes.
+      setSavedFlat(flat);
+      const remaining = editsAfterSave(editedRef.current, sent, flat);
+      setEdited(remaining);
       setSaving(false);
       setConflict(false);
-      setNotice((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Settings saved.', 'aponto'));
+      const adjusted = adjustedKeys(sent, flat).filter(key => !Object.prototype.hasOwnProperty.call(remaining, key));
+      if (adjusted.length) {
+        // Said, not silent (S2-81): the field now shows the stored value, and this
+        // names which one moved and to what.
+        setNotice((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.sprintf)(/* translators: %s: a list of settings and the value each was stored as, e.g. "Hold the slot for: 10". */
+        (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Settings saved. Adjusted to the allowed range — %s.', 'aponto'), adjusted.map(key => `${_catalog_js__WEBPACK_IMPORTED_MODULE_11__.FIELD_META[key]?.label || key}: ${flat[key]}`).join('; ')));
+      } else if (Object.keys(remaining).length) {
+        setNotice((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Settings saved. The changes you made while saving are not saved yet — save again.', 'aponto'));
+      } else {
+        setNotice((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Settings saved.', 'aponto'));
+      }
     }).catch(err => {
       setSaving(false);
       if (err.status === 409 && err.code === 'aponto_settings_conflict') {
@@ -3077,6 +2621,7 @@ function SettingsApp({
       }
     });
   };
+  const save = () => once(saveNow);
   const discard = async () => {
     // In-app dialog (C13 / review F item 3): destructive styling — the edits are lost for good.
     if (!isDirty || (await confirm({
@@ -3092,39 +2637,39 @@ function SettingsApp({
     }
   };
   if (loading) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.RouteLoading, {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.RouteLoading, {
       label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Loading settings…', 'aponto')
     });
   }
   if (loadError) {
-    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.RouteError, {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_lib_ui_jsx__WEBPACK_IMPORTED_MODULE_9__.RouteError, {
       message: loadError,
       onRetry: load
     });
   }
   const sectionPanels = panelsForSection(schema, panels, currentValue, fieldErrors);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
     className: "ap-settings-app",
-    children: [conflict ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
+    children: [conflict ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
       status: "error",
       isDismissible: false,
       className: "ap-settings-conflict",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
         className: "ap-settings-conflict-body",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("span", {
           children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Settings changed elsewhere — reload to get the latest values. Reloading discards your unsaved edits.', 'aponto')
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
           variant: "secondary",
           onClick: reloadAfterConflict,
           children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Reload settings', 'aponto')
         })]
       })
-    }) : null, error ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
+    }) : null, error ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
       status: "error",
       isDismissible: true,
       onRemove: () => setError(''),
       children: error
-    }) : null, notice ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
+    }) : null, notice ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
       status: "success",
       isDismissible: true,
       onRemove: () => setNotice(''),
@@ -3132,28 +2677,33 @@ function SettingsApp({
     }) : null, sectionPanels.map(({
       panel,
       values
-    }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Card, {
+    }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Card, {
       className: "ap-settings-card",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardHeader, {
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("h2", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardHeader, {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("h2", {
             id: (0,_pressmaximum_dashboard_kit__WEBPACK_IMPORTED_MODULE_3__.panelHeadingId)(panel.id),
             className: "ap-settings-card-title",
             children: panel.label
-          }), panel.description ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("p", {
+          }), panel.description ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("p", {
             className: "ap-settings-card-desc",
             children: panel.description
           }) : null]
         })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardBody, {
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_pressmaximum_dashboard_kit__WEBPACK_IMPORTED_MODULE_3__.SchemaForm, {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardBody, {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_pressmaximum_dashboard_kit__WEBPACK_IMPORTED_MODULE_3__.SchemaForm, {
           panel: panel,
           values: values,
           onFieldChange: onFieldChange,
           fieldTypes: FIELD_TYPES
         })
       })]
-    }, panel.id)), extras.includes('business-hours') ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_BusinessHoursPanel_jsx__WEBPACK_IMPORTED_MODULE_11__["default"], {}) : null, extras.includes('appearance-hint') ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(AppearanceHint, {}) : null, extras.includes('privacy-launcher') ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(PrivacyLauncher, {}) : null, extras.includes('system-status') ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(SystemStatus, {}) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_pressmaximum_dashboard_kit__WEBPACK_IMPORTED_MODULE_3__.SaveBar, {
+    }, panel.id)), extras.includes('business-hours') ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_BusinessHoursPanel_jsx__WEBPACK_IMPORTED_MODULE_12__["default"], {}) : null, extras.includes('booking-page') ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_BookingPagePanel_jsx__WEBPACK_IMPORTED_MODULE_13__["default"], {
+      value: currentValue(_booking_page_js__WEBPACK_IMPORTED_MODULE_14__.BOOKING_PAGE_KEY),
+      saved: (0,_booking_page_js__WEBPACK_IMPORTED_MODULE_14__.savedBookingPage)(savedFlat),
+      error: fieldErrors[_booking_page_js__WEBPACK_IMPORTED_MODULE_14__.BOOKING_PAGE_KEY],
+      onFieldChange: onFieldChange
+    }) : null, extras.includes('appearance-hint') ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(AppearanceHint, {}) : null, extras.includes('privacy-launcher') ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(PrivacyLauncher, {}) : null, extras.includes('system-status') ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(SystemStatus, {}) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_pressmaximum_dashboard_kit__WEBPACK_IMPORTED_MODULE_3__.SaveBar, {
       isDirty: isDirty,
       isSaving: saving,
       onSave: save,
@@ -3168,7 +2718,7 @@ function SettingsApp({
         statusDirty: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Unsaved changes', 'aponto'),
         statusSaving: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Saving…', 'aponto')
       }
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.__experimentalConfirmDialog, {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.__experimentalConfirmDialog, {
       isOpen: !!pendingNav,
       onConfirm: confirmPendingNav,
       onCancel: cancelPendingNav,
@@ -3189,10 +2739,9 @@ function SettingsApp({
  * their values still round-trip through the full-replacement PUT.
  */
 function panelsForSection(schema, panels, currentValue, fieldErrors) {
-  const allowed = Array.isArray(panels) ? panels : [];
   const order = [];
   const byPanel = {};
-  schema.filter(entry => allowed.includes(entry.panel)).forEach(entry => {
+  (0,_catalog_js__WEBPACK_IMPORTED_MODULE_11__.visibleSchemaEntries)(schema, panels, _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config).forEach(entry => {
     if (!byPanel[entry.panel]) {
       byPanel[entry.panel] = [];
       order.push(entry.panel);
@@ -3200,7 +2749,7 @@ function panelsForSection(schema, panels, currentValue, fieldErrors) {
     byPanel[entry.panel].push(entry);
   });
   return order.map(panelId => {
-    const meta = _catalog_js__WEBPACK_IMPORTED_MODULE_10__.PANEL_META[panelId] || {
+    const meta = _catalog_js__WEBPACK_IMPORTED_MODULE_11__.PANEL_META[panelId] || {
       label: panelId
     };
     const fields = byPanel[panelId].map(entry => buildField(entry, fieldErrors, currentValue(entry.key)));
@@ -3221,15 +2770,15 @@ function panelsForSection(schema, panels, currentValue, fieldErrors) {
 
 /** Assemble a kit SchemaField descriptor from a schema entry + presentation catalog. */
 function buildField(entry, fieldErrors, value) {
-  const meta = _catalog_js__WEBPACK_IMPORTED_MODULE_10__.FIELD_META[entry.key] || {};
-  const control = meta.control || (0,_catalog_js__WEBPACK_IMPORTED_MODULE_10__.controlForType)(entry.type);
+  const meta = _catalog_js__WEBPACK_IMPORTED_MODULE_11__.FIELD_META[entry.key] || {};
+  const control = meta.control || (0,_catalog_js__WEBPACK_IMPORTED_MODULE_11__.controlForType)(entry.type);
   const err = fieldErrors[entry.key];
   let description = meta.help || null;
   if (err) {
-    description = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.Fragment, {
-      children: [meta.help ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("span", {
+    description = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.Fragment, {
+      children: [meta.help ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("span", {
         children: [meta.help, " "]
-      }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+      }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("span", {
         className: "ap-field-error",
         children: err
       })]
@@ -3254,6 +2803,7 @@ function buildField(entry, fieldErrors, value) {
     description,
     options,
     units: meta.units,
+    presets: meta.presets,
     min: meta.min,
     max: meta.max,
     maxLength: meta.maxLength
@@ -3267,25 +2817,25 @@ function buildField(entry, fieldErrors, value) {
  */
 function AppearanceHint() {
   const page = _lib_config_js__WEBPACK_IMPORTED_MODULE_5__.config.bookingPage;
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Card, {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Card, {
     className: "ap-settings-card",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardHeader, {
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("h2", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardHeader, {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("h2", {
           className: "ap-settings-card-title",
           children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Booking form appearance', 'aponto')
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("p", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("p", {
           className: "ap-settings-card-desc",
           children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('The accent color and corner radius are part of the booking form block.', 'aponto')
         })]
       })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardBody, {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("p", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardBody, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("p", {
         className: "ap-hint-steps",
         children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('To change them: open the page that holds your booking form, select the Aponto booking form block, then adjust the color and rounding in the block settings (Inspector) on the right.', 'aponto')
-      }), page && page.editUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
+      }), page && page.editUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
         className: "ap-settings-actions-row",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
           variant: "secondary",
           href: page.editUrl,
           children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Edit booking page', 'aponto')
@@ -3301,26 +2851,26 @@ function PrivacyLauncher() {
   if (!tools.export && !tools.erase) {
     return null;
   }
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Card, {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Card, {
     className: "ap-settings-card",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardHeader, {
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("h2", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardHeader, {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("h2", {
           className: "ap-settings-card-title",
           children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Data access requests', 'aponto')
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("p", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("p", {
           className: "ap-settings-card-desc",
           children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Handle GDPR export and erasure requests with WordPress’s built-in privacy tools — Aponto data is included automatically.', 'aponto')
         })]
       })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardBody, {
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardBody, {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
         className: "ap-settings-actions-row",
-        children: [tools.export ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+        children: [tools.export ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
           variant: "secondary",
           href: tools.export,
           children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Export personal data', 'aponto')
-        }) : null, tools.erase ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+        }) : null, tools.erase ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
           variant: "secondary",
           href: tools.erase,
           children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Erase personal data', 'aponto')
@@ -3358,40 +2908,40 @@ function SystemStatus() {
       push((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Bookings', 'aponto'), data.counts.bookings);
     }
   }
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Card, {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Card, {
     className: "ap-settings-card",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardHeader, {
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("h2", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardHeader, {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("h2", {
           className: "ap-settings-card-title",
           children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('System status', 'aponto')
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("p", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("p", {
           className: "ap-settings-card-desc",
           children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('A read-only snapshot for support. No personal data is included.', 'aponto')
         })]
       })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardBody, {
-      children: err ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CardBody, {
+      children: err ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Notice, {
         status: "warning",
         isDismissible: false,
         children: err
-      }) : !data ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Spinner, {}) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.Fragment, {
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("dl", {
+      }) : !data ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Spinner, {}) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.Fragment, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("dl", {
           className: "ap-diagnostics",
-          children: rows.map(([label, value]) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("dt", {
+          children: rows.map(([label, value]) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("dt", {
               children: label
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("dd", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("dd", {
               children: value
             })]
           }, label))
-        }), Array.isArray(data.checks) && data.checks.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("ul", {
+        }), Array.isArray(data.checks) && data.checks.length ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("ul", {
           className: "ap-diagnostics-checks",
-          children: data.checks.map(check => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("li", {
+          children: data.checks.map(check => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("li", {
             "data-status": check.status,
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("strong", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("strong", {
               children: check.code
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("span", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("span", {
               children: check.status
             })]
           }, check.code))
@@ -3399,6 +2949,152 @@ function SystemStatus() {
       })
     })]
   });
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/settings/booking-page.js"
+/*!***************************************************!*\
+  !*** ./assets/src/admin/settings/booking-page.js ***!
+  \***************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BOOKING_PAGE_KEY: () => (/* binding */ BOOKING_PAGE_KEY),
+/* harmony export */   bookingPageOptions: () => (/* binding */ bookingPageOptions),
+/* harmony export */   bootBookingPage: () => (/* binding */ bootBookingPage),
+/* harmony export */   flatForSave: () => (/* binding */ flatForSave),
+/* harmony export */   pagesUrl: () => (/* binding */ pagesUrl),
+/* harmony export */   savedBookingPage: () => (/* binding */ savedBookingPage)
+/* harmony export */ });
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+/**
+ * Booking-page setting (D-R75) — the pure half of Settings → Booking → Form presentation.
+ *
+ * `GET /settings` carries the read-mostly object `booking_page` (`id`, `permalink`, `title`,
+ * `has_form`, `edit_url`, `unpublished`); SettingsApp flattens it like every other group, so the
+ * one writable leaf is the flat key `booking_page.id`. `PUT /settings` treats a body WITHOUT
+ * `booking_page` as "leave the page alone" (rest-contract §2.11 addendum D-R75) — which is why
+ * {@link flatForSave} sends the object only when the operator actually changed the page: saving an
+ * unrelated setting must never rewrite, or clear, the page the onboarding wizard recorded.
+ */
+
+
+/** Flat key of the one writable leaf. */
+const BOOKING_PAGE_KEY = 'booking_page.id';
+const GROUP_PREFIX = 'booking_page.';
+
+/**
+ * The flat map `PUT /settings` is built from: saved values + edits, minus the read-only
+ * `booking_page.*` leaves, plus `booking_page.id` only when it was edited.
+ *
+ * @param {Object} savedFlat Flattened GET payload.
+ * @param {Object} edited    Pending edits by flat key.
+ * @return {Object} Flat map to unflatten into the PUT body.
+ */
+function flatForSave(savedFlat, edited) {
+  const out = {};
+  const merged = {
+    ...(savedFlat || {}),
+    ...(edited || {})
+  };
+  Object.keys(merged).forEach(key => {
+    if (!key.startsWith(GROUP_PREFIX)) {
+      out[key] = merged[key];
+    }
+  });
+  if (edited && Object.prototype.hasOwnProperty.call(edited, BOOKING_PAGE_KEY)) {
+    out[BOOKING_PAGE_KEY] = Number(edited[BOOKING_PAGE_KEY]) || 0;
+  }
+  return out;
+}
+
+/**
+ * The saved booking page as an object, read back out of the flattened GET payload.
+ *
+ * @param {Object} savedFlat Flattened GET payload.
+ * @return {{id: number, permalink: string, title: string, hasForm: boolean, editUrl: string, unpublished: boolean}} Saved page.
+ */
+function savedBookingPage(savedFlat) {
+  const flat = savedFlat || {};
+  return {
+    id: Number(flat[BOOKING_PAGE_KEY]) || 0,
+    permalink: String(flat['booking_page.permalink'] || ''),
+    title: String(flat['booking_page.title'] || ''),
+    hasForm: flat['booking_page.has_form'] === true,
+    editUrl: String(flat['booking_page.edit_url'] || ''),
+    unpublished: flat['booking_page.unpublished'] === true
+  };
+}
+
+/**
+ * URL of core's published-pages collection, derived from Aponto's REST base.
+ *
+ * With plain permalinks the base is `/index.php?rest_route=/aponto/v1`, which already carries a
+ * `?`, so the separator follows the same rule as `lib/api.js` (finding U4-04).
+ *
+ * @param {string} restUrl Aponto REST base (`…/aponto/v1`).
+ * @return {string} URL.
+ */
+function pagesUrl(restUrl) {
+  const url = String(restUrl || '').replace(/\/?aponto\/v1\/?$/, '') + '/wp/v2/pages';
+  const query = 'status=publish&per_page=100&orderby=title&order=asc&_fields=id,title';
+  return url + (url.includes('?') ? '&' : '?') + query;
+}
+
+/** `title.rendered` is HTML — decode its entities into the plain text an `<option>` shows. */
+function plainTitle(page) {
+  const html = String(page?.title?.rendered || '');
+  if (!html || typeof DOMParser === 'undefined') {
+    return html;
+  }
+  return new DOMParser().parseFromString(html, 'text/html').documentElement.textContent || '';
+}
+
+/**
+ * Select options: "None", then the published pages. The saved page is merged in when the list
+ * does not carry it (more than 100 pages, or the list failed to load), so the control never
+ * silently shows a different choice from the one stored.
+ *
+ * @param {Array}  pages `wp/v2/pages` items (`{ id, title: { rendered } }`).
+ * @param {Object} saved {@link savedBookingPage} result.
+ * @return {Array<{value: string, label: string}>} Options.
+ */
+function bookingPageOptions(pages, saved) {
+  const list = (Array.isArray(pages) ? pages : []).filter(page => Number(page?.id) > 0).map(page => ({
+    value: String(page.id),
+    label: plainTitle(page) || `#${page.id}`
+  }));
+  if (saved && saved.id > 0 && !list.some(option => option.value === String(saved.id))) {
+    list.unshift({
+      value: String(saved.id),
+      label: saved.title || `#${saved.id}`
+    });
+  }
+  return [{
+    value: '0',
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('None', 'aponto')
+  }, ...list];
+}
+
+/**
+ * The Dashboard card's boot snapshot (`config.bookingPage`) for a page just saved, so the card
+ * is right without a reload. `hasForm` rides along (persona QA 2026-10-05, T-040) so the card can
+ * say when the chosen page carries no booking form.
+ *
+ * @param {Object} saved {@link savedBookingPage} result.
+ * @return {Object|null} Boot-shaped page, or null for none.
+ */
+function bootBookingPage(saved) {
+  return saved && saved.id > 0 ? {
+    id: saved.id,
+    status: 'publish',
+    url: saved.permalink,
+    editUrl: saved.editUrl,
+    hasForm: saved.hasForm
+  } : null;
 }
 
 /***/ },
@@ -3412,12 +3108,16 @@ function SystemStatus() {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   FIELD_META: () => (/* binding */ FIELD_META),
+/* harmony export */   KEY_REQUIRES_MODULE: () => (/* binding */ KEY_REQUIRES_MODULE),
 /* harmony export */   PANEL_META: () => (/* binding */ PANEL_META),
-/* harmony export */   controlForType: () => (/* binding */ controlForType)
+/* harmony export */   controlForType: () => (/* binding */ controlForType),
+/* harmony export */   visibleSchemaEntries: () => (/* binding */ visibleSchemaEntries)
 /* harmony export */ });
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
 /* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
+/* harmony import */ var _modules_catalog_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../modules/catalog.js */ "./assets/src/admin/modules/catalog.js");
+/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lib/config.js */ "./assets/src/admin/lib/config.js");
+/* harmony import */ var _php_format_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./php-format.js */ "./assets/src/admin/settings/php-format.js");
 /**
  * Presentation catalog for the schema-driven Settings tabs (SPEC-P1 §1.6).
  *
@@ -3438,6 +3138,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
 /** Panel headings/descriptions keyed by the PHP schema `panel` slug. */
 const PANEL_META = {
   business: {
@@ -3451,6 +3153,23 @@ const PANEL_META = {
   policy: {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking policy', 'aponto'),
     description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Availability rules applied to every service unless a service overrides them.', 'aponto')
+  },
+  // D-R52. Its own panel rather than five more rows under Booking policy: these answer
+  // "how do we present our people, and how much of them do we publish", which is a different
+  // question from lead times and cancellation windows. Every key in it is gated on
+  // `multi_staff`, and `panelsForSection` drops a panel whose keys are all gated — so on Free
+  // the heading does not exist at all.
+  staff: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Staff', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('How your team appears on the booking form, and what customers can see about them.', 'aponto')
+  },
+  // D-R61. The same arrangement as `staff`: its own card under Booking → Policy, every key in
+  // it gated on `multi_location`, so on Free (or with the module off) the heading never renders.
+  // Singular, like the `Staff` heading beside it: the panel is about the location QUESTION,
+  // not a list of places (D-R62 fix round 3, founder QA).
+  location: {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Location', 'aponto'),
+    description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Whether customers choose where their appointment takes place.', 'aponto')
   },
   payments: {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Payments', 'aponto'),
@@ -3480,6 +3199,49 @@ const PANEL_META = {
     description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('What happens to your data when the plugin is removed.', 'aponto')
   }
 };
+
+/**
+ * Schema keys that only MEAN something with a given module available (D-R50).
+ *
+ * Display-only gating, like every other UI gate here (§5 invariant 3): the value still
+ * round-trips through the full-replacement PUT, so hiding the row loses nothing and a
+ * downgrade/upgrade shows the same configuration back. Enforcement is server-side — the
+ * `/public/services` roster gates re-check `Plan::has()` regardless of what is stored.
+ *
+ * Lives here (pure data) rather than in SettingsApp.jsx so the gating table is testable
+ * without mounting the settings screen (D-R61).
+ */
+const KEY_REQUIRES_MODULE = {
+  'booking.staff_choice': 'multi_staff',
+  // D-R52. All five join `staff_choice` in the `staff` panel, and because
+  // `panelsForSection` filters gated keys BEFORE grouping, a build without the module
+  // produces no panel at all rather than an empty card.
+  'booking.staff_layout': 'multi_staff',
+  'booking.staff_photos': 'multi_staff',
+  'booking.staff_titles': 'multi_staff',
+  'booking.staff_profiles': 'multi_staff',
+  'booking.staff_label': 'multi_staff',
+  // D-R61. The `location` panel's only key, so the same filter drops the whole card.
+  'booking.location_choice': 'multi_location'
+};
+
+/**
+ * The schema entries a settings section renders: those in the section's panels, minus any key
+ * whose module is not available on this build (KEY_REQUIRES_MODULE — display-only). SettingsApp's
+ * `panelsForSection` groups exactly this list, so a panel left with no key never becomes a card.
+ *
+ * @param {Array}  schema     UI schema rows (`{key, panel, …}`).
+ * @param {Array}  panels     Panel ids the section asked for.
+ * @param {Object} bootConfig Admin boot config (for `moduleAvailable`).
+ * @return {Array} Visible entries, in schema order.
+ */
+function visibleSchemaEntries(schema, panels, bootConfig) {
+  const allowed = Array.isArray(panels) ? panels : [];
+  return (Array.isArray(schema) ? schema : []).filter(entry => allowed.includes(entry.panel)).filter(entry => {
+    const required = KEY_REQUIRES_MODULE[entry.key];
+    return !required || (0,_modules_catalog_js__WEBPACK_IMPORTED_MODULE_1__.moduleAvailable)(bootConfig, required);
+  });
+}
 const weekdayOptions = () => [{
   value: '0',
   label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Sunday', 'aponto')
@@ -3573,18 +3335,25 @@ const FIELD_META = {
     // Same neutral global menu as the wizard (fleet-r1 U2 FB6) — a select, not a free-typed
     // ISO code. A stored code outside the menu is merged in at render (SettingsApp).
     control: 'select',
-    options: _lib_config_js__WEBPACK_IMPORTED_MODULE_1__.config.currencies.map(code => ({
+    options: _lib_config_js__WEBPACK_IMPORTED_MODULE_2__.config.currencies.map(code => ({
       value: code,
       label: code
     }))
   },
+  // Presets labelled with what they PRODUCE, plus "Custom…" for a hand-written PHP format
+  // (persona QA 2026-10-05, T-080) — the `format` control in SettingsApp. The stored value is
+  // still the PHP format string.
   date_format: {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Date format', 'aponto'),
-    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('PHP date format, e.g. F j, Y.', 'aponto')
+    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('How dates are written in emails and on the booking pages.', 'aponto'),
+    control: 'format',
+    presets: _php_format_js__WEBPACK_IMPORTED_MODULE_3__.DATE_FORMAT_PRESETS
   },
   time_format: {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Time format', 'aponto'),
-    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('PHP time format, e.g. g:i a.', 'aponto')
+    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('How times are written in emails and on the booking pages.', 'aponto'),
+    control: 'format',
+    presets: _php_format_js__WEBPACK_IMPORTED_MODULE_3__.TIME_FORMAT_PRESETS
   },
   week_starts_on: {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Week starts on', 'aponto'),
@@ -3622,7 +3391,16 @@ const FIELD_META = {
   },
   slot_step_default: {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Time-slot interval (minutes)', 'aponto'),
-    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Default gap between the start times you offer.', 'aponto')
+    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Default gap between the start times you offer.', 'aponto'),
+    // A menu of the intervals a booking grid is actually built on (persona QA 2026-10-05,
+    // S2-81): the bare number box took 7, and the form then offered 70 start times a day
+    // (2:00, 2:07, 2:14…). Presentation only — the schema still accepts any positive whole
+    // number, and a stored value outside the menu stays selectable (SettingsApp merges it in).
+    control: 'select',
+    options: [5, 10, 15, 20, 30, 45, 60, 90, 120].map(minutes => ({
+      value: String(minutes),
+      label: String(minutes)
+    }))
   },
   min_cancel_hours: {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Cancellation notice (hours)', 'aponto'),
@@ -3631,6 +3409,95 @@ const FIELD_META = {
   pending_auto_cancel_hours: {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Auto-cancel unconfirmed after (hours)', 'aponto'),
     help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Cancel still-pending bookings automatically. 0 = never.', 'aponto')
+  },
+  'booking.timezone_mode': {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Booking times shown in', 'aponto'),
+    control: 'radio',
+    options: [{
+      value: 'visitor',
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('The customer’s own timezone', 'aponto')
+    }, {
+      value: 'business',
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Your business timezone', 'aponto')
+    }],
+    // Says what the visitor actually sees, and makes clear this is presentation only —
+    // a customer somewhere else can always switch the form to their own timezone, and the
+    // booking is stored in whichever one they chose (D-R48).
+    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Which clock the booking form shows by default. A customer in another timezone is told which one the times are in, and can always switch the form to their own — their booking is confirmed in the timezone they chose.', 'aponto')
+  },
+  // D-R50/D-R52. Only meaningful with the `multi_staff` module, so SettingsApp hides these
+  // rows without it (display-only gating — the payload gates are server-side). Whichever way
+  // the choice is set, a service with one eligible staff member never shows the step: there is
+  // no choice to make, and asking anyway is the friction the single-service skip already
+  // rejected.
+  'booking.staff_choice': {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Staff selection', 'aponto'),
+    control: 'radio',
+    options: [{
+      value: 'visitor',
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Customers choose a staff member (or any available)', 'aponto')
+    }, {
+      value: 'required',
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Customers must choose a staff member', 'aponto')
+    }, {
+      value: 'any',
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Always assign automatically', 'aponto')
+    }],
+    // States the assignment rule, because it is the half an owner cannot see from the form:
+    // "Any available" is not random. Verified against `StaffGateway::list()`, whose default
+    // order is `position ASC, id ASC` — the Staff screen's own order — and against
+    // `ReservationService::reserveAnyStaff()`, which walks the same order.
+    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Shown on the booking form only when a service has more than one staff member. When a customer picks “Any available”, or when you always assign automatically, the first free staff member in your Staff list order gets the booking.', 'aponto')
+  },
+  // D-R61. Only meaningful with `multi_location`, gated in KEY_REQUIRES_MODULE above. The help
+  // states the rules an owner cannot see from the form: a lone branch is never asked about, and
+  // "first" is the first in alphabetical order AND the only branch taking online bookings (fix
+  // round 2, option A — an explicit other branch is refused on both public routes).
+  'booking.location_choice': {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Location selection', 'aponto'),
+    control: 'radio',
+    options: [{
+      value: 'visitor',
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Customers choose a location', 'aponto')
+    }, {
+      value: 'first',
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Only take online bookings at the first location', 'aponto')
+    }],
+    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Customers are only asked when two or more active locations offer the service. “First” is the first active location, in alphabetical order, that offers the service; your other locations take no online bookings.', 'aponto')
+  },
+  'booking.staff_layout': {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Staff layout', 'aponto'),
+    control: 'radio',
+    options: [{
+      value: 'list',
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('List', 'aponto')
+    }, {
+      value: 'cards',
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Cards', 'aponto')
+    }],
+    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Cards fall back to the list automatically on narrow forms.', 'aponto')
+  },
+  'booking.staff_photos': {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Show staff photos', 'aponto'),
+    // Says the privacy half out loud, because it is the reason this switch exists at all:
+    // with photos on, a staff member without an uploaded picture falls back to Gravatar,
+    // whose URL carries a hash of their email address (D-R51).
+    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Off removes photos from the booking form completely, including the Gravatar fallback.', 'aponto')
+  },
+  'booking.staff_titles': {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Show job titles', 'aponto'),
+    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Show each person’s job title under their name while the customer is choosing.', 'aponto')
+  },
+  'booking.staff_profiles': {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Let customers view staff profiles', 'aponto'),
+    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Adds a “Learn more” button that opens the staff member’s photo, title and bio.', 'aponto')
+  },
+  'booking.staff_label': {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('What customers call your staff', 'aponto'),
+    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Singular, lower case — e.g. stylist, doctor, trainer, instructor. Used on the booking form: “Choose your stylist”.', 'aponto'),
+    // Left blank = the form's own neutral default, "staff member". The kit's text field
+    // has no placeholder slot, so the example lives in the help line above.
+    maxLength: 40
   },
   'payments.mode': {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Online payment', 'aponto'),
@@ -3648,7 +3515,21 @@ const FIELD_META = {
     // The honest caveat, and it is the server's own rule (D-R38a(1)): `required` with no gateway
     // ready behaves like `off`, because refusing every booking when nobody has configured a
     // gateway takes the site's bookings down.
-    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Until a payment method is set up and switched on, this behaves as if payment were off — bookings are never refused because no gateway is ready.', 'aponto')
+    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Until a payment method is set up and switched on, this behaves as if payment were off. What happens to paid services while a required payment method is not ready is the next setting.', 'aponto')
+  },
+  // D-R79 (opt-in, default `accept` = the D-R38a(1) rule): the owner's answer for the one state
+  // the mode cannot express — payment is required and nothing can take it.
+  'payments.when_unavailable': {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('If online payment is required but no payment method is available', 'aponto'),
+    control: 'radio',
+    options: [{
+      value: 'accept',
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Take the booking without payment', 'aponto')
+    }, {
+      value: 'refuse',
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Do not take bookings for paid services', 'aponto')
+    }],
+    help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Applies to the public booking form only. Free services stay bookable, and bookings you create yourself are never refused.', 'aponto')
   },
   'payments.hold_minutes': {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Hold the slot for', 'aponto'),
@@ -3715,6 +3596,113 @@ function controlForType(type) {
     default:
       return 'text';
   }
+}
+
+/***/ },
+
+/***/ "./assets/src/admin/settings/php-format.js"
+/*!*************************************************!*\
+  !*** ./assets/src/admin/settings/php-format.js ***!
+  \*************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DATE_FORMAT_PRESETS: () => (/* binding */ DATE_FORMAT_PRESETS),
+/* harmony export */   TIME_FORMAT_PRESETS: () => (/* binding */ TIME_FORMAT_PRESETS),
+/* harmony export */   exampleInstant: () => (/* binding */ exampleInstant),
+/* harmony export */   phpDateExample: () => (/* binding */ phpDateExample)
+/* harmony export */ });
+/**
+ * Render a PHP `date()` format string for a JS Date — enough of it to SHOW an example
+ * (persona QA 2026-10-05, T-080).
+ *
+ * Settings → Localization asked the owner for raw PHP format strings ("F j, Y", "g:i a"). The
+ * stored value stays a PHP format — it is what `wp_date()` formats every mail and the manage page
+ * with — but the control now offers presets labelled with what they PRODUCE, which needs this
+ * small renderer. It covers the day, month, year and clock tokens the presets and any sane custom
+ * format use; an unknown letter is passed through unchanged, exactly as PHP does, so the example
+ * is never invented.
+ */
+
+const pad = n => String(n).padStart(2, '0');
+function part(date, locale, options) {
+  try {
+    return new Intl.DateTimeFormat(locale, options).format(date);
+  } catch {
+    return new Intl.DateTimeFormat('en-US', options).format(date);
+  }
+}
+function ordinal(day) {
+  if (day >= 11 && day <= 13) {
+    return 'th';
+  }
+  return {
+    1: 'st',
+    2: 'nd',
+    3: 'rd'
+  }[day % 10] || 'th';
+}
+
+/**
+ * @param {string} format PHP date format.
+ * @param {Date}   date   The instant to render, read in the browser's local zone.
+ * @param {string} locale BCP-47 locale for month and weekday names.
+ * @return {string} The formatted example.
+ */
+function phpDateExample(format, date = new Date(), locale = 'en-US') {
+  const hours = date.getHours();
+  const tokens = {
+    d: () => pad(date.getDate()),
+    j: () => String(date.getDate()),
+    D: () => part(date, locale, {
+      weekday: 'short'
+    }),
+    l: () => part(date, locale, {
+      weekday: 'long'
+    }),
+    S: () => ordinal(date.getDate()),
+    F: () => part(date, locale, {
+      month: 'long'
+    }),
+    M: () => part(date, locale, {
+      month: 'short'
+    }),
+    m: () => pad(date.getMonth() + 1),
+    n: () => String(date.getMonth() + 1),
+    Y: () => String(date.getFullYear()),
+    y: () => String(date.getFullYear()).slice(-2),
+    a: () => hours < 12 ? 'am' : 'pm',
+    A: () => hours < 12 ? 'AM' : 'PM',
+    g: () => String(hours % 12 || 12),
+    G: () => String(hours),
+    h: () => pad(hours % 12 || 12),
+    H: () => pad(hours),
+    i: () => pad(date.getMinutes()),
+    s: () => pad(date.getSeconds())
+  };
+  let out = '';
+  const text = String(format || '');
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    if ('\\' === char) {
+      index += 1;
+      out += text[index] || '';
+    } else {
+      out += tokens[char] ? tokens[char]() : char;
+    }
+  }
+  return out;
+}
+
+/** The presets WordPress's own General settings screen offers, in its order. */
+const DATE_FORMAT_PRESETS = ['F j, Y', 'Y-m-d', 'm/d/Y', 'd/m/Y', 'j F Y', 'D, M j, Y'];
+const TIME_FORMAT_PRESETS = ['g:i a', 'g:i A', 'H:i'];
+
+/** The fixed instant every example is rendered for: an afternoon, so am/pm and 24h visibly differ. */
+function exampleInstant() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 30, 0);
 }
 
 /***/ }

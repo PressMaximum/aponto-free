@@ -44,6 +44,17 @@ final class TransactionGuard {
 	private const ER_INSIDE_TRANSACTION = 1568;
 
 	/**
+	 * Whether THIS guard's own START TRANSACTION was observed open on the SQLite drop-in.
+	 *
+	 * Only a carrier that answered `true` right after our own start is trusted at commit time: the
+	 * 2.x translator's plain PDO cannot see SQL-started transactions on PHP < 8.4, and reading its
+	 * `false` as "rolled back" would refuse every commit. An untrusted carrier skips the check.
+	 *
+	 * @var bool
+	 */
+	private bool $sqlite_opened = false;
+
+	/**
 	 * Begin a transaction at READ COMMITTED (scoped to this transaction only).
 	 *
 	 * FAIL-CLOSED on an ambient transaction (R3-3): production reserve() must be the OUTERMOST
@@ -128,6 +139,7 @@ final class TransactionGuard {
 		}
 
 		$this->exec( 'START TRANSACTION', 'start transaction' );
+		$this->markSqliteOpened();
 	}
 
 	/**
@@ -244,22 +256,47 @@ final class TransactionGuard {
 	 */
 	public function begin(): void {
 		$this->exec( 'START TRANSACTION', 'start transaction' );
+		$this->markSqliteOpened();
 	}
 
 	/**
 	 * Commit the transaction.
 	 *
-	 * @throws StorageException When the statement fails.
+	 * SQLite (D-R20, D-R71 technical hardening): the official driver answers ANY failed statement
+	 * inside a user transaction — a duplicate key, a parse error, a constraint — by rolling the
+	 * WHOLE transaction back (`WP_MySQL_On_SQLite::query()` → `rollback_user_transaction()`). Every
+	 * later statement then autocommits on its own and the final `COMMIT` is a silent no-op that
+	 * reports success. Verified live on 3.0.2 (2026-10-01): an earlier write vanished while COMMIT
+	 * returned 0. A caller that swallowed the failed statement would report a write that never
+	 * landed — on the payment path, money recorded as settled with no row behind it. When this
+	 * guard saw its own transaction open and the drop-in now definitely reports none, the commit
+	 * refuses instead. The writes that ran after the hidden rollback are already durable; the
+	 * refusal cannot undo them, it only stops the caller from claiming the unit succeeded.
+	 *
+	 * @throws StorageException When the statement fails or the transaction was already rolled back.
 	 */
 	public function commit(): void {
+		$opened              = $this->sqlite_opened;
+		$this->sqlite_opened = false;
+		if ( $opened && false === $this->sqliteTransactionState() ) {
+			throw StorageException::because( esc_html( 'sqlite transaction was rolled back by a failed statement before commit' ) );
+		}
 		$this->exec( 'COMMIT', 'commit' );
+	}
+
+	/**
+	 * Remember whether the drop-in reports the transaction this guard just started (SQLite only).
+	 */
+	private function markSqliteOpened(): void {
+		$this->sqlite_opened = DatabaseEngine::isSqlite( $this->wpdb ) && true === $this->sqliteTransactionState();
 	}
 
 	/**
 	 * Roll back, best-effort (never throws — used on error paths).
 	 */
 	public function rollback(): void {
-		$suppressed = $this->wpdb->suppress_errors( true );
+		$this->sqlite_opened = false;
+		$suppressed          = $this->wpdb->suppress_errors( true );
 		$this->wpdb->query( 'ROLLBACK' );
 		$this->wpdb->suppress_errors( $suppressed );
 	}

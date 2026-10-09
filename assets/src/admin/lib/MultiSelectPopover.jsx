@@ -54,6 +54,12 @@ function matchesQuery( item, query, getItemLabel, getItemDescription ) {
  * `loadItems` receives `{ search, perPage }` and may return an item array or a
  * REST-style `{ items, meta: { has_more } }` envelope. `onChange` receives both
  * the next value list and all selected item snapshots currently known.
+ *
+ * Two presentation props for a picker that sits INSIDE a list row (D-R64, the Service editor's
+ * "Staff & locations" rows): `hideLabel` keeps `label` as the control's accessible name — the
+ * trigger and the option group stay `aria-labelledby` it, so the name still reads "<label>,
+ * <current value>" — without painting it as a heading above the trigger; `selectionText` replaces
+ * the generic "N items selected" summary when the caller can say it better ("Downtown, Uptown").
  */
 export function MultiSelectPopover( {
 	label,
@@ -72,6 +78,8 @@ export function MultiSelectPopover( {
 	loadingText,
 	errorText,
 	noSelectionText,
+	selectionText,
+	hideLabel = false,
 	help,
 	validationMessage,
 	disabled = false,
@@ -177,7 +185,15 @@ export function MultiSelectPopover( {
 				.filter( Boolean )
 		);
 	};
-	const clear = () => onChange?.( [], [] );
+	// Focus moves to the search field BEFORE the selection empties (D-R63 fix round 1, browser QA
+	// B2): Clear used to unmount itself with focus on it, focus fell to <body>, and the Popover's
+	// Escape / focus-outside close stopped firing. The button now also stays mounted (disabled
+	// when there is nothing to clear), so the toolbar does not shift under the pointer either.
+	const searchRef = useRef( null );
+	const clear = () => {
+		searchRef.current?.focus();
+		onChange?.( [], [] );
+	};
 	const selectionCount = selectedKeys.size;
 	const selectedItem =
 		selectionCount === 1
@@ -186,6 +202,8 @@ export function MultiSelectPopover( {
 	const triggerText =
 		selectionCount === 0
 			? noSelectionText || placeholder || __( 'Select items', 'aponto' )
+			: selectionText
+			? selectionText
 			: selectionCount === 1 && selectedItem
 			? getItemLabel( selectedItem )
 			: sprintf(
@@ -197,23 +215,39 @@ export function MultiSelectPopover( {
 					),
 					selectionCount
 			  );
+	// Escape closes the popover AND returns focus to the trigger (D-R63 fix round 2, a11y): the
+	// focused search field unmounts with the popover, and focus used to fall to <body>. Only on
+	// Escape — a click elsewhere moves focus where the operator clicked.
+	const rootRef = useRef( null );
+	const escaped = useRef( false );
 	const toggle = ( willOpen ) => {
 		setOpen( willOpen );
 		if ( ! willOpen ) {
 			setQuery( '' );
 			setLoadError( false );
+			if ( escaped.current ) {
+				escaped.current = false;
+				rootRef.current?.querySelector( '.ap-multiselect__trigger' )?.focus();
+			}
 		}
 	};
 
 	return (
 		<div
+			ref={ rootRef }
 			className={ `ap-multiselect${
 				validationMessage ? ' has-error' : ''
 			}` }
 		>
-			<label className="ap-multiselect__label" id={ `${ id }-label` }>
-				{ label }
-			</label>
+			{ hideLabel ? (
+				<span className="ap-multiselect__label screen-reader-text" id={ `${ id }-label` }>
+					{ label }
+				</span>
+			) : (
+				<label className="ap-multiselect__label" id={ `${ id }-label` }>
+					{ label }
+				</label>
+			) }
 			<Dropdown
 				className="ap-multiselect__dropdown"
 				contentClassName="ap-multiselect-popover"
@@ -247,9 +281,11 @@ export function MultiSelectPopover( {
 					</Button>
 				) }
 				renderContent={ () => (
-					<div className="ap-multiselect-popover__inner">
+					// eslint-disable-next-line jsx-a11y/no-static-element-interactions -- only observes Escape on its way to the Dropdown's own close.
+					<div className="ap-multiselect-popover__inner" onKeyDown={ ( event ) => { if ( 'Escape' === event.key ) escaped.current = true; } }>
 						<div className="ap-multiselect-popover__header">
 							<input
+								ref={ searchRef }
 								className="ap-multiselect-popover__search"
 								type="search"
 								value={ query }
@@ -281,11 +317,9 @@ export function MultiSelectPopover( {
 										: placeholder ||
 										  __( 'Select items', 'aponto' ) }
 								</span>
-								{ selectionCount ? (
-									<Button variant="link" onClick={ clear }>
-										{ __( 'Clear', 'aponto' ) }
-									</Button>
-								) : null }
+								<Button variant="link" onClick={ clear } disabled={ ! selectionCount }>
+									{ __( 'Clear', 'aponto' ) }
+								</Button>
 							</div>
 						</div>
 						<div

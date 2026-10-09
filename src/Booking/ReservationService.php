@@ -17,7 +17,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Aponto\Availability\BusinessTimezone;
 use Aponto\Availability\Engine;
-use Aponto\Availability\ServiceDefinition;
 use Aponto\Availability\TimezoneConverter;
 use Aponto\Booking\Event\BookingCreated;
 use Aponto\Booking\Exception\IdempotencyConflict;
@@ -34,6 +33,10 @@ use Aponto\Booking\Repository\ServiceRepository;
 use Aponto\Database\Lock;
 use Aponto\Database\StorageException;
 use Aponto\Database\TransactionGuard;
+use Aponto\Payments\CouponUnavailable;
+use Aponto\Payments\OrderPrice;
+use Aponto\Payments\PricingContext;
+use Aponto\Payments\OrderPricing;
 use Aponto\Support\Clock;
 use Aponto\Support\Settings;
 
@@ -120,6 +123,38 @@ final class ReservationService {
 	private array $on_persist = array();
 
 	/**
+	 * Trusted internal customer resolver, called inside the reservation transaction.
+	 *
+	 * @var callable|null
+	 */
+	private $customer_resolver = null;
+
+	/**
+	 * Collector for committed effects when a caller holds an outer advisory lock.
+	 *
+	 * @var callable|null
+	 */
+	private $post_commit_dispatch = null;
+
+	/**
+	 * Resolve an existing customer without refreshing their contact profile.
+	 *
+	 * @param callable|null $resolver Receives BookingDraft and returns an existing customer ID.
+	 */
+	public function setCustomerResolver( ?callable $resolver ): void {
+		$this->customer_resolver = $resolver;
+	}
+
+	/**
+	 * Defer committed effects until the caller has released its own advisory locks.
+	 *
+	 * @param callable|null $collector Receives a zero-argument effect; null dispatches immediately.
+	 */
+	public function setPostCommitDispatch( ?callable $collector ): void {
+		$this->post_commit_dispatch = $collector;
+	}
+
+	/**
 	 * Install/remove the pre-insert guard.
 	 *
 	 * @param callable|null $guard `function (BookingDraft $draft): void`, may throw DomainException.
@@ -194,6 +229,9 @@ final class ReservationService {
 	 * @throws SlotUnavailable    Slot taken or lock timeout (incl. lost connection identity).
 	 * @throws IdempotencyConflict Key reused with a different request.
 	 * @throws IdempotencyInFlight Concurrent duplicate in progress (E5: immediate, via idem lock).
+	 * @throws CouponUnavailable When the submitted coupon is no longer eligible (or moved the order across zero).
+	 * @throws \Aponto\Payments\PaymentMethodRequired When the deposit requires an online method.
+	 * @throws \Aponto\Payments\PaymentChoiceUnavailable When full payment is not offered.
 	 */
 	public function reserve( BookingDraft $draft ): ReservationResult {
 		$staff_id        = (int) $draft->staff_id;
@@ -253,8 +291,9 @@ final class ReservationService {
 		}
 		$held[] = $service_lock;
 
-		$event  = null;
-		$result = null;
+		$event          = null;
+		$result         = null;
+		$order_snapshot = null;
 		try {
 			$attempt = 0;
 			while ( true ) {
@@ -270,8 +309,9 @@ final class ReservationService {
 					$outcome = $this->runReservation( $draft, $staff_id, $use_idempotency, $key_hash, $held );
 					// runReservation() re-verified identity as its last step; only COMMIT follows.
 					$this->tx->commit();
-					$result = $outcome['result'];
-					$event  = $outcome['event'];
+					$result         = $outcome['result'];
+					$event          = $outcome['event'];
+					$order_snapshot = $outcome['order'];
 					break;
 				} catch ( \Throwable $e ) {
 					// R3-3: only roll back a transaction WE began — an ambient-transaction abort
@@ -302,7 +342,34 @@ final class ReservationService {
 		// transaction (outbox), so nothing here depends on listener behaviour; an extension
 		// exception propagates as that extension's bug.
 		if ( null !== $event ) {
-			$this->events->dispatch( $event );
+			$customer_mutation = null === $this->customer_resolver && null !== $draft->customer ? $this->customers->sourceMutation() : null;
+			$effect            = function () use ( $customer_mutation, $order_snapshot, $event ): void {
+				if ( null !== $customer_mutation ) {
+					try {
+						if ( 'created' === $customer_mutation['type'] ) {
+							do_action( 'aponto_customer_created', $customer_mutation['row'] );
+						} else {
+							do_action( 'aponto_customer_updated', $customer_mutation['row'], $customer_mutation['before'] );
+						}
+					} catch ( \Throwable $listener_failure ) {
+						unset( $listener_failure );
+						// The customer is committed; a broken extension cannot fail the booking response.
+					}
+				}
+				if ( null !== $order_snapshot ) {
+					try {
+						do_action( 'aponto_order_created', $order_snapshot );
+					} catch ( \Throwable $listener_failure ) {
+						unset( $listener_failure ); // The order is already committed.
+					}
+				}
+				$this->events->dispatch( $event );
+			};
+			if ( null === $this->post_commit_dispatch ) {
+				$effect();
+			} else {
+				( $this->post_commit_dispatch )( $effect );
+			}
 		}
 
 		return $result;
@@ -316,6 +383,9 @@ final class ReservationService {
 	 *
 	 * @param BookingDraft $draft Draft with `staff_id = null`.
 	 * @throws SlotUnavailable When every candidate is busy.
+	 * @throws CouponUnavailable When the submitted coupon is no longer eligible (or moved the order across zero).
+	 * @throws \Aponto\Payments\PaymentMethodRequired When the deposit requires an online method.
+	 * @throws \Aponto\Payments\PaymentChoiceUnavailable When full payment is not offered.
 	 */
 	public function reserveAnyStaff( BookingDraft $draft ): ReservationResult {
 		$candidates = $this->connections->staffForService( $draft->service_id, $draft->location_id );
@@ -348,7 +418,7 @@ final class ReservationService {
 	 * @param bool         $use_idempotency Whether the idempotency claim applies.
 	 * @param string       $key_hash        Idempotency key hash ('' when unused).
 	 * @param list<Lock>   $held            Locks whose identity guards this critical section.
-	 * @return array{result: ReservationResult, event: BookingCreated|null}
+	 * @return array{result: ReservationResult, event: BookingCreated|null, order: array<string,mixed>|null}
 	 */
 	private function runReservation( BookingDraft $draft, int $staff_id, bool $use_idempotency, string $key_hash, array $held ): array {
 		$ctx = array(
@@ -439,11 +509,11 @@ final class ReservationService {
 	 * @param string             $key_hash        Idempotency key hash ('' when unused).
 	 * @param list<Lock>         $held            Locks guarding this critical section.
 	 * @param array<string, int> $ctx             Mutable context collecting written row ids.
-	 * @return array{result: ReservationResult, event: BookingCreated|null}
+	 * @return array{result: ReservationResult, event: BookingCreated|null, order: array<string,mixed>|null}
 	 */
 	private function performReservation( BookingDraft $draft, int $staff_id, bool $use_idempotency, string $key_hash, array $held, array &$ctx ): array {
 		if ( $use_idempotency ) {
-			$claim = $this->idempotency->claim( $key_hash, $draft->scope, $draft->request_hash );
+			$claim = $this->idempotency->claim( $key_hash, $draft->scope, $draft->request_hash, $draft->exact_hash );
 
 			if ( 'conflict' === $claim['status'] ) {
 				throw new IdempotencyConflict();
@@ -461,6 +531,7 @@ final class ReservationService {
 				return array(
 					'result' => new ReservationResult( $existing, null, true ),
 					'event'  => null,
+					'order'  => null,
 				);
 			}
 		}
@@ -493,7 +564,19 @@ final class ReservationService {
 		// E1: nothing beyond this point may run without the locks — re-verify before the FIRST write.
 		$this->assertLocksIntact( $held );
 
-		$customer_id = $this->customers->findOrCreateByEmail( $draft->customer );
+		if ( null !== $this->customer_resolver ) {
+			$customer_id = (int) ( $this->customer_resolver )( $draft );
+			if ( $customer_id < 1 ) {
+				throw StorageException::because( 'Invalid reservation customer identity.' );
+			}
+		} else {
+			if ( null === $draft->customer && ! $draft->deferred_checkout ) {
+				throw \Aponto\Payments\PaymentException::state();
+			}
+			// `resolve()` is the email upsert for every public booking; an ADMIN draft may instead name a
+			// picked customer row or carry no email at all (D-R77).
+			$customer_id = null === $draft->customer ? 0 : $this->customers->resolve( $draft->customer );
+		}
 
 		$tz           = $this->timezones->forLocation( $draft->location_id );
 		$wall         = $this->converter->instantToWall( $draft->start_utc, $tz );
@@ -520,9 +603,35 @@ final class ReservationService {
 		$raw_token  = $this->tokens->rawToken();
 		$token_hash = $this->tokens->hash( $raw_token );
 		$now        = $this->clock->nowSql();
-		$status     = null !== $draft->status && '' !== $draft->status
+		// Price and atomically consume a coupon INSIDE the reservation transaction (D-R67): a later
+		// failure — slot taken on the recheck below, a storage error — rolls the usage claim back
+		// with the booking. Priced before the status, because a 100 %-off booking is a free booking
+		// for `booking.auto_confirm_free` (D-R67k).
+		$price = OrderPricing::quote(
+			$service->price_minor,
+			(string) $this->settings->get( 'currency' ),
+			$draft->coupon_code,
+			true,
+			$draft->service_id,
+			$draft->coupon_user_id,
+			$this->clock->now()
+		);
+		// The payment requirement was decided at the boundary from a PREVIEW total; a coupon edited
+		// or exhausted between that preview and this claim can move the order across zero. A hold
+		// for nothing, or a payable booking whose visitor was never offered a method, must not be
+		// committed — refuse with the uniform coupon answer and roll everything back (D-R67m).
+		$payable = $price->total_minor > 0;
+		if ( ( '' !== $draft->payment_method && ! $payable )
+			|| ( null !== $draft->quoted_total_minor && ( $draft->quoted_total_minor > 0 ) !== $payable )
+		) {
+			throw new CouponUnavailable();
+		}
+		if ( $draft->deferred_checkout && ( ! $payable || '' === $draft->payment_method || null !== $draft->customer || 'pending' !== $draft->status || '' !== $draft->coupon_code ) ) {
+			throw \Aponto\Payments\PaymentException::state();
+		}
+		$status = null !== $draft->status && '' !== $draft->status
 			? $draft->status
-			: $this->defaultCreateStatus( $service );
+			: $this->defaultCreateStatus( $price );
 
 		// R2 #3 — the AUTHORITATIVE bookability recheck at the LAST point before the insert: every
 		// intermediate step above (customer upsert, tz conversion, pre-insert guard) ran queries a
@@ -548,7 +657,7 @@ final class ReservationService {
 				'attendees'          => max( 1, $draft->attendees ),
 				'customer_id'        => $customer_id,
 				'customer_timezone'  => $draft->customer_timezone,
-				'customer_note'      => $draft->customer->note,
+				'customer_note'      => $draft->customer?->note ?? '',
 				'consent_at'         => $draft->consent ? $now : null,
 				'token_hash'         => $token_hash,
 				'ics_sequence'       => 0,
@@ -579,8 +688,47 @@ final class ReservationService {
 			$this->bookings->anchorTokenHash( $booking_id, $token_hash );
 		}
 
-		$order           = $this->orders->createWithItem( $booking_id, $service->price_minor, (string) $this->settings->get( 'currency' ) );
+		$order           = $this->orders->createWithItem( $booking_id, $service->price_minor, (string) $this->settings->get( 'currency' ), $price );
 		$ctx['order_id'] = (int) $order['id'];
+		// Payment terms (D-R71): resolved on the coupon-adjusted total, inside this transaction, so the
+		// stored deposit is exactly what the gateway will be asked for. Admin bookings and bookings
+		// without an offered gateway never carry a deposit; full payment keeps the column NULL.
+		$terms_context = PricingContext::forSite(
+			'admin' === $draft->scope ? PricingContext::SCOPE_ADMIN : PricingContext::SCOPE_PUBLIC,
+			$draft->service_id,
+			$price->currency,
+			$this->settings,
+			$staff_id,
+			$draft->location_id,
+			$draft->payment_method,
+			$draft->amount_mode
+		);
+		$terms         = OrderPricing::terms( $price, $terms_context );
+		if ( $terms->requiresOnlinePayment() && '' === $draft->payment_method ) {
+			throw new \Aponto\Payments\PaymentMethodRequired();
+		}
+		if ( 'admin' !== $draft->scope && 'off' !== $terms_context->payments_mode && ! $terms_context->gateway_offered && ! $terms_context->external_exclusive ) {
+			// Explain an unapplied policy inside the same transaction as the booking.
+			$probe = new PricingContext( PricingContext::SCOPE_PREVIEW, $draft->service_id, $staff_id, $draft->location_id, $terms_context->payments_mode, true );
+			if ( OrderPricing::terms( $price, $probe )->isDeposit() ) {
+				$this->activities->log(
+					'booking',
+					$booking_id,
+					'deposit_bypassed',
+					array(
+						'service_id' => $draft->service_id,
+						'reason'     => 'no_gateway',
+					),
+					'public'
+				);
+			}
+		}
+		if ( $terms->isDeposit() ) {
+			$this->orders->setPayableNow( (int) $order['id'], $terms->payable_now_minor );
+		}
+		if ( $draft->deferred_checkout && ! ( new BookingMetaRepository( $this->wpdb ) )->setKey( $booking_id, 'payments.deferred_customer', $draft->payment_method ) ) {
+			throw StorageException::because( 'deferred customer marker failed' );
+		}
 
 		$booking = new Booking(
 			$booking_id,
@@ -602,7 +750,9 @@ final class ReservationService {
 			0,
 			(int) $order['id'],
 			(string) $order['code'],
-			'',
+			// The row was inserted with updated_at = created_at, so the stored created_at IS the
+			// stored updated_at; a blank here broke every serializer that reads it (webhooks B1).
+			$created_at,
 			0,
 			// The STORED value, so the in-memory snapshot handed to the outbox derives the same
 			// token the send path will (D-R26). Guaranteed non-empty — storedCreatedAt() throws
@@ -615,6 +765,13 @@ final class ReservationService {
 		// with the booking.
 		foreach ( $this->on_persist as $step ) {
 			$step( $booking, $raw_token, $draft );
+		}
+		if ( $draft->deferred_checkout ) {
+			$hold = $this->orders->find( (int) $order['id'] );
+			if ( null === $hold || 'pending' !== $hold['payment_status'] || $draft->payment_method !== $hold['gateway']
+				|| (string) ( $hold['hold_expires_at'] ?? '' ) <= $now ) {
+				throw \Aponto\Payments\PaymentException::state();
+			}
 		}
 
 		if ( $use_idempotency ) {
@@ -633,6 +790,12 @@ final class ReservationService {
 			$draft->scope
 		);
 
+		$order_snapshot = $this->orders->find( (int) $order['id'] );
+		if ( null === $order_snapshot ) {
+			throw StorageException::because( 'created order snapshot missing' );
+		}
+		$order_snapshot['customer_id'] = $customer_id;
+
 		// E1: LAST statement before COMMIT — if the connection changed mid-write-phase, any rows
 		// written after the reconnect were autocommitted WITHOUT lock protection. Abort (the
 		// wrapper removes the strays); never commit.
@@ -641,22 +804,25 @@ final class ReservationService {
 		return array(
 			'result' => new ReservationResult( $booking, $raw_token, false ),
 			'event'  => new BookingCreated( $booking, $raw_token, 'send' ),
+			'order'  => $order_snapshot,
 		);
 	}
 
 	/**
 	 * The status a booking gets when the caller pins none. The customer form always defers here
 	 * (its draft carries no status); the admin create pins an explicit status and never reaches
-	 * this. Normally the `default_booking_status` setting — but a FREE service (price 0 or unset)
-	 * is confirmed on the spot when `booking.auto_confirm_free` is ON (default), because a $0
-	 * booking has nothing to collect or approve and a "pending" default only adds a needless manual
-	 * step (B2 / SPEC-P1 §2.2 addendum 2026-07-20; finding U3 Jonas). The email branch keys off the
-	 * resulting status, so a confirmed free booking automatically gets the confirmed template.
+	 * this. Normally the `default_booking_status` setting — but a FREE booking is confirmed on the
+	 * spot when `booking.auto_confirm_free` is ON (default), because a $0 booking has nothing to
+	 * collect or approve and a "pending" default only adds a needless manual step (B2 / SPEC-P1 §2.2
+	 * addendum 2026-07-20; finding U3 Jonas). "Free" is the ORDER total, not the service price
+	 * (D-R67k, founder 2026-09-23): an unpriced or zero-price service is free, and so is a paid
+	 * service a 100 %-off coupon brought to zero. The email branch keys off the resulting status, so
+	 * a confirmed free booking automatically gets the confirmed template.
 	 *
-	 * @param ServiceDefinition $service The reserved service (price snapshot in scope).
+	 * @param OrderPrice $price The server-owned order price snapshot (coupon applied).
 	 */
-	private function defaultCreateStatus( ServiceDefinition $service ): string {
-		if ( ( null === $service->price_minor || 0 === $service->price_minor )
+	private function defaultCreateStatus( OrderPrice $price ): string {
+		if ( 0 === $price->total_minor
 			&& (bool) $this->settings->get( 'booking.auto_confirm_free' ) ) {
 			return 'confirmed';
 		}
@@ -689,7 +855,7 @@ final class ReservationService {
 	 * Whether the draft's write targets are still valid — the booking-create guard against the
 	 * delete-vs-book races (§4.4, R2 #3/#8; review F item 1): the SERVICE exists AND is active, the
 	 * staff member exists AND is active, is CONNECTED to the service at the draft location (§5.3
-	 * eligibility), and a concrete (non-wildcard) location still exists. Read under the held
+	 * eligibility), and a concrete (non-wildcard) location still exists AND is active (D-R61). Read under the held
 	 * per-staff/per-location/per-service locks (READ COMMITTED), so a concurrent committed
 	 * delete/archive/unassign is visible — the authoritative recheck immediately before the
 	 * insert (R2 #3) guarantees the rows the booking references are still bookable at insert time.
@@ -722,10 +888,17 @@ final class ReservationService {
 			return false;
 		}
 
+		// A concrete location must still EXIST and be ACTIVE (D-R61 review round 3, rest-contract
+		// §3.3 "Race archive-vs-reserve"). Existence alone let a booking land at a branch archived
+		// in the same instant: the public path validated it as active, then the archive committed
+		// before this insert. Archiving now takes the same `apt:loc:{id}` lock this section holds
+		// (ManageLocationsController::update()), so reading the status HERE is race-free, and an
+		// archived branch refuses exactly like an archived staff member above — `taken()`, i.e.
+		// `409 aponto_slot_taken`.
 		if ( $draft->location_id > 0 ) {
 			$locations = $this->wpdb->prefix . 'aponto_locations';
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare(); in-transaction existence guard.
-			if ( null === $this->wpdb->get_var( $this->wpdb->prepare( "SELECT id FROM {$locations} WHERE id = %d", $draft->location_id ) ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant table; id bound via prepare(); in-transaction existence + status guard.
+			if ( 'active' !== $this->wpdb->get_var( $this->wpdb->prepare( "SELECT status FROM {$locations} WHERE id = %d", $draft->location_id ) ) ) {
 				return false;
 			}
 		}
